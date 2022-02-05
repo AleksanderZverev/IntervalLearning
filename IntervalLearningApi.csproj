@@ -9,7 +9,7 @@
     <SpaRoot>interval-learning-web\</SpaRoot>
     <DefaultItemExcludes>$(DefaultItemExcludes);$(SpaRoot)node_modules\**</DefaultItemExcludes>
     <SpaProxyServerUrl>http://localhost:3000</SpaProxyServerUrl>
-    <SpaProxyLaunchCommand>yarn start</SpaProxyLaunchCommand>
+    <SpaProxyLaunchCommand>yarn dev</SpaProxyLaunchCommand>
     <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
 
