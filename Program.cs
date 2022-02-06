@@ -4,6 +4,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddCors();
 builder.Services.AddControllers();
+builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 
@@ -11,6 +12,8 @@ var app = builder.Build();
 if (app.Environment.IsDevelopment())
 {
     app.UseCors(c => c.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod());
+    app.UseSwagger();
+    app.UseSwaggerUI();
 }
 else
 {
