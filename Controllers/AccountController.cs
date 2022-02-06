@@ -35,6 +35,8 @@ namespace IntervalLearningApi.Controllers
             }
         };
 
+        //TODO: after test 2 authorizations
+        //[ValidateAntiForgeryToken]
         [HttpPost]
         public IActionResult GetToken(UserLogins userLogins)
         {

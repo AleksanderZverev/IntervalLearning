@@ -1,8 +1,11 @@
 using IntervalLearningApi.Extensions;
+using IntervalLearningApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
+
+//builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection("JsonWebTokenKeys"));
 
 builder.Services.AddCors();
 builder.Services.AddControllers();
