@@ -6,8 +6,5 @@
       "Microsoft.AspNetCore.SpaProxy": "Information",
       "Microsoft.Hosting.Lifetime": "Information"
     }
-  },
-  "ConnectionStrings": {
-    "DefaultConnection": "Server=localhost;Port=5432;Database=postgres;User Id=postgres;Password=postgres;"
   }
 }
