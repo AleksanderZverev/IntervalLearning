@@ -73,8 +73,7 @@ namespace IntervalLearningApi.Controllers
         /// </summary>
         /// <returns>List Of UserAccounts</returns>
         [HttpGet]
-        [Authorize(AuthenticationSchemes =
-            Microsoft.AspNetCore.Authentication.JwtBearer.JwtBearerDefaults.AuthenticationScheme)]
+        [Authorize]
         public IActionResult GetList()
         {
             return Ok(logins);
