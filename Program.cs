@@ -1,5 +1,7 @@
+using DB;
 using IntervalLearningApi.Extensions;
 using IntervalLearningApi.Models;
+using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -38,6 +40,11 @@ builder.Services.AddSwaggerGen(options =>
 });
 
 builder.Services.AddJwtTokenServices(builder.Configuration);
+builder.Services.AddDbContext<ApplicationContext>(options =>
+{
+    var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+    options.UseNpgsql(connectionString);
+});
 
 var app = builder.Build();
 

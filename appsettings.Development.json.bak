@@ -6,8 +6,5 @@
       "Microsoft.AspNetCore.SpaProxy": "Information",
       "Microsoft.Hosting.Lifetime": "Information"
     }
-  },
-  "ConnectionStrings": {
-    "DefaultConnection": "Server=localhost;Port=5432;Database=postges;User Id=postges;Password=postges;"
   }
 }
