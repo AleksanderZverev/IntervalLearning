@@ -1,4 +1,5 @@
-﻿using IntervalLearningApi.Models;
+﻿using IntervalLearningApi.Controllers.Users;
+using IntervalLearningApi.Models;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 
@@ -12,7 +13,11 @@ public static class JwtTokenServicesExtensions
 
         configuration.Bind("JsonWebTokenKeys", bindJwtSettings);
 
+        services.Configure<JwtSettings>(configuration.GetSection("JsonWebTokenKeys"));
         services.AddSingleton(bindJwtSettings);
+
+        services.AddScoped<IJwtUtils, JwtUtils>();
+        services.AddScoped<IAuthenticationService, AuthenticationService>();
 
         services.AddAuthentication(options => 
         {

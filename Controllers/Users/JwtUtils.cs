@@ -4,6 +4,7 @@ using System.Security.Cryptography;
 using System.Text;
 using DB;
 using DB.Models;
+using IntervalLearningApi.Models;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 
@@ -11,25 +12,25 @@ namespace IntervalLearningApi.Controllers.Users;
 
 public class JwtUtils : IJwtUtils
 {
-    private ApplicationContext _context;
-    private readonly AppSettings _appSettings;
+    private readonly ApplicationContext _context;
+    private readonly JwtSettings _jwtSettings;
 
     public JwtUtils(
         ApplicationContext context,
-        IOptions<AppSettings> appSettings)
+        IOptions<JwtSettings> appSettings)
     {
         _context = context;
-        _appSettings = appSettings.Value;
+        _jwtSettings = appSettings.Value;
     }
 
     public string GenerateJwtToken(UserEntity userEntity)
     {
         // generate token that is valid for 15 minutes
         var tokenHandler = new JwtSecurityTokenHandler();
-        var key = Encoding.ASCII.GetBytes(_appSettings.Secret);
+        var key = Encoding.ASCII.GetBytes(_jwtSettings.Secret);
         var tokenDescriptor = new SecurityTokenDescriptor
         {
-            Subject = new ClaimsIdentity(new[] { new Claim("id", userEntity.Id.ToString()) }),
+            Subject = new ClaimsIdentity(GetClaims(userEntity)),
             Expires = DateTime.UtcNow.AddMinutes(15),
             SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
         };
@@ -37,13 +38,13 @@ public class JwtUtils : IJwtUtils
         return tokenHandler.WriteToken(token);
     }
 
-    public int? ValidateJwtToken(string token)
+    public int? ValidateJwtToken(string? token)
     {
         if (token == null)
             return null;
 
         var tokenHandler = new JwtSecurityTokenHandler();
-        var key = Encoding.ASCII.GetBytes(_appSettings.Secret);
+        var key = Encoding.ASCII.GetBytes(_jwtSettings.Secret);
         try
         {
             tokenHandler.ValidateToken(token, new TokenValidationParameters
@@ -69,9 +70,9 @@ public class JwtUtils : IJwtUtils
         }
     }
 
-    public RefreshToken GenerateRefreshToken(string ipAddress)
+    public RefreshTokenEntity GenerateRefreshToken(string ipAddress)
     {
-        var refreshToken = new RefreshToken
+        var refreshToken = new RefreshTokenEntity
         {
             Token = getUniqueToken(),
             // token is valid for 7 days
@@ -94,5 +95,19 @@ public class JwtUtils : IJwtUtils
 
             return token;
         }
+    }
+
+    private static IEnumerable<Claim> GetClaims(UserEntity user)
+    {
+        var claims = new Claim[]
+        {
+            new("Id", user.Id.ToString()),
+            //For User.Identity
+            new(ClaimTypes.NameIdentifier, user.Id.ToString()),
+            //For User.Identity.Name
+            new(ClaimTypes.Name, user.Email),
+            //new(ClaimTypes.Email, user.Email),
+        };
+        return claims;
     }
 }

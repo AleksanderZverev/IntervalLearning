@@ -1,5 +1,5 @@
 ﻿using DB.Models;
-using Domain.Authentification.Models;
+using IntervalLearningApi.Models;
 
 namespace IntervalLearningApi.Controllers.Users;
 

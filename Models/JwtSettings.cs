@@ -10,4 +10,7 @@ public class JwtSettings
     public string ValidAudience { get; set; }
     public bool RequireExpirationTime { get; set; }
     public bool ValidateLifetime { get; set; } = true;
+
+    public string Secret { get; set; }
+    public int RefreshTokenTTLInDays { get; set; }
 }

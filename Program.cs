@@ -1,6 +1,5 @@
 using DB;
 using IntervalLearningApi.Extensions;
-using IntervalLearningApi.Models;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);

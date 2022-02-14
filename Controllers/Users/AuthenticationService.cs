@@ -1,6 +1,7 @@
-﻿using DB;
+﻿using System.Globalization;
+using DB;
 using DB.Models;
-using Domain.Authentification.Models;
+using IntervalLearningApi.Models;
 using Microsoft.Extensions.Options;
 
 namespace IntervalLearningApi.Controllers.Users;
@@ -9,16 +10,16 @@ public class AuthenticationService : IAuthenticationService
 {
     private ApplicationContext _context;
     private IJwtUtils _jwtUtils;
-    private readonly AppSettings _appSettings;
+    private readonly JwtSettings _jwtSettings;
 
     public AuthenticationService(
         ApplicationContext context,
         IJwtUtils jwtUtils,
-        IOptions<AppSettings> appSettings)
+        IOptions<JwtSettings> appSettings)
     {
         _context = context;
         _jwtUtils = jwtUtils;
-        _appSettings = appSettings.Value;
+        _jwtSettings = appSettings.Value;
     }
 
     public AuthenticateResponse Authenticate(AuthenticateRequest model, string ipAddress)
@@ -26,7 +27,7 @@ public class AuthenticationService : IAuthenticationService
         var user = _context.Users.SingleOrDefault(x => x.Email == model.Email);
 
         // validate
-        if (user == null || !BCrypt.Verify(model.Password, user.PasswordHash))
+        if (user == null || !BCrypt.Net.BCrypt.Verify(model.Password, user.PasswordHash))
             throw new AppException("Email or password is incorrect");
 
         // authentication successful so generate jwt and refresh tokens
@@ -115,10 +116,10 @@ public class AuthenticationService : IAuthenticationService
         return user;
     }
 
-    private RefreshToken rotateRefreshToken(RefreshToken refreshToken, string ipAddress)
+    private RefreshTokenEntity rotateRefreshToken(RefreshTokenEntity refreshTokenEntity, string ipAddress)
     {
         var newRefreshToken = _jwtUtils.GenerateRefreshToken(ipAddress);
-        revokeRefreshToken(refreshToken, ipAddress, "Replaced by new token", newRefreshToken.Token);
+        revokeRefreshToken(refreshTokenEntity, ipAddress, "Replaced by new token", newRefreshToken.Token);
         return newRefreshToken;
     }
 
@@ -127,27 +128,39 @@ public class AuthenticationService : IAuthenticationService
         // remove old inactive refresh tokens from userEntity based on TTL in app settings
         userEntity.RefreshTokens.RemoveAll(x =>
             !x.IsActive &&
-            x.Created.AddDays(_appSettings.RefreshTokenTTL) <= DateTime.UtcNow);
+            x.Created.AddDays(_jwtSettings.RefreshTokenTTLInDays) <= DateTime.UtcNow);
     }
 
-    private void revokeDescendantRefreshTokens(RefreshToken refreshToken, UserEntity userEntity, string ipAddress, string reason)
+    private void revokeDescendantRefreshTokens(RefreshTokenEntity refreshTokenEntity, UserEntity userEntity, string ipAddress, string reason)
     {
-        if (string.IsNullOrEmpty(refreshToken.ReplacedByToken))
+        if (string.IsNullOrEmpty(refreshTokenEntity.ReplacedByToken))
             return;
 
         // recursively traverse the refresh token chain and ensure all descendants are revoked
-        var childToken = userEntity.RefreshTokens.SingleOrDefault(x => x.Token == refreshToken.ReplacedByToken);
+        var childToken = userEntity.RefreshTokens.SingleOrDefault(x => x.Token == refreshTokenEntity.ReplacedByToken);
         if (childToken.IsActive)
             revokeRefreshToken(childToken, ipAddress, reason);
         else
             revokeDescendantRefreshTokens(childToken, userEntity, ipAddress, reason);
     }
 
-    private void revokeRefreshToken(RefreshToken token, string ipAddress, string reason = null, string replacedByToken = null)
+    private void revokeRefreshToken(RefreshTokenEntity tokenEntity, string ipAddress, string reason = null, string replacedByToken = null)
     {
-        token.Revoked = DateTime.UtcNow;
-        token.RevokedByIp = ipAddress;
-        token.ReasonRevoked = reason;
-        token.ReplacedByToken = replacedByToken;
+        tokenEntity.Revoked = DateTime.UtcNow;
+        tokenEntity.RevokedByIp = ipAddress;
+        tokenEntity.ReasonRevoked = reason;
+        tokenEntity.ReplacedByToken = replacedByToken;
+    }
+}
+
+public class AppException : Exception
+{
+    public AppException() : base() { }
+
+    public AppException(string message) : base(message) { }
+
+    public AppException(string message, params object[] args)
+        : base(String.Format(CultureInfo.CurrentCulture, message, args))
+    {
     }
 }

@@ -1,4 +1,4 @@
-﻿using Domain.Authentification.Models;
+﻿using IntervalLearningApi.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
