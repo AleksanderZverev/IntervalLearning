@@ -1,4 +1,5 @@
 using DB;
+using IntervalLearningApi;
 using IntervalLearningApi.Extensions;
 using Microsoft.EntityFrameworkCore;
 
@@ -8,7 +9,20 @@ var builder = WebApplication.CreateBuilder(args);
 
 //builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection("JsonWebTokenKeys"));
 
-builder.Services.AddCors();
+builder.Services.AddCors(o =>
+{
+    o.AddPolicy("Debug", b =>
+    {
+        b
+            .WithOrigins("http://localhost:3000", "http://localhost:5249", "https://localhost:7249")
+            .AllowAnyHeader()
+            .AllowAnyMethod()
+            .AllowCredentials();
+    });
+
+    o.AddPolicy("Default", b => b.AllowCredentials());
+});
+
 builder.Services.AddControllers();
     //.AddJsonOptions(x => x.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull);
 builder.Services.AddSwaggerGen(options =>
@@ -39,12 +53,15 @@ builder.Services.AddSwaggerGen(options =>
     });
 });
 
-builder.Services.AddJwtTokenServices(builder.Configuration);
 builder.Services.AddDbContext<ApplicationContext>(options =>
 {
     var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
     options.UseNpgsql(connectionString);
 });
+
+var serviceProvider = builder.Services.BuildServiceProvider();
+
+builder.Services.AddJwtTokenServices(builder.Configuration, serviceProvider);
 
 
 var app = builder.Build();
@@ -68,7 +85,7 @@ using (var scope = app.Services.CreateScope())
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
-    app.UseCors(c => c.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod());
+    app.UseCors("Debug");
     app.UseSwagger(options =>
     {
         options.RouteTemplate = "api/swagger/{documentName}/swagger.json";
@@ -81,16 +98,19 @@ if (app.Environment.IsDevelopment())
 }
 else
 {
+    app.UseCors("Default");
     // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
+    app.UseHttpsRedirection();
 }
 
-app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseRouting();
 
-app.UseAuthentication();
-app.UseAuthorization();
+//app.UseAuthentication();
+//app.UseAuthorization();
+
+app.UseMiddleware<JwtMiddleware>();
 
 
 app.MapControllers();
