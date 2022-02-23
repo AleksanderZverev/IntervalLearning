@@ -1,4 +1,6 @@
 ﻿using IntervalLearningApi.Models;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -15,6 +17,10 @@ public class UsersController : ControllerBase
     {
         _authService = authService;
     }
+
+    [HttpGet("me")]
+    [Authorize]
+    public IActionResult Me() => Ok();
 
     [AllowAnonymous]
     [HttpPost("authenticate")]

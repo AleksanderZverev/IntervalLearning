@@ -97,7 +97,7 @@ public class JwtUtils : IJwtUtils
         }
     }
 
-    private static IEnumerable<Claim> GetClaims(UserEntity user)
+    public static IEnumerable<Claim> GetClaims(UserEntity user)
     {
         var claims = new Claim[]
         {
