@@ -2,6 +2,7 @@
 using DB;
 using DB.Models;
 using IntervalLearningApi.Models;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 
 namespace IntervalLearningApi.Controllers.Users;
@@ -24,10 +25,10 @@ public class AuthenticationService : IAuthenticationService
 
     public AuthenticateResponse Authenticate(AuthenticateRequest model, string ipAddress)
     {
-        var user = _context.Users.SingleOrDefault(x => x.Email == model.Email);
+        var user = _context.Users.Include(u => u.PasswordHash).SingleOrDefault(x => x.Email == model.Email);
 
         // validate
-        if (user == null || !BCrypt.Net.BCrypt.Verify(model.Password, user.PasswordHash))
+        if (user == null || !BCrypt.Net.BCrypt.Verify(model.Password, user.PasswordHash.PasswordHash))
             throw new AppException("Email or password is incorrect");
 
         // authentication successful so generate jwt and refresh tokens
