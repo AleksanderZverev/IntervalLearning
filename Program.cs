@@ -59,10 +59,7 @@ builder.Services.AddDbContext<ApplicationContext>(options =>
     options.UseNpgsql(connectionString);
 });
 
-var serviceProvider = builder.Services.BuildServiceProvider();
-
-builder.Services.AddJwtTokenServices(builder.Configuration, serviceProvider);
-
+builder.Services.AddJwtTokenServices(builder.Configuration);
 
 var app = builder.Build();
 

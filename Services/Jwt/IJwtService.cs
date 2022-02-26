@@ -1,8 +1,8 @@
 ﻿using DB.Models;
 
-namespace IntervalLearningApi.Controllers.Users;
+namespace IntervalLearningApi.Services.Jwt;
 
-public interface IJwtUtils
+public interface IJwtService
 {
     public string GenerateJwtToken(UserEntity userEntity);
     public int? ValidateJwtToken(string token);
