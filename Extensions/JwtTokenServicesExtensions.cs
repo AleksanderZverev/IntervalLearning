@@ -16,5 +16,6 @@ public static class JwtTokenServicesExtensions
         
         services.AddScoped<IJwtService, JwtService>();
         services.AddScoped<IAuthenticationService, AuthenticationService>();
+        services.AddScoped<UserService>();
     }
 }

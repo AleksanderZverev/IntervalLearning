@@ -16,12 +16,18 @@ public class JwtMiddleware
     private const string BearerPrefix = "Bearer ";
 
     private readonly RequestDelegate _next;
+    private readonly IWebHostEnvironment env;
     private readonly JwtSettings _jwtSettings;
     private readonly GoogleSettings _googleSettings;
 
-    public JwtMiddleware(RequestDelegate next, IOptions<JwtSettings> appSettings, IOptions<GoogleSettings> googleSettings)
+    public JwtMiddleware(
+        RequestDelegate next, 
+        IOptions<JwtSettings> appSettings, 
+        IOptions<GoogleSettings> googleSettings, 
+        IWebHostEnvironment env)
     {
         _next = next;
+        this.env = env;
         _jwtSettings = appSettings.Value;
         _googleSettings = googleSettings.Value;
     }
@@ -99,7 +105,12 @@ public class JwtMiddleware
                 FirstName = payload.GivenName,
                 LastName = payload.FamilyName,
             };
-            db.Users.Add(user);
+
+            if (env.IsProduction())
+            {
+                db.Users.Add(user);
+                db.SaveChanges();
+            }
         }
 
         var claims = JwtService.GetClaims(user);

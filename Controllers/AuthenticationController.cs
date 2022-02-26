@@ -8,7 +8,7 @@ namespace IntervalLearningApi.Controllers;
 
 [Authorize]
 [ApiController]
-[Route("api/users")]
+[Route("api/authentication")]
 public class AuthenticationController : ControllerBase
 {
     private const string RefreshTokenKey = "refreshToken";
@@ -28,8 +28,17 @@ public class AuthenticationController : ControllerBase
     }
 
     [AllowAnonymous]
+    [HttpPost("register")]
+    public IActionResult Register(RegisterRequest req)
+    {
+        var response = authService.Register(req, GetSourceIpAddress());
+        SetRefreshTokenCookie(response.RefreshToken);
+        return Ok(response);
+    }
+
+    [AllowAnonymous]
     [HttpPost("authenticate")]
-    public IActionResult Authenticate(AuthenticateRequest model)
+    public ActionResult<AuthenticateResponse> Authenticate(AuthenticateRequest model)
     {
         var response = authService.Authenticate(model, GetSourceIpAddress());
         SetRefreshTokenCookie(response.RefreshToken);

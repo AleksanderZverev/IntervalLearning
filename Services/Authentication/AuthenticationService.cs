@@ -12,16 +12,49 @@ public class AuthenticationService : IAuthenticationService
 {
     private readonly ApplicationContext db;
     private readonly IJwtService jwtService;
+    private readonly IWebHostEnvironment environment;
     private readonly JwtSettings jwtSettings;
 
     public AuthenticationService(
         ApplicationContext db,
         IJwtService jwtService,
-        IOptions<JwtSettings> jwtSettings)
+        IOptions<JwtSettings> jwtSettings,
+        IWebHostEnvironment environment)
     {
         this.db = db;
         this.jwtService = jwtService;
+        this.environment = environment;
         this.jwtSettings = jwtSettings.Value;
+    }
+
+    public (bool ok, string error) Register(RegisterRequest request, string sourceIpAddress)
+    {
+        var emailLower = request.Email.ToLowerInvariant();
+        var sameUser = db.Users.FirstOrDefault(u => u.Email == emailLower);
+
+        if (sameUser != null)
+            return (false, "Email already exists");
+
+        var passwordHash = BCrypt.Net.BCrypt.HashPassword(request.Password);
+
+        var user = new UserEntity
+        {
+            Email = emailLower,
+            PasswordHash = new UserPasswordsEntity()
+            {
+                PasswordHash = passwordHash,
+            },
+            FirstName = request.FirstName,
+            LastName = request.LastName ?? "",
+        };
+
+        if (environment.IsProduction())
+        {
+            db.Users.Add(user);
+            db.SaveChanges();
+        }
+
+        return (true, string.Empty);
     }
 
     public AuthenticateResponse Authenticate(AuthenticateRequest req, string ipAddress)
@@ -34,12 +67,17 @@ public class AuthenticationService : IAuthenticationService
         if (user == null || !BCrypt.Net.BCrypt.Verify(req.Password, user.PasswordHash.PasswordHash))
             throw new AppException("Email or password is incorrect");
 
+        return Authenticate(user, ipAddress);
+    }
+
+    private AuthenticateResponse Authenticate(UserEntity user, string ipAddress)
+    {
         var jwtToken = jwtService.GenerateJwtToken(user);
         var refreshToken = jwtService.GenerateRefreshToken(ipAddress);
         user.RefreshTokens.Add(refreshToken);
-        
+
         RemoveOldRefreshTokens(user);
-        
+
         db.Update(user);
         db.SaveChanges();
 
@@ -137,35 +175,6 @@ public class AuthenticationService : IAuthenticationService
         tokenEntity.RevokedByIp = ipAddress;
         tokenEntity.ReasonRevoked = reason;
         tokenEntity.ReplacedByToken = replacedByToken;
-    }
-}
-
-public class UserService
-{
-    private readonly ApplicationContext db;
-    private readonly IJwtService jwtService;
-    private readonly JwtSettings _jwtSettings;
-
-    public UserService(
-        ApplicationContext db,
-        IJwtService jwtService,
-        IOptions<JwtSettings> appSettings)
-    {
-        this.db = db;
-        this.jwtService = jwtService;
-        _jwtSettings = appSettings.Value;
-    }
-
-    public IEnumerable<UserEntity> GetAll()
-    {
-        return db.Users;
-    }
-
-    public UserEntity GetById(int id)
-    {
-        var user = db.Users.Find(id);
-        if (user == null) throw new KeyNotFoundException("UserEntity not found");
-        return user;
     }
 }
 

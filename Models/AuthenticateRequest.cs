@@ -5,6 +5,7 @@ namespace IntervalLearningApi.Models
     public class AuthenticateRequest
     {
         [Required]
+        [EmailAddress]
         public string Email { get; set; }
 
         [Required]
