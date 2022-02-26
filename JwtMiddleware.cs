@@ -2,8 +2,8 @@
 using DB;
 using DB.Models;
 using Google.Apis.Auth;
-using IntervalLearningApi.Controllers.Users;
 using IntervalLearningApi.Models;
+using IntervalLearningApi.Services.Jwt;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
@@ -26,7 +26,7 @@ public class JwtMiddleware
         _googleSettings = googleSettings.Value;
     }
 
-    public async Task Invoke(HttpContext context, ApplicationContext db, IJwtUtils jwtUtils)
+    public async Task Invoke(HttpContext context, ApplicationContext db, IJwtService jwtService)
     {
         var authorizationHeader = context.Request.Headers["Authorization"].FirstOrDefault();
 
@@ -40,7 +40,7 @@ public class JwtMiddleware
 
         var securityToken = authorizationHeader[BearerPrefix.Length..];
 
-        var customIdentity = await ValidateCustom(securityToken, db, jwtUtils);
+        var customIdentity = await ValidateCustom(securityToken, db, jwtService);
         if (customIdentity != null)
         {
             principal.AddIdentity(customIdentity);
@@ -55,9 +55,9 @@ public class JwtMiddleware
         await _next(context);
     }
 
-    private static async Task<ClaimsIdentity?> ValidateCustom(string securityToken, ApplicationContext db, IJwtUtils jwtUtils)
+    private static async Task<ClaimsIdentity?> ValidateCustom(string securityToken, ApplicationContext db, IJwtService jwtService)
     {
-        var userId = jwtUtils.ValidateJwtToken(securityToken);
+        var userId = jwtService.ValidateJwtToken(securityToken);
 
         if (userId == null)
             return null;
@@ -67,7 +67,7 @@ public class JwtMiddleware
         if (user == null)
             return null;
 
-        var claims = JwtUtils.GetClaims(user);
+        var claims = JwtService.GetClaims(user);
         return new ClaimsIdentity(claims);
     }
 
@@ -102,7 +102,7 @@ public class JwtMiddleware
             db.Users.Add(user);
         }
 
-        var claims = JwtUtils.GetClaims(user);
+        var claims = JwtService.GetClaims(user);
         return new ClaimsIdentity(claims);
     }
 }
