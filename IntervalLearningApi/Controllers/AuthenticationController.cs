@@ -31,9 +31,8 @@ public class AuthenticationController : ControllerBase
     [HttpPost("register")]
     public IActionResult Register(RegisterRequest req)
     {
-        var response = authService.Register(req, GetSourceIpAddress());
-        SetRefreshTokenCookie(response.RefreshToken);
-        return Ok(response);
+        var (ok, errorMessage) = authService.Register(req, GetSourceIpAddress());
+        return ok ? Ok() : BadRequest(errorMessage);
     }
 
     [AllowAnonymous]
