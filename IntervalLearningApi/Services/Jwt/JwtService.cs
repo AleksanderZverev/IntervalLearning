@@ -7,6 +7,7 @@ using DB.Models;
 using IntervalLearningApi.Models;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
+using NodaTime;
 
 namespace IntervalLearningApi.Services.Jwt;
 
@@ -70,11 +71,13 @@ public class JwtService : IJwtService
 
     public RefreshTokenEntity GenerateRefreshToken(string ipAddress)
     {
+        var now = SystemClock.Instance.GetCurrentInstant();
+
         var refreshToken = new RefreshTokenEntity
         {
             Token = GetUniqueToken(),
-            Expires = DateTime.UtcNow.AddDays(jwtSettings.RefreshTokenTTLInDays),
-            Created = DateTime.UtcNow,
+            Expires = now + Duration.FromDays(jwtSettings.RefreshTokenTTLInDays),
+            Created = now,
             CreatedByIp = ipAddress,
         };
 

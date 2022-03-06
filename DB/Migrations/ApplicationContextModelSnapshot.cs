@@ -55,7 +55,7 @@ namespace DB.Migrations
 
                     b.HasIndex("PasswordHashId");
 
-                    b.ToTable("Users");
+                    b.ToTable("Users", (string)null);
                 });
 
             modelBuilder.Entity("DB.Models.UserPasswordsEntity", b =>
@@ -72,7 +72,7 @@ namespace DB.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("UsersPasswords");
+                    b.ToTable("UsersPasswords", (string)null);
                 });
 
             modelBuilder.Entity("DB.Models.UserEntity", b =>
@@ -81,7 +81,7 @@ namespace DB.Migrations
                         .WithMany()
                         .HasForeignKey("PasswordHashId");
 
-                    b.OwnsMany("DB.Models.RefreshTokenEntity", "RefreshTokens", b1 =>
+                    b.OwnsMany("DB.Models.UserEntity.RefreshTokens#DB.Models.RefreshTokenEntity", "RefreshTokens", b1 =>
                         {
                             b1.Property<int>("Id")
                                 .ValueGeneratedOnAdd()
@@ -125,7 +125,7 @@ namespace DB.Migrations
 
                             b1.HasIndex("UserEntityId");
 
-                            b1.ToTable("RefreshTokenEntity");
+                            b1.ToTable("RefreshTokenEntity", (string)null);
 
                             b1.WithOwner()
                                 .HasForeignKey("UserEntityId");

@@ -5,6 +5,7 @@ using IntervalLearningApi.Models;
 using IntervalLearningApi.Services.Jwt;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
+using NodaTime;
 
 namespace IntervalLearningApi.Services.Authentication;
 
@@ -144,9 +145,10 @@ public class AuthenticationService : IAuthenticationService
 
     private void RemoveOldRefreshTokens(UserEntity userEntity)
     {
+        var now = SystemClock.Instance.GetCurrentInstant();
         userEntity.RefreshTokens.RemoveAll(x =>
             !x.IsActive &&
-            x.Created.AddDays(jwtSettings.RefreshTokenTTLInDays) <= DateTime.UtcNow);
+            x.Created  + Duration.FromDays(jwtSettings.RefreshTokenTTLInDays) <= now);
     }
 
     private void RevokeDescendantRefreshTokens(RefreshTokenEntity refreshTokenEntity, UserEntity userEntity, string ipAddress, string reason)
@@ -171,7 +173,7 @@ public class AuthenticationService : IAuthenticationService
         string reason = null, 
         string replacedByToken = null)
     {
-        tokenEntity.Revoked = DateTime.UtcNow;
+        tokenEntity.Revoked = NodaTime.SystemClock.Instance.GetCurrentInstant();
         tokenEntity.RevokedByIp = ipAddress;
         tokenEntity.ReasonRevoked = reason;
         tokenEntity.ReplacedByToken = replacedByToken;

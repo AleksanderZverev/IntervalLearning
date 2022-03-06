@@ -1,25 +1,30 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.Text.Json.Serialization;
 using Microsoft.EntityFrameworkCore;
+using NodaTime;
 
 namespace DB.Models;
 
 [Owned]
-public class RefreshTokenEntity
+public class RefreshTokenEntity : IParentUserReference
 {
-    [Key]
     [JsonIgnore]
-    public int Id { get; set; }
+    public byte Id { get; set; }
 
     public string Token { get; set; }
-    public DateTime Expires { get; set; }
-    public DateTime Created { get; set; }
+    public Instant Expires { get; set; }
+    public Instant Created { get; set; }
+    [StringLength(15)]
     public string CreatedByIp { get; set; }
-    public DateTime? Revoked { get; set; }
+    public Instant? Revoked { get; set; }
+    [StringLength(15)]
     public string RevokedByIp { get; set; }
     public string ReplacedByToken { get; set; }
     public string ReasonRevoked { get; set; }
-    public bool IsExpired => DateTime.UtcNow >= Expires;
+    public bool IsExpired => SystemClock.Instance.GetCurrentInstant() > Expires;
     public bool IsRevoked => Revoked != null;
     public bool IsActive => !IsRevoked && !IsExpired;
+
+    public long ParentUserId { get; set; }
+    public UserEntity? ParentUser { get; set; }
 }

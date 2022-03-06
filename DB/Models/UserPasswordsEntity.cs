@@ -4,10 +4,10 @@ using System.Text.Json.Serialization;
 
 namespace DB.Models
 {
-    public class UserPasswordsEntity
+    public class UserPasswordsEntity : IParentUserReference
     {
-        [Key]
-        public long Id { get; set; }
+        public long ParentUserId { get; set; }
+        public UserEntity? ParentUser { get; set; }
 
         [MaxLength(255)]
         [Column(TypeName = "varchar(255)")]

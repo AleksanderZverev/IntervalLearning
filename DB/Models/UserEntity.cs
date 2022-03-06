@@ -3,7 +3,12 @@ using System.ComponentModel.DataAnnotations.Schema;
 using System.Text.Json.Serialization;
 
 namespace DB.Models;
-#nullable enable
+
+public interface IParentUserReference
+{
+    public long ParentUserId { get; set; }
+    public UserEntity? ParentUser { get; set; }
+}
 
 public class UserEntity
 {
@@ -19,8 +24,7 @@ public class UserEntity
     public string LastName { get; set; }
 
     [Required]
-    [MaxLength(255)]
-    [Column(TypeName = "varchar(255)")]
+    [StringLength(255)]
     public string Email { get; set; }
 
     [JsonIgnore]
@@ -30,4 +34,6 @@ public class UserEntity
 
     [JsonIgnore] 
     public List<RefreshTokenEntity> RefreshTokens { get; set; } = new();
+
+    public virtual List<CollectionEntity> Collections { get; set; } = new();
 }

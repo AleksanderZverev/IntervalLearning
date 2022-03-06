@@ -56,7 +56,10 @@ builder.Services.AddSwaggerGen(options =>
 builder.Services.AddDbContext<ApplicationContext>(options =>
 {
     var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
-    options.UseNpgsql(connectionString);
+    options.UseNpgsql(connectionString, o =>
+    {
+        o.UseNodaTime();
+    });
 });
 
 builder.Services.AddJwtTokenServices(builder.Configuration);
