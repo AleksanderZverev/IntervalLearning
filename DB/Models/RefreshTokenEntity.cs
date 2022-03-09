@@ -5,7 +5,6 @@ using NodaTime;
 
 namespace DB.Models;
 
-[Owned]
 public class RefreshTokenEntity : IParentUserReference
 {
     [JsonIgnore]

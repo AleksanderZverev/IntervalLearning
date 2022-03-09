@@ -41,7 +41,7 @@ public class RememberEntity : IParentCardReference
         PassedSecondsFromLastStep = passedSecondsFromLastStep;
     }
 
-    public long ParentUserId { get; set; }
+    public long ParentUserId { get; set; } 
     public UserEntity? ParentUser { get; set; }
     public short ParentCollectionId { get; set; }
     public CollectionEntity? ParentCollection { get; set; }

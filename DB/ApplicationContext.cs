@@ -9,6 +9,7 @@ namespace DB
 
         public DbSet<UserEntity> Users { get; set; }
         public DbSet<UserPasswordsEntity> UsersPasswords { get; set; }
+        public DbSet<RefreshTokenEntity> RefreshTokens { get; set; }
 
         public DbSet<CollectionEntity> Collections { get; set; }
         public DbSet<CardEntity> Cards { get; set; }
@@ -19,6 +20,7 @@ namespace DB
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            // UserEntity
 
             modelBuilder.Entity<UserEntity>()
                 .HasMany<CollectionEntity>()
@@ -33,7 +35,16 @@ namespace DB
             modelBuilder.Entity<UserPasswordsEntity>()
                 .HasOne(p => p.ParentUser)
                 .WithOne(u => u.PasswordHash)
-                .HasForeignKey<UserPasswordsEntity>(p => p.ParentUserId);
+                .HasForeignKey<UserPasswordsEntity>(p => p.ParentUserId)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            // RefreshTokenEntity
+
+            modelBuilder.Entity<RefreshTokenEntity>()
+                .HasOne(t => t.ParentUser)
+                .WithMany(u => u.RefreshTokens)
+                .HasForeignKey(t => t.ParentUserId)
+                .OnDelete(DeleteBehavior.NoAction);
 
             // CollectionEntity
 
@@ -43,6 +54,7 @@ namespace DB
             modelBuilder.Entity<CollectionEntity>()
                 .HasOne(c => c.ParentUser)
                 .WithMany(u => u.Collections)
+                .HasForeignKey(c => c.ParentUserId)
                 .OnDelete(DeleteBehavior.NoAction);
 
             modelBuilder.Entity<CollectionEntity>()
@@ -60,39 +72,51 @@ namespace DB
             // CardEntity
 
             modelBuilder.Entity<CardEntity>()
-                .HasKey(c => new { c.ParentUserId, c.ParentCollectionId, c.Id });
+                .HasKey(c => new {c.ParentUserId, c.ParentCollectionId, c.Id});
+            
+            modelBuilder.Entity<CardEntity>()
+                .HasOne(c => c.ParentUser)
+                .WithMany()
+                .HasForeignKey(c => c.ParentUserId)
+                .OnDelete(DeleteBehavior.NoAction);
 
-            ConfigureUserReference<CardEntity>(modelBuilder);
-            ConfigureCollectionReference<CardEntity>(modelBuilder);
-            ConfigureRepeatsScheduleReference<CardEntity>(modelBuilder);
+            modelBuilder.Entity<CardEntity>()
+                .HasOne(c => c.ParentCollection)
+                .WithMany(c => c.Cards)
+                .HasForeignKey(c => new {c.ParentUserId, c.ParentCollectionId})
+                .OnDelete(DeleteBehavior.NoAction);
+
+            modelBuilder.Entity<CardEntity>()
+                .HasOne(r => r.ParentRepeatsSchedule)
+                .WithMany()
+                .HasForeignKey(c => new { c.ParentUserId, c.ParentRepeatsScheduleId })
+                .OnDelete(DeleteBehavior.NoAction);
 
             // RememberEntity
 
             modelBuilder.Entity<RememberEntity>()
                 .HasKey(r => new {r.ParentUserId, r.ParentCollectionId, r.ParentCardId, r.Id});
 
+            modelBuilder.Entity<RememberEntity>()
+                .HasOne(r => r.ParentCard)
+                .WithMany(r => r.Remembers)
+                .HasForeignKey(c => new { c.ParentUserId, c.ParentCollectionId, c.ParentCardId })
+                .OnDelete(DeleteBehavior.NoAction);
+            
             ConfigureUserReference<RememberEntity>(modelBuilder);
-            ConfigureCollectionReference<RememberEntity>(modelBuilder);
-            ConfigureCardReference<RememberEntity>(modelBuilder);
+
+            modelBuilder.Entity<RememberEntity>()
+                .HasOne(r => r.ParentCollection)
+                .WithMany()
+                .HasForeignKey(e => new { e.ParentUserId, e.ParentCollectionId })
+                .OnDelete(DeleteBehavior.NoAction);
 
             // RepeatsScheduleEntity
 
             modelBuilder.Entity<RepeatsScheduleEntity>()
                 .HasKey(s => new {s.ParentUserId, s.Id});
 
-            //modelBuilder.Entity<RepeatsScheduleEntity>()
-            //    .HasMany<CollectionEntity>()
-            //    .WithOne()
-            //    .OnDelete(DeleteBehavior.SetNull);
-
-            //modelBuilder.Entity<RepeatsScheduleEntity>()
-            //    .HasMany<CardEntity>()
-            //    .WithOne()
-            //    .OnDelete(DeleteBehavior.SetNull);
-
             ConfigureUserReference<RepeatsScheduleEntity>(modelBuilder);
-            //ConfigureCollectionReference<RepeatsScheduleEntity>(modelBuilder);
-            //ConfigureCardReference<RepeatsScheduleEntity>(modelBuilder);
 
             // PhaseEntity
 
@@ -100,9 +124,12 @@ namespace DB
                 .HasKey(s => new { s.ParentUserId, s.ParentRepeatsScheduleId, s.Id });
 
             ConfigureUserReference<PhaseEntity>(modelBuilder);
-            ConfigureRepeatsScheduleReference<PhaseEntity>(modelBuilder);
-            //ConfigureCollectionReference<PhaseEntity>(modelBuilder);
-            //ConfigureCardReference<PhaseEntity>(modelBuilder);
+
+            modelBuilder.Entity<PhaseEntity>()
+                .HasOne(p => p.ParentRepeatsSchedule)
+                .WithMany(s => s.Phases)
+                .HasForeignKey(p => new {p.ParentUserId, p.ParentRepeatsScheduleId})
+                .OnDelete(DeleteBehavior.NoAction);
 
         }
 
@@ -115,42 +142,6 @@ namespace DB
                 .HasOne(r => r.ParentUser)
                 .WithMany()
                 .HasForeignKey(e => e.ParentUserId)
-                .OnDelete(deleteBehavior);
-        }
-
-        private void ConfigureCollectionReference<TEntity>(
-            ModelBuilder modelBuilder, 
-            DeleteBehavior deleteBehavior = DeleteBehavior.NoAction)
-            where TEntity : class, IParentCollectionReference
-        {
-            modelBuilder.Entity<TEntity>()
-                .HasOne(r => r.ParentCollection)
-                .WithMany()
-                .HasForeignKey(e => new { e.ParentUserId, e.ParentCollectionId})
-                .OnDelete(deleteBehavior);
-        }
-
-        private void ConfigureCardReference<TEntity>(
-            ModelBuilder modelBuilder,
-            DeleteBehavior deleteBehavior = DeleteBehavior.NoAction)
-            where TEntity : class, IParentCardReference
-        {
-            modelBuilder.Entity<TEntity>()
-                .HasOne(r => r.ParentCard)
-                .WithMany()
-                .HasForeignKey(c => new { c.ParentUserId, c.ParentCollectionId, c.ParentCardId })
-                .OnDelete(deleteBehavior);
-        }
-
-        private void ConfigureRepeatsScheduleReference<TEntity>(
-            ModelBuilder modelBuilder,
-            DeleteBehavior deleteBehavior = DeleteBehavior.NoAction)
-            where TEntity : class, IParentRepeatsScheduleReference
-        {
-            modelBuilder.Entity<TEntity>()
-                .HasOne(r => r.ParentRepeatsSchedule)
-                .WithMany()
-                .HasForeignKey(c => new { c.ParentUserId, c.ParentRepeatsScheduleId})
                 .OnDelete(deleteBehavior);
         }
     }
