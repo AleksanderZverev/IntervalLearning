@@ -3,6 +3,8 @@ using IntervalLearningApi;
 using IntervalLearningApi.Extensions;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json.Serialization;
+using NodaTime;
+using NodaTime.Serialization.JsonNet;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -27,6 +29,7 @@ builder.Services.AddCors(o =>
 builder.Services.AddControllers().AddNewtonsoftJson(opts =>
 {
     opts.SerializerSettings.ContractResolver = new DefaultContractResolver();
+    opts.SerializerSettings.ConfigureForNodaTime(DateTimeZoneProviders.Tzdb);
 });
 //.AddJsonOptions(x => x.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull);
 builder.Services.AddSwaggerGen(options =>
