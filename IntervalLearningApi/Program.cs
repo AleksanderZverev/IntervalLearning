@@ -1,5 +1,6 @@
 using DB;
 using IntervalLearningApi;
+using IntervalLearningApi.Controllers;
 using IntervalLearningApi.Extensions;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json.Serialization;
@@ -70,6 +71,7 @@ builder.Services.AddDbContext<ApplicationContext>(options =>
 });
 
 builder.Services.AddJwtTokenServices(builder.Configuration);
+builder.Services.AddWeb(builder.Configuration);
 
 var app = builder.Build();
 
