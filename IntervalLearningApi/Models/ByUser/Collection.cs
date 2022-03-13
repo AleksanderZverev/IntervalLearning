@@ -6,7 +6,7 @@ namespace IntervalLearningApi.Models.ByUser;
 public class Collection
 {
     [JsonProperty("UserId")]
-    public long ParentUserId { get; }
+    public string ParentUserId { get; }
     public short Id { get; }
     public string Title { get; }
     public Instant CreatedAt { get; }
@@ -14,7 +14,7 @@ public class Collection
     public short ThemeId { get; }
     public List<Card> Cards { get; }
 
-    public Collection(long parentUserId, short id, string title, Instant createdAt,
+    public Collection(string parentUserId, short id, string title, Instant createdAt,
         short defaultScheduleId, short themeId, List<Card> cards)
     {
         ParentUserId = parentUserId;

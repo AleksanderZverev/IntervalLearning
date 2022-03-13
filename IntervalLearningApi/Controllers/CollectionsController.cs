@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace IntervalLearningApi.Controllers
 {
     [Route("api/collections")]
+    [Authorize]
     [ApiController]
     public class CollectionsController : ControllerBase
     {
@@ -50,7 +51,7 @@ namespace IntervalLearningApi.Controllers
         private static Collection ToCollection(CollectionEntity c)
         {
             return new Collection(
-                c.ParentUserId,
+                c.ParentUserId.ToString(),
                 c.Id,
                 c.Title,
                 c.CreatedDate,
@@ -63,7 +64,7 @@ namespace IntervalLearningApi.Controllers
         private static Card ToCard(CardEntity c)
         {
             return new Card(
-                c.ParentUserId,
+                c.ParentUserId.ToString(),
                 c.ParentCollectionId,
                 c.Id,
                 c.BackSideText,
