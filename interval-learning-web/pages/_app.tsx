@@ -2,8 +2,8 @@ import '../styles/globals.css';
 import type { AppProps } from 'next/app';
 import { SessionProvider, useSession } from 'next-auth/react';
 import { FC, PropsWithChildren, useEffect } from 'react';
-import axiosInstance, { removeAuthToken, setAuthToken } from '../src/api/axiosInstance';
-import { CustomSession } from '../src/types/Session';
+import { removeAuthToken, setAuthToken } from '../src/api/axiosInstance';
+import { Provider } from 'react-redux';
 import Authorize from './authorize';
 import PageHeader from '../src/controls/PageHeader/PageHeader';
 
@@ -15,6 +15,7 @@ import { CacheProvider, EmotionCache } from '@emotion/react';
 import theme from '../src/theme';
 import createEmotionCache from '../src/createEmotionCache';
 import { Box, Container } from '@mui/material';
+import { store } from '../src/redux/store';
 
 interface AuthProps {
     needAuth: boolean;
@@ -62,20 +63,22 @@ function MyApp(props: MyAppProps) {
             <ThemeProvider theme={theme}>
                 {/* CssBaseline kickstart an elegant, consistent, and simple baseline to build upon. */}
                 <CssBaseline />
-                <SessionProvider session={session}>
-                    <PageHeader />
-                    <Container maxWidth="lg" style={{ marginTop: '10px', height: '100%' }}>
-                        <Box sx={{ backgroundColor: 'white', height: 'inherit' }}>
-                            {(Component as any).auth ? (
-                                <Auth>
+                <Provider store={store}>
+                    <SessionProvider session={session}>
+                        <PageHeader />
+                        <Container maxWidth="lg" style={{ marginTop: '10px', height: '100%' }}>
+                            <Box sx={{ backgroundColor: 'white', height: 'inherit' }}>
+                                {(Component as any).auth ? (
+                                    <Auth>
+                                        <Component {...otherPageProps} />
+                                    </Auth>
+                                ) : (
                                     <Component {...otherPageProps} />
-                                </Auth>
-                            ) : (
-                                <Component {...otherPageProps} />
-                            )}
-                        </Box>
-                    </Container>
-                </SessionProvider>
+                                )}
+                            </Box>
+                        </Container>
+                    </SessionProvider>
+                </Provider>
             </ThemeProvider>
         </CacheProvider>
     );
