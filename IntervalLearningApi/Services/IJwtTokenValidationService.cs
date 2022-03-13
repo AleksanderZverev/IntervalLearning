@@ -1,4 +1,4 @@
-﻿namespace IntervalLearningApi.Controllers.Users;
+﻿namespace IntervalLearningApi.Services;
 
 public interface IJwtTokenValidationService
 {

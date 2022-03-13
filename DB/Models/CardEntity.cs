@@ -33,6 +33,11 @@ public class CardEntity : IParentCollectionReference, IParentRepeatsScheduleRefe
     [StringLength(255)]
     public List<string>? Examples { get; set; }
 
+    /// <summary>
+    /// null - not started, false - started, true - finished
+    /// </summary>
+    public bool? IsFinished { get; set; }
+
     public virtual List<RememberEntity> Remembers { get; set; } = new();
 
     public CardEntity(

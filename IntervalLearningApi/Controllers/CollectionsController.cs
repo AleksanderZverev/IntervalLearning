@@ -1,9 +1,8 @@
-﻿using DB;
-using DB.Models;
-using Microsoft.AspNetCore.Http;
+﻿using DB.Models;
+using IntervalLearningApi.Extensions;
+using IntervalLearningApi.Models.ByUser;
+using IntervalLearningApi.Services;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Query;
 
 namespace IntervalLearningApi.Controllers
 {
@@ -11,142 +10,81 @@ namespace IntervalLearningApi.Controllers
     [ApiController]
     public class CollectionsController : ControllerBase
     {
-        public CollectionsController()
-        {
+        private readonly CollectionService collectionService;
 
+        public CollectionsController(
+            CollectionService collectionService)
+        {
+            this.collectionService = collectionService;
         }
 
-        //[HttpPost]
-        //public IActionResult CreateCollections()
-        //{
-
-        //}
-    }
-
-
-    public class CollectionService
-    {
-        private readonly ApplicationContext db;
-        private readonly CardsService cardsService;
-
-        public CollectionService(ApplicationContext db, CardsService cardsService)
-        {
-            this.db = db;
-            this.cardsService = cardsService;
-        }
-
-        public List<CollectionEntity> GetAllByUserId(long userId)
-        {
-            var collections = db.Collections
-                .Where(c => c.ParentUserId == userId)
-                .Include(c => c.Cards)
-                .ThenInclude(c => c.Remembers)
-                .AsNoTracking()
-                .ToList();
-
-            return collections;
-        }
-
-        public CollectionEntity Create(
-            long userId, 
-            short repeatsScheduleId, 
-            short themeId, 
-            string title, 
+        [HttpPost]
+        public IActionResult CreateCollection(
+            short repeatsScheduleId,
+            short themeId,
+            string title,
             bool isDefaultBackSide)
         {
-            var collection = new CollectionEntity(
+            var userId = HttpContext.GetUserId();
+
+            var (collection, error) = collectionService.Create(
                 userId,
                 repeatsScheduleId,
                 themeId,
                 title,
-                isDefaultBackSide
+                isDefaultBackSide);
+
+            return collection != null
+                ? Ok(collection)
+                : BadRequest(error);
+        }
+
+        [HttpGet]
+        public List<Collection> GetAll()
+        {
+            var userId = HttpContext.GetUserId();
+            var collections = collectionService.GetAllByUserId(userId).Select(ToCollection).ToList();
+            return collections;
+        }
+
+        private static Collection ToCollection(CollectionEntity c)
+        {
+            return new Collection(
+                c.ParentUserId,
+                c.Id,
+                c.Title,
+                c.CreatedDate,
+                c.DefaultRepeatsScheduleId,
+                c.ThemeId,
+                c.Cards.Select(ToCard).ToList()
             );
-
-            db.Collections.Add(collection);
-            db.SaveChanges();
-            return collection;
         }
 
-        public CollectionEntity? AddCard(
-            long userId,
-            short collectionId,
-            string frontText,
-            string backText,
-            short scheduleId,
-            string description = null,
-            List<string> examples = null)
+        private static Card ToCard(CardEntity c)
         {
-            var collection = db.Collections.Find(userId, collectionId);
-
-            if (collection == null)
-                return null;
-
-            var card = cardsService.Create(
-                userId, collectionId, frontText, backText, scheduleId, description, examples);
-
-            collection.Cards.Add(card);
-            return collection;
-        }
-    }
-
-    public class CardsService
-    {
-        private readonly ApplicationContext db;
-
-        public CardsService(ApplicationContext db)
-        {
-            this.db = db;
+            return new Card(
+                c.ParentUserId,
+                c.ParentCollectionId,
+                c.Id,
+                c.BackSideText,
+                c.FrontSideText,
+                c.CreatedDate,
+                c.IsFinished,
+                c.Description,
+                c.Examples,
+                c.Remembers.Select(ToRemember).ToList());
         }
 
-        public CardEntity Create(
-            long userId,
-            short collectionId,
-            string frontText,
-            string backText,
-            short scheduleId,
-            string description = null,
-            List<string> examples = null)
+        private static Remember ToRemember(RememberEntity r)
         {
-            var card = new CardEntity(
-                userId,
-                collectionId,
-                frontText,
-                backText,
-                scheduleId,
-                description,
-                examples
-            );
-
-            db.Entry(card).State = EntityState.Added;
-            db.SaveChanges();
-            return card;
-        }
-
-        public bool Repeated(
-            long userId,
-            short collectionId,
-            byte cardId,
-            float weight,
-            byte phaseStep, 
-            int passedSecondsFromLastStep)
-        {
-            var card = db.Cards.Find(userId, collectionId, cardId);
-
-            if (card == null)
-                return false;
-
-            var rememberItem = new RememberEntity(
-                userId,
-                collectionId,
-                cardId,
-                weight,
-                phaseStep,
-                passedSecondsFromLastStep);
-
-            db.Entry(rememberItem).State = EntityState.Added;
-            db.SaveChanges();
-
-            return true;
+            return new Remember(
+                r.ParentUserId,
+                r.ParentCollectionId,
+                r.ParentCardId,
+                r.Id,
+                r.Weight,
+                r.PhaseStep,
+                r.PassedSecondsFromLastStep);
         }
     }
 }

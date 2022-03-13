@@ -2,6 +2,7 @@ using DB;
 using IntervalLearningApi;
 using IntervalLearningApi.Extensions;
 using Microsoft.EntityFrameworkCore;
+using Newtonsoft.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -23,8 +24,11 @@ builder.Services.AddCors(o =>
     o.AddPolicy("Default", b => b.AllowCredentials());
 });
 
-builder.Services.AddControllers();
-    //.AddJsonOptions(x => x.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull);
+builder.Services.AddControllers().AddNewtonsoftJson(opts =>
+{
+    opts.SerializerSettings.ContractResolver = new DefaultContractResolver();
+});
+//.AddJsonOptions(x => x.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull);
 builder.Services.AddSwaggerGen(options =>
 {
     options.AddSecurityDefinition("Bearer", new Microsoft.OpenApi.Models.OpenApiSecurityScheme
@@ -48,7 +52,7 @@ builder.Services.AddSwaggerGen(options =>
                     Id = "Bearer"
                 }
             },
-            new string[] { }
+            Array.Empty<string>()
         }
     });
 });

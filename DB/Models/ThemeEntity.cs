@@ -1,6 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using Microsoft.EntityFrameworkCore;
 
 namespace DB.Models;
 
@@ -13,4 +12,9 @@ public class ThemeEntity
     [Required]
     [StringLength(100)]
     public string Name { get; set; }
+
+    public ThemeEntity(string name)
+    {
+        Name = name;
+    }
 }
