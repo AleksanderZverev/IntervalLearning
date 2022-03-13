@@ -173,6 +173,7 @@ namespace DB.Migrations
                     CreatedDate = table.Column<Instant>(type: "timestamp with time zone", nullable: false),
                     Description = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: true),
                     Examples = table.Column<List<string>>(type: "text[]", maxLength: 255, nullable: true),
+                    IsFinished = table.Column<bool>(type: "boolean", nullable: true),
                     ParentRepeatsScheduleId = table.Column<short>(type: "smallint", nullable: false)
                 },
                 constraints: table =>

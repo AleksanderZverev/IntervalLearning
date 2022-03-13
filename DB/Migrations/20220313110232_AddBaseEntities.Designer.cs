@@ -14,7 +14,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace DB.Migrations
 {
     [DbContext(typeof(ApplicationContext))]
-    [Migration("20220309115517_AddBaseEntities")]
+    [Migration("20220313110232_AddBaseEntities")]
     partial class AddBaseEntities
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -57,6 +57,9 @@ namespace DB.Migrations
                         .IsRequired()
                         .HasMaxLength(255)
                         .HasColumnType("character varying(255)");
+
+                    b.Property<bool?>("IsFinished")
+                        .HasColumnType("boolean");
 
                     b.Property<short>("ParentRepeatsScheduleId")
                         .HasColumnType("smallint");

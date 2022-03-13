@@ -56,6 +56,9 @@ namespace DB.Migrations
                         .HasMaxLength(255)
                         .HasColumnType("character varying(255)");
 
+                    b.Property<bool?>("IsFinished")
+                        .HasColumnType("boolean");
+
                     b.Property<short>("ParentRepeatsScheduleId")
                         .HasColumnType("smallint");
 
