@@ -1,4 +1,6 @@
 import axios, { AxiosError, AxiosInstance } from 'axios';
+import { setError } from '../redux/errorSlice';
+import { store } from '../redux/store';
 
 const axiosInstance: AxiosInstance = axios.create({
     baseURL: 'http://localhost:5249/api', //'/api/backend',
@@ -14,13 +16,14 @@ axiosInstance.interceptors.response.use(
         if (error.response.status === 401) {
             console.error('Code 401 (Unauthorized)');
             error.response.data = 'Вы не авторизованы';
+            store.dispatch(setError({ code: 401, data: null }));
         }
 
         if (error.response.status >= 500 && error.response.status < 600) {
             error.response.data = 'Сервер не отвечает';
         }
 
-        return Promise.reject(pickDataOrTitle(error));
+        return Promise.reject(error);
     }
 );
 

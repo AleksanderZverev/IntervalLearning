@@ -1,4 +1,4 @@
-import { Collection } from '../types/collection';
+import { Collection } from '../types/Collection';
 import { api, tagTypes } from './apiSlice';
 
 const baseUrl = '/collections';

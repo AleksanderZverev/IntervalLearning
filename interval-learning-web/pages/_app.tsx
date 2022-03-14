@@ -1,7 +1,7 @@
 import '../styles/globals.css';
 import type { AppProps } from 'next/app';
 import { SessionProvider, useSession } from 'next-auth/react';
-import { FC, PropsWithChildren, useEffect } from 'react';
+import { FC, PropsWithChildren, useLayoutEffect } from 'react';
 import { removeAuthToken, setAuthToken } from '../src/api/axiosInstance';
 import { Provider } from 'react-redux';
 import Authorize from './authorize';
@@ -16,6 +16,7 @@ import theme from '../src/theme';
 import createEmotionCache from '../src/createEmotionCache';
 import { Box, Container } from '@mui/material';
 import { store } from '../src/redux/store';
+import { ErrorHandler } from './ErrorHandler';
 
 interface AuthProps {
     needAuth: boolean;
@@ -30,12 +31,14 @@ const Auth: FC<PropsWithChildren<any>> = ({ children }) => {
         },
     });
 
-    useEffect(() => {
-        if (status == 'authenticated' && session?.accessToken) {
-            console.log('setting aut token: ', session.accessToken);
-            setAuthToken(session.accessToken as string);
+    useLayoutEffect(() => {
+        if (status != 'authenticated' || !session?.accessToken) {
+            return;
         }
-    }, [status, session?.accessToken]);
+
+        console.log('setting aut token: ', session.accessToken);
+        setAuthToken(session.accessToken as string);
+    }, [status, session?.accessToken, session?.expires]);
 
     if (status == 'authenticated') {
         return children;
@@ -68,13 +71,15 @@ function MyApp(props: MyAppProps) {
                         <PageHeader />
                         <Container maxWidth="lg" style={{ marginTop: '10px', height: '100%' }}>
                             <Box sx={{ backgroundColor: 'white', height: 'inherit' }}>
-                                {(Component as any).auth ? (
-                                    <Auth>
+                                <ErrorHandler>
+                                    {(Component as any).auth ? (
+                                        <Auth>
+                                            <Component {...otherPageProps} />
+                                        </Auth>
+                                    ) : (
                                         <Component {...otherPageProps} />
-                                    </Auth>
-                                ) : (
-                                    <Component {...otherPageProps} />
-                                )}
+                                    )}
+                                </ErrorHandler>
                             </Box>
                         </Container>
                     </SessionProvider>
