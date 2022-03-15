@@ -55,7 +55,8 @@ public class JwtMiddleware
         else
         {
             var googleIdentity = ValidateGoogle(securityToken, db);
-            principal.AddIdentity(googleIdentity);
+            if (googleIdentity != null)
+                principal.AddIdentity(googleIdentity);
         }
 
         context.User = principal;
@@ -78,7 +79,7 @@ public class JwtMiddleware
         return new ClaimsIdentity(claims);
     }
 
-    private ClaimsIdentity ValidateGoogle(string securityToken, ApplicationContext db)
+    private ClaimsIdentity? ValidateGoogle(string securityToken, ApplicationContext db)
     {
         GoogleJsonWebSignature.Payload payload;
 

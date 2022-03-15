@@ -1,5 +1,4 @@
 import { signOut } from 'next-auth/react';
-import { useRouter } from 'next/router';
 import React, { FC } from 'react';
 import { useTypedDispatch } from '../src/hooks/useTypedDispatch';
 import useTypedSelector from '../src/hooks/useTypedSelector';
@@ -12,7 +11,6 @@ interface ErrorHandlerProps {
 export const ErrorHandler: FC<ErrorHandlerProps> = (props) => {
     const dispatch = useTypedDispatch();
     const errors = useTypedSelector((state) => selectErrors(state));
-    const router = useRouter();
 
     if (errors.length === 0) {
         return props.children;
@@ -21,7 +19,6 @@ export const ErrorHandler: FC<ErrorHandlerProps> = (props) => {
     if (errors.length === 1 && errors[0].code === 401) {
         signOut();
         dispatch(clearErrors());
-        router.push('/');
     }
 
     return <div>Unknown error</div>;

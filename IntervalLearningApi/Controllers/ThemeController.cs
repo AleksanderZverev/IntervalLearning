@@ -31,12 +31,12 @@ namespace IntervalLearningApi.Controllers
 
     public class Theme
     {
-        public short ID { get; }
+        public short Id { get; }
         public string Name { get; }
 
         public Theme(short id, string name)
         {
-            ID = id;
+            Id = id;
             Name = name;
         }
     }

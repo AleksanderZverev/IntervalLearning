@@ -29,7 +29,8 @@ builder.Services.AddCors(o =>
 
 builder.Services.AddControllers().AddNewtonsoftJson(opts =>
 {
-    opts.SerializerSettings.ContractResolver = new DefaultContractResolver();
+    opts.SerializerSettings.ContractResolver = new DefaultContractResolver()
+        {NamingStrategy = new CamelCaseNamingStrategy()};
     opts.SerializerSettings.ConfigureForNodaTime(DateTimeZoneProviders.Tzdb);
 });
 //.AddJsonOptions(x => x.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull);
