@@ -23,6 +23,7 @@ const axiosBaseQuery: CustomBaseQueryType = async (args, { signal, dispatch, get
 
 export const tagTypes = {
     collection: 'Collection',
+    theme: 'Theme',
 } as const;
 
 export type TagType = typeof tagTypes[keyof typeof tagTypes];

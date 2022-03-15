@@ -1,7 +1,7 @@
 import '../styles/globals.css';
 import type { AppProps } from 'next/app';
 import { SessionProvider, useSession } from 'next-auth/react';
-import { FC, PropsWithChildren, useLayoutEffect } from 'react';
+import { FC, PropsWithChildren, useLayoutEffect, useEffect } from 'react';
 import { removeAuthToken, setAuthToken } from '../src/api/axiosInstance';
 import { Provider } from 'react-redux';
 import Authorize from './authorize';
@@ -15,8 +15,12 @@ import { CacheProvider, EmotionCache } from '@emotion/react';
 import theme from '../src/theme';
 import createEmotionCache from '../src/createEmotionCache';
 import { Box, Container } from '@mui/material';
-import { store } from '../src/redux/store';
+import { AppDispatch, RootState, store } from '../src/redux/store';
 import { ErrorHandler } from './ErrorHandler';
+import { useTypedDispatch } from '../src/hooks/useTypedDispatch';
+import { api } from '../src/redux/apiSlice';
+import { themesApi } from '../src/redux/themeSlice';
+import { useOnMount } from '../src/hooks/useOnMount';
 
 interface AuthProps {
     needAuth: boolean;
@@ -54,9 +58,17 @@ interface MyAppProps extends AppProps {
     emotionCache?: EmotionCache;
 }
 
+const fetchStartData = async (dispatch: AppDispatch) => {
+    dispatch(themesApi.endpoints.getThemes.initiate());
+};
+
 function MyApp(props: MyAppProps) {
     const { Component, emotionCache = clientSideEmotionCache, pageProps } = props;
     const { session, ...otherPageProps } = pageProps;
+
+    useOnMount(() => {
+        store.dispatch(fetchStartData);
+    });
 
     return (
         <CacheProvider value={emotionCache}>
