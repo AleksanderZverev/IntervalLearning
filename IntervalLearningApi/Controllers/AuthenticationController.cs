@@ -8,7 +8,7 @@ namespace IntervalLearningApi.Controllers;
 
 [Authorize]
 [ApiController]
-[Route("api/authentication")]
+[Route("api/accounts")]
 public class AuthenticationController : ControllerBase
 {
     private const string RefreshTokenKey = "refreshToken";
