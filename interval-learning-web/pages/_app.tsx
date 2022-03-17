@@ -80,20 +80,24 @@ function MyApp(props: MyAppProps) {
                 <CssBaseline />
                 <Provider store={store}>
                     <SessionProvider session={session}>
-                        <PageHeader />
-                        <Container maxWidth="lg" style={{ marginTop: '10px', height: '100%' }}>
-                            <Box sx={{ backgroundColor: 'white', height: 'inherit' }}>
-                                <ErrorHandler>
-                                    {(Component as any).auth ? (
-                                        <Auth>
-                                            <Component {...otherPageProps} />
-                                        </Auth>
-                                    ) : (
+                        <div
+                            style={{
+                                height: '100%',
+                                display: 'flex',
+                                flexDirection: 'column',
+                            }}
+                        >
+                            <PageHeader />
+                            <ErrorHandler>
+                                {(Component as any).auth ? (
+                                    <Auth>
                                         <Component {...otherPageProps} />
-                                    )}
-                                </ErrorHandler>
-                            </Box>
-                        </Container>
+                                    </Auth>
+                                ) : (
+                                    <Component {...otherPageProps} />
+                                )}
+                            </ErrorHandler>
+                        </div>
                     </SessionProvider>
                 </Provider>
             </ThemeProvider>

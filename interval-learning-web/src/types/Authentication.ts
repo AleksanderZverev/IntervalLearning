@@ -10,3 +10,10 @@ export interface AuthenticateResponse {
     email: string;
     jwtToken: string;
 }
+
+export interface RegisterRequest {
+    email: string;
+    password: string;
+    firstName: string;
+    lastName: string | null;
+}
