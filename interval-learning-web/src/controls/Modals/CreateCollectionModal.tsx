@@ -1,7 +1,7 @@
-import { Button, Dialog, DialogActions, DialogContent, DialogTitle, Input, Modal, TextField } from '@mui/material';
-import { FC, useLayoutEffect, useState } from 'react';
+import { Button, Dialog, DialogActions, DialogContent, DialogTitle } from '@mui/material';
+import { FC, useState } from 'react';
 import { collectionLimits } from '../../globals/constants';
-import { Theme, Validated, validatedDefault } from '../../types/global';
+import { Theme, validatedDefault } from '../../types/global';
 import { SelectTheme } from '../SelectTheme/SelectTheme';
 import { ValidatedTextField } from '../ValidatedTextField/ValidatedTextField';
 

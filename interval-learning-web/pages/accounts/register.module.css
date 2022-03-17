@@ -1,0 +1,17 @@
+.formField {
+    display: flex;
+    align-items: baseline;
+    column-gap: 10px;
+    justify-content: space-between;
+}
+
+.formHeader {
+    margin-bottom: 5px;
+}
+
+.formContainer {
+    padding: 20px 30px;
+    display: flex;
+    flex-direction: column;
+    row-gap: 15px;
+}
