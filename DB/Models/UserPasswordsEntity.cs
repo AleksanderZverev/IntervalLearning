@@ -9,8 +9,8 @@ namespace DB.Models
         public long ParentUserId { get; set; }
         public UserEntity? ParentUser { get; set; }
 
-        [MaxLength(255)]
-        [Column(TypeName = "varchar(255)")]
+        [MaxLength(60)]
+        [Column(TypeName = "varchar(60)")]
         [JsonIgnore]
         public string? PasswordHash { get; set; }
     }

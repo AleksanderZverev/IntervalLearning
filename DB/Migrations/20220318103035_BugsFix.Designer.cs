@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using DB;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using NodaTime;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
@@ -13,9 +14,10 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace DB.Migrations
 {
     [DbContext(typeof(ApplicationContext))]
-    partial class ApplicationContextModelSnapshot : ModelSnapshot
+    [Migration("20220318103035_BugsFix")]
+    partial class BugsFix
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -128,9 +130,6 @@ namespace DB.Migrations
 
             modelBuilder.Entity("DB.Models.RefreshTokenEntity", b =>
                 {
-                    b.Property<long>("ParentUserId")
-                        .HasColumnType("bigint");
-
                     b.Property<byte>("Id")
                         .HasColumnType("smallint");
 
@@ -144,6 +143,9 @@ namespace DB.Migrations
 
                     b.Property<Instant>("Expires")
                         .HasColumnType("timestamp with time zone");
+
+                    b.Property<long>("ParentUserId")
+                        .HasColumnType("bigint");
 
                     b.Property<string>("ReasonRevoked")
                         .HasColumnType("text");
@@ -162,7 +164,9 @@ namespace DB.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.HasKey("ParentUserId", "Id");
+                    b.HasKey("Id");
+
+                    b.HasIndex("ParentUserId");
 
                     b.ToTable("RefreshTokens");
                 });

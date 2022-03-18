@@ -41,6 +41,9 @@ namespace DB
             // RefreshTokenEntity
 
             modelBuilder.Entity<RefreshTokenEntity>()
+                .HasKey(t => new {t.ParentUserId, t.Id});
+
+            modelBuilder.Entity<RefreshTokenEntity>()
                 .HasOne(t => t.ParentUser)
                 .WithMany(u => u.RefreshTokens)
                 .HasForeignKey(t => t.ParentUserId)
