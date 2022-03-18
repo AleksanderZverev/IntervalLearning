@@ -4,6 +4,7 @@ import { store } from '../redux/store';
 
 const axiosInstance: AxiosInstance = axios.create({
     baseURL: 'http://localhost:5249/api', //'/api/backend',
+    withCredentials: true,
 });
 
 axiosInstance.interceptors.response.use(

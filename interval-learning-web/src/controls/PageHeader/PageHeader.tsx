@@ -1,12 +1,30 @@
-import { Button, Divider } from '@mui/material';
+import { Button, Divider, Typography } from '@mui/material';
 import Link from 'next/link';
 import MuiLink from '../../Link';
-import React, { FC } from 'react';
+import React, { FC, useMemo } from 'react';
 import styles from './PageHeader.module.css';
-import { signIn, signOut, useSession } from 'next-auth/react';
+import { useRouter } from 'next/router';
+import useTypedSelector from '../../hooks/useTypedSelector';
+import { selectCurrentUser, signOutUser } from '../../redux/currentUserSlice';
+import { useTypedDispatch } from '../../hooks/useTypedDispatch';
 
 const PageHeader: FC = () => {
-    const { data: session, status } = useSession();
+    const currentUser = useTypedSelector(selectCurrentUser);
+    const userNameTitle = useMemo(
+        () => (currentUser !== null ? (currentUser.firstName + ' ' + currentUser.lastName).trim() : ''),
+        [currentUser]
+    );
+    const router = useRouter();
+    const dispatch = useTypedDispatch();
+
+    const signOut = () => {
+        if (currentUser === null) {
+            return;
+        }
+
+        dispatch(signOutUser());
+        router.push('/');
+    };
 
     return (
         <header className={styles.header}>
@@ -20,14 +38,22 @@ const PageHeader: FC = () => {
                 </MuiLink>
             </div>
             <div className={styles.rightHeaderContainer}>
-                {status === 'authenticated' ? (
-                    <Button variant="contained" onClick={() => signOut()}>
-                        Sign Out
-                    </Button>
+                {currentUser !== null ? (
+                    <>
+                        <span>{userNameTitle}</span>
+                        <Button variant="contained" onClick={signOut}>
+                            Sign Out
+                        </Button>
+                    </>
                 ) : (
-                    <Button variant="contained" onClick={() => signIn()}>
-                        Sign IN
-                    </Button>
+                    <>
+                        <Button variant="contained" onClick={() => router.push('/accounts/register')}>
+                            Sign Up
+                        </Button>
+                        <Button variant="contained" onClick={() => router.push('/accounts/authorize')}>
+                            Sign In
+                        </Button>
+                    </>
                 )}
             </div>
         </header>

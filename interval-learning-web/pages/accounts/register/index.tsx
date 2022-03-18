@@ -1,28 +1,15 @@
-import {
-    Button,
-    FormControlLabel,
-    Stack,
-    TextField,
-    Container,
-    Typography,
-    Paper,
-    Box,
-    FormLabel,
-    InputLabel,
-    Backdrop,
-    Fab,
-    CircularProgress,
-} from '@mui/material';
-import { FC, useState } from 'react';
+import { Button, TextField, Typography, Paper, FormLabel, Fab, CircularProgress } from '@mui/material';
+import { FC, useEffect, useState } from 'react';
 import { SubmitHandler, useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
 import styles from './register.module.css';
-import { useRegisterMutation } from '../../src/redux/accountSlice';
-import { RegisterRequest } from '../../src/types/Authentication';
+import { useRegisterMutation } from '../../../src/redux/accountSlice';
+import { RegisterRequest } from '../../../src/types/Authentication';
 import { Check, HourglassBottomRounded } from '@mui/icons-material';
 import { green } from '@mui/material/colors';
 import { useRouter } from 'next/router';
+import { ModalPageContainer } from '../../../src/controls/ModalPageContainer/ModalPageContainer';
 
 interface IForm {
     email: string;
@@ -57,9 +44,7 @@ const RegisterPage: FC = () => {
     } = useForm<IForm>({ resolver: yupResolver(schema) });
 
     const router = useRouter();
-    //const [registerAccount, { isLoading, isSuccess }] = useRegisterMutation();
-    const [isLoading, setIsLoading] = useState(false);
-    const [isSuccess, setIsSuccess] = useState(false);
+    const [registerAccount, { isLoading, isSuccess }] = useRegisterMutation();
 
     const onSubmit: SubmitHandler<IForm> = (data) => {
         const registerRequest: RegisterRequest = {
@@ -68,13 +53,8 @@ const RegisterPage: FC = () => {
             email: data.email,
             password: data.password,
         };
-        setIsLoading(true);
-        window.setTimeout(() => {
-            setIsLoading(false);
-            setIsSuccess(true);
-            window.setTimeout(() => router.push('/'), 1000);
-        }, 5000);
-        // registerAccount(registerRequest).then((v) => window.setTimeout(() => router.push('/'), 1000));
+
+        registerAccount(registerRequest).then((v) => 'data' in v && window.setTimeout(() => router.push('/'), 500));
     };
 
     const renderRegisterPage = () => (
@@ -87,45 +67,49 @@ const RegisterPage: FC = () => {
             <div className={styles.formField}>
                 <FormLabel htmlFor="given-name-input">Name</FormLabel>
                 <TextField
+                    size="small"
                     id="given-name-input"
                     disabled={isLoading}
                     type="text"
                     error={!!errors.givenName}
-                    helperText={errors.givenName?.message}
+                    helperText={errors.givenName?.message || ' '}
                     {...register('givenName')}
                 />
             </div>
             <div className={styles.formField}>
                 <FormLabel htmlFor="family-name-input">Surname</FormLabel>
                 <TextField
+                    size="small"
                     id="family-name-input"
                     disabled={isLoading}
                     type="text"
                     error={!!errors.familyName}
-                    helperText={errors.familyName?.message}
+                    helperText={errors.familyName?.message || ' '}
                     {...register('familyName')}
                 />
             </div>
             <div className={styles.formField}>
                 <FormLabel htmlFor="email-input">Email</FormLabel>
                 <TextField
+                    size="small"
                     id="email-input"
                     disabled={isLoading}
                     type="email"
                     error={!!errors.email}
                     autoComplete="email"
-                    helperText={errors.email?.message}
+                    helperText={errors.email?.message || ' '}
                     {...register('email')}
                 />
             </div>
             <div className={styles.formField}>
                 <FormLabel htmlFor="password-input">Password</FormLabel>
                 <TextField
+                    size="small"
                     id="password-input"
                     disabled={isLoading}
                     error={!!errors.password}
                     autoComplete="new-password"
-                    helperText={errors.password?.message}
+                    helperText={errors.password?.message || ' '}
                     type={'password'}
                     {...register('password', { required: true })}
                 />
@@ -133,30 +117,25 @@ const RegisterPage: FC = () => {
             <div className={styles.formField}>
                 <FormLabel htmlFor="confirm-password-input">Confirm password</FormLabel>
                 <TextField
+                    size="small"
                     id="confirm-password-input"
                     disabled={isLoading}
                     type={'password'}
                     error={!!errors.confirmPassword}
                     autoComplete="new-password"
-                    helperText={errors.confirmPassword?.message}
+                    helperText={errors.confirmPassword?.message || ' '}
                     {...register('confirmPassword')}
                 />
             </div>
-            <Button type="submit">Submit</Button>
+            <Button className={styles.submitButton} type="submit">
+                Submit
+            </Button>
         </form>
     );
 
     return (
-        <div
-            style={{
-                display: 'flex',
-                width: '100%',
-                height: '100%',
-                justifyContent: 'center',
-                alignItems: 'center',
-            }}
-        >
-            <Paper sx={{ width: 415, height: 495 }}>
+        <ModalPageContainer>
+            <Paper sx={{ width: 415, height: 445 }}>
                 {isLoading || isSuccess ? (
                     <div
                         style={{
@@ -192,7 +171,7 @@ const RegisterPage: FC = () => {
                     renderRegisterPage()
                 )}
             </Paper>
-        </div>
+        </ModalPageContainer>
     );
 };
 

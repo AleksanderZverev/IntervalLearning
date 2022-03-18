@@ -6,12 +6,15 @@
 }
 
 .formHeader {
-    margin-bottom: 5px;
+    margin-bottom: 10px;
 }
 
 .formContainer {
     padding: 20px 30px;
     display: flex;
     flex-direction: column;
-    row-gap: 15px;
+}
+
+.submitButton {
+    margin-top: 5px;
 }

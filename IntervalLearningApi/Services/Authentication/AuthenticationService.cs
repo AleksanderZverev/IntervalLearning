@@ -60,7 +60,7 @@ public class AuthenticationService : IAuthenticationService
 
     public AuthenticateResponse Authenticate(AuthenticateRequest req, string ipAddress)
     {
-        var user = db.Users.Include(u => u.PasswordHash).SingleOrDefault(x => x.Email == req.Email);
+        var user = db.Users.Include(u => u.PasswordHash).Include(u => u.RefreshTokens).SingleOrDefault(x => x.Email == req.Email);
 
         if (user is {PasswordHash: null})
             throw new AppException("Not signed up user!");
@@ -78,8 +78,6 @@ public class AuthenticationService : IAuthenticationService
         user.RefreshTokens.Add(refreshToken);
 
         RemoveOldRefreshTokens(user);
-
-        db.Update(user);
         db.SaveChanges();
 
         return new AuthenticateResponse(user, jwtToken, refreshToken.Token);
@@ -104,10 +102,8 @@ public class AuthenticationService : IAuthenticationService
         user.RefreshTokens.Add(newRefreshToken);
         
         RemoveOldRefreshTokens(user);
-        
-        db.Update(user);
         db.SaveChanges();
-        
+
         var jwtToken = jwtService.GenerateJwtToken(user);
         return new AuthenticateResponse(user, jwtToken, newRefreshToken.Token);
     }
@@ -128,7 +124,7 @@ public class AuthenticationService : IAuthenticationService
 
     private UserEntity GetUserByRefreshToken(string token)
     {
-        var user = db.Users.SingleOrDefault(u => u.RefreshTokens.Any(t => t.Token == token));
+        var user = db.Users.Include(u => u.RefreshTokens).SingleOrDefault(u => u.RefreshTokens.Any(t => t.Token == token));
 
         if (user == null)
             throw new AppException("Invalid token");
@@ -139,6 +135,7 @@ public class AuthenticationService : IAuthenticationService
     private RefreshTokenEntity ReplaceOldRefreshToken(RefreshTokenEntity refreshToken, string ipAddress)
     {
         var newRefreshToken = jwtService.GenerateRefreshToken(ipAddress);
+        newRefreshToken.Id = (byte) ((refreshToken.Id + 1) % byte.MaxValue);
         RevokeRefreshToken(refreshToken, ipAddress, "Replaced by new token", newRefreshToken.Token);
         return newRefreshToken;
     }
@@ -146,9 +143,15 @@ public class AuthenticationService : IAuthenticationService
     private void RemoveOldRefreshTokens(UserEntity userEntity)
     {
         var now = SystemClock.Instance.GetCurrentInstant();
-        userEntity.RefreshTokens.RemoveAll(x =>
-            !x.IsActive &&
-            x.Created  + Duration.FromDays(jwtSettings.RefreshTokenTTLInDays) <= now);
+
+        foreach (var refreshToken in userEntity.RefreshTokens)
+        {
+            if (!refreshToken.IsActive &&
+               refreshToken.Created + Duration.FromDays(jwtSettings.RefreshTokenTTLInDays) <= now)
+            {
+                db.RefreshTokens.Remove(refreshToken);
+            }
+        }
     }
 
     private void RevokeDescendantRefreshTokens(RefreshTokenEntity refreshTokenEntity, UserEntity userEntity, string ipAddress, string reason)

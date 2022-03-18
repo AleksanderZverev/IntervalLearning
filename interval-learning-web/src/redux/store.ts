@@ -1,11 +1,13 @@
 import { configureStore } from '@reduxjs/toolkit';
 import { api } from './apiSlice';
+import { currentUserSlice } from './currentUserSlice';
 import { errorSlice } from './errorSlice';
 
 export const store = configureStore({
     reducer: {
         [api.reducerPath]: api.reducer,
         errors: errorSlice.reducer,
+        currentUser: currentUserSlice.reducer,
     },
     middleware: (getDefaultMiddleware) => getDefaultMiddleware({ serializableCheck: false }).concat(api.middleware),
 });

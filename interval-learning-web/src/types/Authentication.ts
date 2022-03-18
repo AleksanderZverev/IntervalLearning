@@ -4,7 +4,7 @@ export interface AuthenticateRequest {
 }
 
 export interface AuthenticateResponse {
-    id: number;
+    id: string;
     firstName: string;
     lastName: string;
     email: string;
