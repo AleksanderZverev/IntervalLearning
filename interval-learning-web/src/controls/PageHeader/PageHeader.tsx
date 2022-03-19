@@ -1,15 +1,17 @@
-import { Button, Divider, Typography } from '@mui/material';
+import { Button, Divider } from '@mui/material';
 import Link from 'next/link';
 import MuiLink from '../../Link';
 import React, { FC, useMemo } from 'react';
 import styles from './PageHeader.module.css';
 import { useRouter } from 'next/router';
 import useTypedSelector from '../../hooks/useTypedSelector';
-import { selectCurrentUser, signOutUser } from '../../redux/currentUserSlice';
+import { signOutUser } from '../../redux/currentUserSlice';
 import { useTypedDispatch } from '../../hooks/useTypedDispatch';
 
 const PageHeader: FC = () => {
-    const currentUser = useTypedSelector(selectCurrentUser);
+    const currentUser = useTypedSelector((state) => state.currentUser.currentUser);
+
+    console.log('cU', currentUser);
     const userNameTitle = useMemo(
         () => (currentUser !== null ? (currentUser.firstName + ' ' + currentUser.lastName).trim() : ''),
         [currentUser]
@@ -59,5 +61,7 @@ const PageHeader: FC = () => {
         </header>
     );
 };
+
+//const wrappedPageHeader = wrapper.withRedux(PageHeader);
 
 export default PageHeader;

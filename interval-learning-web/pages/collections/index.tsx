@@ -1,6 +1,7 @@
 import { Button, CircularProgress, Container } from '@mui/material';
 import { FC, useEffect, useLayoutEffect, useState } from 'react';
 import { CreateCollectionModal } from '../../src/controls/Modals/CreateCollectionModal';
+import { withAuthorization } from '../../src/hoc/withAuthorization';
 import { withQueryResolver } from '../../src/hoc/withQueryResolver';
 import { useGetCollectionsQuery } from '../../src/redux/collectionSlice';
 import { Collection } from '../../src/types/Collection';
@@ -31,6 +32,7 @@ const CollectionsPageContent: FC<{ data: Collection[] }> = ({ data: collections 
 };
 
 const CollectionsPage = withQueryResolver(useGetCollectionsQuery)(CollectionsPageContent);
+//const AuthorizationPage = withAuthorization(CollectionsPage);
 
 (CollectionsPage as any).auth = true;
 
