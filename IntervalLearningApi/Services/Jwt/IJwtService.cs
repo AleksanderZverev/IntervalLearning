@@ -6,5 +6,5 @@ public interface IJwtService
 {
     public string GenerateJwtToken(UserEntity userEntity);
     public int? ValidateJwtToken(string token);
-    public RefreshTokenEntity GenerateRefreshToken(string ipAddress);
+    public RefreshTokenEntity GenerateRefreshToken(UserEntity user, string ipAddress);
 }

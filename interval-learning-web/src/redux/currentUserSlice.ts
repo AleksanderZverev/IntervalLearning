@@ -4,6 +4,22 @@ import { removeAuthToken, setAuthToken } from '../api/axiosInstance';
 import { User } from '../types/user';
 import { RootState } from './store';
 
+const isLoggedOutKey = 'isLoggedOut';
+
+export const setIsLoggedOut = (isLoggedOut: boolean) => {
+    if (typeof window !== 'undefined' && window?.localStorage) {
+        window.localStorage.setItem(isLoggedOutKey, String(isLoggedOut));
+    }
+};
+
+export const checkIsLoggedOut = (): boolean => {
+    if (typeof window !== 'undefined' && window?.localStorage) {
+        return window.localStorage.getItem(isLoggedOutKey) === 'true';
+    }
+
+    return false;
+};
+
 interface State {
     currentUser: User | null;
 }
@@ -16,10 +32,12 @@ export const currentUserSlice = createSlice({
         setCurrentUser: (state, action: PayloadAction<User>) => {
             state.currentUser = { ...action.payload };
             setAuthToken(action.payload.jwtToken);
+            setIsLoggedOut(false);
         },
         signOutUser: (state, action: PayloadAction<void>) => {
             state.currentUser = null;
             removeAuthToken();
+            setIsLoggedOut(true);
         },
     },
     extraReducers: {

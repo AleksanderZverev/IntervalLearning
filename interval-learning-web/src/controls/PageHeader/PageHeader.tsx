@@ -11,7 +11,6 @@ import { useTypedDispatch } from '../../hooks/useTypedDispatch';
 const PageHeader: FC = () => {
     const currentUser = useTypedSelector((state) => state.currentUser.currentUser);
 
-    console.log('cU', currentUser);
     const userNameTitle = useMemo(
         () => (currentUser !== null ? (currentUser.firstName + ' ' + currentUser.lastName).trim() : ''),
         [currentUser]

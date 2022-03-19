@@ -15,6 +15,10 @@ import { ErrorHandler } from './ErrorHandler';
 import { themesApi } from '../src/redux/themeSlice';
 import { useOnMount } from '../src/hooks/useOnMount';
 import { useTypedDispatch } from '../src/hooks/useTypedDispatch';
+import { checkIsLoggedOut, selectCurrentUser, setCurrentUser } from '../src/redux/currentUserSlice';
+import { useAuthenticateMutation, useRefreshTokenQuery } from '../src/redux/accountSlice';
+import useTypedSelector from '../src/hooks/useTypedSelector';
+import { useAutoAuthorization } from './accounts/authorize';
 
 interface AuthProps {
     needAuth: boolean;
@@ -34,7 +38,9 @@ function MyApp(props: MyAppProps) {
     const { Component, emotionCache = clientSideEmotionCache, pageProps } = props;
     const { session, ...otherPageProps } = pageProps;
 
+    const currentUser = useTypedSelector(selectCurrentUser);
     const dispatch = useTypedDispatch();
+    useAutoAuthorization(currentUser, dispatch);
 
     useOnMount(() => {
         dispatch(fetchStartData);

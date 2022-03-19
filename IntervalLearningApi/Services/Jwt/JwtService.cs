@@ -69,16 +69,21 @@ public class JwtService : IJwtService
         }
     }
 
-    public RefreshTokenEntity GenerateRefreshToken(string ipAddress)
+    public RefreshTokenEntity GenerateRefreshToken(UserEntity user, string ipAddress)
     {
         var now = SystemClock.Instance.GetCurrentInstant();
 
+        var lastRefreshToken = user.RefreshTokens.MaxBy(t => t.Id);
+        var id = (byte)((lastRefreshToken.Id + 1) % byte.MaxValue);
+
         var refreshToken = new RefreshTokenEntity
         {
+            Id = id,
             Token = GetUniqueToken(),
             Expires = now + Duration.FromDays(jwtSettings.RefreshTokenTTLInDays),
             Created = now,
             CreatedByIp = ipAddress,
+            ParentUserId = user.Id,
         };
 
         return refreshToken;

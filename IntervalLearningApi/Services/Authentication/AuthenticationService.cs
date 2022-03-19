@@ -74,7 +74,8 @@ public class AuthenticationService : IAuthenticationService
     private AuthenticateResponse Authenticate(UserEntity user, string ipAddress)
     {
         var jwtToken = jwtService.GenerateJwtToken(user);
-        var refreshToken = jwtService.GenerateRefreshToken(ipAddress);
+        var refreshToken = jwtService.GenerateRefreshToken(user, ipAddress);
+
         user.RefreshTokens.Add(refreshToken);
 
         RemoveOldRefreshTokens(user);
@@ -98,7 +99,7 @@ public class AuthenticationService : IAuthenticationService
         if (!refreshTokenItem.IsActive)
             throw new AppException("Invalid token");
         
-        var newRefreshToken = ReplaceOldRefreshToken(refreshTokenItem, ipAddress);
+        var newRefreshToken = ReplaceOldRefreshToken(user, refreshTokenItem, ipAddress);
         user.RefreshTokens.Add(newRefreshToken);
         
         RemoveOldRefreshTokens(user);
@@ -132,11 +133,10 @@ public class AuthenticationService : IAuthenticationService
         return user;
     }
 
-    private RefreshTokenEntity ReplaceOldRefreshToken(RefreshTokenEntity refreshToken, string ipAddress)
+    private RefreshTokenEntity ReplaceOldRefreshToken(UserEntity user, RefreshTokenEntity tokenToRevoke, string ipAddress)
     {
-        var newRefreshToken = jwtService.GenerateRefreshToken(ipAddress);
-        newRefreshToken.Id = (byte) ((refreshToken.Id + 1) % byte.MaxValue);
-        RevokeRefreshToken(refreshToken, ipAddress, "Replaced by new token", newRefreshToken.Token);
+        var newRefreshToken = jwtService.GenerateRefreshToken(user, ipAddress);
+        RevokeRefreshToken(tokenToRevoke, ipAddress, "Replaced by new token", newRefreshToken.Token);
         return newRefreshToken;
     }
 

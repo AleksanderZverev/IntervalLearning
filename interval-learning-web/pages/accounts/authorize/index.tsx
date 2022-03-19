@@ -1,14 +1,32 @@
 import { FC, useEffect } from 'react';
-import { Button, TextField, Typography, Paper, FormLabel, Fab, CircularProgress } from '@mui/material';
-import { SubmitHandler, useForm, useFormState } from 'react-hook-form';
+import { Button, TextField, Typography, Paper, FormLabel } from '@mui/material';
+import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
 import styles from './authorize.module.css';
 import { useAuthenticateMutation, useRefreshTokenQuery } from '../../../src/redux/accountSlice';
 import { ModalPageContainer } from '../../../src/controls/ModalPageContainer/ModalPageContainer';
 import { useTypedDispatch } from '../../../src/hooks/useTypedDispatch';
-import { setCurrentUser } from '../../../src/redux/currentUserSlice';
+import { checkIsLoggedOut, selectCurrentUser, setCurrentUser } from '../../../src/redux/currentUserSlice';
 import { useRouter } from 'next/router';
+import { User } from '../../../src/types/user';
+import useTypedSelector from '../../../src/hooks/useTypedSelector';
+import { AppDispatch } from '../../../src/redux/store';
+
+export const useAutoAuthorization = (currentUser: User | null, dispatch: AppDispatch) => {
+    const isLoggedOut = checkIsLoggedOut();
+    const autoAuthorizeData = useRefreshTokenQuery(undefined, {
+        skip: isLoggedOut || currentUser != null,
+    });
+
+    useEffect(() => {
+        if (autoAuthorizeData.isSuccess) {
+            dispatch(setCurrentUser(autoAuthorizeData.data));
+        }
+    }, [autoAuthorizeData.isSuccess]);
+
+    return autoAuthorizeData;
+};
 
 interface Form {
     email: string;
@@ -30,15 +48,17 @@ const AuthorizePage: FC = () => {
     } = useForm<Form>({ resolver: yupResolver(schema) });
     const dispatch = useTypedDispatch();
     const router = useRouter();
-    const { data: refreshedUser, isSuccess: isRefreshSuccess } = useRefreshTokenQuery();
-    const [authenticate, { isLoading, isSuccess }] = useAuthenticateMutation();
+    const currentUser = useTypedSelector(selectCurrentUser);
 
-    useEffect(() => {
-        if (isRefreshSuccess) {
-            dispatch(setCurrentUser(refreshedUser));
-            router.push('/');
-        }
-    }, [isRefreshSuccess]);
+    const {
+        data: refreshedUser,
+        isLoading: autoQueryLoading,
+        isSuccess: isRefreshSuccess,
+    } = useAutoAuthorization(currentUser, dispatch);
+
+    const [authenticate, { isLoading: mutationLoading, isSuccess }] = useAuthenticateMutation();
+
+    const isLoading = autoQueryLoading || mutationLoading;
 
     const onSubmit = async (data: Form) => {
         try {

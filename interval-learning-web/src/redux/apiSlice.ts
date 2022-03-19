@@ -1,6 +1,5 @@
 import { createApi, BaseQueryFn } from '@reduxjs/toolkit/query/react';
 import { AxiosRequestConfig } from 'axios';
-import { HYDRATE } from 'next-redux-wrapper';
 import axiosInstance from '../api/axiosInstance';
 
 interface CustomQueryArgs {
