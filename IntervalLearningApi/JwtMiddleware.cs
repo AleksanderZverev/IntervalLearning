@@ -39,6 +39,7 @@ public class JwtMiddleware
 
         if (authorizationHeader == null || !authorizationHeader.StartsWith(BearerPrefix))
         {
+            context.User = new ClaimsPrincipal();
             await _next(context);
             return;
         }
@@ -52,12 +53,12 @@ public class JwtMiddleware
         {
             principal.AddIdentity(customIdentity);
         }
-        else
-        {
-            var googleIdentity = ValidateGoogle(securityToken, db);
-            if (googleIdentity != null)
-                principal.AddIdentity(googleIdentity);
-        }
+        //else
+        //{
+        //    var googleIdentity = ValidateGoogle(securityToken, db);
+        //    if (googleIdentity != null)
+        //        principal.AddIdentity(googleIdentity);
+        //}
 
         context.User = principal;
         await _next(context);

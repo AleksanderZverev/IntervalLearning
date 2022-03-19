@@ -5,6 +5,6 @@ namespace IntervalLearningApi.Services.Jwt;
 public interface IJwtService
 {
     public string GenerateJwtToken(UserEntity userEntity);
-    public int? ValidateJwtToken(string token);
+    public long? ValidateJwtToken(string token);
     public RefreshTokenEntity GenerateRefreshToken(UserEntity user, string ipAddress);
 }

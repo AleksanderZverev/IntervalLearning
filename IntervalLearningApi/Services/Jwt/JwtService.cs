@@ -13,6 +13,7 @@ namespace IntervalLearningApi.Services.Jwt;
 
 public class JwtService : IJwtService
 {
+    private const string IdClaimType = "Id";
     private readonly ApplicationContext db;
     private readonly JwtSettings jwtSettings;
 
@@ -42,7 +43,7 @@ public class JwtService : IJwtService
         return tokenHandler.WriteToken(token);
     }
 
-    public int? ValidateJwtToken(string token)
+    public long? ValidateJwtToken(string token)
     {
         var tokenHandler = new JwtSecurityTokenHandler();
         var securityKey = Encoding.ASCII.GetBytes(jwtSettings.Secret);
@@ -59,7 +60,7 @@ public class JwtService : IJwtService
             }, out var validatedToken);
 
             var jwtToken = (JwtSecurityToken)validatedToken;
-            var userId = int.Parse(jwtToken.Claims.First(x => x.Type == "id").Value);
+            var userId = long.Parse(jwtToken.Claims.First(x => x.Type == IdClaimType).Value);
             
             return userId;
         }
@@ -103,7 +104,7 @@ public class JwtService : IJwtService
     {
         var claims = new Claim[]
         {
-            new("Id", user.Id.ToString()),
+            new(IdClaimType, user.Id.ToString()),
 
             //For User.Identity
             new(ClaimTypes.NameIdentifier, user.Id.ToString()),
