@@ -9,7 +9,7 @@ namespace DB.Models;
 public class RefreshTokenEntity : IParentUserReference
 {
     [JsonIgnore]
-    public byte Id { get; set; }
+    public short Id { get; set; }
 
     public string Token { get; set; }
     public Instant Expires { get; set; }

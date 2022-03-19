@@ -74,7 +74,7 @@ public class JwtService : IJwtService
         var now = SystemClock.Instance.GetCurrentInstant();
 
         var lastRefreshToken = user.RefreshTokens.MaxBy(t => t.Id);
-        var id = (byte)((lastRefreshToken.Id + 1) % byte.MaxValue);
+        var id = (short)((lastRefreshToken.Id + 1) % short.MaxValue);
 
         var refreshToken = new RefreshTokenEntity
         {
