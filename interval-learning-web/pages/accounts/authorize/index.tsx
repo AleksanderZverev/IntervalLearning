@@ -15,8 +15,9 @@ import { AppDispatch } from '../../../src/redux/store';
 
 export const useAutoAuthorization = (currentUser: User | null, dispatch: AppDispatch) => {
     const isLoggedOut = checkIsLoggedOut();
+
     const autoAuthorizeData = useRefreshTokenQuery(undefined, {
-        skip: isLoggedOut || currentUser != null,
+        skip: isLoggedOut || currentUser !== null,
     });
 
     useEffect(() => {

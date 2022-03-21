@@ -1,3 +1,4 @@
+import { accountSlice } from './accountSlice';
 import { Action, configureStore, ThunkAction } from '@reduxjs/toolkit';
 import { createWrapper } from 'next-redux-wrapper';
 import { api } from './apiSlice';
@@ -8,6 +9,7 @@ const makeStore = () =>
     configureStore({
         reducer: {
             [api.reducerPath]: api.reducer,
+            [accountSlice.reducerPath]: accountSlice.reducer,
             errors: errorSlice.reducer,
             currentUser: currentUserSlice.reducer,
         },

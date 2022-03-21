@@ -1,25 +1,5 @@
-import { createApi, BaseQueryFn } from '@reduxjs/toolkit/query/react';
-import { AxiosRequestConfig } from 'axios';
-import axiosInstance from '../api/axiosInstance';
-
-interface CustomQueryArgs {
-    url: string;
-    method: AxiosRequestConfig['method'];
-    data?: AxiosRequestConfig['data'];
-}
-
-export type CustomBaseQueryType = BaseQueryFn<CustomQueryArgs, unknown, unknown>;
-
-const axiosBaseQuery: CustomBaseQueryType = async (args, { signal, dispatch, getState }, extraOptions) => {
-    try {
-        const result = await axiosInstance.request(args);
-        return { data: result.data };
-    } catch (error: unknown) {
-        return {
-            error: error, //{ status: err.response?.status, data: err.response?.data },
-        };
-    }
-};
+import { createApi } from '@reduxjs/toolkit/query/react';
+import { axiosBaseQuery } from './axiosBaseQuery';
 
 export const tagTypes = {
     collection: 'Collection',

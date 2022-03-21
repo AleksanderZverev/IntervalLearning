@@ -15,8 +15,7 @@ import { ErrorHandler } from './ErrorHandler';
 import { themesApi } from '../src/redux/themeSlice';
 import { useOnMount } from '../src/hooks/useOnMount';
 import { useTypedDispatch } from '../src/hooks/useTypedDispatch';
-import { checkIsLoggedOut, selectCurrentUser, setCurrentUser } from '../src/redux/currentUserSlice';
-import { useAuthenticateMutation, useRefreshTokenQuery } from '../src/redux/accountSlice';
+import { selectCurrentUser } from '../src/redux/currentUserSlice';
 import useTypedSelector from '../src/hooks/useTypedSelector';
 import { useAutoAuthorization } from './accounts/authorize';
 
