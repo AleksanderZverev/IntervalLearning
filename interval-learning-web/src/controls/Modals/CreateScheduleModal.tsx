@@ -6,6 +6,8 @@ import {
     DialogContent,
     DialogTitle,
     FormLabel,
+    MenuItem,
+    Select,
     TextField,
     Typography,
 } from '@mui/material';
@@ -16,13 +18,25 @@ import { ForgottenBehavior } from '../../types/schedule';
 import { ForgottenBehaviorSelect } from '../ForgottenBehaviorSelect/ForgottenBehaviorSelect';
 import { Form, FormField } from '../Form/Form';
 
+enum DurationType {
+    Seconds = 1,
+    Minutes = 2,
+    Days = 3,
+    Months = 4,
+    Year = 5,
+}
+
 interface IPhaseForm {
-    secondsFromLastPhase: number;
+    durationFromLastPhase: number;
+    durationType: DurationType;
     description: string | null;
 }
 
+const defaultDuration = DurationType.Days;
+
 const phaseSchema = yup.object({
-    secondsFromLastPhase: yup.number().min(1).required(),
+    durationFromLastPhase: yup.number().min(1).required(),
+    durationType: yup.number().required().default(defaultDuration),
     description: yup.string().max(500),
 });
 
@@ -39,7 +53,7 @@ const schema = yup
         cardsCountPerPhase: yup.number().min(0).max(9999).required(),
         title: yup.string().min(1).max(255).required(),
         forgottenBehavior: yup.number().required().default(1),
-        phases: yup.array().of(phaseSchema).default([]).required(),
+        phases: yup.array().of(phaseSchema).required(),
         description: yup.string().max(500),
     })
     .required();
@@ -109,10 +123,22 @@ export const CreateScheduleModal: FC<CreateScheduleModalProps> = (props) => {
                                         id={'input-desc-' + i}
                                         type={'number'}
                                         size="small"
-                                        error={!!errors.phases?.at(i)?.secondsFromLastPhase}
-                                        helperText={errors.phases?.at(i)?.secondsFromLastPhase?.message || ' '}
-                                        {...register(`phases.${i}.secondsFromLastPhase`)}
+                                        error={!!errors.phases?.at(i)?.durationFromLastPhase}
+                                        helperText={errors.phases?.at(i)?.durationFromLastPhase?.message || ' '}
+                                        {...register(`phases.${i}.durationFromLastPhase`)}
                                     />
+                                    <Select
+                                        defaultValue={defaultDuration}
+                                        size="small"
+                                        sx={{ width: 85 }}
+                                        {...register(`phases.${i}.durationType`)}
+                                    >
+                                        <MenuItem value={DurationType.Seconds}>Сек</MenuItem>
+                                        <MenuItem value={DurationType.Minutes}>Мин</MenuItem>
+                                        <MenuItem value={DurationType.Days}>Дн</MenuItem>
+                                        <MenuItem value={DurationType.Months}>Мес</MenuItem>
+                                        <MenuItem value={DurationType.Year}>Год</MenuItem>
+                                    </Select>
                                 </FormField>
                                 <FormField label={'Описание'} htmlFor={'desc-' + i}>
                                     <TextField
@@ -127,7 +153,7 @@ export const CreateScheduleModal: FC<CreateScheduleModalProps> = (props) => {
                             </div>
                         ))}
                     </div>
-                    <Button onClick={() => append({ secondsFromLastPhase: 0, description: '' })}>Add</Button>
+                    <Button onClick={() => append({ durationFromLastPhase: 0, description: '' })}>Add</Button>
                     <Button type="submit">Создать</Button>
                 </Form>
             </DialogContent>
