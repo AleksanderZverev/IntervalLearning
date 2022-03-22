@@ -6,7 +6,7 @@ namespace DB.Models;
 [Table("SchedulePhases")]
 public class PhaseEntity : IParentRepeatsScheduleReference
 {
-    [Key]
+    [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
     public byte Id { get; set; }
 
     [Required]
@@ -21,4 +21,12 @@ public class PhaseEntity : IParentRepeatsScheduleReference
 
     public long ParentUserId { get; set; }
     public UserEntity? ParentUser { get; set; }
+
+    public PhaseEntity(long parentUserId, short parentRepeatsScheduleId, uint secondsFromLastPhase, string? description)
+    {
+        ParentUserId = parentUserId;
+        ParentRepeatsScheduleId = parentRepeatsScheduleId;
+        SecondsFromLastPhase = secondsFromLastPhase;
+        Description = description;
+    }
 }

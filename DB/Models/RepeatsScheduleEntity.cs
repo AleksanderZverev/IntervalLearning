@@ -12,6 +12,7 @@ public interface IParentRepeatsScheduleReference : IParentUserReference
 [Table("RepeatsSchedules")]
 public class RepeatsScheduleEntity : IParentUserReference
 {
+    [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
     public short Id { get; set; }
 
     [Required]
@@ -35,4 +36,17 @@ public class RepeatsScheduleEntity : IParentUserReference
 
     public long ParentUserId { get; set; }
     public UserEntity? ParentUser { get; set; }
+
+    public RepeatsScheduleEntity(long parentUserId,
+        short cardsCountPerPhase,
+        ForgottenBehavior forgottenBehavior,
+        string title,
+        string? description)
+    {
+        ParentUserId = parentUserId;
+        CardsCountPerPhase = cardsCountPerPhase;
+        ForgottenBehavior = forgottenBehavior;
+        Title = title;
+        Description = description;
+    }
 }
