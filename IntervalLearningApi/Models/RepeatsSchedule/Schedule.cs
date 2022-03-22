@@ -11,7 +11,7 @@ public class Schedule
     public string Title { get; }
     public short CardsCountPerPhase { get; }
     public string? Description { get; }
-    public ForgottenBehavior ForgottenBehavior { get; }
+    public int ForgottenBehavior { get; }
     public List<Phase> Phases { get; }
 
     public Schedule(string parentUserId, short id, string title, short cardsCountPerPhase, string? description,
@@ -22,7 +22,7 @@ public class Schedule
         Title = title;
         CardsCountPerPhase = cardsCountPerPhase;
         Description = description;
-        ForgottenBehavior = forgottenBehavior;
+        ForgottenBehavior = (int)forgottenBehavior;
         Phases = phases;
     }
 }
