@@ -1,15 +1,16 @@
-import { Button, CircularProgress, Container } from '@mui/material';
-import { FC, useEffect, useLayoutEffect, useState } from 'react';
+import { Button } from '@mui/material';
+import { FC, useState } from 'react';
 import { CreateCollectionModal } from '../../src/controls/Modals/CreateCollectionModal';
 import { PageContainer } from '../../src/controls/PageContainer/PageContainer';
-import { withAuthorization } from '../../src/hoc/withAuthorization';
 import { withQueryResolver } from '../../src/hoc/withQueryResolver';
-import { useGetCollectionsQuery } from '../../src/redux/collectionSlice';
-import { Collection } from '../../src/types/Collection';
+import useTypedSelector from '../../src/hooks/useTypedSelector';
+import { useGetCollectionsQuery } from '../../src/redux/collectionApi';
+import { selectCollections } from '../../src/redux/slices/collectionsSlice';
 import style from './collections.module.css';
 
-const CollectionsPageContent: FC<{ data: Collection[] }> = ({ data: collections }) => {
+const CollectionsPageContent: FC = () => {
     const [showCreateCollectionModal, setShowCreateCollectionModal] = useState(false);
+    const collections = useTypedSelector(selectCollections);
 
     return (
         <PageContainer>

@@ -3,11 +3,14 @@ import { FC, useState } from 'react';
 import { CreateScheduleModal } from '../../src/controls/Modals/CreateScheduleModal';
 import { PageContainer } from '../../src/controls/PageContainer/PageContainer';
 import { withQueryResolver } from '../../src/hoc/withQueryResolver';
+import useTypedSelector from '../../src/hooks/useTypedSelector';
 import { useGetSchedulesQuery } from '../../src/redux/schedulesSlice';
-import { Schedule } from '../../src/types/schedule';
+import { selectSchedules } from '../../src/redux/slices/scheduleSlice';
 
-const SchedulePage: FC<{ data: Schedule[] }> = ({ data: schedules }) => {
+const SchedulePage: FC = () => {
     const [showCreateScheduleModal, setShowCreateScheduleModal] = useState(false);
+    const schedules = useTypedSelector(selectSchedules);
+
     return (
         <PageContainer>
             {showCreateScheduleModal && (

@@ -4,6 +4,8 @@ import { createWrapper } from 'next-redux-wrapper';
 import { api } from './apiSlice';
 import { currentUserSlice } from './currentUserSlice';
 import { errorSlice } from './errorSlice';
+import { scheduleSlice } from './slices/scheduleSlice';
+import { collectionSlice } from './slices/collectionsSlice';
 
 const makeStore = () =>
     configureStore({
@@ -12,6 +14,8 @@ const makeStore = () =>
             [accountSlice.reducerPath]: accountSlice.reducer,
             errors: errorSlice.reducer,
             currentUser: currentUserSlice.reducer,
+            schedules: scheduleSlice.reducer,
+            collections: collectionSlice.reducer,
         },
         middleware: (getDefaultMiddleware) => getDefaultMiddleware({ serializableCheck: false }).concat(api.middleware),
     });
