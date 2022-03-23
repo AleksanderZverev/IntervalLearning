@@ -21,7 +21,7 @@ public class RepeatsScheduleService
             .AsNoTracking()
             .ToList();
 
-    public (bool ok, string? error) Create(
+    public (RepeatsScheduleEntity? schedule, string? error) Create(
         long userId,
         short cardsCountPerPhase,
         ForgottenBehavior forgottenBehavior,
@@ -39,11 +39,11 @@ public class RepeatsScheduleService
         catch
         {
             db.Database.RollbackTransaction();
-            return (false, "Unknown error");
+            return (null, "Unknown error");
         }
     }
 
-    private (bool ok, string? error) CreateWithoutTransaction(
+    private (RepeatsScheduleEntity? schedule, string? error) CreateWithoutTransaction(
         long userId, 
         short cardsCountPerPhase, 
         ForgottenBehavior forgottenBehavior, 
@@ -73,7 +73,9 @@ public class RepeatsScheduleService
         phaseEntities.ForEach(f => db.Entry(f).State = EntityState.Added);
         db.SaveChanges();
 
-        return (true, null);
+        schedule.Phases = phaseEntities;
+
+        return (schedule, null);
     }
 }
 

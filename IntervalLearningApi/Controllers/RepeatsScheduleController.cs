@@ -27,10 +27,10 @@ namespace IntervalLearningApi.Controllers
         }
 
         [HttpPost]
-        public IActionResult CreateSchedule([FromBody] CreateScheduleItem item)
+        public ActionResult<Schedule> CreateSchedule([FromBody] CreateScheduleItem item)
         {
             var userId = HttpContext.GetUserId();
-            var (ok, error) = repeatsScheduleService.Create(
+            var (schedule, error) = repeatsScheduleService.Create(
                 userId,
                 item.CardsCountPerPhase,
                 (ForgottenBehavior)item.ForgottenBehavior,
@@ -38,7 +38,7 @@ namespace IntervalLearningApi.Controllers
                 item.Phases,
                 item.Description);
 
-            return ok ? Ok() : BadRequest(error);
+            return schedule != null ? Ok(ToSchedule(schedule)) : BadRequest(error);
         }
 
         public class CreateScheduleItem
