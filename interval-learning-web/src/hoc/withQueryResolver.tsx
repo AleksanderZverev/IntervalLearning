@@ -10,7 +10,7 @@ export const withQueryResolver =
     (Component: React.FunctionComponent<unknown>) =>
     // eslint-disable-next-line react/display-name
     ({ queryArg, ...props }: { queryArg: TQueryArg } & unknown) => {
-        const { data, isError, isFetching, isSuccess, error, refetch } = useQuery(queryArg);
+        const { isError, isFetching, isSuccess, error } = useQuery(queryArg);
 
         if (isFetching) {
             return <CircularProgress />;

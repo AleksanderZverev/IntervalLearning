@@ -51,8 +51,6 @@ public class RepeatsScheduleService
         List<PhaseInfo> phases, 
         string? description)
     {
-        db.Database.BeginTransaction();
-
         var schedule = new RepeatsScheduleEntity(
             userId,
             cardsCountPerPhase,
@@ -66,6 +64,7 @@ public class RepeatsScheduleService
 
         var phaseEntities = phases.Select(p => new PhaseEntity(
             userId,
+            p.Id,
             schedule.Id,
             p.SecondsFromLastPhase,
             p.Description)).ToList();
@@ -81,6 +80,9 @@ public class RepeatsScheduleService
 
 public class PhaseInfo
 {
+    [Required]
+    public byte Id { get; set; }
+
     [Required]
     public uint SecondsFromLastPhase { get; set; }
 

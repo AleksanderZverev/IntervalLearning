@@ -5,7 +5,6 @@ import {
     DialogActions,
     DialogContent,
     DialogTitle,
-    FormLabel,
     MenuItem,
     Select,
     TextField,
@@ -14,6 +13,7 @@ import {
 import { FC, useState } from 'react';
 import { FormProvider, SubmitHandler, useFieldArray, useForm } from 'react-hook-form';
 import * as yup from 'yup';
+import { useCreateScheduleMutation } from '../../redux/schedulesSlice';
 import { CreateScheduleItem, ForgottenBehavior, PhaseInfo } from '../../types/schedule';
 import { ForgottenBehaviorSelect } from '../ForgottenBehaviorSelect/ForgottenBehaviorSelect';
 import { Form, FormField } from '../Form/Form';
@@ -27,7 +27,6 @@ enum DurationType {
 
 function DurationTypeToSeconds(value: number, type: DurationType) {
     let result = value;
-    let resultType = type;
 
     if (type === DurationType.Days) {
         result *= 24;
@@ -95,15 +94,18 @@ export const CreateScheduleModal: FC<CreateScheduleModalProps> = (props) => {
 
     const { fields, append } = useFieldArray({ control, name: 'phases' });
 
-    const onSubmit: SubmitHandler<IForm> = (data) => {
+    const [createSchedule, { isLoading }] = useCreateScheduleMutation();
+
+    const onSubmit: SubmitHandler<IForm> = async (data) => {
         const schedule: CreateScheduleItem = {
             cardsCountPerPhase: data.cardsCountPerPhase,
             forgottenBehavior: data.forgottenBehavior,
             title: data.title,
             description: data.description,
-            phases: data.phases.map((p) => {
+            phases: data.phases.map((p, i) => {
                 const seconds = DurationTypeToSeconds(p.durationFromLastPhase, p.durationType);
                 const phase: PhaseInfo = {
+                    id: i + 1,
                     secondsFromLastPhase: seconds,
                     description: p.description,
                 };
@@ -113,6 +115,10 @@ export const CreateScheduleModal: FC<CreateScheduleModalProps> = (props) => {
         };
 
         console.log('schedule', schedule);
+        try {
+            await createSchedule(schedule).unwrap();
+            props.onClose();
+        } catch {}
     };
 
     return (
@@ -150,14 +156,14 @@ export const CreateScheduleModal: FC<CreateScheduleModalProps> = (props) => {
                                 {...register('description')}
                             />
                         </FormField>
-                        <FormField label="Действие при забывании" htmlFor="title-input">
+                        <FormField label="При забывании" htmlFor="title-input">
                             <ForgottenBehaviorSelect registerName="forgottenBehavior" />
                         </FormField>
                         <div style={{ marginTop: 20, display: 'flex', flexDirection: 'column' }}>
                             {fields.map((f, i) => (
                                 <div key={f.id}>
                                     <Typography variant="h6">Phase {i + 1}</Typography>
-                                    <FormField label={'Секунд с прошлого этапа'} htmlFor={'input-desc-' + i}>
+                                    <FormField label={'Прошло с прошлого этапа'} htmlFor={'input-desc-' + i}>
                                         <TextField
                                             id={'input-desc-' + i}
                                             type={'number'}
@@ -191,7 +197,9 @@ export const CreateScheduleModal: FC<CreateScheduleModalProps> = (props) => {
                             ))}
                         </div>
                         <Button onClick={() => append({ durationFromLastPhase: 0, description: '' })}>Add</Button>
-                        <Button type="submit">Создать</Button>
+                        <Button disabled={isLoading} type="submit">
+                            Создать
+                        </Button>
                     </Form>
                 </FormProvider>
             </DialogContent>
