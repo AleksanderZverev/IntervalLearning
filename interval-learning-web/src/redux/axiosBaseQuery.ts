@@ -2,7 +2,7 @@ import { BaseQueryFn } from '@reduxjs/toolkit/query/react';
 import { AxiosError, AxiosRequestConfig } from 'axios';
 import axiosInstance from '../api/axiosInstance';
 import { accountSlice } from './accountSlice';
-import { setCurrentUser } from './currentUserSlice';
+import { setError } from './errorSlice';
 
 interface CustomQueryArgs {
     url: string;
@@ -22,16 +22,18 @@ export const axiosBaseQuery: CustomBaseQueryType = async (args, { signal, dispat
         if (err.response?.status === 401) {
             try {
                 const requestRefreshToken = dispatch(accountSlice.endpoints.refreshToken.initiate());
+                const refreshTokenResponse = await requestRefreshToken;
 
-                try {
-                    const authenticatedUser = await requestRefreshToken.unwrap();
-                    dispatch(setCurrentUser(authenticatedUser));
-                } finally {
-                    requestRefreshToken.unsubscribe();
+                if (refreshTokenResponse.isError) {
+                    dispatch(setError({ code: 401, data: refreshTokenResponse.error }));
                 }
 
-                const result = await axiosInstance.request(args);
-                return { data: result.data };
+                requestRefreshToken.unsubscribe();
+
+                if (refreshTokenResponse.isSuccess) {
+                    const result = await axiosInstance.request(args);
+                    return { data: result.data };
+                }
             } catch {}
         }
 

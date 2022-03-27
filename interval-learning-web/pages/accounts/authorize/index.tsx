@@ -1,4 +1,4 @@
-import { FC, useEffect } from 'react';
+import { FC } from 'react';
 import { Button, TextField, Typography, Paper, FormLabel } from '@mui/material';
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
@@ -7,11 +7,12 @@ import styles from './authorize.module.css';
 import { useAuthenticateMutation, useRefreshTokenQuery } from '../../../src/redux/accountSlice';
 import { ModalPageContainer } from '../../../src/controls/ModalPageContainer/ModalPageContainer';
 import { useTypedDispatch } from '../../../src/hooks/useTypedDispatch';
-import { checkIsLoggedOut, selectCurrentUser, setCurrentUser } from '../../../src/redux/currentUserSlice';
+import { checkIsLoggedOut, selectCurrentUser } from '../../../src/redux/currentUserSlice';
 import { useRouter } from 'next/router';
 import { User } from '../../../src/types/user';
 import useTypedSelector from '../../../src/hooks/useTypedSelector';
 import { AppDispatch } from '../../../src/redux/store';
+import { LocalStorageHelper } from '../../../src/helpers/localStorageHelper';
 
 export const useAutoAuthorization = (currentUser: User | null, dispatch: AppDispatch) => {
     const isLoggedOut = checkIsLoggedOut();
@@ -19,12 +20,6 @@ export const useAutoAuthorization = (currentUser: User | null, dispatch: AppDisp
     const autoAuthorizeData = useRefreshTokenQuery(undefined, {
         skip: isLoggedOut || currentUser !== null,
     });
-
-    useEffect(() => {
-        if (autoAuthorizeData.isSuccess) {
-            dispatch(setCurrentUser(autoAuthorizeData.data));
-        }
-    }, [autoAuthorizeData.isSuccess]);
 
     return autoAuthorizeData;
 };
@@ -63,9 +58,10 @@ const AuthorizePage: FC = () => {
 
     const onSubmit = async (data: Form) => {
         try {
-            const user = await authenticate(data).unwrap();
-            dispatch(setCurrentUser(user));
-            router.push('/');
+            await authenticate(data).unwrap();
+            const redirectUrl = LocalStorageHelper.getRedirectUrlAfterAuthorization();
+            LocalStorageHelper.clearRedirectUrl();
+            router.push(redirectUrl);
         } catch {}
     };
 

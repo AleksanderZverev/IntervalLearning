@@ -17,7 +17,8 @@ const makeStore = () =>
             schedules: scheduleSlice.reducer,
             collections: collectionSlice.reducer,
         },
-        middleware: (getDefaultMiddleware) => getDefaultMiddleware({ serializableCheck: false }).concat(api.middleware),
+        middleware: (getDefaultMiddleware) =>
+            getDefaultMiddleware({ serializableCheck: false }).concat(api.middleware, accountSlice.middleware),
     });
 
 // optional, but required for refetchOnFocus/refetchOnReconnect behaviors
