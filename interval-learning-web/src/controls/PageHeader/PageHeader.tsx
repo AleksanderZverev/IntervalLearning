@@ -1,66 +1,24 @@
-import { Button, Divider } from '@mui/material';
-import Link from 'next/link';
-import MuiLink from '../../Link';
-import React, { FC, useMemo } from 'react';
-import styles from './PageHeader.module.css';
-import { useRouter } from 'next/router';
-import useTypedSelector from '../../hooks/useTypedSelector';
-import { signOutUser } from '../../redux/currentUserSlice';
-import { useTypedDispatch } from '../../hooks/useTypedDispatch';
+import { Typography } from '@mui/material';
+import { FC, ReactNode } from 'react';
+import styles from './styles.module.css';
 
-const PageHeader: FC = () => {
-    const currentUser = useTypedSelector((state) => state.currentUser.currentUser);
+interface PageHeaderProps {
+    title: string;
+    subTitle?: string;
+    subMenu?: ReactNode;
+}
 
-    const userNameTitle = useMemo(
-        () => (currentUser !== null ? (currentUser.firstName + ' ' + currentUser.lastName).trim() : ''),
-        [currentUser]
-    );
-    const router = useRouter();
-    const dispatch = useTypedDispatch();
-
-    const signOut = () => {
-        if (currentUser === null) {
-            return;
-        }
-
-        dispatch(signOutUser());
-        router.push('/');
-    };
-
+export const PageHeader: FC<PageHeaderProps> = ({ title, subTitle, subMenu }) => {
     return (
-        <header className={styles.header}>
-            <div className={styles.leftHeaderContainer}>
-                <Link href="/">
-                    <a className={styles.logo}>Interval Learning</a>
-                </Link>
-                <Divider orientation="vertical" flexItem />
-                <MuiLink href="/collections" underline="none" fontSize={23}>
-                    Коллекции
-                </MuiLink>
+        <div className={styles.container}>
+            <div className={styles.innerContainer}>
+                <Typography variant="h1" fontSize={36}>
+                    {title}
+                </Typography>
+                {subMenu}
             </div>
-            <div className={styles.rightHeaderContainer}>
-                {currentUser !== null ? (
-                    <>
-                        <span>{userNameTitle}</span>
-                        <Button variant="contained" onClick={signOut}>
-                            Sign Out
-                        </Button>
-                    </>
-                ) : (
-                    <>
-                        <Button variant="contained" onClick={() => router.push('/accounts/register')}>
-                            Sign Up
-                        </Button>
-                        <Button variant="contained" onClick={() => router.push('/accounts/authorize')}>
-                            Sign In
-                        </Button>
-                    </>
-                )}
-            </div>
-        </header>
+            {subTitle && <div className={styles.subTitle}>{subTitle}</div>}
+            <div className={styles.endLine} />
+        </div>
     );
 };
-
-//const wrappedPageHeader = wrapper.withRedux(PageHeader);
-
-export default PageHeader;
