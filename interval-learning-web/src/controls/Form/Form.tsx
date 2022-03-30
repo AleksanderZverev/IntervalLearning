@@ -1,5 +1,5 @@
-import { FormLabel, Typography } from '@mui/material';
-import { FC, FormEventHandler, PropsWithChildren, ReactNode } from 'react';
+import { FormLabel, TextField, TextFieldProps, Typography } from '@mui/material';
+import { FC, FormEventHandler, PropsWithChildren, forwardRef } from 'react';
 import styles from './styles.module.css';
 
 interface FormProps {
@@ -14,12 +14,20 @@ export const Form: FC<PropsWithChildren<FormProps>> = (props) => {
     );
 };
 
-interface FormFieldProps {
+type FormFieldOtherProps = Omit<TextFieldProps, 'helperText' | 'error' | 'fullWidth' | 'label' | 'variant'>;
+
+interface FormFieldProps extends FormFieldOtherProps {
+    label: string;
+    error?: boolean;
+    errorMessage?: string;
+}
+
+interface FormFieldLabelProps {
     label: string;
     htmlFor?: string;
 }
 
-export const FormField: FC<PropsWithChildren<FormFieldProps>> = (props) => {
+export const FormFiledLabel: FC<PropsWithChildren<FormFieldLabelProps>> = (props) => {
     return (
         <div className={styles.formField}>
             <FormLabel htmlFor={props.htmlFor}>{props.label}</FormLabel>
@@ -27,6 +35,32 @@ export const FormField: FC<PropsWithChildren<FormFieldProps>> = (props) => {
         </div>
     );
 };
+
+// eslint-disable-next-line react/display-name
+export const FormField = forwardRef<HTMLDivElement, FormFieldProps>(
+    ({ label, error, errorMessage, ...otherProps }, ref) => {
+        return (
+            <TextField
+                ref={ref}
+                sx={{
+                    '& label': {
+                        color: '#B7B7B7',
+                        fontSize: 16,
+                    },
+                    '& input': {
+                        fontSize: 20,
+                    },
+                }}
+                label={label}
+                error={error}
+                helperText={errorMessage ?? ' '}
+                fullWidth
+                variant="standard"
+                {...otherProps}
+            />
+        );
+    }
+);
 
 interface FormHeaderProps {
     title: string;

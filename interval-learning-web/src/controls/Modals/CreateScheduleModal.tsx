@@ -1,22 +1,12 @@
 import { yupResolver } from '@hookform/resolvers/yup';
-import {
-    Button,
-    Dialog,
-    DialogActions,
-    DialogContent,
-    DialogTitle,
-    MenuItem,
-    Select,
-    TextField,
-    Typography,
-} from '@mui/material';
+import { Button, Dialog, DialogActions, DialogContent, DialogTitle, MenuItem, Select, Typography } from '@mui/material';
 import { FC, useState } from 'react';
 import { FormProvider, SubmitHandler, useFieldArray, useForm } from 'react-hook-form';
 import * as yup from 'yup';
 import { useCreateScheduleMutation } from '../../redux/schedulesSlice';
 import { CreateScheduleItem, ForgottenBehavior, PhaseInfo } from '../../types/schedule';
 import { ForgottenBehaviorSelect } from '../ForgottenBehaviorSelect/ForgottenBehaviorSelect';
-import { Form, FormField } from '../Form/Form';
+import { Form, FormField, FormFiledLabel } from '../Form/Form';
 
 enum DurationType {
     Seconds = 1,
@@ -127,55 +117,44 @@ export const CreateScheduleModal: FC<CreateScheduleModalProps> = (props) => {
             <DialogContent>
                 <FormProvider {...formMethods}>
                     <Form onSubmit={handleSubmit(onSubmit)}>
-                        <FormField label="Название" htmlFor="title-input">
-                            <TextField
-                                id="title-input"
-                                size="small"
-                                fullWidth
-                                error={!!errors.title}
-                                helperText={errors.title?.message || ' '}
-                                {...register('title')}
-                            />
-                        </FormField>
-                        <FormField label="Кол-во карт" htmlFor="card-number">
-                            <TextField
-                                id="card-number"
-                                type="number"
-                                size="small"
-                                error={!!errors.cardsCountPerPhase}
-                                helperText={errors.cardsCountPerPhase?.message || ' '}
-                                {...register('cardsCountPerPhase')}
-                            />
-                        </FormField>
-                        <FormField label="Описание" htmlFor="desc">
-                            <TextField
-                                id="desc"
-                                size="small"
-                                error={!!errors.description}
-                                helperText={errors.description?.message || ' '}
-                                {...register('description')}
-                            />
-                        </FormField>
-                        <FormField label="При забывании" htmlFor="title-input">
+                        <FormField
+                            label="Название"
+                            error={!!errors.title}
+                            errorMessage={errors.title?.message || ' '}
+                            {...register('title')}
+                        />
+                        <FormField
+                            label="Кол-во карт"
+                            type="number"
+                            error={!!errors.cardsCountPerPhase}
+                            errorMessage={errors.cardsCountPerPhase?.message || ' '}
+                            {...register('cardsCountPerPhase')}
+                        />
+                        <FormField
+                            label="Описание"
+                            error={!!errors.description}
+                            errorMessage={errors.description?.message || ' '}
+                            {...register('description')}
+                        />
+                        <FormFiledLabel label="При забывании" htmlFor="title-input">
                             <ForgottenBehaviorSelect registerName="forgottenBehavior" />
-                        </FormField>
+                        </FormFiledLabel>
                         <div style={{ marginTop: 20, display: 'flex', flexDirection: 'column' }}>
                             {fields.map((f, i) => (
                                 <div key={f.id}>
-                                    <Typography variant="h6">Phase {i + 1}</Typography>
-                                    <FormField label={'Прошло с прошлого этапа'} htmlFor={'input-desc-' + i}>
-                                        <TextField
-                                            id={'input-desc-' + i}
-                                            type={'number'}
-                                            size="small"
+                                    <Typography variant="h6">Этап {i + 1}</Typography>
+                                    <div style={{ display: 'flex', alignItems: 'center', columnGap: 10 }}>
+                                        <FormField
+                                            label="Прошло с прошлого этапа"
+                                            type="number"
                                             error={!!errors.phases?.at(i)?.durationFromLastPhase}
-                                            helperText={errors.phases?.at(i)?.durationFromLastPhase?.message || ' '}
+                                            errorMessage={errors.phases?.at(i)?.durationFromLastPhase?.message || ' '}
                                             {...register(`phases.${i}.durationFromLastPhase`)}
                                         />
                                         <Select
                                             defaultValue={defaultDuration}
                                             size="small"
-                                            sx={{ width: 85 }}
+                                            sx={{ width: 100 }}
                                             {...register(`phases.${i}.durationType`)}
                                         >
                                             <MenuItem value={DurationType.Seconds}>Сек</MenuItem>
@@ -183,16 +162,13 @@ export const CreateScheduleModal: FC<CreateScheduleModalProps> = (props) => {
                                             <MenuItem value={DurationType.Hours}>Час</MenuItem>
                                             <MenuItem value={DurationType.Days}>Дн</MenuItem>
                                         </Select>
-                                    </FormField>
-                                    <FormField label={'Описание'} htmlFor={'desc-' + i}>
-                                        <TextField
-                                            id={'desc-' + i}
-                                            size="small"
-                                            error={!!errors.phases?.at(i)?.description}
-                                            helperText={errors.phases?.at(i)?.description?.message || ' '}
-                                            {...register(`phases.${i}.description`)}
-                                        />
-                                    </FormField>
+                                    </div>
+                                    <FormField
+                                        label={'Описание'}
+                                        error={!!errors.phases?.at(i)?.description}
+                                        errorMessage={errors.phases?.at(i)?.description?.message || ' '}
+                                        {...register(`phases.${i}.description`)}
+                                    ></FormField>
                                 </div>
                             ))}
                         </div>
