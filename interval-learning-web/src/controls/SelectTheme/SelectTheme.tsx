@@ -1,33 +1,38 @@
-import { Autocomplete, TextField } from '@mui/material';
-import { FC, useMemo } from 'react';
+import { Autocomplete } from '@mui/material';
+import { forwardRef, useMemo } from 'react';
+import { Controller } from 'react-hook-form';
 import { useSelector } from 'react-redux';
 import { selectThemes } from '../../redux/themeSlice';
-import { Theme, Validated } from '../../types/global';
+import { FormField, FormFieldProps } from '../Form/Form';
 
-interface SelectThemeProps {
-    value: Validated<Theme | null>;
-    onValueChange: (newValue: Validated<Theme | null>) => void;
+interface SelectThemeProps extends FormFieldProps {
+    registeredName: string;
     notNullOrEmpty?: boolean;
 }
 
-export const SelectTheme: FC<SelectThemeProps> = ({ value, notNullOrEmpty, ...props }) => {
-    const themeIndex = useSelector(selectThemes);
-    const themeItems = useMemo(() => Object.values(themeIndex), [themeIndex]);
+// eslint-disable-next-line react/display-name
+export const SelectTheme = forwardRef<HTMLDivElement, SelectThemeProps>(
+    ({ registeredName, notNullOrEmpty, ...props }, ref) => {
+        const themeIndex = useSelector(selectThemes);
+        const themeItems = useMemo(() => Object.values(themeIndex), [themeIndex]);
 
-    const onValueChange = (newValue: Theme | null) => {
-        const hasError = Boolean(notNullOrEmpty && !newValue);
-        props.onValueChange({ value: newValue, error: hasError, errorMessage: hasError ? 'Выберите значение' : '' });
-    };
-
-    return (
-        <Autocomplete
-            value={value.value}
-            options={themeItems}
-            getOptionLabel={(o) => o.name}
-            renderInput={(params) => (
-                <TextField {...params} error={value.error} helperText={value.errorMessage} label="theme" />
-            )}
-            onChange={(event, newValue) => onValueChange(newValue)}
-        />
-    );
-};
+        return (
+            <Controller
+                name={registeredName}
+                render={({ field: { value, ...field } }) => {
+                    return (
+                        <Autocomplete
+                            value={value ?? null}
+                            {...field}
+                            options={themeItems}
+                            getOptionLabel={(o) => o.name}
+                            isOptionEqualToValue={(o, v) => o.id === v.id}
+                            renderInput={(params) => <FormField {...params} {...props} />}
+                            onChange={(event, newValue) => field.onChange(newValue ?? null)}
+                        />
+                    );
+                }}
+            />
+        );
+    }
+);
