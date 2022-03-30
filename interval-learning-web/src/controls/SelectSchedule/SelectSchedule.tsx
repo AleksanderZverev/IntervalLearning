@@ -1,18 +1,18 @@
 import { Autocomplete } from '@mui/material';
-import { forwardRef, useMemo } from 'react';
+import { forwardRef } from 'react';
 import { Controller } from 'react-hook-form';
 import { useSelector } from 'react-redux';
-import { selectThemes } from '../../redux/themeSlice';
+import { selectSchedules } from '../../redux/slices/scheduleSlice';
+import { Schedule } from '../../types/schedule';
 import { FormField, FormFieldProps } from '../Form/Form';
 
-interface SelectThemeProps extends FormFieldProps {
+interface SelectScheduleProps extends FormFieldProps {
     registeredName: string;
 }
 
 // eslint-disable-next-line react/display-name
-export const SelectTheme = forwardRef<HTMLDivElement, SelectThemeProps>(({ registeredName, ...props }, ref) => {
-    const themeIndex = useSelector(selectThemes);
-    const themeItems = useMemo(() => Object.values(themeIndex), [themeIndex]);
+export const SelectSchedule = forwardRef<HTMLDivElement, SelectScheduleProps>(({ registeredName, ...props }, ref) => {
+    const schedules = useSelector(selectSchedules);
 
     return (
         <Controller
@@ -22,9 +22,9 @@ export const SelectTheme = forwardRef<HTMLDivElement, SelectThemeProps>(({ regis
                     <Autocomplete
                         value={value ?? null}
                         {...field}
-                        options={themeItems}
-                        getOptionLabel={(o) => o.name}
-                        isOptionEqualToValue={(o, v) => o.id === v.id}
+                        options={schedules}
+                        getOptionLabel={(s: Schedule) => s.title}
+                        isOptionEqualToValue={(o, v) => o.id === v.id && o.userId === v.userId}
                         renderInput={(params) => <FormField {...params} {...props} />}
                         onChange={(event, newValue) => field.onChange(newValue ?? null)}
                     />

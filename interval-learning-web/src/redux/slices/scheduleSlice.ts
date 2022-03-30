@@ -2,19 +2,22 @@ import { createEntityAdapter, createSlice, PayloadAction } from '@reduxjs/toolki
 import { Schedule } from '../../types/schedule';
 import { RootState } from '../store';
 
-const scheduleAdapter = createEntityAdapter<Schedule>({ selectId: (s) => `${s.userId}-${s.id}` });
-const initialState = scheduleAdapter.getInitialState();
+const adapter = createEntityAdapter<Schedule>({ selectId: (s) => `${s.userId}-${s.id}` });
+const initialState = adapter.getInitialState();
 
 export const scheduleSlice = createSlice({
     name: 'schedules',
     initialState,
     reducers: {
         setSchedule: (state, action: PayloadAction<Schedule>) => {
-            scheduleAdapter.setOne(state, action.payload);
+            adapter.setOne(state, action.payload);
+        },
+        setSchedules: (state, action: PayloadAction<Schedule[]>) => {
+            adapter.setMany(state, action.payload);
         },
     },
 });
 
-export const { setSchedule } = scheduleSlice.actions;
+export const { setSchedule, setSchedules } = scheduleSlice.actions;
 
-export const { selectAll: selectSchedules } = scheduleAdapter.getSelectors((state: RootState) => state.schedules);
+export const { selectAll: selectSchedules } = adapter.getSelectors((state: RootState) => state.schedules);

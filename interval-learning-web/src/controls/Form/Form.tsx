@@ -3,7 +3,7 @@ import { FC, FormEventHandler, PropsWithChildren, forwardRef } from 'react';
 import styles from './styles.module.css';
 
 interface FormProps {
-    onSubmit: FormEventHandler<HTMLFormElement>;
+    onSubmit?: FormEventHandler<HTMLFormElement>;
 }
 
 export const Form: FC<PropsWithChildren<FormProps>> = (props) => {
@@ -16,7 +16,7 @@ export const Form: FC<PropsWithChildren<FormProps>> = (props) => {
 
 type FormFieldOtherProps = Omit<TextFieldProps, 'helperText' | 'error' | 'fullWidth' | 'label' | 'variant'>;
 
-interface FormFieldProps extends FormFieldOtherProps {
+export interface FormFieldProps extends FormFieldOtherProps {
     label: string;
     error?: boolean;
     errorMessage?: string;
