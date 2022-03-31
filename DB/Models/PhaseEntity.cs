@@ -6,6 +6,7 @@ namespace DB.Models;
 [Table("SchedulePhases")]
 public class PhaseEntity : IParentRepeatsScheduleReference
 {
+    [DatabaseGenerated(DatabaseGeneratedOption.None)]
     public byte Id { get; set; }
 
     [Required]

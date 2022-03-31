@@ -13,6 +13,7 @@ public interface IParentCollectionReference : IParentUserReference
 [Table("Collections")]
 public class CollectionEntity : IParentUserReference
 {
+    [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
     public short Id { get; set; }
     
     [Required]
@@ -29,7 +30,7 @@ public class CollectionEntity : IParentUserReference
 
     public virtual List<CardEntity> Cards { get; set; } = new();
 
-
+    public long DefaultRepeatsScheduleParentUserId { get; set; }
     public short DefaultRepeatsScheduleId { get; set; }
     public virtual RepeatsScheduleEntity? DefaultRepeatsSchedule { get; set; }
 
@@ -38,12 +39,14 @@ public class CollectionEntity : IParentUserReference
 
     public CollectionEntity(
         long parentUserId,
+        long defaultRepeatsScheduleParentUserId,
         short defaultRepeatsScheduleId,
         short themeId,
         string title, 
         bool isDefaultBackSide)
     {
         ParentUserId = parentUserId;
+        DefaultRepeatsScheduleParentUserId = defaultRepeatsScheduleParentUserId;
         DefaultRepeatsScheduleId = defaultRepeatsScheduleId;
         Title = title;
         IsDefaultBackSide = isDefaultBackSide;
