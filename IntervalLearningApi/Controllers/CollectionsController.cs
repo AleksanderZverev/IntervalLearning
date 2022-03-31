@@ -20,23 +20,20 @@ namespace IntervalLearningApi.Controllers
         }
 
         [HttpPost]
-        public IActionResult CreateCollection(
-            short repeatsScheduleId,
-            short themeId,
-            string title,
-            bool isDefaultBackSide)
+        public IActionResult CreateCollection([FromBody]CreateCollectionItem item)
         {
             var userId = HttpContext.GetUserId();
 
             var (collection, error) = collectionService.Create(
                 userId,
-                repeatsScheduleId,
-                themeId,
-                title,
-                isDefaultBackSide);
+                item.ScheduleUserId,
+                item.ScheduleId,
+                item.ThemeId,
+                item.Title,
+                item.IsDefaultBackSide);
 
             return collection != null
-                ? Ok(collection)
+                ? Ok(ToCollection(collection))
                 : BadRequest(error);
         }
 
@@ -55,6 +52,7 @@ namespace IntervalLearningApi.Controllers
                 c.Id,
                 c.Title,
                 c.CreatedDate,
+                c.DefaultRepeatsScheduleParentUserId,
                 c.DefaultRepeatsScheduleId,
                 c.ThemeId,
                 c.Cards.Select(ToCard).ToList()

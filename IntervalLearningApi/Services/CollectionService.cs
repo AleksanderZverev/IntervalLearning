@@ -29,6 +29,7 @@ public class CollectionService
 
     public (CollectionEntity? collection, string? error) Create(
         long userId, 
+        long repeatsScheduleUserId,
         short repeatsScheduleId, 
         short themeId, 
         string title, 
@@ -36,6 +37,7 @@ public class CollectionService
     {
         var collection = new CollectionEntity(
             userId,
+            repeatsScheduleUserId,
             repeatsScheduleId,
             themeId,
             title,
@@ -44,7 +46,7 @@ public class CollectionService
 
         try
         {
-            db.Collections.Add(collection);
+            db.Entry(collection).State = EntityState.Added;
             db.SaveChanges();
             return (collection, null);
         }
