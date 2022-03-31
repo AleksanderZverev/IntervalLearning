@@ -1,6 +1,14 @@
 import { Collection } from '../types/Collection';
 import { api, tagTypes } from './apiSlice';
-import { setCollections } from './slices/collectionsSlice';
+import { setOneCollection, setCollections } from './slices/collectionsSlice';
+
+export interface CreateCollectionItem {
+    scheduleUserId: string;
+    scheduleId: number;
+    themeId: number;
+    title: string;
+    isDefaultBackSide: boolean;
+}
 
 const baseUrl = '/collections';
 
@@ -17,7 +25,16 @@ export const collectionsApi = api.injectEndpoints({
                 } catch {}
             },
         }),
+        createCollection: build.mutation<Collection, CreateCollectionItem>({
+            query: (item) => ({ method: 'POST', url: baseUrl, data: item }),
+            async onQueryStarted(arg, { queryFulfilled, dispatch }) {
+                try {
+                    const collection = await queryFulfilled;
+                    dispatch(setOneCollection(collection.data));
+                } catch {}
+            },
+        }),
     }),
 });
 
-export const { useGetCollectionsQuery } = collectionsApi;
+export const { useGetCollectionsQuery, useCreateCollectionMutation } = collectionsApi;

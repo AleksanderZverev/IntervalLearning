@@ -11,9 +11,12 @@ export const collectionSlice = createSlice({
         setCollections: (state, action: PayloadAction<Collection[]>) => {
             adapter.setMany(state, action.payload);
         },
+        setOneCollection: (state, action: PayloadAction<Collection>) => {
+            adapter.setOne(state, action.payload);
+        },
     },
 });
 
-export const { setCollections } = collectionSlice.actions;
+export const { setCollections, setOneCollection } = collectionSlice.actions;
 
 export const { selectAll: selectCollections } = adapter.getSelectors((state: RootState) => state.collections);
