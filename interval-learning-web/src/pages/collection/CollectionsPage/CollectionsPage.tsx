@@ -1,15 +1,15 @@
 import { Folder } from '@mui/icons-material';
 import { Button } from '@mui/material';
 import { FC, useState } from 'react';
-import { CreateCollectionModal } from '../../src/controls/Modals/CreateCollectionModal';
-import { PageContainer } from '../../src/controls/PageContainer/PageContainer';
-import { PageHeader } from '../../src/controls/PageHeader/PageHeader';
-import { Table, TableBody, TableCell, TableHead, TableHeaderCell, TableRow } from '../../src/controls/Table/Table';
-import { withQueryResolver } from '../../src/hoc/withQueryResolver';
-import useTypedSelector from '../../src/hooks/useTypedSelector';
-import { useGetCollectionsQuery } from '../../src/redux/collectionApi';
-import { selectCollections } from '../../src/redux/slices/collectionsSlice';
-import styles from './collections.module.css';
+import { CreateCollectionModal } from '../../../controls/Modals/CreateCollectionModal';
+import { PageContainer } from '../../../controls/PageContainer/PageContainer';
+import { PageHeader } from '../../../controls/PageHeader/PageHeader';
+import { Table, TableHead, TableHeaderCell, TableBody } from '../../../controls/Table/Table';
+import { withQueryResolver } from '../../../hoc/withQueryResolver';
+import useTypedSelector from '../../../hooks/useTypedSelector';
+import { useGetCollectionsQuery } from '../../../redux/collectionApi';
+import { selectCollections } from '../../../redux/slices/collectionsSlice';
+import { CollectionRow } from './CollectionRow';
 
 const CollectionsPageContent: FC = () => {
     const [showCreateCollectionModal, setShowCreateCollectionModal] = useState(false);
@@ -44,18 +44,9 @@ const CollectionsPageContent: FC = () => {
                         <TableHeaderCell align="center">Создана</TableHeaderCell>
                     </TableHead>
                     <TableBody>
-                        {collections.map((c) => {
-                            const date = new Date(c.createdAt);
-                            return (
-                                <TableRow key={c.id}>
-                                    {/* <div key={c.id}>{c.title}</div> */}
-                                    <TableCell>{c.title}</TableCell>
-                                    <TableCell align="center">-</TableCell>
-                                    <TableCell align="center">{c.cards.length}</TableCell>
-                                    <TableCell align="center">{date.toLocaleDateString()}</TableCell>
-                                </TableRow>
-                            );
-                        })}
+                        {collections.map((c) => (
+                            <CollectionRow key={c.id} collection={c} />
+                        ))}
                     </TableBody>
                 </Table>
             </div>
@@ -63,9 +54,4 @@ const CollectionsPageContent: FC = () => {
     );
 };
 
-const CollectionsPage = withQueryResolver(useGetCollectionsQuery)(CollectionsPageContent);
-//const AuthorizationPage = withAuthorization(CollectionsPage);
-
-(CollectionsPage as any).auth = true;
-
-export default CollectionsPage;
+export const CollectionsPage = withQueryResolver(useGetCollectionsQuery)(CollectionsPageContent);
