@@ -5,7 +5,7 @@ namespace IntervalLearningApi.Models.RepeatsSchedule;
 
 public class Schedule
 {
-    [JsonProperty("UserId")]
+    [JsonProperty("userId")]
     public string ParentUserId { get; }
     public short Id { get; }
     public string Title { get; }

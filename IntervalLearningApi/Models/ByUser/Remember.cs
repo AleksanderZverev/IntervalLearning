@@ -4,11 +4,11 @@ namespace IntervalLearningApi.Models.ByUser;
 
 public class Remember
 {
-    [JsonProperty("UserId")]
+    [JsonProperty("userId")]
     public long ParentUserId { get; }
-    [JsonProperty("CollectionId")]
+    [JsonProperty("collectionId")]
     public short ParentCollectionId { get; }
-    [JsonProperty("CardId")]
+    [JsonProperty("cardId")]
     public short ParentCardId { get; }
     public byte Id { get; }
     public float Weight { get; }
