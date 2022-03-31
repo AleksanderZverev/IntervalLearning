@@ -1,11 +1,1 @@
-.headerContainer {
-    display: flex;
-    justify-content: space-between;
-    align-items: baseline;
 
-    border: 1px solid red;
-}
-
-.header {
-    font-size: 32px;
-}
