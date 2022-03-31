@@ -1,8 +1,8 @@
 import { Autocomplete } from '@mui/material';
-import { forwardRef, useMemo } from 'react';
+import { forwardRef } from 'react';
 import { Controller } from 'react-hook-form';
-import { useSelector } from 'react-redux';
-import { selectThemes } from '../../redux/themeSlice';
+import useTypedSelector from '../../hooks/useTypedSelector';
+import { selectThemes } from '../../redux/slices/themeSlice';
 import { FormField, FormFieldProps } from '../Form/Form';
 
 interface SelectThemeProps extends FormFieldProps {
@@ -11,8 +11,7 @@ interface SelectThemeProps extends FormFieldProps {
 
 // eslint-disable-next-line react/display-name
 export const SelectTheme = forwardRef<HTMLDivElement, SelectThemeProps>(({ registeredName, ...props }, ref) => {
-    const themeIndex = useSelector(selectThemes);
-    const themeItems = useMemo(() => Object.values(themeIndex), [themeIndex]);
+    const themes = useTypedSelector(selectThemes);
 
     return (
         <Controller
@@ -22,7 +21,7 @@ export const SelectTheme = forwardRef<HTMLDivElement, SelectThemeProps>(({ regis
                     <Autocomplete
                         value={value ?? null}
                         {...field}
-                        options={themeItems}
+                        options={themes}
                         getOptionLabel={(o) => o.name}
                         isOptionEqualToValue={(o, v) => o.id === v.id}
                         renderInput={(params) => <FormField {...params} {...props} />}

@@ -3,6 +3,7 @@ export interface Collection {
     id: string;
     title: string;
     createdAt: string;
+    defaultScheduleUserId: string;
     defaultScheduleId: string;
     themeId: string;
     cards: Card[];

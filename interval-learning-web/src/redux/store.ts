@@ -6,6 +6,7 @@ import { currentUserSlice } from './currentUserSlice';
 import { errorSlice } from './errorSlice';
 import { scheduleSlice } from './slices/scheduleSlice';
 import { collectionSlice } from './slices/collectionsSlice';
+import { themeSlice } from './slices/themeSlice';
 
 const makeStore = () =>
     configureStore({
@@ -15,6 +16,7 @@ const makeStore = () =>
             errors: errorSlice.reducer,
             currentUser: currentUserSlice.reducer,
             schedules: scheduleSlice.reducer,
+            themes: themeSlice.reducer,
             collections: collectionSlice.reducer,
         },
         middleware: (getDefaultMiddleware) =>

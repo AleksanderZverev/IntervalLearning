@@ -1,21 +1,16 @@
 import { Theme } from '../types/global';
 import { api, tagTypes } from './apiSlice';
-import { RootState } from './store';
-
-type ThemesApiState = Record<Theme['id'], Theme>;
+import { setThemes } from './slices/themeSlice';
 
 export const themesApi = api.injectEndpoints({
     endpoints: (build) => ({
-        getThemes: build.query<ThemesApiState, void>({
+        getThemes: build.query<Theme[], void>({
             query: () => ({ method: 'GET', url: 'themes' }),
-            transformResponse: (result: Theme[], meta, arg) => {
-                const state: ThemesApiState = {};
-
-                for (const theme of result) {
-                    state[theme.id] = theme;
-                }
-
-                return state;
+            async onQueryStarted(arg, { queryFulfilled, dispatch }) {
+                try {
+                    const themes = await queryFulfilled;
+                    dispatch(setThemes(themes.data));
+                } catch {}
             },
             providesTags: (result, error, arg) => {
                 const tags = result
@@ -29,5 +24,3 @@ export const themesApi = api.injectEndpoints({
 });
 
 export const { useGetThemesQuery } = themesApi;
-export const selectThemes = (state: RootState): ThemesApiState =>
-    themesApi.endpoints.getThemes.select()(state).data || {};

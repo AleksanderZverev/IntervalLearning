@@ -1,7 +1,7 @@
 import '../styles/globals.css';
 import type { AppProps } from 'next/app';
 import { SessionProvider } from 'next-auth/react';
-import PageHeader from '../src/controls/PageHeader/PageHeader';
+import WebHeader from '../src/controls/WebHeader/WebHeader';
 
 import * as React from 'react';
 import Head from 'next/head';
@@ -18,6 +18,7 @@ import { useTypedDispatch } from '../src/hooks/useTypedDispatch';
 import { selectCurrentUser } from '../src/redux/currentUserSlice';
 import useTypedSelector from '../src/hooks/useTypedSelector';
 import { useAutoAuthorization } from './accounts/authorize';
+import { schedulesApi } from '../src/redux/schedulesSlice';
 
 interface AuthProps {
     needAuth: boolean;
@@ -31,6 +32,7 @@ interface MyAppProps extends AppProps {
 
 const fetchStartData = async (dispatch: AppDispatch) => {
     dispatch(themesApi.endpoints.getThemes.initiate());
+    dispatch(schedulesApi.endpoints.getSchedules.initiate());
 };
 
 function MyApp(props: MyAppProps) {
@@ -61,7 +63,7 @@ function MyApp(props: MyAppProps) {
                             flexDirection: 'column',
                         }}
                     >
-                        <PageHeader />
+                        <WebHeader />
                         <ErrorHandler>
                             {/* {(Component as any).auth ? (
                                         <Component {...otherPageProps} />
