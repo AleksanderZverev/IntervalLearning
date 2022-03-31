@@ -2,7 +2,9 @@ import { createEntityAdapter, createSlice, PayloadAction } from '@reduxjs/toolki
 import { Schedule } from '../../types/schedule';
 import { RootState } from '../store';
 
-const adapter = createEntityAdapter<Schedule>({ selectId: (s) => `${s.userId}-${s.id}` });
+export const getScheduleId = (userId: string, scheduleId: number) => `${userId}-${scheduleId}`;
+
+const adapter = createEntityAdapter<Schedule>({ selectId: (s) => getScheduleId(s.userId, s.id) });
 const initialState = adapter.getInitialState();
 
 export const scheduleSlice = createSlice({
@@ -20,4 +22,6 @@ export const scheduleSlice = createSlice({
 
 export const { setSchedule, setSchedules } = scheduleSlice.actions;
 
-export const { selectAll: selectSchedules } = adapter.getSelectors((state: RootState) => state.schedules);
+export const { selectAll: selectSchedules, selectById: selectScheduleById } = adapter.getSelectors(
+    (state: RootState) => state.schedules
+);

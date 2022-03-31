@@ -19,4 +19,6 @@ export const collectionSlice = createSlice({
 
 export const { setCollections, setOneCollection } = collectionSlice.actions;
 
-export const { selectAll: selectCollections } = adapter.getSelectors((state: RootState) => state.collections);
+export const { selectAll: selectCollections, selectById: selectCollectionById } = adapter.getSelectors(
+    (state: RootState) => state.collections
+);

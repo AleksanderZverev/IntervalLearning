@@ -4,7 +4,7 @@ export interface Collection {
     title: string;
     createdAt: string;
     defaultScheduleUserId: string;
-    defaultScheduleId: string;
+    defaultScheduleId: number;
     themeId: string;
     cards: Card[];
 }
@@ -23,10 +23,10 @@ export interface Card {
 }
 
 export interface Remember {
-    UserId: string;
-    CollectionId: string;
-    CardId: string;
-    Id: string;
+    userId: string;
+    collectionId: string;
+    cardId: string;
+    id: string;
     weight: number;
     phaseStep: number;
     pPassedSecondsFromLastStep: number;

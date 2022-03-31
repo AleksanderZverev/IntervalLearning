@@ -1,4 +1,4 @@
-import { FC, PropsWithChildren } from 'react';
+import { FC, HTMLAttributes, PropsWithChildren } from 'react';
 import {
     Table as MuiTable,
     TableBody as MuiTableBody,
@@ -25,8 +25,10 @@ export const TableBody: FC<PropsWithChildren<unknown>> = ({ children }) => {
     return <MuiTableBody>{children}</MuiTableBody>;
 };
 
-export const TableRow: FC<PropsWithChildren<unknown>> = ({ children }) => {
-    return <MuiTableRow>{children}</MuiTableRow>;
+interface TableRowProps extends HTMLAttributes<HTMLTableRowElement> {}
+
+export const TableRow: FC<PropsWithChildren<TableRowProps>> = ({ children, ...props }) => {
+    return <tr {...props}>{children}</tr>;
 };
 
 interface TableHeaderCell extends TableCellProps {}
