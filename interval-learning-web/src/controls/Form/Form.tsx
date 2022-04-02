@@ -1,3 +1,4 @@
+import { ArrowForward, ArrowForwardIos, ArrowRight, SvgIconComponent } from '@mui/icons-material';
 import { FormLabel, TextField, TextFieldProps, Typography } from '@mui/material';
 import { FC, FormEventHandler, PropsWithChildren, forwardRef } from 'react';
 import styles from './styles.module.css';
@@ -58,6 +59,41 @@ export const FormField = forwardRef<HTMLDivElement, FormFieldProps>(
                 variant="standard"
                 {...otherProps}
             />
+        );
+    }
+);
+
+export interface IconFormFieldProps extends FormFieldProps {
+    icon: SvgIconComponent;
+}
+
+// eslint-disable-next-line react/display-name
+export const IconFormField = forwardRef<HTMLDivElement, IconFormFieldProps>(
+    ({ label, error, errorMessage, icon, ...otherProps }, ref) => {
+        const Icon = icon;
+
+        return (
+            <div className={styles.iconFormField}>
+                <div className={styles.icon}>{<Icon fontSize="small" color={'primary'} />}</div>
+                <TextField
+                    ref={ref}
+                    sx={{
+                        '& label': {
+                            color: '#B7B7B7',
+                            fontSize: 16,
+                        },
+                        '& input': {
+                            fontSize: 20,
+                        },
+                    }}
+                    label={label}
+                    error={error}
+                    helperText={errorMessage ?? ' '}
+                    fullWidth
+                    variant="standard"
+                    {...otherProps}
+                />
+            </div>
         );
     }
 );

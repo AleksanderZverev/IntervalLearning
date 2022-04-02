@@ -8,6 +8,7 @@ import {
     TableCellProps,
 } from '@mui/material';
 import styles from './styles.module.css';
+import { Link } from 'react-router-dom';
 
 export const Table: FC<PropsWithChildren<unknown>> = ({ children }) => {
     return <MuiTable>{children}</MuiTable>;
@@ -23,6 +24,18 @@ export const TableHead: FC<PropsWithChildren<unknown>> = ({ children }) => {
 
 export const TableBody: FC<PropsWithChildren<unknown>> = ({ children }) => {
     return <MuiTableBody>{children}</MuiTableBody>;
+};
+
+interface LinkTableRowProps {
+    to: string;
+}
+
+export const LinkTableRow: FC<PropsWithChildren<LinkTableRowProps>> = ({ children, to }) => {
+    return (
+        <MuiTableRow component={Link} to={to}>
+            {children}
+        </MuiTableRow>
+    );
 };
 
 interface TableRowProps extends HTMLAttributes<HTMLTableRowElement> {}
