@@ -25,6 +25,19 @@ export const collectionsApi = api.injectEndpoints({
                 } catch {}
             },
         }),
+        getCollection: build.query<Collection, string>({
+            query: (collectionId) => ({
+                url: `${baseUrl}/${collectionId}`,
+                method: 'GET',
+            }),
+            providesTags: (result, error, arg) => (result ? [{ type: tagTypes.collection, id: result.id }] : []),
+            async onQueryStarted(arg, { queryFulfilled, dispatch }) {
+                try {
+                    const result = await queryFulfilled;
+                    dispatch(setOneCollection(result.data));
+                } catch {}
+            },
+        }),
         createCollection: build.mutation<Collection, CreateCollectionItem>({
             query: (item) => ({ method: 'POST', url: baseUrl, data: item }),
             async onQueryStarted(arg, { queryFulfilled, dispatch }) {
@@ -37,4 +50,4 @@ export const collectionsApi = api.injectEndpoints({
     }),
 });
 
-export const { useGetCollectionsQuery, useCreateCollectionMutation } = collectionsApi;
+export const { useGetCollectionsQuery, useCreateCollectionMutation, useGetCollectionQuery } = collectionsApi;

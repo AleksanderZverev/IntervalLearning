@@ -12,7 +12,7 @@ const CollectionsPageRouter: FC = () => {
         <BrowserRouter>
             <Routes>
                 <Route path="/collections" element={<CollectionsPage queryArg={undefined} />} />
-                <Route path="/collections/:collectionId" element={<CollectionPage />} />
+                <Route path="/collections/:userId-:collectionId" element={<CollectionPage />} />
             </Routes>
         </BrowserRouter>
     );

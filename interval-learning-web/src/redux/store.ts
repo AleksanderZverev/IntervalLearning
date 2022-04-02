@@ -7,6 +7,7 @@ import { errorSlice } from './errorSlice';
 import { scheduleSlice } from './slices/scheduleSlice';
 import { collectionSlice } from './slices/collectionsSlice';
 import { themeSlice } from './slices/themeSlice';
+import { cardsSlice } from './slices/cardsSlice';
 
 const makeStore = () =>
     configureStore({
@@ -18,6 +19,7 @@ const makeStore = () =>
             schedules: scheduleSlice.reducer,
             themes: themeSlice.reducer,
             collections: collectionSlice.reducer,
+            cards: cardsSlice.reducer,
         },
         middleware: (getDefaultMiddleware) =>
             getDefaultMiddleware({ serializableCheck: false }).concat(api.middleware, accountSlice.middleware),

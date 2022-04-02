@@ -13,7 +13,7 @@ export const CollectionRow: FC<CollectionRowProps> = ({ collection }) => {
         <LinkTableRow to={`${collection.userId}-${collection.id}`}>
             <TableCell>{collection.title}</TableCell>
             <TableCell align="center">-</TableCell>
-            <TableCell align="center">{collection.cards.length}</TableCell>
+            <TableCell align="center">{collection.cardsCount}</TableCell>
             <TableCell align="center">{date.toLocaleDateString()}</TableCell>
         </LinkTableRow>
     );
