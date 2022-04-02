@@ -13,10 +13,10 @@ public class Collection
     public long DefaultScheduleUserId { get; }
     public short DefaultScheduleId { get; }
     public short ThemeId { get; }
-    public List<Card> Cards { get; }
+    public int CardsCount { get; }
 
     public Collection(string parentUserId, short id, string title, Instant createdAt,
-        long defaultScheduleUserId, short defaultScheduleId, short themeId, List<Card> cards)
+        long defaultScheduleUserId, short defaultScheduleId, short themeId, int cardsCount)
     {
         ParentUserId = parentUserId;
         Id = id;
@@ -24,7 +24,7 @@ public class Collection
         CreatedAt = createdAt;
         DefaultScheduleId = defaultScheduleId;
         ThemeId = themeId;
-        Cards = cards;
+        CardsCount = cardsCount;
         DefaultScheduleUserId = defaultScheduleUserId;
     }
 }

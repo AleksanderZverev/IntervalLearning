@@ -45,6 +45,7 @@ public class CardEntity : IParentCollectionReference, IParentRepeatsScheduleRefe
         short parentCollectionId,
         string frontSideText,
         string backSideText,
+        long parentRepeatsScheduleUserId,
         short parentRepeatsScheduleId,
         string? description = null,
         List<string>? examples = null)
@@ -53,11 +54,13 @@ public class CardEntity : IParentCollectionReference, IParentRepeatsScheduleRefe
         ParentCollectionId = parentCollectionId;
         FrontSideText = frontSideText;
         BackSideText = backSideText;
+        ParentRepeatsScheduleUserId = parentRepeatsScheduleUserId;
         ParentRepeatsScheduleId = parentRepeatsScheduleId;
         Description = description;
         Examples = examples;
     }
-    
+
+    public long ParentRepeatsScheduleUserId { get; set; }
     public short ParentRepeatsScheduleId { get; set; }
     public virtual RepeatsScheduleEntity? ParentRepeatsSchedule { get; set; }
 

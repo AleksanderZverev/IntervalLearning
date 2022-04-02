@@ -10,6 +10,8 @@ public class Card
     [JsonProperty("collectionId")]
     public short ParentCollectionId { get; }
     public short Id { get; }
+    public long ScheduleUserId { get; }
+    public short ScheduleId { get; }
     public string BackSideText { get; }
     public string FrontSideText { get; }
     public Instant CreatedDate { get; }
@@ -18,12 +20,17 @@ public class Card
     public List<string>? Examples { get; }
     public List<Remember>? Remembers { get; }
 
-    public Card(string parentUserId, short parentCollectionId, short id, string backSideText, string frontSideText,
+    public Card(
+        string parentUserId, short parentCollectionId, short id, 
+        long scheduleUserId, short scheduleId, 
+        string backSideText, string frontSideText,
         Instant createdDate, bool? isFinished, string? description, List<string>? examples, List<Remember>? remembers)
     {
         ParentUserId = parentUserId;
         ParentCollectionId = parentCollectionId;
         Id = id;
+        ScheduleUserId = scheduleUserId;
+        ScheduleId = scheduleId;
         BackSideText = backSideText;
         FrontSideText = frontSideText;
         CreatedDate = createdDate;

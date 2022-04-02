@@ -92,7 +92,7 @@ namespace DB
             modelBuilder.Entity<CardEntity>()
                 .HasOne(r => r.ParentRepeatsSchedule)
                 .WithMany()
-                .HasForeignKey(c => new { c.ParentUserId, c.ParentRepeatsScheduleId })
+                .HasForeignKey(c => new { c.ParentRepeatsScheduleUserId, c.ParentRepeatsScheduleId })
                 .OnDelete(DeleteBehavior.NoAction);
 
             // RememberEntity

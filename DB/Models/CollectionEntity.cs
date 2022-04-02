@@ -28,6 +28,8 @@ public class CollectionEntity : IParentUserReference
     [Required]
     public Instant CreatedDate { get; set; } = SystemClock.Instance.GetCurrentInstant();
 
+    public int CardsCount { get; set; }
+
     public virtual List<CardEntity> Cards { get; set; } = new();
 
     public long DefaultRepeatsScheduleParentUserId { get; set; }

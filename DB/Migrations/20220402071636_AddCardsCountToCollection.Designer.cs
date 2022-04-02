@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using DB;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using NodaTime;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
@@ -13,9 +14,10 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace DB.Migrations
 {
     [DbContext(typeof(ApplicationContext))]
-    partial class ApplicationContextModelSnapshot : ModelSnapshot
+    [Migration("20220402071636_AddCardsCountToCollection")]
+    partial class AddCardsCountToCollection
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -62,12 +64,9 @@ namespace DB.Migrations
                     b.Property<short>("ParentRepeatsScheduleId")
                         .HasColumnType("smallint");
 
-                    b.Property<long>("ParentRepeatsScheduleUserId")
-                        .HasColumnType("bigint");
-
                     b.HasKey("ParentUserId", "ParentCollectionId", "Id");
 
-                    b.HasIndex("ParentRepeatsScheduleUserId", "ParentRepeatsScheduleId");
+                    b.HasIndex("ParentUserId", "ParentRepeatsScheduleId");
 
                     b.ToTable("Cards");
                 });
@@ -312,15 +311,15 @@ namespace DB.Migrations
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
-                    b.HasOne("DB.Models.RepeatsScheduleEntity", "ParentRepeatsSchedule")
-                        .WithMany()
-                        .HasForeignKey("ParentRepeatsScheduleUserId", "ParentRepeatsScheduleId")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired();
-
                     b.HasOne("DB.Models.CollectionEntity", "ParentCollection")
                         .WithMany("Cards")
                         .HasForeignKey("ParentUserId", "ParentCollectionId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.HasOne("DB.Models.RepeatsScheduleEntity", "ParentRepeatsSchedule")
+                        .WithMany()
+                        .HasForeignKey("ParentUserId", "ParentRepeatsScheduleId")
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
