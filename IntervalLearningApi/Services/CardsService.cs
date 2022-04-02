@@ -13,11 +13,23 @@ public class CardsService
         this.db = db;
     }
 
+    public Task<List<CardEntity>> GetCards(long userId, short collectionId, int page, int count)
+    {
+        var toSkip = (page - 1) * count;
+
+        return db.Cards
+            .Where(c => c.ParentUserId == userId && c.ParentCollectionId == collectionId)
+            .Skip(toSkip)
+            .Take(count)
+            .ToListAsync();
+    }
+
     public (CardEntity? card, string? error) Create(
         long userId,
         short collectionId,
         string frontText,
         string backText,
+        long scheduleUserId,
         short scheduleId,
         string? description = null,
         List<string>? examples = null)
@@ -27,6 +39,7 @@ public class CardsService
             collectionId,
             frontText,
             backText,
+            scheduleUserId,
             scheduleId,
             description,
             examples
@@ -34,7 +47,7 @@ public class CardsService
 
         try
         {
-            db.Cards.Add(card);
+            db.Entry(card).State = EntityState.Added;
             db.SaveChanges();
             return (card, null);
         }

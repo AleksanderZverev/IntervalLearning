@@ -15,14 +15,16 @@ public class CollectionService
         this.cardsService = cardsService;
     }
 
-    public List<CollectionEntity> GetAllByUserId(long userId)
+    public Task<CollectionEntity?> Find(long userId, short collectionId)
+    {
+        return db.Collections.FindAsync(userId, collectionId).AsTask();
+    }
+
+    public Task<List<CollectionEntity>> GetAllByUserId(long userId)
     {
         var collections = db.Collections
             .Where(c => c.ParentUserId == userId)
-            .Include(c => c.Cards)
-            .ThenInclude(c => c.Remembers)
-            .AsNoTracking()
-            .ToList();
+            .ToListAsync();
 
         return collections;
     }
@@ -56,21 +58,37 @@ public class CollectionService
         }
     }
 
-    public void AddCard(
+    public (CardEntity? card, string? error) AddCard(
         long userId,
         short collectionId,
         string frontText,
         string backText,
+        long scheduleUserId,
         short scheduleId,
-        string description = null,
-        List<string> examples = null)
+        string? description,
+        List<string>? examples)
     {
         var collection = db.Collections.Find(userId, collectionId);
 
         if (collection == null)
-            return;
+            return (null, "Collection not found");
 
-        var card = cardsService.Create(
-            userId, collectionId, frontText, backText, scheduleId, description, examples);
+        db.Database.BeginTransaction();
+
+        var (card, error) = cardsService.Create(
+            userId, collectionId, frontText, backText, scheduleUserId, scheduleId, description, examples);
+
+        if (error != null)
+        {
+            db.Database.RollbackTransaction();
+            return (card, error);
+        }
+
+        collection.CardsCount++;
+        db.SaveChanges();
+
+        db.Database.CommitTransaction();
+
+        return (card, null);
     }
 }

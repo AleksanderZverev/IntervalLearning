@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using IntervalLearningApi.Extensions;
+using IntervalLearningApi.Models.ByUser;
 using IntervalLearningApi.Services;
 using Microsoft.AspNetCore.Mvc;
 
@@ -11,28 +12,43 @@ namespace IntervalLearningApi.Controllers
     public class CardsController : ControllerBase
     {
         private readonly CardsService cardsService;
+        private readonly CollectionService collectionService;
 
-        public CardsController(CardsService cardsService)
+        public CardsController(CardsService cardsService, CollectionService collectionService)
         {
             this.cardsService = cardsService;
+            this.collectionService = collectionService;
+        }
+
+        public async Task<ActionResult<IList<Card>>> GetCards(short collectionId, [FromQuery] int page = 1, [FromQuery] int count = 10)
+        {
+            var userId = HttpContext.GetUserId();
+            var cards = await cardsService.GetCards(userId, collectionId, page, count);
+            return Ok(cards.Select(CollectionsController.ToCard).ToList());
         }
 
         [HttpPost]
-        public IActionResult CreateCard(short collectionId, [FromBody]CreateCardItem item)
+        public ActionResult<Card> CreateCard(short collectionId, [FromBody]CreateCardItem item)
         {
+            if (item.Examples != null && item.Examples.Any(e => e.Length > 255))
+            {
+                return BadRequest();
+            }
+
             var userId = HttpContext.GetUserId();
 
-            var (card, error) = cardsService.Create(
+            var (card, error) = collectionService.AddCard(
                 userId,
                 collectionId,
                 item.FrontText,
                 item.BackText,
+                item.ScheduleUserId,
                 item.ScheduleId,
                 item.Description,
                 item.Examples);
 
             return card != null
-                ? Ok(card)
+                ? Ok(CollectionsController.ToCard(card))
                 : BadRequest(error);
         }
 
@@ -86,11 +102,18 @@ namespace IntervalLearningApi.Controllers
     public class CreateCardItem
     {
         [Required]
+        [StringLength(255)]
         public string FrontText { get; set; }
         [Required]
+        [StringLength(255)]
         public string BackText { get; set; }
+        [Required]
+        public long ScheduleUserId { get; set; }
+        [Required]
         public short ScheduleId { get; set; }
+        [StringLength(500)]
         public string? Description { get; set; }
+        [MaxLength(15)]
         public List<string>? Examples { get; set; }
     }
 }

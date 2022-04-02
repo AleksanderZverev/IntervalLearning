@@ -38,14 +38,22 @@ namespace IntervalLearningApi.Controllers
         }
 
         [HttpGet]
-        public List<Collection> GetAll()
+        public async Task<ActionResult<List<Collection>>> GetAll()
         {
             var userId = HttpContext.GetUserId();
-            var collections = collectionService.GetAllByUserId(userId).Select(ToCollection).ToList();
-            return collections;
+            var collections = await collectionService.GetAllByUserId(userId);
+            return Ok(collections.Select(ToCollection).ToList());
         }
 
-        private static Collection ToCollection(CollectionEntity c)
+        [HttpGet("{collectionId}")]
+        public async Task<ActionResult<Collection>> Get(short collectionId)
+        {
+            var userId = HttpContext.GetUserId();
+            var collection = await collectionService.Find(userId, collectionId).ConfigureAwait(false);
+            return collection != null ? Ok(ToCollection(collection)) : NotFound();
+        }
+
+        public static Collection ToCollection(CollectionEntity c)
         {
             return new Collection(
                 c.ParentUserId.ToString(),
@@ -55,16 +63,18 @@ namespace IntervalLearningApi.Controllers
                 c.DefaultRepeatsScheduleParentUserId,
                 c.DefaultRepeatsScheduleId,
                 c.ThemeId,
-                c.Cards.Select(ToCard).ToList()
+                c.CardsCount
             );
         }
 
-        private static Card ToCard(CardEntity c)
+        public static Card ToCard(CardEntity c)
         {
             return new Card(
                 c.ParentUserId.ToString(),
                 c.ParentCollectionId,
                 c.Id,
+                c.ParentRepeatsScheduleUserId,
+                c.ParentRepeatsScheduleId,
                 c.BackSideText,
                 c.FrontSideText,
                 c.CreatedDate,
