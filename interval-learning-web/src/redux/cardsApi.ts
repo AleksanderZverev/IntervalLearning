@@ -1,4 +1,4 @@
-import { Card, Collection } from './../types/Collection';
+import { Card } from './../types/Collection';
 import { api } from './apiSlice';
 import { addCard, addManyCards } from './slices/cardsSlice';
 import { cardAddedToCollection } from './slices/collectionsSlice';
@@ -23,14 +23,9 @@ export interface GetCardItem {
     count: number;
 }
 
-export interface CardsPaginationResponse {
-    collection: Collection | null;
-    cards: Card[];
-}
-
 export const cardsApi = api.injectEndpoints({
     endpoints: (build) => ({
-        getCards: build.query<CardsPaginationResponse, BaseRequestItem<GetCardItem>>({
+        getCards: build.query<Card[], BaseRequestItem<GetCardItem>>({
             query: ({ collectionId, request }) => ({
                 url: `/collections/${collectionId}/cards?page=${request.page}&count=${request.count}`,
                 method: 'GET',
@@ -38,7 +33,7 @@ export const cardsApi = api.injectEndpoints({
             async onQueryStarted(arg, { queryFulfilled, dispatch }) {
                 try {
                     const cards = await queryFulfilled;
-                    dispatch(addManyCards(cards.data.cards));
+                    dispatch(addManyCards(cards.data));
                 } catch {}
             },
         }),
@@ -48,7 +43,7 @@ export const cardsApi = api.injectEndpoints({
                 method: 'POST',
                 data: request,
             }),
-            async onQueryStarted(arg, { queryFulfilled, dispatch, getState }) {
+            async onQueryStarted(arg, { queryFulfilled, dispatch }) {
                 try {
                     const newCard = await queryFulfilled;
 

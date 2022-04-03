@@ -48,12 +48,16 @@ interface TableHeaderCell extends TableCellProps {}
 
 export const TableHeaderCell: FC<PropsWithChildren<TableHeaderCell>> = ({ children, ...props }) => {
     return (
-        <MuiTableCell {...props} sx={{ color: '#ADADAD' }}>
+        <MuiTableCell {...props} style={{ color: '#ADADAD', fontSize: 16 }}>
             {children}
         </MuiTableCell>
     );
 };
 
 export const TableCell: FC<PropsWithChildren<TableCellProps>> = ({ children, ...props }) => {
-    return <MuiTableCell {...props}>{children}</MuiTableCell>;
+    return (
+        <MuiTableCell {...props} style={{ fontSize: 20 }}>
+            {children}
+        </MuiTableCell>
+    );
 };

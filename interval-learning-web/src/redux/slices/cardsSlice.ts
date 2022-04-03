@@ -35,7 +35,11 @@ export const cardsSlice = createSlice({
     },
 });
 
-export const selectCards = (state: RootState, userId: string, collectionId: string) => {
+export const selectCards = (state: RootState, userId?: string, collectionId?: string) => {
+    if (userId === undefined || collectionId === undefined) {
+        return [];
+    }
+
     const cardsIndex = state.cards;
     const key = getCardKey(userId, collectionId);
     return key in cardsIndex ? cardsIndex[key] : [];
