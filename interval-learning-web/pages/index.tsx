@@ -1,19 +1,8 @@
 import type { NextPage } from 'next';
-import { signIn, signOut, useSession } from 'next-auth/react';
 import Head from 'next/head';
-import Image from 'next/image';
-import axiosInstance from '../src/api/axiosInstance';
 import styles from '../styles/Home.module.css';
 
 const Home: NextPage = () => {
-    const { data: session } = useSession();
-
-    console.log('session', session);
-
-    const onSend = () => {
-        axiosInstance.get('/authorize').then((v) => console.log('got: ', v));
-    };
-
     return (
         <div className={styles.container}>
             <Head>
@@ -24,28 +13,7 @@ const Home: NextPage = () => {
 
             <main className={styles.main}>
                 <h1 className={styles.title}>Welcome to Interval Learning</h1>
-                {session && (
-                    <div style={{ display: 'flex', flexDirection: 'column' }}>
-                        <label>Email: {session.user?.email}</label>
-                        <label>User name: {session.user?.name}</label>
-                        <label>Expires: {session.expires}</label>
-                        <button onClick={onSend}>send something</button>
-                    </div>
-                )}
             </main>
-
-            <footer className={styles.footer}>
-                <a
-                    href="https://vercel.com?utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                >
-                    Powered by{' '}
-                    <span className={styles.logo}>
-                        <Image src="/vercel.svg" alt="Vercel Logo" width={72} height={16} />
-                    </span>
-                </a>
-            </footer>
         </div>
     );
 };

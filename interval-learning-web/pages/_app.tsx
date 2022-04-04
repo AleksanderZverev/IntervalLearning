@@ -1,6 +1,5 @@
 import '../styles/globals.css';
-import type { AppProps } from 'next/app';
-import { SessionProvider } from 'next-auth/react';
+import type { AppContext, AppProps } from 'next/app';
 import WebHeader from '../src/controls/WebHeader/WebHeader';
 
 import * as React from 'react';
@@ -19,14 +18,15 @@ import { selectCurrentUser } from '../src/redux/currentUserSlice';
 import useTypedSelector from '../src/hooks/useTypedSelector';
 import { useAutoAuthorization } from './accounts/authorize';
 import { schedulesApi } from '../src/redux/schedulesSlice';
-
-interface AuthProps {
-    needAuth: boolean;
-}
+import { BrowserRouter } from 'react-router-dom';
+import { StaticRouter } from 'react-router-dom/server';
+import App from 'next/app';
 
 const clientSideEmotionCache = createEmotionCache();
 
 interface MyAppProps extends AppProps {
+    isServerSide: boolean;
+    url: string;
     emotionCache?: EmotionCache;
 }
 
@@ -36,8 +36,7 @@ const fetchStartData = async (dispatch: AppDispatch) => {
 };
 
 function MyApp(props: MyAppProps) {
-    const { Component, emotionCache = clientSideEmotionCache, pageProps } = props;
-    const { session, ...otherPageProps } = pageProps;
+    const { Component, emotionCache = clientSideEmotionCache, url, isServerSide, pageProps } = props;
 
     const currentUser = useTypedSelector(selectCurrentUser);
     const dispatch = useTypedDispatch();
@@ -47,37 +46,35 @@ function MyApp(props: MyAppProps) {
         dispatch(fetchStartData);
     });
 
+    const Router = url !== undefined ? StaticRouter : BrowserRouter;
+
     return (
-        <CacheProvider value={emotionCache}>
-            <Head>
-                <meta name="viewport" content="initial-scale=1, width=device-width" />
-            </Head>
-            <ThemeProvider theme={theme}>
-                {/* CssBaseline kickstart an elegant, consistent, and simple baseline to build upon. */}
-                <CssBaseline />
-                <SessionProvider session={session}>
-                    <div
-                        style={{
-                            height: '100%',
-                            display: 'flex',
-                            flexDirection: 'column',
-                        }}
-                    >
-                        <WebHeader />
-                        <ErrorHandler>
-                            {/* {(Component as any).auth ? (
-                                        <Component {...otherPageProps} />
-                                ) : ( */}
-                            <Component {...otherPageProps} />
-                            {/* )} */}
-                        </ErrorHandler>
-                    </div>
-                </SessionProvider>
-            </ThemeProvider>
-        </CacheProvider>
+        <Router location={url}>
+            <CacheProvider value={emotionCache}>
+                <Head>
+                    <meta name="viewport" content="initial-scale=1, width=device-width" />
+                </Head>
+                <ThemeProvider theme={theme}>
+                    {/* CssBaseline kickstart an elegant, consistent, and simple baseline to build upon. */}
+                    <CssBaseline />
+                    <ErrorHandler>
+                        <WebHeader isServerSide={isServerSide} />
+                        <Component {...pageProps} />
+                    </ErrorHandler>
+                </ThemeProvider>
+            </CacheProvider>
+        </Router>
     );
 }
 
+MyApp.getInitialProps = async (appContext: AppContext) => {
+    // calls page's `getInitialProps` and fills `appProps.pageProps`
+    const appProps = await App.getInitialProps(appContext);
+    const url = appContext.ctx.req?.url;
+    const isServerSide = Boolean(url);
+
+    return { ...appProps, url, isServerSide };
+};
 const wrappedApp = wrapper.withRedux(MyApp);
 
 export default wrappedApp;

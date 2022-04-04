@@ -7,8 +7,13 @@ import useTypedSelector from '../../hooks/useTypedSelector';
 import { signOutUser } from '../../redux/currentUserSlice';
 import { useTypedDispatch } from '../../hooks/useTypedDispatch';
 import styles from './WebHeader.module.css';
+import { useNavigate } from 'react-router-dom';
 
-const WebHeader: FC = () => {
+interface WebHeaderProps {
+    isServerSide: boolean;
+}
+
+const WebHeader: FC<WebHeaderProps> = ({ isServerSide }) => {
     const currentUser = useTypedSelector((state) => state.currentUser.currentUser);
 
     const userNameTitle = useMemo(
@@ -16,6 +21,7 @@ const WebHeader: FC = () => {
         [currentUser]
     );
     const router = useRouter();
+    const navigate = useNavigate();
     const dispatch = useTypedDispatch();
 
     const signOut = () => {
@@ -34,7 +40,12 @@ const WebHeader: FC = () => {
                     <a className={styles.logo}>Interval Learning</a>
                 </Link>
                 <Divider orientation="vertical" flexItem />
-                <MuiLink href="/collections" underline="none" fontSize={23}>
+                <MuiLink
+                    href="/collections"
+                    underline="none"
+                    fontSize={23}
+                    onClick={() => !isServerSide && navigate('/collections')}
+                >
                     Коллекции
                 </MuiLink>
             </div>
@@ -60,7 +71,5 @@ const WebHeader: FC = () => {
         </header>
     );
 };
-
-//const wrappedPageHeader = wrapper.withRedux(PageHeader);
 
 export default WebHeader;
