@@ -12,7 +12,7 @@ export const CardRow: FC<CardRowProps> = ({ card }) => {
     const [showDetails, setShowDetails] = useState(false);
     return (
         <>
-            <TableRow sx={{ '& > *': { borderBottom: '0' } }}>
+            <TableRow sx={{ '& > *': { borderBottom: 'unset' } }}>
                 <TableCell>{card.frontSideText}</TableCell>
                 <TableCell>{card.backSideText}</TableCell>
                 <TableCell>{card.description}</TableCell>
