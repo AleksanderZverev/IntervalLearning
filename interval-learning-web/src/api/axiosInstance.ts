@@ -6,7 +6,10 @@ const axiosInstance: AxiosInstance = axios.create({
 });
 
 axiosInstance.interceptors.response.use(
-    (response) => response,
+    (response) => {
+        handleDates(response?.data);
+        return response;
+    },
     (error: AxiosError) => {
         if (!error.response) {
             return Promise.reject(error);
@@ -34,6 +37,24 @@ export const removeAuthToken = () => {
 };
 
 export default axiosInstance;
+
+const isoDateFormat = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d*)?(?:[-+]\d{2}:?\d{2}|Z)?$/;
+
+function isIsoDateString(value: unknown): boolean {
+    return Boolean(value && typeof value === 'string' && isoDateFormat.test(value));
+}
+
+export function handleDates(body: any) {
+    if (body === null || body === undefined || typeof body !== 'object') {
+        return body;
+    }
+
+    for (const key of Object.keys(body)) {
+        const value = body[key];
+        if (isIsoDateString(value)) body[key] = new Date(value);
+        else if (typeof value === 'object') handleDates(value);
+    }
+}
 
 function getErrorString(e: any): string | null {
     if (typeof e === 'string') {

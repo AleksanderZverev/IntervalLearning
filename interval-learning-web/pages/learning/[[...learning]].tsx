@@ -5,7 +5,7 @@ import { LearningPage } from '../../src/pages/learning/LearningPage/LearningPage
 const LearningPageRouter: FC = () => {
     return (
         <Routes>
-            <Route path="/learning" element={<LearningPage />} />
+            <Route path="/learning" element={<LearningPage queryArg={undefined} />} />
         </Routes>
     );
 };

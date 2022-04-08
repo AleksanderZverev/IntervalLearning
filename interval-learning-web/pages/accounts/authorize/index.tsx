@@ -62,7 +62,9 @@ const AuthorizePage: FC = () => {
             const redirectUrl = LocalStorageHelper.getRedirectUrlAfterAuthorization();
             LocalStorageHelper.clearRedirectUrl();
             router.push(redirectUrl);
-        } catch {}
+        } catch (e) {
+            console.debug(e);
+        }
     };
 
     return (

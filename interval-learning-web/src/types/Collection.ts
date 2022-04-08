@@ -31,5 +31,5 @@ export interface Remember {
     id: string;
     weight: number;
     phaseStep: number;
-    pPassedSecondsFromLastStep: number;
+    repeatedDate: Date;
 }
