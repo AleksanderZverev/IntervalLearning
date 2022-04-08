@@ -37,3 +37,27 @@ public class CreateCollectionItem
     public string Title { get; set; }
     public bool IsDefaultBackSide { get; set; }
 }
+
+public class LearningCollection : Collection
+{
+    public LearningCollection(
+        string parentUserId, 
+        short id, 
+        string title, 
+        Instant createdAt, 
+        long defaultScheduleUserId, 
+        short defaultScheduleId, 
+        short themeId, 
+        int cardsCount) 
+        : base(
+            parentUserId, 
+            id, 
+            title, 
+            createdAt, 
+            defaultScheduleUserId, 
+            defaultScheduleId, 
+            themeId, 
+            cardsCount)
+    {
+    }
+}

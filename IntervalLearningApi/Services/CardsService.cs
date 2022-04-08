@@ -1,6 +1,8 @@
-﻿using DB;
+﻿using System;
+using DB;
 using DB.Models;
 using Microsoft.EntityFrameworkCore;
+using NodaTime;
 
 namespace IntervalLearningApi.Services;
 
@@ -22,6 +24,66 @@ public class CardsService
             .Skip(toSkip)
             .Take(count)
             .ToListAsync();
+    }
+
+    public Task<List<CardEntity>> GetNotFinishedCards()
+    {
+
+    }
+
+    public async Task<(List<CollectionEntity> collections, List<(Instant, CardEntity)> cards)> GetLearningCollectionWithCards(long userId)
+    {
+        var queueItems = db.Queue
+            .Where(c => c.ParentUserId == userId)
+            .ToList();
+
+        if (queueItems.Count == 0)
+        {
+            return (new List<CollectionEntity>(0), new List<(Instant, CardEntity)>(0));
+        }
+
+        var collectionIds = new HashSet<short>();
+        var collectionIdToCards = new Dictionary<short, HashSet<short>>();
+
+        foreach (var queueItem in queueItems)
+        {
+            collectionIds.Add(queueItem.ParentCollectionId);
+            if (!collectionIdToCards.ContainsKey(queueItem.ParentCollectionId))
+            {
+                collectionIdToCards.Add(queueItem.ParentCollectionId, new HashSet<short>());
+            }
+
+            collectionIdToCards[queueItem.ParentCollectionId].Add(queueItem.ParentCardId);
+        }
+
+        var collectionsResultTask = db.Collections
+            .Where(c => c.ParentUserId == userId && collectionIds.Contains(c.Id))
+            .ToListAsync();
+
+        var cardsTasks = collectionIdToCards.Select(tuple =>
+        {
+            var collectionId = tuple.Key;
+            var cards = tuple.Value;
+
+            var cardsResultTask = db.Cards
+                .Where(c => c.ParentUserId == userId && c.ParentCollectionId == collectionId && cards.Contains(c.Id))
+                .ToListAsync();
+
+            return cardsResultTask;
+        }).ToList();
+
+        var collectionsResult = await collectionsResultTask;
+        var cards = (await Task.WhenAll(cardsTasks)).SelectMany(c => c).ToDictionary(c => $"{c.ParentCollectionId}-{c.Id}");
+
+        var cardsWithDates = new List<(Instant, CardEntity)>(cards.Count);
+        
+        foreach (var queueItem in queueItems)
+        {
+            var card = cards[$"{queueItem.ParentCollectionId}-{queueItem.ParentCardId}"];
+            cardsWithDates.Add((queueItem.Date, card));
+        }
+
+        return (collectionsResult, cardsWithDates);
     }
 
     public (CardEntity? card, string? error) Create(
@@ -88,24 +150,34 @@ public class CardsService
         short cardId,
         float weight,
         byte phaseStep,
-        int passedSecondsFromLastStem)
+        Instant repeatedDate)
     {
-        //TODO: use NoTracking??
         var remembers = db.Remembers
             .Where(r => r.ParentUserId == userId &&
                         r.ParentCollectionId == collectionId &&
                         r.ParentCardId == cardId)
-            .AsNoTracking()
             .ToList();
 
         if (remembers.Any(r => r.PhaseStep >= phaseStep))
             return (false, "Conflict");
 
+        db.Database.BeginTransaction();
+
         var remember = new RememberEntity(
-            userId, collectionId, cardId, weight, phaseStep, passedSecondsFromLastStem);
+            userId, collectionId, cardId, weight, phaseStep, repeatedDate);
 
         db.Remembers.Add(remember);
         db.SaveChanges();
+
+        var queueItem = db.Queue.Single(q => q.ParentUserId == userId
+                                             && q.ParentCollectionId == collectionId
+                                             && q.ParentCardId == cardId
+                                             && q.PhaseStep == phaseStep);
+
+        db.Entry(queueItem).State = EntityState.Deleted;
+        db.SaveChanges();
+
+        db.Database.CommitTransaction();
 
         return (true, null);
     }

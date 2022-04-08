@@ -3,6 +3,7 @@ using IntervalLearningApi.Extensions;
 using IntervalLearningApi.Models.ByUser;
 using IntervalLearningApi.Services;
 using Microsoft.AspNetCore.Mvc;
+using NodaTime;
 
 namespace IntervalLearningApi.Controllers
 {
@@ -80,14 +81,16 @@ namespace IntervalLearningApi.Controllers
         public IActionResult RememberCard(short collectionId, short cardId, [FromBody] RememberItem rememberItem)
         {
             var userId = HttpContext.GetUserId();
+
             var (ok, error) = cardsService.Remember(
                 userId,
                 collectionId,
                 cardId,
                 rememberItem.Weight,
                 rememberItem.PhaseStep,
-                rememberItem.PassedSecondsFromLastStem
-                );
+                rememberItem.RepeatedDate
+            );
+
             return ok ? Ok() : BadRequest(error);
         }
     }
@@ -96,7 +99,7 @@ namespace IntervalLearningApi.Controllers
     {
         public float Weight { get; set; }
         public byte PhaseStep { get; set; }
-        public int PassedSecondsFromLastStem { get; set; }
+        public Instant RepeatedDate { get; set; }
     }
 
     public class CreateCardItem

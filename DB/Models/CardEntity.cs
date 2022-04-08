@@ -70,3 +70,19 @@ public class CardEntity : IParentCollectionReference, IParentRepeatsScheduleRefe
     public short ParentCollectionId { get; set; }
     public CollectionEntity? ParentCollection { get; set; }
 }
+
+[Table("Queue")]
+public class CardRepeatQueueEntity : IParentCardReference
+{
+    public byte Id { get; set; }
+
+    public byte PhaseStep { get; set; }
+    public Instant Date { get; set; }
+
+    public long ParentUserId { get; set; }
+    public UserEntity? ParentUser { get; set; }
+    public short ParentCollectionId { get; set; }
+    public CollectionEntity? ParentCollection { get; set; }
+    public short ParentCardId { get; set; }
+    public CardEntity? ParentCard { get; set; }
+}

@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using NodaTime;
 
 namespace DB.Models;
 
@@ -22,7 +23,10 @@ public class RememberEntity : IParentCardReference
     [Required]
     public byte PhaseStep { get; set; }
 
-    public int PassedSecondsFromLastStep { get; set; }
+    /// <summary>
+    /// Remembered or repeated date
+    /// </summary>
+    public Instant RepeatedDate { get; set; }
 
 
     public RememberEntity(
@@ -30,15 +34,15 @@ public class RememberEntity : IParentCardReference
         short parentCollectionId,
         short parentCardId,
         float weight, 
-        byte phaseStep, 
-        int passedSecondsFromLastStep)
+        byte phaseStep,
+        Instant repeatedDate)
     {
         ParentUserId = parentUserId;
         ParentCollectionId = parentCollectionId;
         ParentCardId = parentCardId;
         Weight = weight;
         PhaseStep = phaseStep;
-        PassedSecondsFromLastStep = passedSecondsFromLastStep;
+        RepeatedDate = repeatedDate;
     }
 
     public long ParentUserId { get; set; } 

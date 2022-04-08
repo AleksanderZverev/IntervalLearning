@@ -1,4 +1,5 @@
 ﻿using Newtonsoft.Json;
+using NodaTime;
 
 namespace IntervalLearningApi.Models.ByUser;
 
@@ -13,10 +14,10 @@ public class Remember
     public byte Id { get; }
     public float Weight { get; }
     public byte PhaseStep { get; }
-    public int PassedSecondsFromLastStep { get; }
+    public Instant RepeatedDate { get; }
 
     public Remember(long parentUserId, short parentCollectionId, short parentCardId, byte id, float weight,
-        byte phaseStep, int passedSecondsFromLastStep)
+        byte phaseStep, Instant repeatedDate)
     {
         ParentUserId = parentUserId;
         ParentCollectionId = parentCollectionId;
@@ -24,6 +25,6 @@ public class Remember
         Id = id;
         Weight = weight;
         PhaseStep = phaseStep;
-        PassedSecondsFromLastStep = passedSecondsFromLastStep;
+        RepeatedDate = repeatedDate;
     }
 }
