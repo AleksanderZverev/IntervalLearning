@@ -171,7 +171,8 @@ namespace DB
             modelBuilder.Entity<UserMetadataEntity>()
                 .HasOne(m => m.ParentUser)
                 .WithOne()
-                .HasForeignKey<UserMetadataEntity>(m => m.ParentUserId);
+                .HasForeignKey<UserMetadataEntity>(m => m.ParentUserId)
+                .OnDelete(DeleteBehavior.NoAction);
         }
 
         private void ConfigureUserReference<TEntity>(

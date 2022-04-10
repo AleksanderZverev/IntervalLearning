@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using DB;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using NodaTime;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
@@ -13,9 +14,10 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace DB.Migrations
 {
     [DbContext(typeof(ApplicationContext))]
-    partial class ApplicationContextModelSnapshot : ModelSnapshot
+    [Migration("20220410041114_AddUserMetadata")]
+    partial class AddUserMetadata
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -108,8 +110,8 @@ namespace DB.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<short>("Id"));
 
-                    b.Property<short>("CardsCount")
-                        .HasColumnType("smallint");
+                    b.Property<int>("CardsCount")
+                        .HasColumnType("integer");
 
                     b.Property<Instant>("CreatedDate")
                         .HasColumnType("timestamp with time zone");
@@ -120,17 +122,11 @@ namespace DB.Migrations
                     b.Property<long>("DefaultRepeatsScheduleParentUserId")
                         .HasColumnType("bigint");
 
-                    b.Property<short>("FinishedCards")
-                        .HasColumnType("smallint");
-
                     b.Property<bool>("IsDefaultBackSide")
                         .HasColumnType("boolean");
 
                     b.Property<bool?>("IsFinished")
                         .HasColumnType("boolean");
-
-                    b.Property<short>("StartedCards")
-                        .HasColumnType("smallint");
 
                     b.Property<short>("ThemeId")
                         .HasColumnType("smallint");
