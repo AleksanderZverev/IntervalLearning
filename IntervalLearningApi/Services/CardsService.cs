@@ -9,10 +9,12 @@ namespace IntervalLearningApi.Services;
 public class CardsService
 {
     private readonly ApplicationContext db;
+    private readonly UserMetadataService metadataService;
 
-    public CardsService(ApplicationContext db)
+    public CardsService(ApplicationContext db, UserMetadataService metadataService)
     {
         this.db = db;
+        this.metadataService = metadataService;
     }
 
     public Task<List<CardEntity>> GetCards(long userId, short collectionId, int page, int count)
@@ -26,10 +28,10 @@ public class CardsService
             .ToListAsync();
     }
 
-    public Task<List<CardEntity>> GetNotFinishedCards()
-    {
+    //public Task<List<CardEntity>> GetNotFinishedCards()
+    //{
 
-    }
+    //}
 
     public async Task<(List<CollectionEntity> collections, List<(Instant, CardEntity)> cards)> GetLearningCollectionWithCards(long userId)
     {
@@ -137,6 +139,9 @@ public class CardsService
 
         if (cardEntity.IsFinished == isFinished)
             return (true, null);
+
+        var metadata = metadataService.GetMetadata(userId);
+        metadataService.CardStateChanged(metadata, cardEntity.IsFinished, isFinished);
 
         cardEntity.IsFinished = isFinished;
         db.SaveChanges();

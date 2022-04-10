@@ -37,3 +37,22 @@ public class UserEntity
 
     public virtual List<CollectionEntity> Collections { get; set; } = new();
 }
+
+public class UserMetadataEntity : IParentUserReference
+{
+    public long ParentUserId { get; set; }
+    public UserEntity? ParentUser { get; set; }
+
+    public short NotStartedCollections { get; set; }
+    public short StartedCollections { get; set; }
+    public short FinishedCollections { get; set; }
+
+    public short NotStartedCards { get; set; }
+    public short StartedCards { get; set; }
+    public short FinishedCards { get; set; }
+
+    public UserMetadataEntity(long parentUserId)
+    {
+        ParentUserId = parentUserId;
+    }
+}

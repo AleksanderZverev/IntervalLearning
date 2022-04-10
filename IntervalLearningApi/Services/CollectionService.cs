@@ -1,4 +1,5 @@
-﻿using DB;
+﻿using System.Collections.Generic;
+using DB;
 using DB.Models;
 using Microsoft.EntityFrameworkCore;
 
@@ -8,11 +9,13 @@ public class CollectionService
 {
     private readonly ApplicationContext db;
     private readonly CardsService cardsService;
+    private readonly UserMetadataService metadataService;
 
-    public CollectionService(ApplicationContext db, CardsService cardsService)
+    public CollectionService(ApplicationContext db, CardsService cardsService, UserMetadataService metadataService)
     {
         this.db = db;
         this.cardsService = cardsService;
+        this.metadataService = metadataService;
     }
 
     public Task<CollectionEntity?> Find(long userId, short collectionId)
@@ -27,6 +30,57 @@ public class CollectionService
             .ToListAsync();
 
         return collections;
+    }
+
+    public async Task<(List<CollectionEntity> started, List<CollectionEntity> notStarted)> GetNotFinished(long userId, int page = 1, int count = 30)
+    {
+        var metadata = metadataService.GetMetadata(userId);
+
+        var totalCollections = page * count;
+        var skip = (page - 1) * count;
+
+        if (skip > (metadata.NotStartedCollections + metadata.StartedCollections))
+            return (new List<CollectionEntity>(0), new List<CollectionEntity>(0));
+
+        if (totalCollections <= metadata.StartedCollections)
+        {
+            var started = db.Collections
+                .Where(c => c.IsFinished != null && c.IsFinished == false)
+                .Skip(skip)
+                .Take(count)
+                .ToList();
+
+            return (started, new List<CollectionEntity>(0));
+        }
+
+        var notStartedCollectionsToTake = totalCollections - metadata.StartedCollections;
+
+        if (notStartedCollectionsToTake <= count)
+        {
+            var startedCollections = db.Collections
+                .Where(c => c.IsFinished != null && c.IsFinished == false)
+                .Skip(skip)
+                .Take(count)
+                .ToList();
+
+            var notStartedCollections = db.Collections
+                .Where(c => c.IsFinished == null)
+                .Take(notStartedCollectionsToTake)
+                .ToList();
+
+            return (startedCollections, notStartedCollections);
+        }
+        
+        var newPage = (int) Math.Ceiling((double) metadata.NotStartedCollections / count);
+        var newSkip = (skip - metadata.NotStartedCollections) + ((newPage - 1) * count);
+
+        var notStarted = db.Collections
+            .Where(c => c.IsFinished == null)
+            .Skip(newSkip)
+            .Take(count)
+            .ToList();
+
+        return (new List<CollectionEntity>(0), notStarted);
     }
 
     public (CollectionEntity? collection, string? error) Create(

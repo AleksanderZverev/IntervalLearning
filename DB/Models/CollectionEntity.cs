@@ -28,7 +28,14 @@ public class CollectionEntity : IParentUserReference
     [Required]
     public Instant CreatedDate { get; set; } = SystemClock.Instance.GetCurrentInstant();
 
-    public int CardsCount { get; set; }
+    public short CardsCount { get; set; }
+    public short StartedCards { get; set; }
+    public short FinishedCards { get; set; }
+
+    /// <summary>
+    /// null - not started, false - started, true - finished
+    /// </summary>
+    public bool? IsFinished { get; set; }
 
     public virtual List<CardEntity> Cards { get; set; } = new();
 

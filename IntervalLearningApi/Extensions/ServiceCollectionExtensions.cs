@@ -16,5 +16,6 @@ public static class ServiceCollectionExtensions
         services.AddScoped<CardsService>();
         services.AddScoped<RepeatsScheduleService>();
         services.AddScoped<ThemeService>();
+        services.AddScoped<UserMetadataService>();
     }
 }

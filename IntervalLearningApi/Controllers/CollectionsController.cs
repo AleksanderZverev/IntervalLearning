@@ -45,6 +45,14 @@ namespace IntervalLearningApi.Controllers
             return Ok(collections.Select(ToCollection).ToList());
         }
 
+        [HttpGet("not-finished")]
+        public async Task<ActionResult<GetNotFinishedResponse>> GetNotFinished(int page = 1, int count = 30)
+        {
+            var userId = HttpContext.GetUserId();
+            var (started, notStarted) = await collectionService.GetNotFinished(userId, page, count);
+            return new GetNotFinishedResponse(ToCollection(started), ToCollection(notStarted));
+        }
+
         [HttpGet("{collectionId}")]
         public async Task<ActionResult<Collection>> Get(short collectionId)
         {
@@ -52,6 +60,9 @@ namespace IntervalLearningApi.Controllers
             var collection = await collectionService.Find(userId, collectionId).ConfigureAwait(false);
             return collection != null ? Ok(ToCollection(collection)) : NotFound();
         }
+
+        public static List<Collection> ToCollection(IEnumerable<CollectionEntity> collections)
+            => collections.Select(ToCollection).ToList();
 
         public static Collection ToCollection(CollectionEntity c)
         {
@@ -63,7 +74,9 @@ namespace IntervalLearningApi.Controllers
                 c.DefaultRepeatsScheduleParentUserId,
                 c.DefaultRepeatsScheduleId,
                 c.ThemeId,
-                c.CardsCount
+                c.CardsCount,
+                c.StartedCards,
+                c.FinishedCards
             );
         }
 
@@ -93,7 +106,7 @@ namespace IntervalLearningApi.Controllers
                 r.Id,
                 r.Weight,
                 r.PhaseStep,
-                r.PassedSecondsFromLastStep);
+                r.RepeatedDate);
         }
     }
 }

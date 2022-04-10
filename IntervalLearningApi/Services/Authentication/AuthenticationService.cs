@@ -51,8 +51,17 @@ public class AuthenticationService : IAuthenticationService
 
         if (environment.IsProduction())
         {
+            //TODO: TEST
+            db.Database.BeginTransaction();
+
             db.Users.Add(user);
             db.SaveChanges();
+
+            var metadata = new UserMetadataEntity(user.Id);
+            db.Entry(metadata).State = EntityState.Added;
+
+            db.SaveChanges();
+            db.Database.CommitTransaction();
         }
 
         return (true, string.Empty);
