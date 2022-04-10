@@ -7,6 +7,8 @@ export interface Collection {
     defaultScheduleId: number;
     themeId: string;
     cardsCount: number;
+    startedCards: number;
+    finishedCards: number;
 }
 
 export interface Card {

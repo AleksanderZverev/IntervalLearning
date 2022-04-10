@@ -10,6 +10,16 @@ export interface CreateCollectionItem {
     isDefaultBackSide: boolean;
 }
 
+export interface GetNotFinishedResponse {
+    startedCollections: Collection[];
+    notStartedCollections: Collection[];
+}
+
+export interface GetNotFinishedRequest {
+    page: number;
+    count: number;
+}
+
 const baseUrl = '/collections';
 
 export const collectionsApi = api.injectEndpoints({
@@ -47,7 +57,20 @@ export const collectionsApi = api.injectEndpoints({
                 } catch {}
             },
         }),
+        getNotFinished: build.query<GetNotFinishedResponse, GetNotFinishedRequest>({
+            query: (req) => ({ url: `${baseUrl}/not-finished?page=${req.page}&count=${req.count}`, method: 'GET' }),
+            // async onQueryStarted(arg, { queryFulfilled, dispatch }) {
+            //     try {
+            //         const response = await queryFulfilled;
+            //         const { startedCollections, notStartedCollections } = response.data;
+
+            //         dispatch(setCollections(startedCollections));
+            //         dispatch(setCollections(notStartedCollections));
+            //     } catch {}
+            // },
+        }),
     }),
 });
 
-export const { useGetCollectionsQuery, useCreateCollectionMutation, useGetCollectionQuery } = collectionsApi;
+export const { useGetCollectionsQuery, useCreateCollectionMutation, useGetCollectionQuery, useGetNotFinishedQuery } =
+    collectionsApi;

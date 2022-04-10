@@ -16,4 +16,6 @@ export const themeSlice = createSlice({
 
 export const { setThemes } = themeSlice.actions;
 
-export const { selectAll: selectThemes } = adapter.getSelectors((state: RootState) => state.themes);
+export const { selectAll: selectThemes, selectById: selectTheme } = adapter.getSelectors(
+    (state: RootState) => state.themes
+);
