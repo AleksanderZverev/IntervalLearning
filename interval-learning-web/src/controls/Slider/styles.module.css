@@ -1,0 +1,54 @@
+.container {
+    display: inline-block;
+    height: 4px;
+    padding: 14px 0;
+    position: relative;
+    border-radius: 12px;
+}
+
+.mark {
+    display: inline-block;
+    position: absolute;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background-color: #4dcfc7;
+    top: 11px;
+    cursor: pointer;
+}
+
+.markActive {
+    background-color: #29cc2f;
+}
+
+.markCurrent {
+    width: 16px;
+    height: 16px;
+    top: 8px;
+
+    cursor: auto;
+}
+
+.backLine {
+    display: block;
+    position: absolute;
+    border-radius: inherit;
+    background-color: #4dcfc7;
+    top: 50%;
+
+    width: 100%;
+    height: inherit;
+    border-radius: 3px;
+    /* transform: translateY(-50%); */
+}
+
+.progressLine {
+    display: block;
+    position: absolute;
+    border-radius: inherit;
+    background-color: #29cc2f;
+    top: 50%;
+
+    width: 100%;
+    height: inherit;
+}
