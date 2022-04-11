@@ -1,6 +1,6 @@
 import { FC, ReactNode } from 'react';
 
-export const ModalPageContainer: FC<{ children: ReactNode }> = ({ children }) => {
+export const CenterContainer: FC<{ children: ReactNode }> = ({ children }) => {
     return (
         <div
             style={{
