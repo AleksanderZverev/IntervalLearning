@@ -5,7 +5,7 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
 import styles from './authorize.module.css';
 import { useAuthenticateMutation, useRefreshTokenQuery } from '../../../src/redux/accountSlice';
-import { ModalPageContainer } from '../../../src/controls/ModalPageContainer/ModalPageContainer';
+import { CenterContainer } from '../../../src/controls/CenterContainer/CenterContainer';
 import { useTypedDispatch } from '../../../src/hooks/useTypedDispatch';
 import { checkIsLoggedOut, selectCurrentUser } from '../../../src/redux/currentUserSlice';
 import { useRouter } from 'next/router';
@@ -68,7 +68,7 @@ const AuthorizePage: FC = () => {
     };
 
     return (
-        <ModalPageContainer>
+        <CenterContainer>
             <Paper sx={{ width: 415, height: 260 }}>
                 <form className={styles.formContainer} onSubmit={handleSubmit(onSubmit)}>
                     <div className={styles.formHeader}>
@@ -106,7 +106,7 @@ const AuthorizePage: FC = () => {
                     </Button>
                 </form>
             </Paper>
-        </ModalPageContainer>
+        </CenterContainer>
     );
 };
 

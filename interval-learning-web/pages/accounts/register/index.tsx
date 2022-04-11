@@ -9,7 +9,7 @@ import { RegisterRequest } from '../../../src/types/Authentication';
 import { Check, HourglassBottomRounded } from '@mui/icons-material';
 import { green } from '@mui/material/colors';
 import { useRouter } from 'next/router';
-import { ModalPageContainer } from '../../../src/controls/ModalPageContainer/ModalPageContainer';
+import { CenterContainer } from '../../../src/controls/CenterContainer/CenterContainer';
 
 interface IForm {
     email: string;
@@ -134,7 +134,7 @@ const RegisterPage: FC = () => {
     );
 
     return (
-        <ModalPageContainer>
+        <CenterContainer>
             <Paper sx={{ width: 415, height: 445 }}>
                 {isLoading || isSuccess ? (
                     <div
@@ -171,7 +171,7 @@ const RegisterPage: FC = () => {
                     renderRegisterPage()
                 )}
             </Paper>
-        </ModalPageContainer>
+        </CenterContainer>
     );
 };
 
