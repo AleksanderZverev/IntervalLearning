@@ -1,5 +1,4 @@
-﻿using System;
-using DB;
+﻿using DB;
 using DB.Models;
 using Microsoft.EntityFrameworkCore;
 using NodaTime;
@@ -28,10 +27,27 @@ public class CardsService
             .ToListAsync();
     }
 
-    //public Task<List<CardEntity>> GetNotFinishedCards()
-    //{
+    public async Task<(List<CardEntity>? cards, string? error)> GetNotStartedCards(long userId, short collectionId)
+    {
+        var collection = db.Collections
+            .Include(c => c.DefaultRepeatsSchedule)
+            .SingleOrDefault(c => c.ParentUserId == userId && c.Id == collectionId);
 
-    //}
+        if (collection == null)
+            return (null, "Not found");
+
+        var schedule = collection.DefaultRepeatsSchedule;
+
+        if (schedule == null)
+            throw new NotImplementedException();
+
+        var cards = await db.Cards
+            .Where(c => c.ParentUserId == userId && c.ParentCollectionId == collectionId && c.IsFinished == null)
+            .Take(schedule.CardsCountPerPhase)
+            .ToListAsync();
+
+        return (cards, null);
+    }
 
     public async Task<(List<CollectionEntity> collections, List<(Instant, CardEntity)> cards)> GetLearningCollectionWithCards(long userId)
     {

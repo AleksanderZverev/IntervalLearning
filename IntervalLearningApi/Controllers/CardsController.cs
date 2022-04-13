@@ -28,6 +28,15 @@ namespace IntervalLearningApi.Controllers
             return Ok(cards.Select(CollectionsController.ToCard).ToList());
         }
 
+        [HttpGet("not-started")]
+        public async Task<ActionResult<List<Card>>> GetNotStartedCards(short collectionId)
+        {
+            var userId = HttpContext.GetUserId();
+            var (cards, error) = await cardsService.GetNotStartedCards(userId, collectionId);
+
+            return cards == null ? BadRequest(error) : cards.Select(CollectionsController.ToCard).ToList();
+        }
+
         [HttpPost]
         public ActionResult<Card> CreateCard(short collectionId, [FromBody]CreateCardItem item)
         {
