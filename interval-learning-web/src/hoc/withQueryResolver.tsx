@@ -4,15 +4,23 @@ import { UseQuery } from '@reduxjs/toolkit/dist/query/react/buildHooks';
 import { TagType } from '../redux/apiSlice';
 import { CircularProgress } from '@mui/material';
 import { CustomBaseQueryType } from '../redux/axiosBaseQuery';
+import { RootState } from '../redux/store';
+import useTypedSelector from '../hooks/useTypedSelector';
 
 export const withQueryResolver =
-    <TQueryArg, TResult>(useQuery: UseQuery<QueryDefinition<TQueryArg, CustomBaseQueryType, TagType, TResult>>) =>
+    <TQueryArg, TResult>(
+        useQuery: UseQuery<QueryDefinition<TQueryArg, CustomBaseQueryType, TagType, TResult>>,
+        isWaiting?: (state: RootState) => boolean
+    ) =>
     (Component: React.FunctionComponent<unknown>) =>
     // eslint-disable-next-line react/display-name
     ({ queryArg, ...props }: { queryArg: TQueryArg } & unknown) => {
         const { isError, isFetching, isSuccess, error } = useQuery(queryArg);
+        const state = useTypedSelector((state) => state);
 
-        if (isFetching) {
+        const isLoading = isFetching || (isSuccess && isWaiting && isWaiting(state));
+
+        if (isLoading) {
             return <CircularProgress />;
         }
 
