@@ -51,4 +51,6 @@
 
     width: 100%;
     height: inherit;
+
+    transition: width 1s ease;
 }

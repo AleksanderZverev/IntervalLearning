@@ -1,5 +1,6 @@
 import { styled, Tooltip, tooltipClasses, TooltipProps } from '@mui/material';
 import { FC, useMemo } from 'react';
+import { useEventListener } from '../../hooks/useEventListener';
 import styles from './styles.module.css';
 
 interface SliderProps {
@@ -24,7 +25,7 @@ const LightTooltip = styled(({ className, ...props }: TooltipProps) => (
 
 export const Slider: FC<SliderProps> = ({ min, max, value, activeValue, onValueChange }) => {
     const total = max - min;
-    const sliderWidth = ((value - min) / (total + 2)) * 100;
+    const sliderWidth = ((activeValue + 1 - min) / (total + 2)) * 100;
     const values = useMemo(() => {
         const values: number[] = [];
 
@@ -34,6 +35,16 @@ export const Slider: FC<SliderProps> = ({ min, max, value, activeValue, onValueC
 
         return values;
     }, [min, max]);
+
+    useEventListener('keydown', (e) => {
+        if (e.key === 'ArrowRight') {
+            const nextValue = value + 1;
+            if (nextValue <= max) onValueChange(nextValue);
+        } else if (e.key === 'ArrowLeft') {
+            const nextValue = value - 1;
+            if (nextValue >= min) onValueChange(nextValue);
+        }
+    });
 
     return (
         <span className={styles.container}>
@@ -47,7 +58,7 @@ export const Slider: FC<SliderProps> = ({ min, max, value, activeValue, onValueC
                 const mark = (
                     <span
                         key={v}
-                        onClick={() => onValueChange(value)}
+                        onClick={() => onValueChange(v)}
                         className={styles.mark + ' ' + activeClass + ' ' + currentElement}
                         style={{ left: `${left}%` }}
                     />
