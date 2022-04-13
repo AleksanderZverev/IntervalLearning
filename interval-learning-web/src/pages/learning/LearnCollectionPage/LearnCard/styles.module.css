@@ -1,0 +1,48 @@
+.container {
+    width: 650px;
+    height: 330px;
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+
+    position: relative;
+}
+
+.buttonsContainer {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+    padding: 20px;
+
+    position: absolute;
+    bottom: 0;
+}
+
+.errorMessage {
+    padding: 5px 10px;
+    border-radius: 3px;
+}
+
+.infoIcon {
+    position: absolute;
+    right: 10px;
+    top: 10px;
+}
+
+.refreshIcon {
+    position: absolute;
+    left: 10px;
+    top: 10px;
+}
+
+.backContainer {
+    cursor: pointer;
+}
+
+.backHidden {
+    background-color: #c4c4c4;
+    color: #c4c4c4;
+    user-select: none;
+}

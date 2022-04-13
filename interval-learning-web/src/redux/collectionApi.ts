@@ -59,15 +59,15 @@ export const collectionsApi = api.injectEndpoints({
         }),
         getNotFinished: build.query<GetNotFinishedResponse, GetNotFinishedRequest>({
             query: (req) => ({ url: `${baseUrl}/not-finished?page=${req.page}&count=${req.count}`, method: 'GET' }),
-            // async onQueryStarted(arg, { queryFulfilled, dispatch }) {
-            //     try {
-            //         const response = await queryFulfilled;
-            //         const { startedCollections, notStartedCollections } = response.data;
+            async onQueryStarted(arg, { queryFulfilled, dispatch }) {
+                try {
+                    const response = await queryFulfilled;
+                    const { startedCollections, notStartedCollections } = response.data;
 
-            //         dispatch(setCollections(startedCollections));
-            //         dispatch(setCollections(notStartedCollections));
-            //     } catch {}
-            // },
+                    dispatch(setCollections(startedCollections));
+                    dispatch(setCollections(notStartedCollections));
+                } catch {}
+            },
         }),
     }),
 });

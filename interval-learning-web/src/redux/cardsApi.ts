@@ -2,6 +2,7 @@ import { Card } from './../types/Collection';
 import { api } from './apiSlice';
 import { addCard, addManyCards } from './slices/cardsSlice';
 import { cardAddedToCollection } from './slices/collectionsSlice';
+import { setNotStartedCards } from './slices/notStartedCardsSlice';
 
 interface BaseRequestItem<T> {
     userId: string;
@@ -52,7 +53,20 @@ export const cardsApi = api.injectEndpoints({
                 } catch {}
             },
         }),
+        getNotStartedCards: build.query<Card[], BaseRequestItem<undefined>>({
+            query: ({ collectionId, request }) => ({
+                url: `/collections/${collectionId}/cards/not-started`,
+                method: 'GET',
+            }),
+            async onQueryStarted(arg, { queryFulfilled, dispatch }) {
+                try {
+                    const response = await queryFulfilled;
+                    dispatch(setNotStartedCards(response.data));
+                    dispatch(addManyCards(response.data));
+                } catch {}
+            },
+        }),
     }),
 });
 
-export const { useAddCardMutation, useGetCardsQuery } = cardsApi;
+export const { useAddCardMutation, useGetCardsQuery, useGetNotStartedCardsQuery } = cardsApi;
