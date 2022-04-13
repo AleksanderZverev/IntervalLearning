@@ -13,6 +13,7 @@ public interface IParentCardReference : IParentCollectionReference
 [Table("Cards")]
 public class CardEntity : IParentCollectionReference, IParentRepeatsScheduleReference
 {
+    [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
     public short Id { get; set; }
 
     [Required]
