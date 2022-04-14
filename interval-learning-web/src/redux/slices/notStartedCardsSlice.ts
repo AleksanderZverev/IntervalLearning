@@ -1,7 +1,6 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { Card } from '../../types/Collection';
 import { RootState } from '../store';
-import { getCardKey } from './cardsSlice';
 
 interface State {
     notStartedCards: Card[];
@@ -23,6 +22,5 @@ export const notStartedCardsSlice = createSlice({
 });
 
 export const selectNotStartedCardsIds = (state: RootState) => state.notStartedCards.notStartedCards;
-export const isNotStartedCardsIdsAdded = (state: RootState) => selectNotStartedCardsIds(state).length !== 0;
 
 export const { setNotStartedCards } = notStartedCardsSlice.actions;

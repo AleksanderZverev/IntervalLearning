@@ -25,5 +25,28 @@ export class LocalStorageHelper {
         return '/';
     };
 
+    static saveLearningCardsWeights = (
+        collectionsId: string,
+        cardIds: string[],
+        weights: Record<string, number | undefined>
+    ) => {
+        if (LocalStorageHelper.isStorageDefined()) {
+            const key = [collectionsId, ...cardIds].join('-');
+            localStorage.setItem(key, JSON.stringify(weights));
+        }
+    };
+
+    static getLearningCards = (collectionsId: string, cardIds: string[]): Record<string, number | undefined> | null => {
+        if (!LocalStorageHelper.isStorageDefined()) {
+            return null;
+        }
+
+        const key = [collectionsId, ...cardIds].join('-');
+        const item = localStorage.getItem(key);
+        if (!item) return null;
+        const weights: Record<string, number | undefined> = JSON.parse(item);
+        return weights;
+    };
+
     private static isStorageDefined = () => Boolean(typeof window !== 'undefined' && window?.localStorage);
 }

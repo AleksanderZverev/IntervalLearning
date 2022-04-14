@@ -1,9 +1,6 @@
-import { FC, PropsWithChildren, useRef, useState } from 'react';
-import { FormProvider, SubmitHandler, useForm } from 'react-hook-form';
+import { FC, useState } from 'react';
 import useTypedSelector from '../../../hooks/useTypedSelector';
-import { isNotStartedCardsIdsAdded, selectNotStartedCardsIds } from '../../../redux/slices/notStartedCardsSlice';
-import * as yup from 'yup';
-import { yupResolver } from '@hookform/resolvers/yup';
+import { selectNotStartedCardsIds } from '../../../redux/slices/notStartedCardsSlice';
 import { useParams } from 'react-router-dom';
 import { selectCollectionById } from '../../../redux/slices/collectionsSlice';
 import { LearnCard } from './LearnCard/LearnCard';
@@ -15,6 +12,7 @@ import { selectTheme } from '../../../redux/slices/themeSlice';
 import { CenterContainer } from '../../../controls/CenterContainer/CenterContainer';
 import { Slider } from '../../../controls/Slider/Slider';
 import { Button } from '@mui/material';
+import { LocalStorageHelper } from '../../../helpers/localStorageHelper';
 
 interface LearnCollectionPageContentProps {}
 
@@ -38,11 +36,19 @@ export const LearnCollectionPageContent: FC<LearnCollectionPageContentProps> = (
         throw new Error();
     }
 
-    const maxCards = notStartedCards.length;
-    const [rememberWeights, setRememberWeights] = useState<(number | null)[]>(Array(maxCards).fill(null));
-    const [cardIndex, setCardIndex] = useState(0);
+    const [rememberWeights, setRememberWeights] = useState<Record<string, number | undefined>>(
+        () =>
+            LocalStorageHelper.getLearningCards(
+                collection.id,
+                notStartedCards.map((c) => c.id)
+            ) ?? {}
+    );
 
-    let notActiveIndex = rememberWeights.indexOf(null);
+    const [cardIndex, setCardIndex] = useState(0);
+    const card = notStartedCards[cardIndex];
+    const maxCards = notStartedCards.length;
+
+    let notActiveIndex = notStartedCards.map((c) => rememberWeights[c.id]).indexOf(undefined);
     notActiveIndex = notActiveIndex < 0 ? maxCards : notActiveIndex;
 
     const currentCard = notStartedCards[cardIndex];
@@ -51,9 +57,14 @@ export const LearnCollectionPageContent: FC<LearnCollectionPageContentProps> = (
         console.log('ok', rememberWeights);
     };
 
-    const onChange = (weight: number | null) => {
-        rememberWeights[cardIndex] = weight;
-        setRememberWeights([...rememberWeights]);
+    const onChange = (weight: number | undefined) => {
+        rememberWeights[card.id] = weight;
+        setRememberWeights({ ...rememberWeights });
+        LocalStorageHelper.saveLearningCardsWeights(
+            collectionId,
+            notStartedCards.map((c) => c.id),
+            rememberWeights
+        );
     };
 
     const onNext = () => {
@@ -88,7 +99,7 @@ export const LearnCollectionPageContent: FC<LearnCollectionPageContentProps> = (
                 >
                     {currentCard && (
                         <LearnCard
-                            value={rememberWeights[cardIndex]}
+                            value={rememberWeights[card.id] ?? null}
                             card={currentCard}
                             showNext={cardIndex < maxCards - 1}
                             showPrevious={cardIndex !== 0}
