@@ -3,9 +3,9 @@ import useTypedSelector from '../../../hooks/useTypedSelector';
 import { selectNotStartedCardsIds } from '../../../redux/slices/notStartedCardsSlice';
 import { useParams } from 'react-router-dom';
 import { selectCollectionById } from '../../../redux/slices/collectionsSlice';
-import { LearnCard } from './LearnCard/LearnCard';
+import { RepeatCard } from './RepeatCard/RepeatCard';
 import { withQueryResolver } from '../../../hoc/withQueryResolver';
-import { useGetNotStartedCardsQuery } from '../../../redux/cardsApi';
+import { useGetNotStartedCardsQuery, useStartCardsMutation } from '../../../redux/cardsApi';
 import { PageContainer } from '../../../controls/PageContainer/PageContainer';
 import { PageHeader } from '../../../controls/PageHeader/PageHeader';
 import { selectTheme } from '../../../redux/slices/themeSlice';
@@ -16,7 +16,7 @@ import { LocalStorageHelper } from '../../../helpers/localStorageHelper';
 
 interface LearnCollectionPageContentProps {}
 
-export const LearnCollectionPageContent: FC<LearnCollectionPageContentProps> = () => {
+export const RepeatCollectionPageContent: FC<LearnCollectionPageContentProps> = () => {
     const { userId, collectionId } = useParams();
 
     if (!collectionId || !userId) {
@@ -53,8 +53,11 @@ export const LearnCollectionPageContent: FC<LearnCollectionPageContentProps> = (
 
     const currentCard = notStartedCards[cardIndex];
 
-    const onFinish = () => {
+    const onFinish = async () => {
         console.log('ok', rememberWeights);
+        // try {
+        //     await startCards()
+        // }
     };
 
     const onChange = (weight: number | undefined) => {
@@ -98,7 +101,7 @@ export const LearnCollectionPageContent: FC<LearnCollectionPageContentProps> = (
                     }}
                 >
                     {currentCard && (
-                        <LearnCard
+                        <RepeatCard
                             value={rememberWeights[card.id] ?? null}
                             card={currentCard}
                             showNext={cardIndex < maxCards - 1}
@@ -128,14 +131,14 @@ export const LearnCollectionPageContent: FC<LearnCollectionPageContentProps> = (
     );
 };
 
-const ConnectedLearnCollectionPage = withQueryResolver(useGetNotStartedCardsQuery)(LearnCollectionPageContent);
+const ConnectedRepeatCollectionPage = withQueryResolver(useGetNotStartedCardsQuery)(RepeatCollectionPageContent);
 
-export const LearnCollection: FC = () => {
+export const RepeatCollection: FC = () => {
     const { userId, collectionId } = useParams();
 
     if (!collectionId || !userId) {
         throw new Error();
     }
 
-    return <ConnectedLearnCollectionPage queryArg={{ userId, collectionId, request: undefined }} />;
+    return <ConnectedRepeatCollectionPage queryArg={{ userId, collectionId, request: undefined }} />;
 };

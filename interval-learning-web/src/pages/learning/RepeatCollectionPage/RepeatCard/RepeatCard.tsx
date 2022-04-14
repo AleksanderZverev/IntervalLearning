@@ -6,7 +6,7 @@ import { useEventListener } from '../../../../hooks/useEventListener';
 import { Card } from '../../../../types/Collection';
 import styles from './styles.module.css';
 
-interface LearnCardProps {
+interface RepeatCardProps {
     card: Card;
     showNext: boolean;
     showPrevious: boolean;
@@ -14,12 +14,12 @@ interface LearnCardProps {
     value: number | null;
     onNext: () => void;
     onPrevious: () => void;
-    onChange: (weight: number | null) => void;
+    onChange: (weight: number | undefined) => void;
     onFinish: () => void;
     isActive: boolean;
 }
 
-export const LearnCard: FC<LearnCardProps> = ({
+export const RepeatCard: FC<RepeatCardProps> = ({
     card,
     showNext,
     showPrevious,
@@ -48,7 +48,7 @@ export const LearnCard: FC<LearnCardProps> = ({
                     className={styles.refreshIcon}
                     onClick={() => {
                         setIsError(false);
-                        onChange(null);
+                        onChange(undefined);
                     }}
                 >
                     <RefreshOutlined />
@@ -66,6 +66,7 @@ export const LearnCard: FC<LearnCardProps> = ({
             <div>
                 <RadioGroup
                     onKeyDownCapture={(e) => e.preventDefault()}
+                    tabIndex={0}
                     row
                     onChange={(e, v) => {
                         if (isError) {
@@ -74,9 +75,21 @@ export const LearnCard: FC<LearnCardProps> = ({
                         onChange(parseFloat(v));
                     }}
                 >
-                    <FormControlLabel checked={value === 0} value={0} control={<Radio />} label="Не помню" />
-                    <FormControlLabel checked={value === 0.5} value={0.5} control={<Radio />} label="Помню частично" />
-                    <FormControlLabel checked={value === 1} value={1} control={<Radio />} label="Помню" />
+                    <FormControlLabel
+                        tabIndex={0}
+                        checked={value === 0}
+                        value={0}
+                        control={<Radio />}
+                        label="Не помню"
+                    />
+                    <FormControlLabel
+                        tabIndex={0}
+                        checked={value === 0.5}
+                        value={0.5}
+                        control={<Radio />}
+                        label="Помню частично"
+                    />
+                    <FormControlLabel tabIndex={0} checked={value === 1} value={1} control={<Radio />} label="Помню" />
                 </RadioGroup>
 
                 <div
@@ -89,6 +102,7 @@ export const LearnCard: FC<LearnCardProps> = ({
             <div className={styles.buttonsContainer}>
                 {showPrevious ? (
                     <Button
+                        tabIndex={1}
                         variant="outlined"
                         onClick={() => {
                             onPrevious();
@@ -102,6 +116,7 @@ export const LearnCard: FC<LearnCardProps> = ({
                 )}
                 {showNext ? (
                     <Button
+                        tabIndex={2}
                         variant="outlined"
                         onClick={() => {
                             if (value === null) {
@@ -115,6 +130,7 @@ export const LearnCard: FC<LearnCardProps> = ({
                     </Button>
                 ) : (
                     <Button
+                        tabIndex={2}
                         variant="contained"
                         onClick={() => {
                             if (value === null) {
