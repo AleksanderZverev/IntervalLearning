@@ -1,4 +1,5 @@
 import { styled, Tooltip, tooltipClasses, TooltipProps } from '@mui/material';
+import { padding } from '@mui/system';
 import { FC, useMemo } from 'react';
 import { useEventListener } from '../../hooks/useEventListener';
 import styles from './styles.module.css';
@@ -10,6 +11,7 @@ interface SliderProps {
     activeValue: number;
 
     onValueChange: (newValue: number) => void;
+    vertical?: boolean;
 }
 
 const LightTooltip = styled(({ className, ...props }: TooltipProps) => (
@@ -23,7 +25,12 @@ const LightTooltip = styled(({ className, ...props }: TooltipProps) => (
     },
 }));
 
-export const Slider: FC<SliderProps> = ({ min, max, value, activeValue, onValueChange }) => {
+export const Slider: FC<SliderProps> = ({ min, max, value, activeValue, onValueChange, vertical }) => {
+    const widthProperty = vertical ? 'height' : 'width';
+    const heightProperty = vertical ? 'width' : 'height';
+    const topProperty = vertical ? 'left' : 'top';
+    const leftProperty = vertical ? 'top' : 'left';
+
     const total = max - min;
     const sliderWidth = ((activeValue + 1 - min) / (total + 2)) * 100;
     const values = useMemo(() => {
@@ -47,9 +54,27 @@ export const Slider: FC<SliderProps> = ({ min, max, value, activeValue, onValueC
     });
 
     return (
-        <span className={styles.container}>
-            <span className={styles.backLine} />
-            <span className={styles.progressLine} style={{ width: `${sliderWidth}%` }} />
+        <span
+            className={styles.container}
+            style={{
+                [heightProperty]: 4,
+                padding: vertical ? '0 14px' : '14px 0',
+                [widthProperty]: '100%',
+                [heightProperty]: '4px',
+            }}
+        >
+            <span
+                className={styles.backLine}
+                style={{ [widthProperty]: '100%', [topProperty]: '50%', [heightProperty]: '4px' }}
+            />
+            <span
+                className={styles.progressLine}
+                style={{
+                    [widthProperty]: `${sliderWidth}%`,
+                    [topProperty]: '50%',
+                    transition: `${widthProperty} 1s ease;`,
+                }}
+            />
             {values.map((v, index) => {
                 const left = ((index + 1) / (total + 2)) * 100;
                 const activeClass = v < activeValue ? styles.markActive : '';
@@ -60,7 +85,7 @@ export const Slider: FC<SliderProps> = ({ min, max, value, activeValue, onValueC
                         key={v}
                         onClick={() => onValueChange(v)}
                         className={styles.mark + ' ' + activeClass + ' ' + currentElement}
-                        style={{ left: `${left}%` }}
+                        style={{ [leftProperty]: `${left}%`, [topProperty]: currentElement ? 8 : 11 }}
                     />
                 );
                 return currentElement ? (
