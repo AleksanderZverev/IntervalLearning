@@ -57,8 +57,7 @@ export const LearnCollectionPageContent: FC<LearnCollectionPageContentProps> = (
     };
 
     const onNext = () => {
-        const nextIndex = cardIndex + 1;
-        setCardIndex(nextIndex);
+        setCardIndex(cardIndex + 1);
     };
 
     const onPrevious = () => {
@@ -118,10 +117,7 @@ export const LearnCollectionPageContent: FC<LearnCollectionPageContentProps> = (
     );
 };
 
-const ConnectedLearnCollectionPage = withQueryResolver(
-    useGetNotStartedCardsQuery,
-    (state) => !isNotStartedCardsIdsAdded(state)
-)(LearnCollectionPageContent);
+const ConnectedLearnCollectionPage = withQueryResolver(useGetNotStartedCardsQuery)(LearnCollectionPageContent);
 
 export const LearnCollection: FC = () => {
     const { userId, collectionId } = useParams();

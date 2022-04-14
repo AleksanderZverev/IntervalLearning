@@ -57,14 +57,11 @@ export const cardsApi = api.injectEndpoints({
             query: ({ collectionId, request }) => ({
                 url: `/collections/${collectionId}/cards/not-started`,
                 method: 'GET',
+                onSuccess: async (dispatch, data) => {
+                    dispatch(setNotStartedCards(data as Card[]));
+                    dispatch(addManyCards(data as Card[]));
+                },
             }),
-            async onQueryStarted(arg, { queryFulfilled, dispatch }) {
-                try {
-                    const response = await queryFulfilled;
-                    dispatch(setNotStartedCards(response.data));
-                    dispatch(addManyCards(response.data));
-                } catch {}
-            },
         }),
     }),
 });

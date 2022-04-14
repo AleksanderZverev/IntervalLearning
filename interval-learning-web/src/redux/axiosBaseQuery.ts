@@ -3,11 +3,13 @@ import { AxiosError, AxiosRequestConfig } from 'axios';
 import axiosInstance from '../api/axiosInstance';
 import { accountSlice } from './accountSlice';
 import { setError } from './errorSlice';
+import { AppDispatch } from './store';
 
 interface CustomQueryArgs {
     url: string;
     method: AxiosRequestConfig['method'];
     data?: AxiosRequestConfig['data'];
+    onSuccess?: (dispatch: AppDispatch, data: unknown) => Promise<void>;
 }
 
 export type CustomBaseQueryType = BaseQueryFn<CustomQueryArgs, AxiosError, unknown>;
@@ -15,6 +17,9 @@ export type CustomBaseQueryType = BaseQueryFn<CustomQueryArgs, AxiosError, unkno
 export const axiosBaseQuery: CustomBaseQueryType = async (args, { signal, dispatch, getState }, extraOptions) => {
     try {
         const result = await axiosInstance.request(args);
+        if (args.onSuccess) {
+            await args.onSuccess(dispatch, result.data);
+        }
         return { data: result.data };
     } catch (error: unknown) {
         const err = error as AxiosError;
@@ -32,6 +37,9 @@ export const axiosBaseQuery: CustomBaseQueryType = async (args, { signal, dispat
 
                 if (refreshTokenResponse.isSuccess) {
                     const result = await axiosInstance.request(args);
+                    if (args.onSuccess) {
+                        await args.onSuccess(dispatch, result.data);
+                    }
                     return { data: result.data };
                 }
             } catch {}
