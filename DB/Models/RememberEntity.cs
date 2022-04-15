@@ -8,7 +8,7 @@ namespace DB.Models;
 public class RememberEntity : IParentCardReference
 {
     [Key]
-    public byte Id { get; set; }
+    public short Id { get; set; }
 
     /// <summary>
     /// from 0.00 to 1.00
@@ -21,7 +21,7 @@ public class RememberEntity : IParentCardReference
     public float Weight { get; set; }
 
     [Required]
-    public byte PhaseStep { get; set; }
+    public short PhaseStep { get; set; }
 
     /// <summary>
     /// Remembered or repeated date
@@ -33,8 +33,8 @@ public class RememberEntity : IParentCardReference
         long parentUserId,
         short parentCollectionId,
         short parentCardId,
-        float weight, 
-        byte phaseStep,
+        float weight,
+        short phaseStep,
         Instant repeatedDate)
     {
         ParentUserId = parentUserId;

@@ -11,13 +11,13 @@ public class Remember
     public short ParentCollectionId { get; }
     [JsonProperty("cardId")]
     public short ParentCardId { get; }
-    public byte Id { get; }
+    public short Id { get; }
     public float Weight { get; }
-    public byte PhaseStep { get; }
+    public short PhaseStep { get; }
     public Instant RepeatedDate { get; }
 
-    public Remember(long parentUserId, short parentCollectionId, short parentCardId, byte id, float weight,
-        byte phaseStep, Instant repeatedDate)
+    public Remember(long parentUserId, short parentCollectionId, short parentCardId, short id, float weight,
+        short phaseStep, Instant repeatedDate)
     {
         ParentUserId = parentUserId;
         ParentCollectionId = parentCollectionId;

@@ -75,15 +75,36 @@ public class CardEntity : IParentCollectionReference, IParentRepeatsScheduleRefe
 [Table("Queue")]
 public class CardRepeatQueueEntity : IParentCardReference
 {
-    public byte Id { get; set; }
+    [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+    public short Id { get; set; }
 
-    public byte PhaseStep { get; set; }
+    public short PhaseStep { get; set; }
+
     public Instant Date { get; set; }
 
+    public CardRepeatQueueEntity(
+        long parentUserId, 
+        short parentCollectionId, 
+        short parentCardId,
+        short phaseStep, 
+        Instant date)
+    {
+        ParentUserId = parentUserId;
+        ParentCollectionId = parentCollectionId;
+        ParentCardId = parentCardId;
+        PhaseStep = phaseStep;
+        Date = date;
+    }
+
     public long ParentUserId { get; set; }
+
     public UserEntity? ParentUser { get; set; }
+
     public short ParentCollectionId { get; set; }
+
     public CollectionEntity? ParentCollection { get; set; }
+
     public short ParentCardId { get; set; }
+
     public CardEntity? ParentCard { get; set; }
 }
