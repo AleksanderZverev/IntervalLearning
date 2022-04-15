@@ -1,4 +1,5 @@
-﻿using DB;
+﻿using System.Diagnostics;
+using DB;
 using DB.Models;
 using Microsoft.EntityFrameworkCore;
 using NodaTime;
@@ -176,6 +177,9 @@ public class CardsService
             .Where(c => c.ParentUserId == userId
                         && c.ParentCollectionId == collectionId
                         && cardIds.Contains(c.Id))
+            .Include(c => c.Remembers)
+            .Include(c => c.ParentRepeatsSchedule).ThenInclude(c => c.Phases)
+            .AsSplitQuery()
             .ToList();
 
         if (cards.Count == 0)
@@ -185,6 +189,8 @@ public class CardsService
         {
             logger.LogWarning("ChangeState: не все карты были найдены");
         }
+
+        db.Database.BeginTransaction();
 
         var metadata = metadataService.GetMetadata(userId);
 
@@ -202,6 +208,47 @@ public class CardsService
         }
 
         db.Entry(metadata).State = EntityState.Modified;
+        db.SaveChanges();
+
+        var (ok, error) = AddToQueue(userId, collectionId, cards);
+
+        if (!ok)
+        {
+            db.Database.RollbackTransaction();
+            return (false, error);
+        }
+
+        db.Database.CommitTransaction();
+
+        return (true, null);
+    }
+
+    private (bool ok, string? reason) AddToQueue(long userId, short collectionId, List<CardEntity> cards)
+    {
+        var queueItems = cards.Select(card =>
+        {
+            var lastRemember = card.Remembers.MaxBy(c => c.Id);
+            var nextPhaseIndex = lastRemember?.PhaseStep ?? 0;
+            var schedule = card.ParentRepeatsSchedule;
+
+            if (schedule.Phases.Count == 0 || nextPhaseIndex >= schedule.Phases.Count)
+                throw new InvalidOperationException(
+                    "schedule.Phases.Count == 0 ||  schedule.Phases.Count >= nextPhaseIndex");
+
+            var nextPhase = schedule.Phases[nextPhaseIndex];
+            var nextRepeatDate = SystemClock.Instance.GetCurrentInstant() +
+                                 Duration.FromSeconds(nextPhase.SecondsFromLastPhase);
+
+            return new CardRepeatQueueEntity(
+                userId,
+                collectionId,
+                card.Id,
+                (short) (lastRemember == null ? 1 : lastRemember.PhaseStep + 1),
+                nextRepeatDate
+            );
+        }).ToList();
+
+        queueItems.ForEach(q => db.Entry(q).State = EntityState.Added);
         db.SaveChanges();
 
         return (true, null);
