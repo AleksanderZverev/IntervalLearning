@@ -1,10 +1,10 @@
 import { FC, useState } from 'react';
 import useTypedSelector from '../../../hooks/useTypedSelector';
 import { selectNotStartedCardsIds } from '../../../redux/slices/notStartedCardsSlice';
-import { useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { selectCollectionById } from '../../../redux/slices/collectionsSlice';
 import { withQueryResolver } from '../../../hoc/withQueryResolver';
-import { useGetNotStartedCardsQuery, useStartCardsMutation } from '../../../redux/cardsApi';
+import { CardsItem, useGetNotStartedCardsQuery, useStartCardsMutation } from '../../../redux/cardsApi';
 import { PageContainer } from '../../../controls/PageContainer/PageContainer';
 import { PageHeader } from '../../../controls/PageHeader/PageHeader';
 import { selectTheme } from '../../../redux/slices/themeSlice';
@@ -12,6 +12,7 @@ import { CenterContainer } from '../../../controls/CenterContainer/CenterContain
 import { Slider } from '../../../controls/Slider/Slider';
 import { Button } from '@mui/material';
 import { LearnCard } from './LearnCard/LearnCard';
+import { ErrorModal } from '../../../controls/Modals/ErrorModal';
 
 interface LearnCollectionPageContentProps {}
 
@@ -35,19 +36,30 @@ export const LearnCollectionPageContent: FC<LearnCollectionPageContentProps> = (
         throw new Error();
     }
 
+    const navigate = useNavigate();
+    const [startCards, { isLoading, isSuccess }] = useStartCardsMutation();
+    const [showErrorModal, setShowErrorModal] = useState(false);
     const [cardIndex, setCardIndex] = useState(0);
-    const card = notStartedCards[cardIndex];
     const maxCards = notStartedCards.length;
 
     const currentCard = notStartedCards[cardIndex];
 
     const onFinish = async () => {
-        // try {
-        //     await startCards()
-        // }
-    };
+        if (isLoading || isSuccess) {
+            return;
+        }
 
-    const onChange = (weight: number | undefined) => {};
+        const item: CardsItem = {
+            cardIds: notStartedCards.map((i) => i.id),
+        };
+
+        try {
+            await startCards({ userId, collectionId, request: item }).unwrap();
+            navigate('/learning');
+        } catch {
+            setShowErrorModal(true);
+        }
+    };
 
     const onNext = () => {
         setCardIndex(cardIndex + 1);
@@ -68,6 +80,14 @@ export const LearnCollectionPageContent: FC<LearnCollectionPageContentProps> = (
                     </Button>
                 }
             />
+            {showErrorModal && (
+                <ErrorModal
+                    errorMessage="Не удалось завершить изучение коллекции"
+                    open
+                    onClose={() => setShowErrorModal(false)}
+                    onRetry={onFinish}
+                />
+            )}
             <CenterContainer>
                 <div
                     style={{

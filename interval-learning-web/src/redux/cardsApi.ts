@@ -24,6 +24,10 @@ export interface GetCardItem {
     count: number;
 }
 
+export interface CardsItem {
+    cardIds: string[];
+}
+
 export const cardsApi = api.injectEndpoints({
     endpoints: (build) => ({
         getCards: build.query<Card[], BaseRequestItem<GetCardItem>>({
@@ -63,7 +67,14 @@ export const cardsApi = api.injectEndpoints({
                 },
             }),
         }),
+        startCards: build.mutation<void, BaseRequestItem<CardsItem>>({
+            query: ({ collectionId, request }) => ({
+                url: `/collections/${collectionId}/cards/start`,
+                method: 'POST',
+                data: request,
+            }),
+        }),
     }),
 });
 
-export const { useAddCardMutation, useGetCardsQuery, useGetNotStartedCardsQuery } = cardsApi;
+export const { useAddCardMutation, useGetCardsQuery, useGetNotStartedCardsQuery, useStartCardsMutation } = cardsApi;
