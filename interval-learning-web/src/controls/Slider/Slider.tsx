@@ -25,11 +25,22 @@ const LightTooltip = styled(({ className, ...props }: TooltipProps) => (
     },
 }));
 
+const horizontalKeys: Record<string, number> = {
+    ArrowRight: 1,
+    ArrowLeft: -1,
+};
+
+const verticalKeys: Record<string, number> = {
+    ArrowUp: -1,
+    ArrowDown: 1,
+};
+
 export const Slider: FC<SliderProps> = ({ min, max, value, activeValue, onValueChange, vertical }) => {
     const widthProperty = vertical ? 'height' : 'width';
     const heightProperty = vertical ? 'width' : 'height';
     const topProperty = vertical ? 'left' : 'top';
     const leftProperty = vertical ? 'top' : 'left';
+    const maxWidthProperty = vertical ? 'maxHeight' : 'maxWidth';
 
     const total = max - min;
     const sliderWidth = ((activeValue + 1 - min) / (total + 2)) * 100;
@@ -44,12 +55,14 @@ export const Slider: FC<SliderProps> = ({ min, max, value, activeValue, onValueC
     }, [min, max]);
 
     useEventListener('keydown', (e) => {
-        if (e.key === 'ArrowRight') {
-            const nextValue = value + 1;
-            if (nextValue <= max) onValueChange(nextValue);
-        } else if (e.key === 'ArrowLeft') {
-            const nextValue = value - 1;
-            if (nextValue >= min) onValueChange(nextValue);
+        const keys = vertical ? verticalKeys : horizontalKeys;
+
+        if (e.key in keys) {
+            const offset = keys[e.key];
+            const nextValue = value + offset;
+            if ((offset > 0 && nextValue <= max) || (offset < 0 && nextValue >= min)) {
+                onValueChange(nextValue);
+            }
         }
     });
 
@@ -61,6 +74,7 @@ export const Slider: FC<SliderProps> = ({ min, max, value, activeValue, onValueC
                 padding: vertical ? '0 14px' : '14px 0',
                 [widthProperty]: '100%',
                 [heightProperty]: '4px',
+                [widthProperty]: 650,
             }}
         >
             <span
