@@ -7,11 +7,13 @@ namespace IntervalLearningApi.Services;
 
 public class CardsService
 {
+    private readonly ILogger<CardsService> logger;
     private readonly ApplicationContext db;
     private readonly UserMetadataService metadataService;
 
-    public CardsService(ApplicationContext db, UserMetadataService metadataService)
+    public CardsService(ILogger<CardsService> logger, ApplicationContext db, UserMetadataService metadataService)
     {
+        this.logger = logger;
         this.db = db;
         this.metadataService = metadataService;
     }
@@ -137,6 +139,9 @@ public class CardsService
         }
     }
 
+    public (bool ok, string? reason) Start(long userId, short collectionId, List<short> cardIds)
+        => ChangeStates(userId, collectionId, cardIds, false);
+
     public (bool ok, string? reason) Start(long userId, short collectionId, short cardId) =>
         ChangeState(userId, collectionId, cardId, false);
 
@@ -160,6 +165,43 @@ public class CardsService
         metadataService.CardStateChanged(metadata, cardEntity.IsFinished, isFinished);
 
         cardEntity.IsFinished = isFinished;
+        db.SaveChanges();
+
+        return (true, null);
+    }
+
+    private (bool ok, string? reason) ChangeStates(long userId, short collectionId, List<short> cardIds, bool? isFinished)
+    {
+        var cards = db.Cards
+            .Where(c => c.ParentUserId == userId
+                        && c.ParentCollectionId == collectionId
+                        && cardIds.Contains(c.Id))
+            .ToList();
+
+        if (cards.Count == 0)
+            return (false, "Not found");
+
+        if (cards.Count != cardIds.Count)
+        {
+            logger.LogWarning("ChangeState: не все карты были найдены");
+        }
+
+        var metadata = metadataService.GetMetadata(userId);
+
+        foreach (var cardEntity in cards)
+        {
+            if (cardEntity.IsFinished == isFinished)
+            {
+                logger.LogWarning("ChangeState: карта уже имеет такое состояние");
+                continue;
+            }
+
+            metadataService.CardStateChanged(metadata, cardEntity.IsFinished, isFinished);
+            cardEntity.IsFinished = isFinished;
+            db.Attach(cardEntity).Property(c => c.IsFinished).IsModified = true;
+        }
+
+        db.Entry(metadata).State = EntityState.Modified;
         db.SaveChanges();
 
         return (true, null);

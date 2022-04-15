@@ -62,6 +62,15 @@ namespace IntervalLearningApi.Controllers
                 : BadRequest(error);
         }
 
+        [HttpPost("start")]
+        public IActionResult StartCards(short collectionId, [FromBody]CardsItem item)
+        {
+            var userId = HttpContext.GetUserId();
+
+            var (ok, error) = cardsService.Start(userId, collectionId, item.CardIds);
+            return ok ? Ok() : BadRequest(error);
+        }
+
         [HttpGet("{cardId}/start")]
         public IActionResult StartCard(short collectionId, short cardId)
         {
@@ -102,6 +111,11 @@ namespace IntervalLearningApi.Controllers
 
             return ok ? Ok() : BadRequest(error);
         }
+    }
+
+    public class CardsItem
+    {
+        public List<short> CardIds { get; set; }
     }
 
     public class RememberItem
