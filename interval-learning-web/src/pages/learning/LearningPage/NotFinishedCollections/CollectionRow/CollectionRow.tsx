@@ -19,7 +19,7 @@ export const CollectionRow: FC<CollectionRowProps> = ({ collection }) => {
     );
 
     const onClick = () => {
-        navigate(`/learning/repeat/${collection.userId}-${collection.id}`);
+        navigate(`/learning/learn/${collection.userId}-${collection.id}`);
     };
 
     const learnedCards = collection.startedCards + collection.finishedCards;
