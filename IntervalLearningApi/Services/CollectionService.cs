@@ -2,6 +2,7 @@
 using DB;
 using DB.Models;
 using Microsoft.EntityFrameworkCore;
+using NodaTime;
 
 namespace IntervalLearningApi.Services;
 
@@ -30,6 +31,47 @@ public class CollectionService
             .ToListAsync();
 
         return collections;
+    }
+
+    public async Task<Dictionary<DateTime, List<QueueCollection>>> GetQueueCollections(long userId)
+    {
+        var queueItems = await db.Queue
+            .Where(q => q.ParentUserId == userId)
+            .ToListAsync();
+
+        var collectionIds = queueItems
+            .Select(q => q.ParentCollectionId)
+            .Distinct()
+            .ToList();
+
+        var collectionIdToCollection = await db.Collections
+            .Where(c => c.ParentUserId == userId && collectionIds.Contains(c.Id))
+            .ToDictionaryAsync(c => c.Id);
+
+        var result = new Dictionary<DateTime, List<QueueCollection>>();
+
+        foreach (var queueItem in queueItems)
+        {
+            var date = queueItem.Date.ToDateTimeUtc().Date;
+
+            if (!result.ContainsKey(date))
+                result.Add(date, new List<QueueCollection>());
+
+            var collection = collectionIdToCollection[queueItem.ParentCollectionId];
+
+            var collectionsList = result[date];
+            var queueCollection = collectionsList.SingleOrDefault(q => q.Collection.Id == queueItem.ParentCollectionId);
+
+            if (queueCollection == null)
+            {
+                queueCollection = new QueueCollection(collection);
+                collectionsList.Add(queueCollection);
+            }
+
+            queueCollection.CardsToRepeatCount++;
+        }
+
+        return result;
     }
 
     public async Task<(List<CollectionEntity> started, List<CollectionEntity> notStarted)> GetNotFinished(long userId, int page = 1, int count = 30)
@@ -144,5 +186,17 @@ public class CollectionService
         db.Database.CommitTransaction();
 
         return (card, null);
+    }
+
+    public class QueueCollection
+    {
+        public CollectionEntity Collection { get; }
+
+        public int CardsToRepeatCount { get; set; }
+
+        public QueueCollection(CollectionEntity collection)
+        {
+            Collection = collection;
+        }
     }
 }

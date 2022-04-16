@@ -45,6 +45,23 @@ namespace IntervalLearningApi.Controllers
             return Ok(collections.Select(ToCollection).ToList());
         }
 
+        [HttpGet("queue")]
+        public async Task<ActionResult<QueueCollectionResponse>> GetQueueCollections()
+        {
+            var userId = HttpContext.GetUserId();
+            var dateToCollections = await collectionService.GetQueueCollections(userId);
+
+            return new QueueCollectionResponse(
+                dateToCollections
+                    .ToDictionary(
+                        p => p.Key,
+                        p => p.Value
+                            .Select(c => new QueueCollectionDto(
+                                ToCollection(c.Collection),
+                                c.CardsToRepeatCount))
+                            .ToList()));
+        }
+
         [HttpGet("not-finished")]
         public async Task<ActionResult<GetNotFinishedResponse>> GetNotFinished(int page = 1, int count = 30)
         {
