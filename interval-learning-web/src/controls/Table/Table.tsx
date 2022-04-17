@@ -5,7 +5,7 @@ import {
     TableCell as MuiTableCell,
     TableRow as MuiTableRow,
     TableHead as MuiTableHead,
-    TableCellProps,
+    TableCellProps as MuiTableCellProps,
 } from '@mui/material';
 import styles from './styles.module.css';
 import { Link } from 'react-router-dom';
@@ -14,10 +14,22 @@ export const Table: FC<PropsWithChildren<unknown>> = ({ children }) => {
     return <MuiTable>{children}</MuiTable>;
 };
 
-export const TableHead: FC<PropsWithChildren<unknown>> = ({ children }) => {
+interface TableHeadProps {
+    borderless?: boolean;
+}
+
+export const TableHead: FC<PropsWithChildren<TableHeadProps>> = ({ children, borderless }) => {
     return (
         <MuiTableHead>
-            <MuiTableRow>{children}</MuiTableRow>
+            <MuiTableRow
+                sx={{
+                    '& .MuiTableCell-head': {
+                        border: borderless ? 'none' : undefined,
+                    },
+                }}
+            >
+                {children}
+            </MuiTableRow>
         </MuiTableHead>
     );
 };
@@ -38,25 +50,47 @@ export const LinkTableRow: FC<PropsWithChildren<LinkTableRowProps>> = ({ childre
     );
 };
 
-interface TableRowProps extends HTMLAttributes<HTMLTableRowElement> {}
+interface TableRowProps extends HTMLAttributes<HTMLTableRowElement> {
+    borderless?: boolean;
+    hover?: boolean;
+}
 
-export const TableRow: FC<PropsWithChildren<TableRowProps>> = ({ children, ...props }) => {
-    return <tr {...props}>{children}</tr>;
+export const TableRow: FC<PropsWithChildren<TableRowProps>> = ({ children, borderless, hover, ...props }) => {
+    return (
+        <MuiTableRow
+            hover={hover}
+            sx={{
+                '&.MuiTableRow-hover': {
+                    cursor: 'pointer',
+                },
+                '& .MuiTableCell-body': {
+                    border: borderless ? 'none' : undefined,
+                },
+            }}
+            {...props}
+        >
+            {children}
+        </MuiTableRow>
+    );
 };
 
-interface TableHeaderCell extends TableCellProps {}
+interface TableHeaderCellProps extends MuiTableCellProps {}
 
-export const TableHeaderCell: FC<PropsWithChildren<TableHeaderCell>> = ({ children, ...props }) => {
+export const TableHeaderCell: FC<PropsWithChildren<TableHeaderCellProps>> = ({ children, ...props }) => {
     return (
-        <MuiTableCell {...props} style={{ color: '#ADADAD', fontSize: 16 }}>
+        <MuiTableCell {...props} style={{ color: '#ADADAD', fontSize: 14 }}>
             {children}
         </MuiTableCell>
     );
 };
 
-export const TableCell: FC<PropsWithChildren<TableCellProps>> = ({ children, ...props }) => {
+interface TableCellProps extends MuiTableCellProps {
+    fontSize?: number;
+}
+
+export const TableCell: FC<PropsWithChildren<TableCellProps>> = ({ children, fontSize, ...props }) => {
     return (
-        <MuiTableCell {...props} style={{ fontSize: 20 }}>
+        <MuiTableCell {...props} style={{ fontSize: fontSize ?? 20 }}>
             {children}
         </MuiTableCell>
     );
