@@ -20,6 +20,19 @@ export interface GetNotFinishedRequest {
     count: number;
 }
 
+export interface QueueCollectionResponse {
+    dateToCollectionsQueue: Record<string, QueueCollection[]>;
+}
+
+export interface QueueCollection {
+    collection: Collection;
+    cardsToRepeatCount: number;
+}
+
+export interface GetCollectionQuery {
+    collectionId: string;
+}
+
 const baseUrl = '/collections';
 
 export const collectionsApi = api.injectEndpoints({
@@ -35,18 +48,15 @@ export const collectionsApi = api.injectEndpoints({
                 } catch {}
             },
         }),
-        getCollection: build.query<Collection, string>({
-            query: (collectionId) => ({
+        getCollection: build.query<Collection, GetCollectionQuery>({
+            query: ({ collectionId }) => ({
                 url: `${baseUrl}/${collectionId}`,
                 method: 'GET',
+                onSuccess: async (dispatch, result) => {
+                    dispatch(setOneCollection(result as Collection));
+                },
             }),
             providesTags: (result, error, arg) => (result ? [{ type: tagTypes.collection, id: result.id }] : []),
-            async onQueryStarted(arg, { queryFulfilled, dispatch }) {
-                try {
-                    const result = await queryFulfilled;
-                    dispatch(setOneCollection(result.data));
-                } catch {}
-            },
         }),
         createCollection: build.mutation<Collection, CreateCollectionItem>({
             query: (item) => ({ method: 'POST', url: baseUrl, data: item }),
@@ -56,6 +66,15 @@ export const collectionsApi = api.injectEndpoints({
                     dispatch(setOneCollection(collection.data));
                 } catch {}
             },
+        }),
+        getQueueCollections: build.query<QueueCollectionResponse, void>({
+            query: () => ({
+                url: `${baseUrl}/queue`,
+                method: 'GET',
+                onSuccess: async (dispatch, data) => {
+                    const response = data as QueueCollectionResponse;
+                },
+            }),
         }),
         getNotFinished: build.query<GetNotFinishedResponse, GetNotFinishedRequest>({
             query: (req) => ({ url: `${baseUrl}/not-finished?page=${req.page}&count=${req.count}`, method: 'GET' }),
@@ -72,5 +91,10 @@ export const collectionsApi = api.injectEndpoints({
     }),
 });
 
-export const { useGetCollectionsQuery, useCreateCollectionMutation, useGetCollectionQuery, useGetNotFinishedQuery } =
-    collectionsApi;
+export const {
+    useGetCollectionsQuery,
+    useCreateCollectionMutation,
+    useGetCollectionQuery,
+    useGetNotFinishedQuery,
+    useGetQueueCollectionsQuery,
+} = collectionsApi;

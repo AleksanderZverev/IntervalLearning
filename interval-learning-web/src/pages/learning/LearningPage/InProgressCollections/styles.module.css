@@ -1,0 +1,22 @@
+.table {
+    display: grid;
+    grid-template-columns: 1fr 150px 150px 100px;
+
+    border: 1px solid red;
+}
+
+.tableHeaderCell {
+    font-size: 16;
+    color: #b7b7b7;
+}
+
+.warn {
+    color: #dc5d5d;
+}
+
+.subLabel {
+    margin-top: 10px;
+    grid-column: span 4;
+    font-size: 16;
+    color: #b7b7b7;
+}

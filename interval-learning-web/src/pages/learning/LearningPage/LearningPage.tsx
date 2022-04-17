@@ -24,7 +24,7 @@ export const LearningPage: FC = () => {
                     </ToggleButtonGroup>
                 }
             />
-            {isInProcess ? <InProgressCollections queryArg={undefined} /> : <NotFinishedCollections />}
+            {isInProcess ? <InProgressCollections /> : <NotFinishedCollections />}
         </PageContainer>
     );
 };

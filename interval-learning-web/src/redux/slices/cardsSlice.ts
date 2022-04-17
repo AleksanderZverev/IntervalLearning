@@ -25,6 +25,9 @@ export const cardsSlice = createSlice({
         },
         addManyCards: (state, action: PayloadAction<Card[]>) => {
             const cards = action.payload;
+            if (!cards || cards.length === 0) {
+                return;
+            }
             const collectionId = cards[0].collectionId;
             const userId = cards[0].userId;
             const key = getCardKey(userId, collectionId);

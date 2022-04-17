@@ -21,6 +21,15 @@ import { schedulesApi } from '../src/redux/schedulesSlice';
 import { BrowserRouter } from 'react-router-dom';
 import { StaticRouter } from 'react-router-dom/server';
 import App from 'next/app';
+import dayjs from 'dayjs';
+import duration from 'dayjs/plugin/duration';
+import relativeTime from 'dayjs/plugin/relativeTime';
+import 'dayjs/locale/ru';
+
+dayjs.extend(duration);
+dayjs.extend(relativeTime);
+
+dayjs.locale('ru');
 
 const clientSideEmotionCache = createEmotionCache();
 

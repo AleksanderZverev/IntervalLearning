@@ -34,7 +34,7 @@ namespace IntervalLearningApi.Controllers
             var userId = HttpContext.GetUserId();
             var (cards, error) = await cardsService.GetNotStartedCards(userId, collectionId);
 
-            return cards == null ? BadRequest(error) : cards.Select(CollectionsController.ToCard).ToList();
+            return cards == null ? BadRequest(error) : Ok(cards.Select(CollectionsController.ToCard).ToList());
         }
 
         [HttpPost]
