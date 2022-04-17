@@ -18,8 +18,14 @@ export const axiosBaseQuery: CustomBaseQueryType = async (args, { signal, dispat
     try {
         const result = await axiosInstance.request(args);
         if (args.onSuccess) {
-            await args.onSuccess(dispatch, result.data);
+            try {
+                await args.onSuccess(dispatch, result.data);
+            } catch (e) {
+                console.error('Error in onSuccess method', e);
+                throw e;
+            }
         }
+
         return { data: result.data };
     } catch (error: unknown) {
         const err = error as AxiosError;
