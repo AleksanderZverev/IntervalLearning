@@ -1,18 +1,19 @@
 import { FC, useState } from 'react';
 import useTypedSelector from '../../../hooks/useTypedSelector';
 import { selectNotStartedCardsIds } from '../../../redux/slices/notStartedCardsSlice';
-import { useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { selectCollectionById } from '../../../redux/slices/collectionsSlice';
 import { RepeatCard } from './RepeatCard/RepeatCard';
-import { withQueryResolver } from '../../../hoc/withQueryResolver';
-import { useGetNotStartedCardsQuery, useStartCardsMutation } from '../../../redux/cardsApi';
+import { withOtherQueryResolver, withQueryResolver } from '../../../hoc/withQueryResolver';
+import { cardsApi, useGetNotStartedCardsQuery, useStartCardsMutation } from '../../../redux/cardsApi';
 import { PageContainer } from '../../../controls/PageContainer/PageContainer';
 import { PageHeader } from '../../../controls/PageHeader/PageHeader';
 import { selectTheme } from '../../../redux/slices/themeSlice';
 import { CenterContainer } from '../../../controls/CenterContainer/CenterContainer';
 import { Slider } from '../../../controls/Slider/Slider';
-import { Button } from '@mui/material';
+import { Button, Paper } from '@mui/material';
 import { LocalStorageHelper } from '../../../helpers/localStorageHelper';
+import { useGetCollectionQuery } from '../../../redux/collectionApi';
 
 interface LearnCollectionPageContentProps {}
 
@@ -29,12 +30,9 @@ export const RepeatCollectionPageContent: FC<LearnCollectionPageContentProps> = 
         throw new Error();
     }
 
+    const navigate = useNavigate();
     const theme = useTypedSelector((state) => selectTheme(state, collection.themeId));
     const notStartedCards = useTypedSelector(selectNotStartedCardsIds);
-
-    if (notStartedCards.length === 0) {
-        throw new Error();
-    }
 
     const [rememberWeights, setRememberWeights] = useState<Record<string, number | undefined>>(
         () =>
@@ -80,58 +78,76 @@ export const RepeatCollectionPageContent: FC<LearnCollectionPageContentProps> = 
 
     console.log('notActiveIndex', notActiveIndex, rememberWeights);
 
+    const isEmptyCollection = notStartedCards.length === 0;
     return (
         <PageContainer transparent>
             <PageHeader
                 title={collection?.title || ''}
                 subTitle={theme?.name || ''}
                 subMenu={
-                    <Button variant="outlined" onClick={onFinish}>
-                        Завершить
-                    </Button>
+                    !isEmptyCollection && (
+                        <Button variant="outlined" onClick={onFinish}>
+                            Завершить
+                        </Button>
+                    )
                 }
             />
             <CenterContainer>
-                <div
-                    style={{
-                        width: 650,
-                        display: 'flex',
-                        flexDirection: 'column',
-                        rowGap: 25,
-                    }}
-                >
-                    {currentCard && (
-                        <RepeatCard
-                            value={rememberWeights[card.id] ?? null}
-                            card={currentCard}
-                            showNext={cardIndex < maxCards - 1}
-                            showPrevious={cardIndex !== 0}
-                            isActive={notActiveIndex - 1 === cardIndex}
-                            onFinish={onFinish}
-                            onNext={onNext}
-                            onChange={onChange}
-                            onPrevious={onPrevious}
-                            errorMessage={'Помните слово?'}
-                        />
-                    )}
-
-                    <Slider
-                        value={cardIndex}
-                        min={0}
-                        max={maxCards - 1}
-                        activeValue={notActiveIndex}
-                        onValueChange={(v) => {
-                            if (v > notActiveIndex) return;
-                            setCardIndex(v);
+                {isEmptyCollection ? (
+                    <Paper sx={{ padding: '30px 50px' }}>
+                        <CenterContainer>
+                            <div style={{ display: 'flex', flexDirection: 'column', rowGap: 10 }}>
+                                <div>Нет карт для повторения</div>
+                                <Button variant="outlined" onClick={() => navigate('/learning')}>
+                                    Вернуться
+                                </Button>
+                            </div>
+                        </CenterContainer>
+                    </Paper>
+                ) : (
+                    <div
+                        style={{
+                            width: 650,
+                            display: 'flex',
+                            flexDirection: 'column',
+                            rowGap: 25,
                         }}
-                    />
-                </div>
+                    >
+                        {currentCard && (
+                            <RepeatCard
+                                value={rememberWeights[card.id] ?? null}
+                                card={currentCard}
+                                showNext={cardIndex < maxCards - 1}
+                                showPrevious={cardIndex !== 0}
+                                isActive={notActiveIndex - 1 === cardIndex}
+                                onFinish={onFinish}
+                                onNext={onNext}
+                                onChange={onChange}
+                                onPrevious={onPrevious}
+                                errorMessage={'Помните слово?'}
+                            />
+                        )}
+
+                        <Slider
+                            value={cardIndex}
+                            min={0}
+                            max={maxCards - 1}
+                            activeValue={notActiveIndex}
+                            onValueChange={(v) => {
+                                if (v > notActiveIndex) return;
+                                setCardIndex(v);
+                            }}
+                        />
+                    </div>
+                )}
             </CenterContainer>
         </PageContainer>
     );
 };
 
 const ConnectedRepeatCollectionPage = withQueryResolver(useGetNotStartedCardsQuery)(RepeatCollectionPageContent);
+
+const CollectionQueryResolver = withOtherQueryResolver(useGetCollectionQuery)(ConnectedRepeatCollectionPage);
 
 export const RepeatCollection: FC = () => {
     const { userId, collectionId } = useParams();
@@ -140,5 +156,5 @@ export const RepeatCollection: FC = () => {
         throw new Error();
     }
 
-    return <ConnectedRepeatCollectionPage queryArg={{ userId, collectionId, request: undefined }} />;
+    return <CollectionQueryResolver queryArg={{ userId, collectionId, request: undefined }} />;
 };
