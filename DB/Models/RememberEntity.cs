@@ -26,7 +26,7 @@ public class RememberEntity : IParentCardReference
     /// <summary>
     /// Remembered or repeated date
     /// </summary>
-    public Instant RepeatedDate { get; set; }
+    public DateTime RepeatedDate { get; set; }
 
 
     public RememberEntity(
@@ -35,7 +35,7 @@ public class RememberEntity : IParentCardReference
         short parentCardId,
         float weight,
         short phaseStep,
-        Instant repeatedDate)
+        DateTime repeatedDate)
     {
         ParentUserId = parentUserId;
         ParentCollectionId = parentCollectionId;

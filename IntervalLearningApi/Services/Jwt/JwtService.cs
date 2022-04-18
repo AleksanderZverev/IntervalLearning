@@ -72,7 +72,7 @@ public class JwtService : IJwtService
 
     public RefreshTokenEntity GenerateRefreshToken(UserEntity user, string ipAddress)
     {
-        var now = SystemClock.Instance.GetCurrentInstant();
+        var now = DateTime.UtcNow; // SystemClock.Instance.GetCurrentInstant();
 
         var lastRefreshToken = user.RefreshTokens.MaxBy(t => t.Id);
         var id = (short)((lastRefreshToken.Id + 1) % short.MaxValue);
@@ -81,7 +81,7 @@ public class JwtService : IJwtService
         {
             Id = id,
             Token = GetUniqueToken(),
-            Expires = now + Duration.FromDays(jwtSettings.RefreshTokenTTLInDays),
+            Expires = now + TimeSpan.FromDays(jwtSettings.RefreshTokenTTLInDays), //Duration.FromDays(jwtSettings.RefreshTokenTTLInDays),
             Created = now,
             CreatedByIp = ipAddress,
             ParentUserId = user.Id,

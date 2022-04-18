@@ -26,7 +26,7 @@ public class CollectionEntity : IParentUserReference
     public virtual ThemeEntity? Theme { get; set; }
 
     [Required]
-    public Instant CreatedDate { get; set; } = SystemClock.Instance.GetCurrentInstant();
+    public DateTime CreatedDate { get; set; } = DateTime.UtcNow;//SystemClock.Instance.GetCurrentInstant();
 
     public short CardsCount { get; set; }
     public short StartedCards { get; set; }

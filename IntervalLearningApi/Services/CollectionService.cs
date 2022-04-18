@@ -52,7 +52,7 @@ public class CollectionService
 
         foreach (var queueItem in queueItems)
         {
-            var date = queueItem.Date.ToDateTimeUtc().Date;
+            var date = queueItem.Date.Date;//queueItem.Date.ToDateTimeUtc().Date;
 
             if (!result.ContainsKey(date))
                 result.Add(date, new List<QueueCollection>());

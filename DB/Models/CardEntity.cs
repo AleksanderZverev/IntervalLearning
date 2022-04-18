@@ -25,7 +25,7 @@ public class CardEntity : IParentCollectionReference, IParentRepeatsScheduleRefe
     public string BackSideText { get; set; }
 
     [Required]
-    public Instant CreatedDate { get; set; } = SystemClock.Instance.GetCurrentInstant();
+    public DateTime CreatedDate { get; set; } = DateTime.UtcNow; // SystemClock.Instance.GetCurrentInstant();
 
     [StringLength(500)]
     public string? Description { get; set; }
@@ -80,14 +80,14 @@ public class CardRepeatQueueEntity : IParentCardReference
 
     public short PhaseStep { get; set; }
 
-    public Instant Date { get; set; }
+    public DateTime Date { get; set; }
 
     public CardRepeatQueueEntity(
         long parentUserId, 
         short parentCollectionId, 
         short parentCardId,
         short phaseStep, 
-        Instant date)
+        DateTime date)
     {
         ParentUserId = parentUserId;
         ParentCollectionId = parentCollectionId;

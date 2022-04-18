@@ -9,7 +9,7 @@ public class Collection
     public string ParentUserId { get; }
     public short Id { get; }
     public string Title { get; }
-    public Instant CreatedAt { get; }
+    public DateTime CreatedAt { get; }
     public long DefaultScheduleUserId { get; }
     public short DefaultScheduleId { get; }
     public short ThemeId { get; }
@@ -19,7 +19,7 @@ public class Collection
     public short FinishedCards { get; }
 
     public Collection(
-        string parentUserId, short id, string title, Instant createdAt,
+        string parentUserId, short id, string title, DateTime createdAt,
         long defaultScheduleUserId, short defaultScheduleId, short themeId, 
         short cardsCount, short startedCards, short finishedCards)
     {
@@ -58,6 +58,29 @@ public class GetNotFinishedResponse
     }
 }
 
+public class QueueCollectionResponse
+{
+    public Dictionary<DateTime, List<QueueCollectionDto>> DateToCollectionsQueue { get; }
+
+    public QueueCollectionResponse(Dictionary<DateTime, List<QueueCollectionDto>> dateToCollectionsQueue)
+    {
+        DateToCollectionsQueue = dateToCollectionsQueue;
+    }
+}
+
+public class QueueCollectionDto
+{
+    public Collection Collection { get; }
+
+    public int CardsToRepeatCount { get; }
+
+    public QueueCollectionDto(Collection collection, int cardsToRepeatCount)
+    {
+        Collection = collection;
+        CardsToRepeatCount = cardsToRepeatCount;
+    }
+}
+
 //public class LearningCollection : Collection
 //{
 //    public LearningCollection(
@@ -68,7 +91,7 @@ public class GetNotFinishedResponse
 //        long defaultScheduleUserId, 
 //        short defaultScheduleId, 
 //        short themeId, 
-//        int cardsCount) 
+//        int cardsToRepeatCount) 
 //        : base(
 //            parentUserId, 
 //            id, 
@@ -77,7 +100,7 @@ public class GetNotFinishedResponse
 //            defaultScheduleUserId, 
 //            defaultScheduleId, 
 //            themeId, 
-//            cardsCount)
+//            cardsToRepeatCount)
 //    {
 //    }
 //}

@@ -122,7 +122,7 @@ namespace IntervalLearningApi.Controllers
     {
         public float Weight { get; set; }
         public byte PhaseStep { get; set; }
-        public Instant RepeatedDate { get; set; }
+        public DateTime RepeatedDate { get; set; }
     }
 
     public class CreateCardItem

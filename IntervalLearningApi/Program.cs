@@ -2,6 +2,7 @@ using DB;
 using IntervalLearningApi;
 using IntervalLearningApi.Controllers;
 using IntervalLearningApi.Extensions;
+using Microsoft.AspNetCore.HttpLogging;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json.Serialization;
 using NodaTime;
@@ -12,6 +13,17 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 
 //builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection("JsonWebTokenKeys"));
+
+builder.Services.AddHttpLogging(o =>
+{
+    o.LoggingFields = HttpLoggingFields.Request
+                      | HttpLoggingFields.RequestBody
+                      | HttpLoggingFields.RequestPath 
+                      | HttpLoggingFields.RequestMethod
+                      | HttpLoggingFields.Response 
+                      | HttpLoggingFields.ResponseBody 
+                      | HttpLoggingFields.ResponseStatusCode;
+});
 
 builder.Services.AddCors(o =>
 {
@@ -67,7 +79,7 @@ builder.Services.AddDbContext<ApplicationContext>(options =>
     var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
     options.UseNpgsql(connectionString, o =>
     {
-        o.UseNodaTime();
+        //o.UseNodaTime();
     });
 });
 
@@ -113,6 +125,8 @@ else
     app.UseHsts();
     app.UseHttpsRedirection();
 }
+
+app.UseHttpLogging();
 
 app.UseStaticFiles();
 app.UseRouting();

@@ -14,7 +14,7 @@ public class Card
     public short ScheduleId { get; }
     public string BackSideText { get; }
     public string FrontSideText { get; }
-    public Instant CreatedDate { get; }
+    public DateTime CreatedDate { get; }
     public bool? IsFinished { get; }
     public string? Description { get; }
     public List<string>? Examples { get; }
@@ -24,7 +24,7 @@ public class Card
         string parentUserId, short parentCollectionId, short id, 
         long scheduleUserId, short scheduleId, 
         string backSideText, string frontSideText,
-        Instant createdDate, bool? isFinished, string? description, List<string>? examples, List<Remember>? remembers)
+        DateTime createdDate, bool? isFinished, string? description, List<string>? examples, List<Remember>? remembers)
     {
         ParentUserId = parentUserId;
         ParentCollectionId = parentCollectionId;

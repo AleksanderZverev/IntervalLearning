@@ -151,12 +151,13 @@ public class AuthenticationService : IAuthenticationService
 
     private void RemoveOldRefreshTokens(UserEntity userEntity)
     {
-        var now = SystemClock.Instance.GetCurrentInstant();
+        var now = DateTime.UtcNow; // SystemClock.Instance.GetCurrentInstant();
 
         foreach (var refreshToken in userEntity.RefreshTokens)
         {
             if (!refreshToken.IsActive &&
-               refreshToken.Created + Duration.FromDays(jwtSettings.RefreshTokenTTLInDays) <= now)
+                refreshToken.Created.AddDays(jwtSettings.RefreshTokenTTLInDays) <= now)
+            //refreshToken.Created + Duration.FromDays(jwtSettings.RefreshTokenTTLInDays) <= now)
             {
                 db.RefreshTokens.Remove(refreshToken);
             }
@@ -185,7 +186,7 @@ public class AuthenticationService : IAuthenticationService
         string reason = null, 
         string replacedByToken = null)
     {
-        tokenEntity.Revoked = NodaTime.SystemClock.Instance.GetCurrentInstant();
+        tokenEntity.Revoked = DateTime.UtcNow; //NodaTime.SystemClock.Instance.GetCurrentInstant();
         tokenEntity.RevokedByIp = ipAddress;
         tokenEntity.ReasonRevoked = reason;
         tokenEntity.ReplacedByToken = replacedByToken;
