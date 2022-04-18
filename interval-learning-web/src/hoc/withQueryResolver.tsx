@@ -11,9 +11,13 @@ interface ResolverProps<TQueryArg> {
     queryArg: TQueryArg;
 }
 
+export interface WithQueryResolverData<TData> {
+    resolverData: TData;
+}
+
 export const withQueryResolver =
     <TQueryArg, TResult>(useQuery: UseQuery<QueryDefinition<TQueryArg, CustomBaseQueryType, TagType, TResult>>) =>
-    (Component: React.FunctionComponent<unknown>) =>
+    (Component: React.FunctionComponent<WithQueryResolverData<TResult> & unknown>) =>
     // eslint-disable-next-line react/display-name
     ({ queryArg, containsError, containsFetching, ...props }: ResolverProps<TQueryArg> & unknown) => {
         const { data, isError: isQueryError, isFetching: isQueryFetching, isSuccess, error } = useQuery(queryArg);
@@ -30,7 +34,7 @@ export const withQueryResolver =
             return <div>Error</div>;
         }
 
-        return <Component {...props} />;
+        return <Component resolverData={data} {...props} />;
     };
 
 export const withOtherQueryResolver =
