@@ -5,21 +5,26 @@ import { accountSlice } from './accountSlice';
 import { setError } from './errorSlice';
 import { AppDispatch } from './store';
 
-interface CustomQueryArgs {
-    url: string;
-    method: AxiosRequestConfig['method'];
-    data?: AxiosRequestConfig['data'];
+interface CustomQueryArgs extends AxiosRequestConfig {
+    // url: string;
+    // method: AxiosRequestConfig['method'];
+    // data?: AxiosRequestConfig['data'];
+    // params?: AxiosRequestConfig['params'];
     onSuccess?: (dispatch: AppDispatch, data: unknown) => Promise<void>;
 }
 
-export type CustomBaseQueryType = BaseQueryFn<CustomQueryArgs, AxiosError, unknown>;
+export type CustomBaseQueryType = BaseQueryFn<CustomQueryArgs, unknown, unknown>;
 
-export const axiosBaseQuery: CustomBaseQueryType = async (args, { signal, dispatch, getState }, extraOptions) => {
+export const axiosBaseQuery: CustomBaseQueryType = async (
+    { onSuccess, ...args },
+    { signal, dispatch, getState },
+    extraOptions
+) => {
     try {
         const result = await axiosInstance.request(args);
-        if (args.onSuccess) {
+        if (onSuccess) {
             try {
-                await args.onSuccess(dispatch, result.data);
+                await onSuccess(dispatch, result.data);
             } catch (e) {
                 console.error('Error in onSuccess method', e);
                 throw e;
@@ -43,8 +48,8 @@ export const axiosBaseQuery: CustomBaseQueryType = async (args, { signal, dispat
 
                 if (refreshTokenResponse.isSuccess) {
                     const result = await axiosInstance.request(args);
-                    if (args.onSuccess) {
-                        await args.onSuccess(dispatch, result.data);
+                    if (onSuccess) {
+                        await onSuccess(dispatch, result.data);
                     }
                     return { data: result.data };
                 }
