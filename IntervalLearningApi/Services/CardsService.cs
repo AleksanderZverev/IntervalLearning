@@ -52,7 +52,30 @@ public class CardsService
         return (cards, null);
     }
 
-    public async Task<(List<CollectionEntity> collections, List<(Instant, CardEntity)> cards)> GetLearningCollectionWithCards(long userId)
+    public async Task<List<CardEntity>> GetCardsQueue(long userId, short collectionId, DateTime date)
+    {
+        var queueItems = await db.Queue
+            .Where(c => c.ParentUserId == userId 
+                        && c.ParentCollectionId == collectionId 
+                        && c.Date.Date == date.Date)
+            .ToListAsync();
+
+
+        if (queueItems.Count == 0)
+            return new List<CardEntity>(0);
+
+        var cardsIds = queueItems.Select(q => q.ParentCardId).ToList();
+
+        var cards = await db.Cards
+            .Where(c => c.ParentUserId == userId
+                        && c.ParentCollectionId == collectionId
+                        && cardsIds.Contains(c.Id))
+            .ToListAsync();
+
+        return cards;
+    }
+
+    public async Task<(List<CollectionEntity> collections, List<(DateTime, CardEntity)> cards)> GetLearningCollectionWithCards(long userId)
     {
         var queueItems = db.Queue
             .Where(c => c.ParentUserId == userId)
@@ -60,7 +83,7 @@ public class CardsService
 
         if (queueItems.Count == 0)
         {
-            return (new List<CollectionEntity>(0), new List<(Instant, CardEntity)>(0));
+            return (new List<CollectionEntity>(0), new List<(DateTime, CardEntity)>(0));
         }
 
         var collectionIds = new HashSet<short>();
@@ -96,7 +119,7 @@ public class CardsService
         var collectionsResult = await collectionsResultTask;
         var cards = (await Task.WhenAll(cardsTasks)).SelectMany(c => c).ToDictionary(c => $"{c.ParentCollectionId}-{c.Id}");
 
-        var cardsWithDates = new List<(Instant, CardEntity)>(cards.Count);
+        var cardsWithDates = new List<(DateTime, CardEntity)>(cards.Count);
         
         foreach (var queueItem in queueItems)
         {
@@ -236,8 +259,9 @@ public class CardsService
                     "schedule.Phases.Count == 0 ||  schedule.Phases.Count >= nextPhaseIndex");
 
             var nextPhase = schedule.Phases[nextPhaseIndex];
-            var nextRepeatDate = SystemClock.Instance.GetCurrentInstant() +
-                                 Duration.FromSeconds(nextPhase.SecondsFromLastPhase);
+            var nextRepeatDate = DateTime.UtcNow + TimeSpan.FromSeconds(nextPhase.SecondsFromLastPhase);
+            //SystemClock.Instance.GetCurrentInstant() +
+            //                     Duration.FromSeconds(nextPhase.SecondsFromLastPhase);
 
             return new CardRepeatQueueEntity(
                 userId,
@@ -260,7 +284,7 @@ public class CardsService
         short cardId,
         float weight,
         byte phaseStep,
-        Instant repeatedDate)
+        DateTime repeatedDate)
     {
         var remembers = db.Remembers
             .Where(r => r.ParentUserId == userId &&

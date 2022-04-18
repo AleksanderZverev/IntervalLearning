@@ -21,8 +21,7 @@ namespace IntervalLearningApi.Controllers
             this.collectionService = collectionService;
         }
 
-        [Route("learn")]
-        [HttpGet]
+        [HttpGet("learn")]
         public async Task<ActionResult<IList<Collection>>> GetCardsFromQueue()
         {
             var userId = HttpContext.GetUserId();
@@ -35,6 +34,15 @@ namespace IntervalLearningApi.Controllers
 
             var response = new LearnResponse(collectionsDto, cardsDto);
             return Ok(response);
+        }
+
+        [HttpGet("{collectionId}/cards/repeat")]
+        public async Task<ActionResult<List<Card>>> GetCardsQueue(short collectionId, [FromQuery] DateTime date)
+        {
+            var userId = HttpContext.GetUserId();
+            var cards = await cardsService.GetCardsQueue(userId, collectionId, date);
+
+            return Ok(cards.Select(CollectionsController.ToCard).ToList());
         }
     }
 
@@ -53,11 +61,11 @@ namespace IntervalLearningApi.Controllers
 
     public class QueueCard
     {
-        public Instant RepeatDate { get; }
+        public DateTime RepeatDate { get; }
 
         public Card Card { get; }
 
-        public QueueCard(Instant repeatDate, Card card)
+        public QueueCard(DateTime repeatDate, Card card)
         {
             RepeatDate = repeatDate;
             Card = card;
