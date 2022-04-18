@@ -4,6 +4,7 @@ import { axiosBaseQuery } from './axiosBaseQuery';
 export const tagTypes = {
     collection: 'Collection',
     theme: 'Theme',
+    card: 'Card',
 } as const;
 
 export type TagType = typeof tagTypes[keyof typeof tagTypes];

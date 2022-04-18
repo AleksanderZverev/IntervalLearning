@@ -1,11 +1,10 @@
 import { FC, useState } from 'react';
 import useTypedSelector from '../../../hooks/useTypedSelector';
-import { selectNotStartedCardsIds } from '../../../redux/slices/notStartedCardsSlice';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { selectCollectionById } from '../../../redux/slices/collectionsSlice';
 import { RepeatCard } from './RepeatCard/RepeatCard';
-import { withOtherQueryResolver, withQueryResolver } from '../../../hoc/withQueryResolver';
-import { cardsApi, useGetNotStartedCardsQuery, useStartCardsMutation } from '../../../redux/cardsApi';
+import { withOtherQueryResolver, withQueryResolver, WithQueryResolverData } from '../../../hoc/withQueryResolver';
+import { useGetRepeatCardsQuery } from '../../../redux/cardsApi';
 import { PageContainer } from '../../../controls/PageContainer/PageContainer';
 import { PageHeader } from '../../../controls/PageHeader/PageHeader';
 import { selectTheme } from '../../../redux/slices/themeSlice';
@@ -14,10 +13,11 @@ import { Slider } from '../../../controls/Slider/Slider';
 import { Button, Paper } from '@mui/material';
 import { LocalStorageHelper } from '../../../helpers/localStorageHelper';
 import { useGetCollectionQuery } from '../../../redux/collectionApi';
+import { selectCardsByIds } from '../../../redux/slices/cardsSlice';
 
-interface LearnCollectionPageContentProps {}
+interface RepeatCollectionPageContentProps extends WithQueryResolverData<{ cardIds: string[] }> {}
 
-export const RepeatCollectionPageContent: FC<LearnCollectionPageContentProps> = () => {
+export const RepeatCollectionPageContent: FC<RepeatCollectionPageContentProps> = ({ resolverData: { cardIds } }) => {
     const { userId, collectionId } = useParams();
 
     if (!collectionId || !userId) {
@@ -32,30 +32,27 @@ export const RepeatCollectionPageContent: FC<LearnCollectionPageContentProps> = 
 
     const navigate = useNavigate();
     const theme = useTypedSelector((state) => selectTheme(state, collection.themeId));
-    const notStartedCards = useTypedSelector(selectNotStartedCardsIds);
+    const repeatCards = useTypedSelector((state) => selectCardsByIds(state, userId, collectionId, cardIds));
 
     const [rememberWeights, setRememberWeights] = useState<Record<string, number | undefined>>(
         () =>
             LocalStorageHelper.getLearningCards(
                 collection.id,
-                notStartedCards.map((c) => c.id)
+                repeatCards.map((c) => c.id)
             ) ?? {}
     );
 
     const [cardIndex, setCardIndex] = useState(0);
-    const card = notStartedCards[cardIndex];
-    const maxCards = notStartedCards.length;
+    const card = repeatCards[cardIndex];
+    const maxCards = repeatCards.length;
 
-    let notActiveIndex = notStartedCards.map((c) => rememberWeights[c.id]).indexOf(undefined);
+    let notActiveIndex = repeatCards.map((c) => rememberWeights[c.id]).indexOf(undefined);
     notActiveIndex = notActiveIndex < 0 ? maxCards : notActiveIndex;
 
-    const currentCard = notStartedCards[cardIndex];
+    const currentCard = repeatCards[cardIndex];
 
     const onFinish = async () => {
         console.log('ok', rememberWeights);
-        // try {
-        //     await startCards()
-        // }
     };
 
     const onChange = (weight: number | undefined) => {
@@ -63,7 +60,7 @@ export const RepeatCollectionPageContent: FC<LearnCollectionPageContentProps> = 
         setRememberWeights({ ...rememberWeights });
         LocalStorageHelper.saveLearningCardsWeights(
             collectionId,
-            notStartedCards.map((c) => c.id),
+            repeatCards.map((c) => c.id),
             rememberWeights
         );
     };
@@ -78,7 +75,7 @@ export const RepeatCollectionPageContent: FC<LearnCollectionPageContentProps> = 
 
     console.log('notActiveIndex', notActiveIndex, rememberWeights);
 
-    const isEmptyCollection = notStartedCards.length === 0;
+    const isEmptyCollection = repeatCards.length === 0;
     return (
         <PageContainer transparent>
             <PageHeader
@@ -145,16 +142,20 @@ export const RepeatCollectionPageContent: FC<LearnCollectionPageContentProps> = 
     );
 };
 
-const ConnectedRepeatCollectionPage = withQueryResolver(useGetNotStartedCardsQuery)(RepeatCollectionPageContent);
+const ConnectedRepeatCollectionPage = withQueryResolver(useGetRepeatCardsQuery)(RepeatCollectionPageContent);
 
 const CollectionQueryResolver = withOtherQueryResolver(useGetCollectionQuery)(ConnectedRepeatCollectionPage);
 
 export const RepeatCollection: FC = () => {
     const { userId, collectionId } = useParams();
+    const location = useLocation();
+    console.log(location);
+    const params = new URLSearchParams(location.search);
+    const date = params.get('date');
 
-    if (!collectionId || !userId) {
-        throw new Error();
+    if (!collectionId || !userId || !date) {
+        return <div>INCORRECT LINK</div>;
     }
 
-    return <CollectionQueryResolver queryArg={{ userId, collectionId, request: undefined }} />;
+    return <CollectionQueryResolver queryArg={{ userId, collectionId, request: { date } }} />;
 };

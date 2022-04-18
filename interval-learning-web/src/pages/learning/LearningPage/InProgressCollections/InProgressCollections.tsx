@@ -1,7 +1,7 @@
 import { CircularProgress } from '@mui/material';
 import classNames from 'classnames';
 import dayjs, { Dayjs } from 'dayjs';
-import React, { FC, useState } from 'react';
+import React, { FC, Fragment } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Table, TableBody, TableCell, TableHead, TableHeaderCell, TableRow } from '../../../../controls/Table/Table';
 import { useGetQueueCollectionsQuery } from '../../../../redux/collectionApi';
@@ -46,7 +46,7 @@ export const InProgressCollections: FC = () => {
                         const isWarn = now.isAfter(date);
 
                         return (
-                            <>
+                            <Fragment key={dateString}>
                                 <TableRow borderless>
                                     <TableCell
                                         className={classNames({ [styles.warn]: isWarn })}
@@ -64,7 +64,9 @@ export const InProgressCollections: FC = () => {
                                             hover
                                             key={c.collection.id}
                                             onClick={() =>
-                                                navigate(`/learning/repeat/${c.collection.userId}-${c.collection.id}`)
+                                                navigate(
+                                                    `/learning/repeat/${c.collection.userId}-${c.collection.id}?date=${dateString}`
+                                                )
                                             }
                                         >
                                             <TableCell>{c.collection.title}</TableCell>
@@ -74,7 +76,7 @@ export const InProgressCollections: FC = () => {
                                         </TableRow>
                                     );
                                 })}
-                            </>
+                            </Fragment>
                         );
                     })}
                 </TableBody>

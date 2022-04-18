@@ -1,5 +1,5 @@
 import { Card } from './../types/Collection';
-import { api } from './apiSlice';
+import { api, tagTypes } from './apiSlice';
 import { addCard, addManyCards } from './slices/cardsSlice';
 import { cardAddedToCollection } from './slices/collectionsSlice';
 import { setNotStartedCards } from './slices/notStartedCardsSlice';
@@ -26,6 +26,10 @@ export interface GetCardItem {
 
 export interface CardsItem {
     cardIds: string[];
+}
+
+interface GetRepeatCardsRequest {
+    date: string;
 }
 
 export const cardsApi = api.injectEndpoints({
@@ -67,6 +71,26 @@ export const cardsApi = api.injectEndpoints({
                 },
             }),
         }),
+        getRepeatCards: build.query<CardsItem, BaseRequestItem<GetRepeatCardsRequest>>({
+            query: ({ collectionId, request }) => ({
+                url: `/queue/${collectionId}/cards/repeat`,
+                method: 'GET',
+                params: { date: request.date },
+                onSuccess: async (dispatch, data) => {
+                    const cards = data as Card[];
+                    dispatch(addManyCards(cards));
+                },
+            }),
+            transformResponse: (response: Card[], meta, arg) => {
+                const item: CardsItem = {
+                    cardIds: response.map((c) => c.id),
+                };
+                return item;
+            },
+            // providesTags: (result) => (
+            //     result ? [...result.cardIds.map(cardId => {type: tagTypes.card, id: })] : []
+            // )
+        }),
         startCards: build.mutation<void, BaseRequestItem<CardsItem>>({
             query: ({ collectionId, request }) => ({
                 url: `/collections/${collectionId}/cards/start`,
@@ -77,4 +101,10 @@ export const cardsApi = api.injectEndpoints({
     }),
 });
 
-export const { useAddCardMutation, useGetCardsQuery, useGetNotStartedCardsQuery, useStartCardsMutation } = cardsApi;
+export const {
+    useAddCardMutation,
+    useGetCardsQuery,
+    useGetNotStartedCardsQuery,
+    useStartCardsMutation,
+    useGetRepeatCardsQuery,
+} = cardsApi;

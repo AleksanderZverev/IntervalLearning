@@ -49,4 +49,13 @@ export const selectCards = (state: RootState, userId?: string, collectionId?: st
     return key in cardsIndex ? cardsIndex[key] : [];
 };
 
+export const selectCardsByIds = (state: RootState, userId?: string, collectionId?: string, cardIds?: string[]) => {
+    if (userId === undefined || collectionId === undefined || cardIds == undefined) {
+        return [];
+    }
+
+    const cards = selectCards(state, userId, collectionId);
+    return cards.filter((c) => cardIds.includes(c.id));
+};
+
 export const { addCard, addManyCards } = cardsSlice.actions;
