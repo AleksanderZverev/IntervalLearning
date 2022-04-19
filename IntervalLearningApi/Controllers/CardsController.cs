@@ -95,22 +95,42 @@ namespace IntervalLearningApi.Controllers
             return ok ? Ok() : BadRequest(error);
         }
 
-        [HttpPatch("{cardId}/remember")]
-        public IActionResult RememberCard(short collectionId, short cardId, [FromBody] RememberItem rememberItem)
+        [HttpPatch("remember")]
+        public async Task<IActionResult> RememberCard(short collectionId, [FromBody] RememberRequest request)
         {
             var userId = HttpContext.GetUserId();
 
-            var (ok, error) = cardsService.Remember(
+            var (ok, error) = await cardsService.Remember(
                 userId,
                 collectionId,
-                cardId,
-                rememberItem.Weight,
-                rememberItem.PhaseStep,
-                rememberItem.RepeatedDate
+                ToCardServiceRememberItems(request.RememberItems),
+                request.Date
             );
 
             return ok ? Ok() : BadRequest(error);
         }
+
+        private List<CardsService.RememberItem> ToCardServiceRememberItems(List<RememberItem> requestRememberItems)
+        {
+            return requestRememberItems.Select(r => new CardsService.RememberItem(r.CardId, r.Weight)).ToList();
+        }
+
+        //[HttpPatch("{cardId}/remember")]
+        //public IActionResult RememberCard(short collectionId, short cardId, [FromBody] RememberItem rememberItem)
+        //{
+        //    var userId = HttpContext.GetUserId();
+
+        //    var (ok, error) = cardsService.Remember(
+        //        userId,
+        //        collectionId,
+        //        cardId,
+        //        rememberItem.Weight,
+        //        rememberItem.PhaseStep,
+        //        rememberItem.RepeatedDate
+        //    );
+
+        //    return ok ? Ok() : BadRequest(error);
+        //}
     }
 
     public class CardsItem
@@ -118,11 +138,16 @@ namespace IntervalLearningApi.Controllers
         public List<short> CardIds { get; set; }
     }
 
+    public class RememberRequest
+    {
+        public List<RememberItem> RememberItems { get; set; }
+        public DateTime Date { get; set; }
+    }
+
     public class RememberItem
     {
+        public short CardId { get; set; }
         public float Weight { get; set; }
-        public byte PhaseStep { get; set; }
-        public DateTime RepeatedDate { get; set; }
     }
 
     public class CreateCardItem

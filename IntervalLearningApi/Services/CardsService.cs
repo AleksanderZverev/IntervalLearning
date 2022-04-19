@@ -259,7 +259,7 @@ public class CardsService
                     "schedule.Phases.Count == 0 ||  schedule.Phases.Count >= nextPhaseIndex");
 
             var nextPhase = schedule.Phases[nextPhaseIndex];
-            var nextRepeatDate = DateTime.UtcNow + TimeSpan.FromSeconds(nextPhase.SecondsFromLastPhase);
+            var nextRepeatDate = DateTime.UtcNow.AddSeconds(nextPhase.SecondsFromLastPhase);
             //SystemClock.Instance.GetCurrentInstant() +
             //                     Duration.FromSeconds(nextPhase.SecondsFromLastPhase);
 
@@ -267,7 +267,7 @@ public class CardsService
                 userId,
                 collectionId,
                 card.Id,
-                (short) (lastRemember == null ? 1 : lastRemember.PhaseStep + 1),
+                (short) (nextPhaseIndex + 1),
                 nextRepeatDate
             );
         }).ToList();
@@ -278,41 +278,104 @@ public class CardsService
         return (true, null);
     }
 
-    public (bool ok, string? reason) Remember(
+    public async Task<(bool ok, string? reason)> Remember(
         long userId,
         short collectionId,
-        short cardId,
-        float weight,
-        byte phaseStep,
-        DateTime repeatedDate)
+        List<RememberItem> rememberItems, 
+        DateTime date)
     {
-        var remembers = db.Remembers
-            .Where(r => r.ParentUserId == userId &&
-                        r.ParentCollectionId == collectionId &&
-                        r.ParentCardId == cardId)
-            .ToList();
+        var now = DateTime.UtcNow;
+        var cardIds = rememberItems.Select(c => c.CardId).ToList();
 
-        if (remembers.Any(r => r.PhaseStep >= phaseStep))
-            return (false, "Conflict");
+        var queueItems = await db.Queue
+            .Where(q => q.ParentUserId == userId
+                        && q.ParentCollectionId == collectionId
+                        && cardIds.Contains(q.ParentCardId)
+                        && q.Date.Date == date.Date)
+            .ToListAsync();
 
-        db.Database.BeginTransaction();
+        if (queueItems.Count == 0 || queueItems.Count != cardIds.Count)
+            return (false, "Incorrect request");
 
-        var remember = new RememberEntity(
-            userId, collectionId, cardId, weight, phaseStep, repeatedDate);
+        var cards = await db.Cards
+            .Where(c => c.ParentUserId == userId
+                        && c.ParentCollectionId == collectionId
+                        && cardIds.Contains(c.Id))
+            .ToListAsync();
 
-        db.Remembers.Add(remember);
-        db.SaveChanges();
+        var scheduleIds = cards.Select(c => c.ParentRepeatsScheduleId).ToList();
 
-        var queueItem = db.Queue.Single(q => q.ParentUserId == userId
-                                             && q.ParentCollectionId == collectionId
-                                             && q.ParentCardId == cardId
-                                             && q.PhaseStep == phaseStep);
+        var schedules = await db.RepeatsSchedules
+            .Where(s => s.ParentUserId == userId && scheduleIds.Contains(s.Id))
+            .Include(s => s.Phases)
+            .AsSplitQuery()
+            .ToListAsync();
 
-        db.Entry(queueItem).State = EntityState.Deleted;
-        db.SaveChanges();
+        var metadata = metadataService.GetMetadata(userId);
 
-        db.Database.CommitTransaction();
+        foreach (var rememberItem in rememberItems)
+        {
+            var cardId = rememberItem.CardId;
+            var weight = rememberItem.Weight;
 
-        return (true, null);
+            var queueItem = queueItems.Single(q => q.ParentCardId == cardId);
+            var card = cards.Single(c => c.Id == cardId);
+            var schedule = schedules.Single(s => s.Id == card.ParentRepeatsScheduleId);
+
+            var remember = new RememberEntity(
+                userId,
+                collectionId,
+                cardId,
+                weight,
+                queueItem.PhaseStep,
+                now
+            );
+
+            db.Entry(remember).State = EntityState.Added;
+            
+            if (remember.PhaseStep >= schedule.Phases.Count)
+            {
+                metadataService.CardStateChanged(metadata, card.IsFinished, true);
+                card.IsFinished = true;
+                continue;
+            }
+
+            var nextPhaseIndex = remember.PhaseStep;
+            var nextPhase = schedule.Phases[nextPhaseIndex];
+
+            var newQueueItem = new CardRepeatQueueEntity(
+                userId,
+                collectionId,
+                cardId,
+                (short) (nextPhaseIndex + 1),
+                now.AddSeconds(nextPhase.SecondsFromLastPhase));
+
+            db.Entry(queueItem).State = EntityState.Deleted;
+            db.Entry(newQueueItem).State = EntityState.Added;
+            db.Entry(metadata).State = EntityState.Modified;
+        }
+
+
+        try
+        {
+            db.SaveChanges();
+            return (true, null);
+        }
+        catch
+        {
+            return (false, "unknown error");
+        }
+    }
+
+    public class RememberItem
+    {
+        public short CardId { get; }
+        public float Weight { get; }
+
+        public RememberItem(short cardId, float weight)
+        {
+            CardId = cardId;
+            Weight = weight;
+        }
     }
 }

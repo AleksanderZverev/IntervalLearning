@@ -41,7 +41,6 @@ namespace IntervalLearningApi.Controllers
         {
             var userId = HttpContext.GetUserId();
             var cards = await cardsService.GetCardsQueue(userId, collectionId, date);
-
             return Ok(cards.Select(CollectionsController.ToCard).ToList());
         }
     }
