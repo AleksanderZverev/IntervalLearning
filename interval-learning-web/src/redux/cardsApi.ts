@@ -32,6 +32,16 @@ interface GetRepeatCardsRequest {
     date: string;
 }
 
+export interface RememberRequest {
+    rememberItems: RememberItem[];
+    date: string;
+}
+
+interface RememberItem {
+    cardId: string;
+    weight: number;
+}
+
 export const cardsApi = api.injectEndpoints({
     endpoints: (build) => ({
         getCards: build.query<Card[], BaseRequestItem<GetCardItem>>({
@@ -91,6 +101,13 @@ export const cardsApi = api.injectEndpoints({
             //     result ? [...result.cardIds.map(cardId => {type: tagTypes.card, id: })] : []
             // )
         }),
+        patchRememberCards: build.mutation<void, BaseRequestItem<RememberRequest>>({
+            query: ({ collectionId, request }) => ({
+                url: `/collections/${collectionId}/cards/remember`,
+                method: 'PATCH',
+                data: request,
+            }),
+        }),
         startCards: build.mutation<void, BaseRequestItem<CardsItem>>({
             query: ({ collectionId, request }) => ({
                 url: `/collections/${collectionId}/cards/start`,
@@ -107,4 +124,5 @@ export const {
     useGetNotStartedCardsQuery,
     useStartCardsMutation,
     useGetRepeatCardsQuery,
+    usePatchRememberCardsMutation,
 } = cardsApi;

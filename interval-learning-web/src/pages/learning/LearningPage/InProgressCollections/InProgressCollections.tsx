@@ -55,7 +55,7 @@ export const InProgressCollections: FC = () => {
                                     >
                                         {isWarn
                                             ? `Просрочено на ${getDifferenceString(now, date)}`
-                                            : date.format('dd MM')}
+                                            : `Через ${getDifferenceString(date, now)}`}
                                     </TableCell>
                                 </TableRow>
                                 {collectionsQueue.map((c) => {

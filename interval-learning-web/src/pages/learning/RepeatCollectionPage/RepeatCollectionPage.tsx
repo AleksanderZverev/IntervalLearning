@@ -4,7 +4,7 @@ import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { selectCollectionById } from '../../../redux/slices/collectionsSlice';
 import { RepeatCard } from './RepeatCard/RepeatCard';
 import { withOtherQueryResolver, withQueryResolver, WithQueryResolverData } from '../../../hoc/withQueryResolver';
-import { useGetRepeatCardsQuery } from '../../../redux/cardsApi';
+import { RememberRequest, useGetRepeatCardsQuery, usePatchRememberCardsMutation } from '../../../redux/cardsApi';
 import { PageContainer } from '../../../controls/PageContainer/PageContainer';
 import { PageHeader } from '../../../controls/PageHeader/PageHeader';
 import { selectTheme } from '../../../redux/slices/themeSlice';
@@ -19,8 +19,10 @@ interface RepeatCollectionPageContentProps extends WithQueryResolverData<{ cardI
 
 export const RepeatCollectionPageContent: FC<RepeatCollectionPageContentProps> = ({ resolverData: { cardIds } }) => {
     const { userId, collectionId } = useParams();
+    const params = new URLSearchParams(location.search);
+    const date = params.get('date');
 
-    if (!collectionId || !userId) {
+    if (!collectionId || !userId || !date) {
         throw new Error();
     }
 
@@ -33,6 +35,8 @@ export const RepeatCollectionPageContent: FC<RepeatCollectionPageContentProps> =
     const navigate = useNavigate();
     const theme = useTypedSelector((state) => selectTheme(state, collection.themeId));
     const repeatCards = useTypedSelector((state) => selectCardsByIds(state, userId, collectionId, cardIds));
+
+    const [rememberCards, { isLoading, isError, isSuccess }] = usePatchRememberCardsMutation();
 
     const [rememberWeights, setRememberWeights] = useState<Record<string, number | undefined>>(
         () =>
@@ -52,7 +56,25 @@ export const RepeatCollectionPageContent: FC<RepeatCollectionPageContentProps> =
     const currentCard = repeatCards[cardIndex];
 
     const onFinish = async () => {
-        console.log('ok', rememberWeights);
+        if (isLoading || isSuccess) {
+            return;
+        }
+
+        const resultWeights = Object.entries(rememberWeights);
+        if (resultWeights.some(([_, weight]) => weight === undefined || weight === null)) {
+            console.error('remember weights are incorrect');
+            return;
+        }
+
+        const request: RememberRequest = {
+            date,
+            rememberItems: resultWeights.map(([cardId, weight]) => ({ cardId, weight: weight ?? 0 })),
+        };
+        try {
+            await rememberCards({ userId, collectionId, request }).unwrap();
+        } catch (e) {
+            console.log('error remember', e);
+        }
     };
 
     const onChange = (weight: number | undefined) => {
@@ -148,8 +170,8 @@ const CollectionQueryResolver = withOtherQueryResolver(useGetCollectionQuery)(Co
 
 export const RepeatCollection: FC = () => {
     const { userId, collectionId } = useParams();
+
     const location = useLocation();
-    console.log(location);
     const params = new URLSearchParams(location.search);
     const date = params.get('date');
 
