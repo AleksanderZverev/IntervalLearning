@@ -6,7 +6,7 @@ import { CollectionsPage } from '../../src/pages/collection/CollectionsPage/Coll
 const CollectionsPageRouter: FC = () => {
     return (
         <Routes>
-            <Route path="/collections" element={<CollectionsPage queryArg={undefined} />} />
+            <Route path="/collections" element={<CollectionsPage />} />
             <Route path="/collections/:userId-:collectionId" element={<CollectionPage />} />
         </Routes>
     );

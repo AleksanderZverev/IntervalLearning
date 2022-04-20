@@ -26,7 +26,7 @@ export const CollectionPage: FC = () => {
 
     const [page, setPage] = useState(1);
 
-    const { isFetching: isCollectionFetching, isError: isCollectionError } = useGetCollectionQuery(collectionId);
+    const { isFetching: isCollectionFetching, isError: isCollectionError } = useGetCollectionQuery({ collectionId });
     const { isFetching: isCardsFetching, isError: isCardsError } = useGetCardsQuery({
         userId,
         collectionId,

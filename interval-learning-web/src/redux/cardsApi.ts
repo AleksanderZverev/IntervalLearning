@@ -1,6 +1,6 @@
 import { Card } from './../types/Collection';
 import { api, tagTypes } from './apiSlice';
-import { addCard, addManyCards } from './slices/cardsSlice';
+import { addCard, addManyCards, getCardUniqueKey } from './slices/cardsSlice';
 import { cardAddedToCollection } from './slices/collectionsSlice';
 import { setNotStartedCards } from './slices/notStartedCardsSlice';
 
@@ -48,13 +48,13 @@ export const cardsApi = api.injectEndpoints({
             query: ({ collectionId, request }) => ({
                 url: `/collections/${collectionId}/cards?page=${request.page}&count=${request.count}`,
                 method: 'GET',
+                onSuccess: async (dispatch, data) => {
+                    const cards = data as Card[];
+                    dispatch(addManyCards(cards));
+                },
             }),
-            async onQueryStarted(arg, { queryFulfilled, dispatch }) {
-                try {
-                    const cards = await queryFulfilled;
-                    dispatch(addManyCards(cards.data));
-                } catch {}
-            },
+            providesTags: (result, error, arg) =>
+                result ? [...result.map((c) => ({ type: tagTypes.card, id: getCardUniqueKey(c) }))] : [],
         }),
         addCard: build.mutation<Card, BaseRequestItem<CreateCardItem>>({
             query: ({ collectionId, request }) => ({

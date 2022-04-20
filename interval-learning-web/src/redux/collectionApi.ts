@@ -38,22 +38,22 @@ const baseUrl = '/collections';
 export const collectionsApi = api.injectEndpoints({
     endpoints: (build) => ({
         getCollections: build.query<Collection[], void>({
-            query: () => ({ method: 'GET', url: baseUrl }),
+            query: () => ({
+                method: 'GET',
+                url: baseUrl,
+                onSuccess: async (dispatch, data) => {
+                    dispatch(setCollections(data as Collection[]));
+                },
+            }),
             providesTags: (result, error, arg) =>
                 result ? [...result.map((c) => ({ type: tagTypes.collection, id: c.id }))] : [],
-            async onQueryStarted(arg, { queryFulfilled, dispatch }) {
-                try {
-                    const result = await queryFulfilled;
-                    dispatch(setCollections(result.data));
-                } catch {}
-            },
         }),
         getCollection: build.query<Collection, GetCollectionQuery>({
             query: ({ collectionId }) => ({
                 url: `${baseUrl}/${collectionId}`,
                 method: 'GET',
-                onSuccess: async (dispatch, result) => {
-                    dispatch(setOneCollection(result as Collection));
+                onSuccess: async (dispatch, data) => {
+                    dispatch(setOneCollection(data as Collection));
                 },
             }),
             providesTags: (result, error, arg) => (result ? [{ type: tagTypes.collection, id: result.id }] : []),
@@ -71,9 +71,10 @@ export const collectionsApi = api.injectEndpoints({
             query: () => ({
                 url: `${baseUrl}/queue`,
                 method: 'GET',
-                onSuccess: async (dispatch, data) => {
-                    const response = data as QueueCollectionResponse;
-                },
+                // onSuccess: async (dispatch, data) => {
+                //     const response = data as QueueCollectionResponse;
+                //     response.
+                // },
             }),
         }),
         getNotFinished: build.query<GetNotFinishedResponse, GetNotFinishedRequest>({

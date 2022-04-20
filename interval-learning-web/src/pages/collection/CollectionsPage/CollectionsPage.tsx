@@ -54,4 +54,8 @@ const CollectionsPageContent: FC = () => {
     );
 };
 
-export const CollectionsPage = withQueryResolver(useGetCollectionsQuery)(CollectionsPageContent);
+const ConnectedCollection = withQueryResolver(useGetCollectionsQuery)(CollectionsPageContent);
+
+export const CollectionsPage: FC = () => {
+    return <ConnectedCollection queryArg={undefined} />;
+};
