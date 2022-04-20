@@ -29,6 +29,7 @@ public class CollectionEntity : IParentUserReference
     public DateTime CreatedDate { get; set; } = DateTime.UtcNow;//SystemClock.Instance.GetCurrentInstant();
 
     public short CardsCount { get; set; }
+    public short NotStartedCards { get; set; }
     public short StartedCards { get; set; }
     public short FinishedCards { get; set; }
 
