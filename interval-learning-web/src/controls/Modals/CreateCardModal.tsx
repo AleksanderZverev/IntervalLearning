@@ -94,6 +94,7 @@ export const CreateCardModal: FC<CreateCardModalProps> = (props) => {
                             error={!!errors.frontText}
                             errorMessage={errors.frontText?.message}
                             {...register('frontText')}
+                            autoFocus
                         />
                         <FormField
                             label="Значение"

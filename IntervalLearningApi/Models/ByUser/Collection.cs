@@ -15,13 +15,14 @@ public class Collection
     public short ThemeId { get; }
 
     public short CardsCount { get; }
+    public short NotStartedCards { get; set; }
     public short StartedCards { get; }
     public short FinishedCards { get; }
 
     public Collection(
         string parentUserId, short id, string title, DateTime createdAt,
         long defaultScheduleUserId, short defaultScheduleId, short themeId, 
-        short cardsCount, short startedCards, short finishedCards)
+        short cardsCount, short startedCards, short finishedCards, short notStartedCards)
     {
         ParentUserId = parentUserId;
         Id = id;
@@ -32,6 +33,7 @@ public class Collection
         CardsCount = cardsCount;
         StartedCards = startedCards;
         FinishedCards = finishedCards;
+        NotStartedCards = notStartedCards;
         DefaultScheduleUserId = defaultScheduleUserId;
     }
 }

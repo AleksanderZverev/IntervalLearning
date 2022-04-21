@@ -5,6 +5,9 @@ export const tagTypes = {
     collection: 'Collection',
     theme: 'Theme',
     card: 'Card',
+    notStartedCardsList: 'NotStartedCardsList',
+    queueCollectionsList: 'QueueCollectionsList',
+    notFinishedCollectionsList: 'NotFinishedCollectionsList',
 } as const;
 
 export type TagType = typeof tagTypes[keyof typeof tagTypes];

@@ -76,6 +76,7 @@ export const collectionsApi = api.injectEndpoints({
                 //     response.
                 // },
             }),
+            providesTags: [tagTypes.queueCollectionsList],
         }),
         getNotFinished: build.query<GetNotFinishedResponse, GetNotFinishedRequest>({
             query: (req) => ({ url: `${baseUrl}/not-finished?page=${req.page}&count=${req.count}`, method: 'GET' }),
@@ -88,6 +89,7 @@ export const collectionsApi = api.injectEndpoints({
                     dispatch(setCollections(notStartedCollections));
                 } catch {}
             },
+            providesTags: [tagTypes.notFinishedCollectionsList],
         }),
     }),
 });

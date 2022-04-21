@@ -8,6 +8,7 @@ export interface Collection {
     themeId: string;
     cardsCount: number;
     startedCards: number;
+    notStartedCards: number;
     finishedCards: number;
 }
 

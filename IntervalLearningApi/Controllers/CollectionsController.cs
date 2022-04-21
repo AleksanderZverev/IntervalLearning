@@ -93,7 +93,8 @@ namespace IntervalLearningApi.Controllers
                 c.ThemeId,
                 c.CardsCount,
                 c.StartedCards,
-                c.FinishedCards
+                c.FinishedCards,
+                c.NotStartedCards
             );
         }
 

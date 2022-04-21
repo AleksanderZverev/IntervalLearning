@@ -18,13 +18,17 @@ export const CollectionRow: FC<CollectionRowProps> = ({ collection }) => {
         selectScheduleById(state, getScheduleId(collection.defaultScheduleUserId, collection.defaultScheduleId))
     );
 
+    const learnedCards = collection.startedCards + collection.finishedCards;
+    const clickable = learnedCards < collection.cardsCount;
+
     const onClick = () => {
-        navigate(`/learning/learn/${collection.userId}-${collection.id}`);
+        if (clickable) {
+            navigate(`/learning/learn/${collection.userId}-${collection.id}`);
+        }
     };
 
-    const learnedCards = collection.startedCards + collection.finishedCards;
     return (
-        <TableRow onClick={onClick} style={{ cursor: 'pointer' }}>
+        <TableRow onClick={onClick} style={{ cursor: clickable ? 'pointer' : undefined }}>
             <TableCell>{collection.title}</TableCell>
             <TableCell>
                 {collection.cardsCount > 0 ? `${learnedCards}/${collection.cardsCount}` : 'пустая коллекция'}

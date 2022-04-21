@@ -3,7 +3,7 @@ import useTypedSelector from '../../../hooks/useTypedSelector';
 import { selectNotStartedCardsIds } from '../../../redux/slices/notStartedCardsSlice';
 import { useNavigate, useParams } from 'react-router-dom';
 import { selectCollectionById } from '../../../redux/slices/collectionsSlice';
-import { withQueryResolver } from '../../../hoc/withQueryResolver';
+import { withOtherQueryResolver, withQueryResolver } from '../../../hoc/withQueryResolver';
 import { CardsItem, useGetNotStartedCardsQuery, useStartCardsMutation } from '../../../redux/cardsApi';
 import { PageContainer } from '../../../controls/PageContainer/PageContainer';
 import { PageHeader } from '../../../controls/PageHeader/PageHeader';
@@ -13,6 +13,7 @@ import { Slider } from '../../../controls/Slider/Slider';
 import { Button } from '@mui/material';
 import { LearnCard } from './LearnCard/LearnCard';
 import { ErrorModal } from '../../../controls/Modals/ErrorModal';
+import { useGetCollectionQuery } from '../../../redux/collectionApi';
 
 interface LearnCollectionPageContentProps {}
 
@@ -32,14 +33,15 @@ export const LearnCollectionPageContent: FC<LearnCollectionPageContentProps> = (
     const theme = useTypedSelector((state) => selectTheme(state, collection.themeId));
     const notStartedCards = useTypedSelector(selectNotStartedCardsIds);
 
-    if (notStartedCards.length === 0) {
-        throw new Error();
-    }
-
     const navigate = useNavigate();
     const [startCards, { isLoading, isSuccess }] = useStartCardsMutation();
     const [showErrorModal, setShowErrorModal] = useState(false);
     const [cardIndex, setCardIndex] = useState(0);
+
+    if (notStartedCards.length === 0) {
+        return <div>No cards</div>;
+    }
+
     const maxCards = notStartedCards.length;
 
     const currentCard = notStartedCards[cardIndex];
@@ -123,6 +125,7 @@ export const LearnCollectionPageContent: FC<LearnCollectionPageContentProps> = (
 };
 
 const ConnectedLearnCollectionPage = withQueryResolver(useGetNotStartedCardsQuery)(LearnCollectionPageContent);
+const ConnectedOtherResolver = withOtherQueryResolver(useGetCollectionQuery)(ConnectedLearnCollectionPage);
 
 export const LearnCollection: FC = () => {
     const { userId, collectionId } = useParams();
@@ -131,5 +134,5 @@ export const LearnCollection: FC = () => {
         throw new Error();
     }
 
-    return <ConnectedLearnCollectionPage queryArg={{ userId, collectionId, request: undefined }} />;
+    return <ConnectedOtherResolver queryArg={{ userId, collectionId, request: undefined }} />;
 };

@@ -1,5 +1,6 @@
 ﻿using DB;
 using DB.Models;
+using Microsoft.AspNetCore.Razor.TagHelpers;
 using Microsoft.EntityFrameworkCore;
 
 namespace IntervalLearningApi.Services;
@@ -230,7 +231,8 @@ public class CardsService
             if (cardEntity.IsFinished == isFinished)
             {
                 logger.LogWarning("ChangeState: карта уже имеет такое состояние");
-                continue;
+                throw new InvalidOperationException();
+                //continue;
             }
 
             metadataService.CardStateChanged(metadata, collection, cardEntity.IsFinished, isFinished);

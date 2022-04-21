@@ -95,8 +95,6 @@ export const RepeatCollectionPageContent: FC<RepeatCollectionPageContentProps> =
         setCardIndex(cardIndex - 1);
     };
 
-    console.log('notActiveIndex', notActiveIndex, rememberWeights);
-
     const isEmptyCollection = repeatCards.length === 0;
     return (
         <PageContainer transparent>

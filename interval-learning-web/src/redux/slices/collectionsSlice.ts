@@ -5,10 +5,17 @@ import { Collection } from '../../types/Collection';
 export const getCollectionKey = (userId: string, collectionId: string) => `${userId}-${collectionId}`;
 
 const adapter = createEntityAdapter<Collection>({ selectId: (c) => getCollectionKey(c.userId, c.id) });
+const { selectAll, selectById } = adapter.getSelectors();
 
 interface CardAddedItem {
     userId: string;
     collectionId: string;
+}
+
+export interface AddStartedCards {
+    userId: string;
+    collectionId: string;
+    startedCards: number;
 }
 
 export const collectionSlice = createSlice({
@@ -30,12 +37,20 @@ export const collectionSlice = createSlice({
             }
             collection.cardsCount++;
         },
+        addStartedCards: (state, action: PayloadAction<AddStartedCards>) => {
+            const { userId, collectionId, startedCards } = action.payload;
+
+            const collection = selectById(state, getCollectionKey(userId, collectionId));
+
+            if (collection) {
+                collection.startedCards += startedCards;
+                collection.notStartedCards -= startedCards;
+            }
+        },
     },
 });
 
-export const { setCollections, setOneCollection, cardAddedToCollection } = collectionSlice.actions;
-
-const { selectAll, selectById } = adapter.getSelectors();
+export const { setCollections, setOneCollection, cardAddedToCollection, addStartedCards } = collectionSlice.actions;
 
 export const { selectCollections, selectCollectionById } = {
     selectCollections: (state: RootState) => selectAll(state.collections),
