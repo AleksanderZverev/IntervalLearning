@@ -26,6 +26,7 @@ import duration from 'dayjs/plugin/duration';
 import relativeTime from 'dayjs/plugin/relativeTime';
 import localizedFormat from 'dayjs/plugin/localizedFormat';
 import 'dayjs/locale/ru';
+import { NextComponentType } from 'next';
 
 dayjs.extend(duration);
 dayjs.extend(relativeTime);
@@ -35,10 +36,14 @@ dayjs.locale('ru');
 
 const clientSideEmotionCache = createEmotionCache();
 
-interface MyAppProps extends AppProps {
+export type NextComponentProps = NextComponentType & {
     isServerSide: boolean;
+};
+
+interface MyAppProps extends AppProps {
     url: string;
     emotionCache?: EmotionCache;
+    Component: NextComponentProps;
 }
 
 const fetchStartData = async (dispatch: AppDispatch) => {
@@ -47,7 +52,7 @@ const fetchStartData = async (dispatch: AppDispatch) => {
 };
 
 function MyApp(props: MyAppProps) {
-    const { Component, emotionCache = clientSideEmotionCache, url, isServerSide, pageProps } = props;
+    const { Component, emotionCache = clientSideEmotionCache, url, pageProps } = props;
 
     const currentUser = useTypedSelector(selectCurrentUser);
     const dispatch = useTypedDispatch();
@@ -57,7 +62,8 @@ function MyApp(props: MyAppProps) {
         dispatch(fetchStartData);
     });
 
-    const Router = url !== undefined ? StaticRouter : BrowserRouter;
+    const isServerSide = typeof window === 'undefined';
+    const Router = isServerSide ? StaticRouter : BrowserRouter;
 
     return (
         <Router location={url}>
@@ -70,7 +76,7 @@ function MyApp(props: MyAppProps) {
                     <CssBaseline />
                     <ErrorHandler>
                         <WebHeader isServerSide={isServerSide} />
-                        <Component {...pageProps} />
+                        <Component isServerSide={isServerSide} {...pageProps} />
                     </ErrorHandler>
                 </ThemeProvider>
             </CacheProvider>
@@ -81,10 +87,9 @@ function MyApp(props: MyAppProps) {
 MyApp.getInitialProps = async (appContext: AppContext) => {
     // calls page's `getInitialProps` and fills `appProps.pageProps`
     const appProps = await App.getInitialProps(appContext);
-    const url = appContext.ctx.req?.url;
-    const isServerSide = Boolean(url);
+    const url = appContext.ctx.req?.url ?? '';
 
-    return { ...appProps, url, isServerSide };
+    return { ...appProps, url };
 };
 const wrappedApp = wrapper.withRedux(MyApp);
 
