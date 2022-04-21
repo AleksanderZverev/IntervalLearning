@@ -1,8 +1,6 @@
-﻿using System.Diagnostics;
-using DB;
+﻿using DB;
 using DB.Models;
 using Microsoft.EntityFrameworkCore;
-using NodaTime;
 
 namespace IntervalLearningApi.Services;
 
@@ -177,6 +175,11 @@ public class CardsService
 
     private (bool ok, string? reason) ChangeState(long userId, short collectionId, short cardId, bool? isFinished)
     {
+        var collection = db.Collections.Find(userId, collectionId);
+
+        if (collection == null)
+            return (false, "card's collection not found");
+
         var cardEntity = db.Cards.Find(userId, collectionId, cardId);
 
         if (cardEntity == null)
@@ -186,7 +189,7 @@ public class CardsService
             return (true, null);
 
         var metadata = metadataService.GetMetadata(userId);
-        metadataService.CardStateChanged(metadata, cardEntity.IsFinished, isFinished);
+        metadataService.CardStateChanged(metadata, collection, cardEntity.IsFinished, isFinished);
 
         cardEntity.IsFinished = isFinished;
         db.SaveChanges();
@@ -196,6 +199,11 @@ public class CardsService
 
     private (bool ok, string? reason) ChangeStates(long userId, short collectionId, List<short> cardIds, bool? isFinished)
     {
+        var collection = db.Collections.Find(userId, collectionId);
+
+        if (collection == null)
+            return (false, "card's collection not found");
+
         var cards = db.Cards
             .Where(c => c.ParentUserId == userId
                         && c.ParentCollectionId == collectionId
@@ -225,11 +233,12 @@ public class CardsService
                 continue;
             }
 
-            metadataService.CardStateChanged(metadata, cardEntity.IsFinished, isFinished);
+            metadataService.CardStateChanged(metadata, collection, cardEntity.IsFinished, isFinished);
             cardEntity.IsFinished = isFinished;
             db.Attach(cardEntity).Property(c => c.IsFinished).IsModified = true;
         }
 
+        db.Entry(collection).State = EntityState.Modified;
         db.Entry(metadata).State = EntityState.Modified;
         db.SaveChanges();
 
@@ -260,8 +269,6 @@ public class CardsService
 
             var nextPhase = schedule.Phases[nextPhaseIndex];
             var nextRepeatDate = DateTime.UtcNow.AddSeconds(nextPhase.SecondsFromLastPhase);
-            //SystemClock.Instance.GetCurrentInstant() +
-            //                     Duration.FromSeconds(nextPhase.SecondsFromLastPhase);
 
             return new CardRepeatQueueEntity(
                 userId,
@@ -286,6 +293,13 @@ public class CardsService
     {
         var now = DateTime.UtcNow;
         var cardIds = rememberItems.Select(c => c.CardId).ToList();
+
+        var collection = await db.Collections.FindAsync(userId, collectionId);
+
+        if (collection == null)
+        {
+            return (false, "card's collection not found");
+        }
 
         var queueItems = await db.Queue
             .Where(q => q.ParentUserId == userId
@@ -335,7 +349,7 @@ public class CardsService
             
             if (remember.PhaseStep >= schedule.Phases.Count)
             {
-                metadataService.CardStateChanged(metadata, card.IsFinished, true);
+                metadataService.CardStateChanged(metadata, collection, card.IsFinished, true);
                 card.IsFinished = true;
                 continue;
             }
@@ -353,6 +367,7 @@ public class CardsService
             db.Entry(queueItem).State = EntityState.Deleted;
             db.Entry(newQueueItem).State = EntityState.Added;
             db.Entry(metadata).State = EntityState.Modified;
+            db.Entry(collection).State = EntityState.Modified;
         }
 
 

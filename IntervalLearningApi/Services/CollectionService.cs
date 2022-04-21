@@ -84,10 +84,13 @@ public class CollectionService
         if (skip > (metadata.NotStartedCollections + metadata.StartedCollections))
             return (new List<CollectionEntity>(0), new List<CollectionEntity>(0));
 
-        if (totalCollections <= metadata.StartedCollections)
+        var startedCollections = await db.Collections
+            .Where(c => c.NotStartedCards != 0 && c.StartedCards > 0)
+            .ToListAsync();
+
+        if (totalCollections <= startedCollections.Count)
         {
-            var started = db.Collections
-                .Where(c => c.IsFinished != null && c.IsFinished == false)
+            var started = startedCollections
                 .Skip(skip)
                 .Take(count)
                 .ToList();
@@ -95,34 +98,33 @@ public class CollectionService
             return (started, new List<CollectionEntity>(0));
         }
 
-        var notStartedCollectionsToTake = totalCollections - metadata.StartedCollections;
+        var notStartedCollectionsToTake = totalCollections - startedCollections.Count;
 
         if (notStartedCollectionsToTake <= count)
         {
-            var startedCollections = db.Collections
-                .Where(c => c.IsFinished != null && c.IsFinished == false)
+            var started = startedCollections
                 .Skip(skip)
                 .Take(count)
                 .ToList();
 
-            var notStartedCollections = db.Collections
-                .Where(c => c.IsFinished == null)
+            var notStarted = await db.Collections
+                .Where(c => c.NotStartedCards == 0)
                 .Take(notStartedCollectionsToTake)
-                .ToList();
+                .ToListAsync();
 
-            return (startedCollections, notStartedCollections);
+            return (started, notStarted);
         }
         
         var newPage = (int) Math.Ceiling((double) metadata.NotStartedCollections / count);
         var newSkip = (skip - metadata.NotStartedCollections) + ((newPage - 1) * count);
 
-        var notStarted = db.Collections
-            .Where(c => c.IsFinished == null)
+        var notStartedCollections = db.Collections
+            .Where(c => c.NotStartedCards == 0)
             .Skip(newSkip)
             .Take(count)
             .ToList();
 
-        return (new List<CollectionEntity>(0), notStarted);
+        return (new List<CollectionEntity>(0), notStartedCollections);
     }
 
     public (CollectionEntity? collection, string? error) Create(
@@ -181,6 +183,7 @@ public class CollectionService
         }
 
         collection.CardsCount++;
+        collection.NotStartedCards++;
         db.SaveChanges();
 
         db.Database.CommitTransaction();

@@ -18,7 +18,7 @@ namespace IntervalLearningApi.Services
             return metadata;
         }
 
-        public void CardStateChanged(UserMetadataEntity metadata, bool? lastState, bool? newState)
+        public void CardStateChanged(UserMetadataEntity metadata, CollectionEntity collection, bool? lastState, bool? newState)
         {
             var prevState = ToState(lastState);
             var nextState = ToState(newState);
@@ -33,21 +33,39 @@ namespace IntervalLearningApi.Services
                 {
                     case State.NotStarted:
                         if (isIncrement)
+                        {
                             metadata.NotStartedCards++;
+                            collection.NotStartedCards++;
+                        }
                         else
+                        {
                             metadata.NotStartedCards--;
+                            collection.NotStartedCards--;
+                        }
                         break;
                     case State.Started:
                         if (isIncrement)
+                        {
                             metadata.StartedCards++;
+                            collection.StartedCards++;
+                        }
                         else
+                        {
                             metadata.StartedCards--;
+                            collection.StartedCards--;
+                        }
                         break;
                     case State.Finished:
                         if (isIncrement)
+                        {
                             metadata.FinishedCards++;
+                            collection.FinishedCards++;
+                        }
                         else
+                        {
                             metadata.FinishedCards--;
+                            collection.FinishedCards--;
+                        }
                         break;
                     default:
                         throw new ArgumentOutOfRangeException(nameof(state), state, null);
