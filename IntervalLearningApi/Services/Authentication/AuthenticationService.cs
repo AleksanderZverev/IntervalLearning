@@ -80,6 +80,19 @@ public class AuthenticationService : IAuthenticationService
         return Authenticate(user, ipAddress);
     }
 
+    public AuthenticateResponse? TryAuthenticateByOldToken(string jwtToken, string refreshToken)
+    {
+        var userId = jwtService.ValidateJwtToken(jwtToken, DateTime.UtcNow.AddMinutes(5));
+
+        if (userId == null)
+        {
+            return null;
+        }
+
+        var user = db.Users.Single(u => u.Id == userId);
+        return new AuthenticateResponse(user, jwtToken, refreshToken);
+    }
+
     private AuthenticateResponse Authenticate(UserEntity user, string ipAddress)
     {
         var jwtToken = jwtService.GenerateJwtToken(user);
@@ -93,7 +106,7 @@ public class AuthenticationService : IAuthenticationService
         return new AuthenticateResponse(user, jwtToken, refreshToken.Token);
     }
 
-    public AuthenticateResponse RefreshToken(string refreshToken, string ipAddress)
+    public AuthenticateResponse? RefreshToken(string refreshToken, string ipAddress)
     {
         var user = GetUserByRefreshToken(refreshToken);
         var refreshTokenItem = user.RefreshTokens.Single(x => x.Token == refreshToken);
@@ -106,8 +119,10 @@ public class AuthenticationService : IAuthenticationService
         }
 
         if (!refreshTokenItem.IsActive)
-            throw new AppException("Invalid token");
+            return null;
         
+
+
         var newRefreshToken = ReplaceOldRefreshToken(user, refreshTokenItem, ipAddress);
         user.RefreshTokens.Add(newRefreshToken);
         
@@ -115,6 +130,7 @@ public class AuthenticationService : IAuthenticationService
         db.SaveChanges();
 
         var jwtToken = jwtService.GenerateJwtToken(user);
+
         return new AuthenticateResponse(user, jwtToken, newRefreshToken.Token);
     }
 

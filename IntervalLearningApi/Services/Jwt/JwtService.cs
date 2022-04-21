@@ -27,7 +27,6 @@ public class JwtService : IJwtService
 
     public string GenerateJwtToken(UserEntity userEntity)
     {
-        const int tokenTtlInMinutes = 15;
 
         var tokenHandler = new JwtSecurityTokenHandler();
         var securityKey = Encoding.ASCII.GetBytes(jwtSettings.Secret);
@@ -35,7 +34,7 @@ public class JwtService : IJwtService
         var tokenDescriptor = new SecurityTokenDescriptor
         {
             Subject = new ClaimsIdentity(GetClaims(userEntity)),
-            Expires = DateTime.UtcNow.AddMinutes(tokenTtlInMinutes),
+            Expires = DateTime.UtcNow.AddMinutes(jwtSettings.JwtTokenTTLInMinutes),
             SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(securityKey), SecurityAlgorithms.HmacSha256Signature)
         };
 
@@ -43,7 +42,7 @@ public class JwtService : IJwtService
         return tokenHandler.WriteToken(token);
     }
 
-    public long? ValidateJwtToken(string token)
+    public long? ValidateJwtToken(string token, DateTime? notValidTill = null)
     {
         var tokenHandler = new JwtSecurityTokenHandler();
         var securityKey = Encoding.ASCII.GetBytes(jwtSettings.Secret);
@@ -60,8 +59,16 @@ public class JwtService : IJwtService
             }, out var validatedToken);
 
             var jwtToken = (JwtSecurityToken)validatedToken;
+
+            var expireTime = jwtToken.IssuedAt.AddMinutes(jwtSettings.JwtTokenTTLInMinutes);
+
+            if (notValidTill != null && expireTime <= notValidTill)
+            {
+                return null;
+            }
+
             var userId = long.Parse(jwtToken.Claims.First(x => x.Type == IdClaimType).Value);
-            
+
             return userId;
         }
         catch

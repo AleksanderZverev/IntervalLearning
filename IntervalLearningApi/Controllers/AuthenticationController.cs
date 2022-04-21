@@ -12,6 +12,7 @@ namespace IntervalLearningApi.Controllers;
 public class AuthenticationController : ControllerBase
 {
     private const string RefreshTokenKey = "refreshToken";
+    private const string JwtTokenKey = "jwtToken";
 
     private readonly IAuthenticationService authService;
     private readonly UserService userService;
@@ -41,20 +42,32 @@ public class AuthenticationController : ControllerBase
     {
         var response = authService.Authenticate(model, GetSourceIpAddress());
         SetRefreshTokenCookie(response.RefreshToken);
+        SetJwtTokenCookie(response.JwtToken);
         return Ok(response);
     }
 
     [AllowAnonymous]
     [HttpPost("refresh-token")]
-    public IActionResult RefreshToken()
+    public ActionResult<AuthenticateResponse> RefreshToken()
     {
+        var jwtToken = GetJwtToken(Request);
         var refreshToken = GetRefreshToken(Request);
 
-        if (string.IsNullOrEmpty(refreshToken))
+        if (string.IsNullOrEmpty(jwtToken) || string.IsNullOrEmpty(refreshToken))
             return BadRequest();
 
+        var oldResponse = authService.TryAuthenticateByOldToken(jwtToken, refreshToken);
+
+        if (oldResponse != null)
+            return Ok(oldResponse);
+
         var response = authService.RefreshToken(refreshToken, GetSourceIpAddress());
+
+        if (response == null)
+            return BadRequest();
+
         SetRefreshTokenCookie(response.RefreshToken);
+        SetJwtTokenCookie(response.JwtToken);
         return Ok(response);
     }
 
@@ -70,16 +83,10 @@ public class AuthenticationController : ControllerBase
         return Ok();
     }
 
-    [HttpGet("{id}/refresh-tokens")]
-    public IActionResult GetRefreshTokens(int id)
-    {
-        var user = userService.GetById(id);
-        return Ok(user.RefreshTokens);
-    }
-
+    private static string? GetJwtToken(HttpRequest req) => req.Cookies[JwtTokenKey];
     private static string? GetRefreshToken(HttpRequest req) => req.Cookies[RefreshTokenKey];
 
-    private void SetRefreshTokenCookie(string token)
+    private void SetRefreshTokenCookie(string refreshToken)
     {
         var cookieOptions = new CookieOptions
         {
@@ -87,7 +94,18 @@ public class AuthenticationController : ControllerBase
             Expires = DateTime.UtcNow.AddDays(jwtSettings.RefreshTokenTTLInDays)
         };
 
-        Response.Cookies.Append(RefreshTokenKey, token, cookieOptions);
+        Response.Cookies.Append(RefreshTokenKey, refreshToken, cookieOptions);
+    }
+
+    private void SetJwtTokenCookie(string jwtToken)
+    {
+        var cookieOptions = new CookieOptions
+        {
+            HttpOnly = true,
+            Expires = DateTime.UtcNow.AddMinutes(jwtSettings.JwtTokenTTLInMinutes)
+        };
+
+        Response.Cookies.Append(JwtTokenKey, jwtToken, cookieOptions);
     }
 
     private string GetSourceIpAddress()

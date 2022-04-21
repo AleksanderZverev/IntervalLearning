@@ -13,4 +13,5 @@ public class JwtSettings
 
     public string Secret { get; set; }
     public int RefreshTokenTTLInDays { get; set; }
+    public int JwtTokenTTLInMinutes { get; set; }
 }

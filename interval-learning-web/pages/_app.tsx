@@ -1,8 +1,7 @@
 import '../styles/globals.css';
 import type { AppContext, AppProps } from 'next/app';
 import WebHeader from '../src/controls/WebHeader/WebHeader';
-
-import * as React from 'react';
+import React from 'react';
 import Head from 'next/head';
 import { ThemeProvider } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
@@ -54,9 +53,9 @@ const fetchStartData = async (dispatch: AppDispatch) => {
 function MyApp(props: MyAppProps) {
     const { Component, emotionCache = clientSideEmotionCache, url, pageProps } = props;
 
-    const currentUser = useTypedSelector(selectCurrentUser);
+    //const currentUser = useTypedSelector(selectCurrentUser);
     const dispatch = useTypedDispatch();
-    useAutoAuthorization(currentUser, dispatch);
+    // useAutoAuthorization(currentUser, dispatch);
 
     useOnMount(() => {
         dispatch(fetchStartData);
