@@ -32,7 +32,8 @@ public class RepeatsScheduleEntity : IParentUserReference
     [MaxLength(50)]
     public virtual List<PhaseEntity> Phases { get; set; }
 
-    public bool IsArchived{ get; set; }
+    public bool IsArchived { get; set; }
+    public bool IsRecommended { get; set; }
 
     public long ParentUserId { get; set; }
     public UserEntity? ParentUser { get; set; }

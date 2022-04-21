@@ -66,6 +66,7 @@ namespace IntervalLearningApi.Controllers
                 schedule.CardsCountPerPhase,
                 schedule.Description,
                 schedule.ForgottenBehavior,
+                schedule.IsRecommended,
                 schedule.Phases.Select(ToPhase).ToList());
         }
 

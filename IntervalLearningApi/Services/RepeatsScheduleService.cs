@@ -16,9 +16,8 @@ public class RepeatsScheduleService
 
     public List<RepeatsScheduleEntity> GetAll(long userId) 
         => db.RepeatsSchedules
-            .Where(s => s.ParentUserId == userId)
+            .Where(s => s.ParentUserId == userId || s.IsRecommended)
             .Include(s => s.Phases)
-            .AsNoTracking()
             .ToList();
 
     public (RepeatsScheduleEntity? schedule, string? error) Create(

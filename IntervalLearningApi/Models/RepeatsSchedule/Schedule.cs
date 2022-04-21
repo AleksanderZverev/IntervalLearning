@@ -11,17 +11,20 @@ public class Schedule
     public string Title { get; }
     public short CardsCountPerPhase { get; }
     public string? Description { get; }
+    public bool IsRecommended { get; }
     public int ForgottenBehavior { get; }
+    
     public List<Phase> Phases { get; }
 
     public Schedule(string parentUserId, short id, string title, short cardsCountPerPhase, string? description,
-        ForgottenBehavior forgottenBehavior, List<Phase> phases)
+        ForgottenBehavior forgottenBehavior, bool isRecommended, List<Phase> phases)
     {
         ParentUserId = parentUserId;
         Id = id;
         Title = title;
         CardsCountPerPhase = cardsCountPerPhase;
         Description = description;
+        IsRecommended = isRecommended;
         ForgottenBehavior = (int)forgottenBehavior;
         Phases = phases;
     }

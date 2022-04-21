@@ -5,6 +5,7 @@ export interface Schedule {
     description: string | null;
     cardsCountPerPhase: number;
     forgottenBehavior: ForgottenBehavior;
+    isRecommended: boolean;
     phases: PhaseInfo[];
 }
 
