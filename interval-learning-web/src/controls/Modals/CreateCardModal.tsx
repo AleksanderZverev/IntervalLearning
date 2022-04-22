@@ -117,7 +117,6 @@ export const CreateCardModal: FC<CreateCardModalProps> = (props) => {
                         <FormFiledLabel label="Примеры" />
                         <div style={{ display: 'flex', flexDirection: 'column' }}>
                             {fields.map((f, i) => {
-                                console.log('f-' + i, f);
                                 return (
                                     <div key={f.id}>
                                         <IconFormField
@@ -136,7 +135,9 @@ export const CreateCardModal: FC<CreateCardModalProps> = (props) => {
                 </FormProvider>
             </DialogContent>
             <DialogActions>
-                <Button onClick={handleSubmit(onCreate)}>Создать</Button>
+                <Button onClick={handleSubmit(onCreate)} disabled={isLoading}>
+                    Создать
+                </Button>
             </DialogActions>
         </Dialog>
     );

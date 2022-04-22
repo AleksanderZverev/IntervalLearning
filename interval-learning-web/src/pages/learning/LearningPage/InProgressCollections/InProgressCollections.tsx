@@ -43,18 +43,24 @@ export const InProgressCollections: FC = () => {
                     {Object.entries(dateToCollectionsQueue).map((pair) => {
                         const [dateString, collectionsQueue] = pair;
                         const date = dayjs(dateString);
-                        const isWarn = now.isAfter(date);
+                        const isWarn = now.isAfter(date, 'd');
+                        const isToday = now.isSame(date, 'd');
+                        const isTomorrow = now.add(dayjs.duration(1, 'd')).isSame(date, 'd');
 
                         return (
                             <Fragment key={dateString}>
                                 <TableRow borderless>
                                     <TableCell
-                                        className={classNames({ [styles.warn]: isWarn })}
+                                        className={classNames({ [styles.warn]: isWarn, [styles.today]: isToday })}
                                         colSpan={4}
                                         fontSize={14}
                                     >
-                                        {isWarn
+                                        {isToday
+                                            ? 'Сегодня'
+                                            : isWarn
                                             ? `Просрочено на ${getDifferenceString(now, date)}`
+                                            : isTomorrow
+                                            ? 'Завтра'
                                             : `Через ${getDifferenceString(date, now)}`}
                                     </TableCell>
                                 </TableRow>

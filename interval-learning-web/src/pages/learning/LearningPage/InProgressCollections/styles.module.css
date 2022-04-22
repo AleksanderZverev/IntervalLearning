@@ -14,6 +14,10 @@
     color: #dc5d5d;
 }
 
+.today {
+    color: #05c953;
+}
+
 .subLabel {
     margin-top: 10px;
     grid-column: span 4;

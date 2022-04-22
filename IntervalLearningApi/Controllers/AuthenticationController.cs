@@ -53,10 +53,12 @@ public class AuthenticationController : ControllerBase
         var jwtToken = GetJwtToken(Request);
         var refreshToken = GetRefreshToken(Request);
 
-        if (string.IsNullOrEmpty(jwtToken) || string.IsNullOrEmpty(refreshToken))
+        if (string.IsNullOrEmpty(refreshToken))
             return BadRequest();
 
-        var oldResponse = authService.TryAuthenticateByOldToken(jwtToken, refreshToken);
+        var oldResponse = string.IsNullOrEmpty(jwtToken)
+            ? null
+            : authService.TryAuthenticateByOldToken(jwtToken, refreshToken);
 
         if (oldResponse != null)
             return Ok(oldResponse);

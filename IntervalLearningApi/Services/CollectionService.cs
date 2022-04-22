@@ -81,8 +81,8 @@ public class CollectionService
         var totalCollections = page * count;
         var skip = (page - 1) * count;
 
-        if (skip > (metadata.NotStartedCollections + metadata.StartedCollections))
-            return (new List<CollectionEntity>(0), new List<CollectionEntity>(0));
+        //if (skip > (metadata.NotStartedCollections + metadata.StartedCollections))
+        //    return (new List<CollectionEntity>(0), new List<CollectionEntity>(0));
 
         var startedCollections = await db.Collections
             .Where(c => c.NotStartedCards != 0 && c.StartedCards > 0)
@@ -108,7 +108,7 @@ public class CollectionService
                 .ToList();
 
             var notStarted = await db.Collections
-                .Where(c => c.NotStartedCards == 0)
+                .Where(c => c.NotStartedCards > 0 && c.StartedCards == 0)
                 .Take(notStartedCollectionsToTake)
                 .ToListAsync();
 

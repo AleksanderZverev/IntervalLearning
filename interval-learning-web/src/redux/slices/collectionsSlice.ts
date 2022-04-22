@@ -32,20 +32,36 @@ export const collectionSlice = createSlice({
             const { userId, collectionId } = action.payload;
             const key = getCollectionKey(userId, collectionId);
             const collection = selectById(state, key);
-            if (collection === undefined) {
-                throw new Error('collection not found');
+
+            if (!collection) {
+                console.error('REDUX: collection not found');
+                return;
             }
-            collection.cardsCount++;
+
+            adapter.updateOne(state, {
+                id: key,
+                changes: {
+                    cardsCount: collection.cardsCount + 1,
+                    notStartedCards: collection.notStartedCards + 1,
+                },
+            });
         },
         addStartedCards: (state, action: PayloadAction<AddStartedCards>) => {
             const { userId, collectionId, startedCards } = action.payload;
-
+            const key = getCollectionKey(userId, collectionId);
             const collection = selectById(state, getCollectionKey(userId, collectionId));
 
-            if (collection) {
-                collection.startedCards += startedCards;
-                collection.notStartedCards -= startedCards;
+            if (!collection) {
+                console.error('REDUX: collection not found');
+                return;
             }
+            adapter.updateOne(state, {
+                id: key,
+                changes: {
+                    startedCards: collection.startedCards + startedCards,
+                    notStartedCards: collection.notStartedCards - startedCards,
+                },
+            });
         },
     },
 });
