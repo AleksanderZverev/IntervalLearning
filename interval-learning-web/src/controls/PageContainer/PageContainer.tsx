@@ -1,5 +1,5 @@
 import { FC, PropsWithChildren } from 'react';
-import { Box, Container } from '@mui/material';
+import { Container } from '@mui/material';
 
 interface PageContainerProps {
     transparent?: boolean;
@@ -7,19 +7,23 @@ interface PageContainerProps {
 
 export const PageContainer: FC<PropsWithChildren<PageContainerProps>> = ({ transparent, children }) => {
     return (
-        <div style={{ marginTop: '10px', width: '100%', height: '100%' }}>
-            <Container maxWidth="lg" sx={{ height: '100%' }}>
-                <Box
-                    sx={{
-                        backgroundColor: transparent ? undefined : 'white',
-                        height: 'inherit',
-                        display: 'flex',
-                        flexDirection: 'column',
-                    }}
-                >
-                    {children}
-                </Box>
-            </Container>
-        </div>
+        <Container
+            maxWidth="lg"
+            sx={{
+                marginTop: '10px',
+                backgroundColor: transparent ? undefined : 'white',
+                height: '100%',
+            }}
+            style={{ padding: 0 }}
+        >
+            <div
+                style={{
+                    backgroundColor: transparent ? undefined : 'white',
+                    padding: '20px 50px',
+                }}
+            >
+                {children}
+            </div>
+        </Container>
     );
 };

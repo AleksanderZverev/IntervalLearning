@@ -22,20 +22,18 @@ export const NotFinishedCollections: FC = () => {
     const collections = [...startedCollections, ...notStartedCollections];
 
     return (
-        <div style={{ padding: '20px 50px 0' }}>
-            <Table>
-                <TableHead>
-                    <TableHeaderCell>Название</TableHeaderCell>
-                    <TableHeaderCell>Изучено</TableHeaderCell>
-                    <TableHeaderCell>Слов в этапе</TableHeaderCell>
-                    <TableHeaderCell>Тип</TableHeaderCell>
-                </TableHead>
-                <TableBody>
-                    {collections.map((c) => (
-                        <CollectionRow key={c.id} collection={c} />
-                    ))}
-                </TableBody>
-            </Table>
-        </div>
+        <Table>
+            <TableHead borderless>
+                <TableHeaderCell>Название</TableHeaderCell>
+                <TableHeaderCell>Изучено</TableHeaderCell>
+                <TableHeaderCell>Слов в этапе</TableHeaderCell>
+                <TableHeaderCell>Тип</TableHeaderCell>
+            </TableHead>
+            <TableBody>
+                {collections.map((c) => (
+                    <CollectionRow key={c.id} collection={c} />
+                ))}
+            </TableBody>
+        </Table>
     );
 };

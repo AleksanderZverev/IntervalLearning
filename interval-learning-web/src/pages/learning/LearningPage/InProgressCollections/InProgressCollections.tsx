@@ -31,62 +31,60 @@ export const InProgressCollections: FC = () => {
     const now = dayjs();
 
     return (
-        <div style={{ padding: '20px 50px 0' }}>
-            <Table>
-                <TableHead borderless>
-                    <TableHeaderCell></TableHeaderCell>
-                    <TableHeaderCell>Изучено</TableHeaderCell>
-                    <TableHeaderCell>Слов в этапе</TableHeaderCell>
-                    <TableHeaderCell>Тип</TableHeaderCell>
-                </TableHead>
-                <TableBody>
-                    {Object.entries(dateToCollectionsQueue).map((pair) => {
-                        const [dateString, collectionsQueue] = pair;
-                        const date = dayjs(dateString);
-                        const isWarn = now.isAfter(date, 'd');
-                        const isToday = now.isSame(date, 'd');
-                        const isTomorrow = now.add(dayjs.duration(1, 'd')).isSame(date, 'd');
+        <Table>
+            <TableHead>
+                <TableHeaderCell></TableHeaderCell>
+                <TableHeaderCell>Изучено</TableHeaderCell>
+                <TableHeaderCell>Слов в этапе</TableHeaderCell>
+                <TableHeaderCell>Тип</TableHeaderCell>
+            </TableHead>
+            <TableBody>
+                {Object.entries(dateToCollectionsQueue).map((pair) => {
+                    const [dateString, collectionsQueue] = pair;
+                    const date = dayjs(dateString);
+                    const isWarn = now.isAfter(date, 'd');
+                    const isToday = now.isSame(date, 'd');
+                    const isTomorrow = now.add(dayjs.duration(1, 'd')).isSame(date, 'd');
 
-                        return (
-                            <Fragment key={dateString}>
-                                <TableRow borderless>
-                                    <TableCell
-                                        className={classNames({ [styles.warn]: isWarn, [styles.today]: isToday })}
-                                        colSpan={4}
-                                        fontSize={14}
+                    return (
+                        <Fragment key={dateString}>
+                            <TableRow borderless>
+                                <TableCell
+                                    className={classNames({ [styles.warn]: isWarn, [styles.today]: isToday })}
+                                    colSpan={4}
+                                    fontSize={14}
+                                >
+                                    {isToday
+                                        ? 'Сегодня'
+                                        : isWarn
+                                        ? `Просрочено на ${getDifferenceString(now, date)}`
+                                        : isTomorrow
+                                        ? 'Завтра'
+                                        : `Через ${getDifferenceString(date, now)}`}
+                                </TableCell>
+                            </TableRow>
+                            {collectionsQueue.map((c) => {
+                                return (
+                                    <TableRow
+                                        hover
+                                        key={c.collection.id}
+                                        onClick={() =>
+                                            navigate(
+                                                `/learning/repeat/${c.collection.userId}-${c.collection.id}?date=${dateString}`
+                                            )
+                                        }
                                     >
-                                        {isToday
-                                            ? 'Сегодня'
-                                            : isWarn
-                                            ? `Просрочено на ${getDifferenceString(now, date)}`
-                                            : isTomorrow
-                                            ? 'Завтра'
-                                            : `Через ${getDifferenceString(date, now)}`}
-                                    </TableCell>
-                                </TableRow>
-                                {collectionsQueue.map((c) => {
-                                    return (
-                                        <TableRow
-                                            hover
-                                            key={c.collection.id}
-                                            onClick={() =>
-                                                navigate(
-                                                    `/learning/repeat/${c.collection.userId}-${c.collection.id}?date=${dateString}`
-                                                )
-                                            }
-                                        >
-                                            <TableCell>{c.collection.title}</TableCell>
-                                            <TableCell>{c.cardsToRepeatCount}</TableCell>
-                                            <TableCell>{}</TableCell>
-                                            <TableCell>{}</TableCell>
-                                        </TableRow>
-                                    );
-                                })}
-                            </Fragment>
-                        );
-                    })}
-                </TableBody>
-            </Table>
-        </div>
+                                        <TableCell>{c.collection.title}</TableCell>
+                                        <TableCell>{c.cardsToRepeatCount}</TableCell>
+                                        <TableCell>{}</TableCell>
+                                        <TableCell>{}</TableCell>
+                                    </TableRow>
+                                );
+                            })}
+                        </Fragment>
+                    );
+                })}
+            </TableBody>
+        </Table>
     );
 };

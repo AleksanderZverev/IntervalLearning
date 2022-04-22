@@ -29,7 +29,7 @@ const CollectionsPageContent: FC = () => {
                     </Button>
                 }
             />
-            <div style={{ padding: '20px 50px 0' }}>
+            <div>
                 {showCreateCollectionModal && (
                     <CreateCollectionModal
                         open={showCreateCollectionModal}

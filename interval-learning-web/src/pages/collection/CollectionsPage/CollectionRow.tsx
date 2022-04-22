@@ -1,5 +1,7 @@
+import dayjs from 'dayjs';
 import { FC } from 'react';
-import { TableCell, LinkTableRow } from '../../../controls/Table/Table';
+import { useNavigate } from 'react-router-dom';
+import { TableCell, TableRow } from '../../../controls/Table/Table';
 import { Collection } from '../../../types/Collection';
 
 interface CollectionRowProps {
@@ -7,14 +9,15 @@ interface CollectionRowProps {
 }
 
 export const CollectionRow: FC<CollectionRowProps> = ({ collection }) => {
-    const date = new Date(collection.createdAt);
+    const date = dayjs(collection.createdAt);
+    const navigate = useNavigate();
 
     return (
-        <LinkTableRow to={`${collection.userId}-${collection.id}`}>
+        <TableRow hover onClick={() => navigate(`${collection.userId}-${collection.id}`)}>
             <TableCell>{collection.title}</TableCell>
             <TableCell align="center">-</TableCell>
             <TableCell align="center">{collection.cardsCount}</TableCell>
-            <TableCell align="center">{date.toLocaleDateString()}</TableCell>
-        </LinkTableRow>
+            <TableCell align="center">{date.format('L')}</TableCell>
+        </TableRow>
     );
 };

@@ -1,7 +1,7 @@
 /* eslint-disable react-hooks/rules-of-hooks */
 import { Add } from '@mui/icons-material';
 import { Button, CircularProgress, Pagination } from '@mui/material';
-import { FC, useState } from 'react';
+import { FC, useMemo, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { CreateCardModal } from '../../../controls/Modals/CreateCardModal';
 import { PageContainer } from '../../../controls/PageContainer/PageContainer';
@@ -30,14 +30,23 @@ export const CollectionPage: FC = () => {
     const { isFetching: isCardsFetching, isError: isCardsError } = useGetCardsQuery({
         userId,
         collectionId,
-        request: { page, count: 100 },
+        request: { page, count: cardsCountPerPage },
     });
 
     const isFetching = isCollectionFetching || isCardsFetching;
     const isError = isCollectionError || isCardsError;
 
     const collection = useTypedSelector((state) => selectCollectionById(state, userId, collectionId));
-    const cards = useTypedSelector((state) => selectCards(state, collection?.userId, collection?.id));
+    const storageCards = useTypedSelector((state) => selectCards(state, collection?.userId, collection?.id));
+    const cards = useMemo(() => {
+        const skip = (page - 1) * cardsCountPerPage;
+
+        const workingCards = [...storageCards];
+        workingCards.splice(0, skip);
+        workingCards.splice(cardsCountPerPage);
+
+        return workingCards;
+    }, [storageCards, page]);
 
     const [showCreateCardModal, setShowCreateCardModal] = useState(false);
     const defaultSchedule = useTypedSelector(
@@ -83,24 +92,21 @@ export const CollectionPage: FC = () => {
                     defaultSchedule={defaultSchedule}
                 />
             )}
-            <div style={{ padding: '20px 50px 0' }}>
-                <Table>
-                    <TableHead>
-                        <TableHeaderCell>Запомнить</TableHeaderCell>
-                        <TableHeaderCell>Значение</TableHeaderCell>
-                        <TableHeaderCell>Описание</TableHeaderCell>
-                        <TableHeaderCell></TableHeaderCell>
-                    </TableHead>
-                    <TableBody>
-                        {cards.map((c) => (
-                            <CardRow key={c.id} card={c} />
-                        ))}
-                    </TableBody>
-                </Table>
-            </div>
+            <Table>
+                <TableHead>
+                    <TableHeaderCell>Запомнить</TableHeaderCell>
+                    <TableHeaderCell>Значение</TableHeaderCell>
+                    <TableHeaderCell>Описание</TableHeaderCell>
+                </TableHead>
+                <TableBody>
+                    {cards.map((c) => (
+                        <CardRow key={c.id} card={c} />
+                    ))}
+                </TableBody>
+            </Table>
             {collection.cardsCount > cardsCountPerPage && (
                 <Pagination
-                    count={collection.cardsCount / cardsCountPerPage}
+                    count={Math.ceil(collection.cardsCount / cardsCountPerPage)}
                     onChange={(event, page) => setPage(page)}
                 />
             )}

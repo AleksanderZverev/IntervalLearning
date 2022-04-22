@@ -15,16 +15,17 @@ export const Table: FC<PropsWithChildren<unknown>> = ({ children }) => {
 };
 
 interface TableHeadProps {
-    borderless?: boolean;
+    hasBorder?: boolean;
 }
 
-export const TableHead: FC<PropsWithChildren<TableHeadProps>> = ({ children, borderless }) => {
+export const TableHead: FC<PropsWithChildren<TableHeadProps>> = ({ children, hasBorder }) => {
     return (
         <MuiTableHead>
             <MuiTableRow
                 sx={{
                     '& .MuiTableCell-head': {
-                        border: borderless ? 'none' : undefined,
+                        border: hasBorder ? undefined : 'none',
+                        paddingBottom: '8px',
                     },
                 }}
             >
@@ -36,18 +37,6 @@ export const TableHead: FC<PropsWithChildren<TableHeadProps>> = ({ children, bor
 
 export const TableBody: FC<PropsWithChildren<unknown>> = ({ children }) => {
     return <MuiTableBody>{children}</MuiTableBody>;
-};
-
-interface LinkTableRowProps {
-    to: string;
-}
-
-export const LinkTableRow: FC<PropsWithChildren<LinkTableRowProps>> = ({ children, to }) => {
-    return (
-        <MuiTableRow component={Link} to={to}>
-            {children}
-        </MuiTableRow>
-    );
 };
 
 interface TableRowProps extends HTMLAttributes<HTMLTableRowElement> {
