@@ -8,7 +8,6 @@ import {
     TableCellProps as MuiTableCellProps,
 } from '@mui/material';
 import styles from './styles.module.css';
-import { Link } from 'react-router-dom';
 
 export const Table: FC<PropsWithChildren<unknown>> = ({ children }) => {
     return <MuiTable>{children}</MuiTable>;

@@ -1,6 +1,4 @@
 import { styled, Tooltip, tooltipClasses, TooltipProps } from '@mui/material';
-import zIndex from '@mui/material/styles/zIndex';
-import { padding } from '@mui/system';
 import { FC, useMemo } from 'react';
 import { useEventListener } from '../../hooks/useEventListener';
 import styles from './styles.module.css';

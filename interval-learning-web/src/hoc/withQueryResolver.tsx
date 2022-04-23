@@ -8,6 +8,7 @@ import { CustomBaseQueryType } from '../redux/axiosBaseQuery';
 interface ResolverProps<TQueryArg> {
     containsFetching?: boolean;
     containsError?: boolean;
+    disableLoading?: boolean;
     queryArg: TQueryArg;
 }
 
@@ -17,36 +18,49 @@ export interface WithQueryResolverData<TData> {
 
 export const withQueryResolver =
     <TQueryArg, TResult>(useQuery: UseQuery<QueryDefinition<TQueryArg, CustomBaseQueryType, TagType, TResult>>) =>
-    (Component: React.FunctionComponent<WithQueryResolverData<TResult> & unknown>) =>
+    <TComponentProps,>(
+        Component: React.FunctionComponent<WithQueryResolverData<TResult> & TQueryArg & TComponentProps>
+    ) =>
     // eslint-disable-next-line react/display-name
-    ({ queryArg, containsError, containsFetching, ...props }: ResolverProps<TQueryArg> & unknown) => {
-        const { data, isError: isQueryError, isFetching: isQueryFetching, isSuccess, error } = useQuery(queryArg);
+    (props: ResolverProps<TQueryArg> & TComponentProps) => {
+        const { queryArg, containsError, disableLoading, containsFetching, ...otherProps } = props;
+        const {
+            data,
+            isError: isQueryError,
+            isFetching: isQueryFetching,
+            isSuccess,
+            error,
+        } = useQuery(queryArg, { skip: disableLoading });
 
         const isFetching = isQueryFetching || Boolean(containsFetching);
         const isError = isQueryError || Boolean(containsError);
 
         if (isFetching) {
+            console.debug('loading');
             return <CircularProgress />;
         }
 
-        if (isError || !isSuccess) {
+        if (isError || !data) {
             console.log(isError, isSuccess, data);
             return <div>Error</div>;
         }
 
-        return <Component resolverData={data} {...props} />;
+        return <Component resolverData={data} {...queryArg} {...props} />;
     };
 
 export const withOtherQueryResolver =
     <TQueryArg, TResult>(useQuery: UseQuery<QueryDefinition<TQueryArg, CustomBaseQueryType, TagType, TResult>>) =>
-    <TOtherQueryArg,>(Component: React.FunctionComponent<ResolverProps<TOtherQueryArg> & unknown>) =>
+    <TComponentProps, TOtherQueryArg>(
+        Component: React.FunctionComponent<ResolverProps<TOtherQueryArg> & TComponentProps>
+    ) =>
     // eslint-disable-next-line react/display-name
-    ({ queryArg, ...props }: { queryArg: TQueryArg & TOtherQueryArg } & unknown) => {
+    (props: { queryArg: TQueryArg & TOtherQueryArg } & TComponentProps) => {
+        const { queryArg, ...otherProps } = props;
         const { data, isError, isFetching, isSuccess, error } = useQuery(queryArg);
 
         return (
             <Component
-                queryArg={queryArg}
+                // queryArg={queryArg}
                 containsFetching={isFetching}
                 containsError={isError || !isSuccess}
                 {...props}
