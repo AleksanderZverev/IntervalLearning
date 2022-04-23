@@ -1,4 +1,5 @@
-﻿using DB;
+﻿using System.Diagnostics;
+using DB;
 using DB.Models;
 using Microsoft.AspNetCore.Razor.TagHelpers;
 using Microsoft.EntityFrameworkCore;
@@ -8,12 +9,17 @@ namespace IntervalLearningApi.Services;
 public class CardsService
 {
     private readonly ILogger<CardsService> logger;
+    private readonly IWebHostEnvironment env;
     private readonly ApplicationContext db;
     private readonly UserMetadataService metadataService;
 
-    public CardsService(ILogger<CardsService> logger, ApplicationContext db, UserMetadataService metadataService)
+    public CardsService(ILogger<CardsService> logger,
+        IWebHostEnvironment env,
+        ApplicationContext db,
+        UserMetadataService metadataService)
     {
         this.logger = logger;
+        this.env = env;
         this.db = db;
         this.metadataService = metadataService;
     }
@@ -162,8 +168,29 @@ public class CardsService
         }
     }
 
-    public (bool ok, string? reason) Start(long userId, short collectionId, List<short> cardIds)
-        => ChangeStates(userId, collectionId, cardIds, false);
+    public (DateTime? nextRepeatDate, string? reason) Start(long userId, short collectionId, List<short> cardIds)
+    {
+        db.Database.BeginTransaction();
+        var (cards, error) = ChangeStates(userId, collectionId, cardIds, false);
+
+        if (!string.IsNullOrEmpty(error))
+        {
+            db.Database.RollbackTransaction();
+            return (null, error);
+        }
+
+        var (nextRepeatDate, queueError) =  AddToQueue(userId, collectionId, cards);
+
+        if (!string.IsNullOrEmpty(queueError))
+        {
+            db.Database.RollbackTransaction();
+            return (null, queueError);
+        }
+
+        db.Database.CommitTransaction();
+
+        return (nextRepeatDate, null);
+    }
 
     public (bool ok, string? reason) Start(long userId, short collectionId, short cardId) =>
         ChangeState(userId, collectionId, cardId, false);
@@ -198,12 +225,12 @@ public class CardsService
         return (true, null);
     }
 
-    private (bool ok, string? reason) ChangeStates(long userId, short collectionId, List<short> cardIds, bool? isFinished)
+    private (List<CardEntity> cards, string? reason) ChangeStates(long userId, short collectionId, List<short> cardIds, bool? isFinished)
     {
         var collection = db.Collections.Find(userId, collectionId);
 
         if (collection == null)
-            return (false, "card's collection not found");
+            return (new List<CardEntity>(0), "card's collection not found");
 
         var cards = db.Cards
             .Where(c => c.ParentUserId == userId
@@ -215,14 +242,12 @@ public class CardsService
             .ToList();
 
         if (cards.Count == 0)
-            return (false, "Not found");
+            return (new List<CardEntity>(0), "Not found");
 
         if (cards.Count != cardIds.Count)
         {
             logger.LogWarning("ChangeState: не все карты были найдены");
         }
-
-        db.Database.BeginTransaction();
 
         var metadata = metadataService.GetMetadata(userId);
 
@@ -244,47 +269,53 @@ public class CardsService
         db.Entry(metadata).State = EntityState.Modified;
         db.SaveChanges();
 
-        var (ok, error) = AddToQueue(userId, collectionId, cards);
-
-        if (!ok)
-        {
-            db.Database.RollbackTransaction();
-            return (false, error);
-        }
-
-        db.Database.CommitTransaction();
-
-        return (true, null);
+        return (cards, null);
     }
 
-    private (bool ok, string? reason) AddToQueue(long userId, short collectionId, List<CardEntity> cards)
+    private (DateTime? closestRepeatDate, string? reason) AddToQueue(long userId, short collectionId, List<CardEntity> cards)
     {
-        var queueItems = cards.Select(card =>
+        var closestRepeatDate = DateTime.MaxValue;
+        var queueItems = new List<CardRepeatQueueEntity>(cards.Count);
+
+        foreach (var card in cards)
         {
             var lastRemember = card.Remembers.MaxBy(c => c.Id);
             var nextPhaseIndex = lastRemember?.PhaseStep ?? 0;
             var schedule = card.ParentRepeatsSchedule;
 
             if (schedule.Phases.Count == 0 || nextPhaseIndex >= schedule.Phases.Count)
-                throw new InvalidOperationException(
-                    "schedule.Phases.Count == 0 ||  schedule.Phases.Count >= nextPhaseIndex");
+            {
+                Debug.Fail("schedule.Phases.Count == 0 ||  schedule.Phases.Count >= nextPhaseIndex");
+                return (null, "Ошибка в работе алгоритма");
+            }
+                
 
             var nextPhase = schedule.Phases[nextPhaseIndex];
             var nextRepeatDate = DateTime.UtcNow.AddSeconds(nextPhase.SecondsFromLastPhase);
 
-            return new CardRepeatQueueEntity(
+            if (nextRepeatDate <= closestRepeatDate)
+                closestRepeatDate = nextRepeatDate;
+
+            var queueItem = new CardRepeatQueueEntity(
                 userId,
                 collectionId,
                 card.Id,
-                (short) (nextPhaseIndex + 1),
+                (short)(nextPhaseIndex + 1),
                 nextRepeatDate
             );
-        }).ToList();
+
+            queueItems.Add(queueItem);
+        }
 
         queueItems.ForEach(q => db.Entry(q).State = EntityState.Added);
         db.SaveChanges();
 
-        return (true, null);
+#if DEBUG
+        if (closestRepeatDate == DateTime.MaxValue)
+            Debug.Fail("closestRepeatDate == DateTime.MaxValue)");
+#endif
+
+        return (closestRepeatDate, null);
     }
 
     public async Task<(bool ok, string? reason)> Remember(

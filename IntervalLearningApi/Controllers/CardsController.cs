@@ -63,12 +63,11 @@ namespace IntervalLearningApi.Controllers
         }
 
         [HttpPost("start")]
-        public IActionResult StartCards(short collectionId, [FromBody]CardsItem item)
+        public ActionResult<StartCardResponse> StartCards(short collectionId, [FromBody]CardsItem item)
         {
             var userId = HttpContext.GetUserId();
-
-            var (ok, error) = cardsService.Start(userId, collectionId, item.CardIds);
-            return ok ? Ok() : BadRequest(error);
+            var (closestRepeatDate, error) = cardsService.Start(userId, collectionId, item.CardIds);
+            return string.IsNullOrEmpty(error) ? new StartCardResponse(closestRepeatDate) : BadRequest(error);
         }
 
         [HttpGet("{cardId}/start")]
@@ -131,6 +130,16 @@ namespace IntervalLearningApi.Controllers
 
         //    return ok ? Ok() : BadRequest(error);
         //}
+    }
+
+    public class StartCardResponse
+    {
+        public DateTime? NextRepeatDate { get; }
+
+        public StartCardResponse(DateTime? nextRepeatDate)
+        {
+            NextRepeatDate = nextRepeatDate;
+        }
     }
 
     public class CardsItem
