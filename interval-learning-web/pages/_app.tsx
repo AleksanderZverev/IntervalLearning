@@ -26,6 +26,7 @@ import relativeTime from 'dayjs/plugin/relativeTime';
 import localizedFormat from 'dayjs/plugin/localizedFormat';
 import 'dayjs/locale/ru';
 import { NextComponentType } from 'next';
+import GlobalErrorBoundary from './GlobalErrorBoundary';
 
 dayjs.extend(duration);
 dayjs.extend(relativeTime);
@@ -73,10 +74,12 @@ function MyApp(props: MyAppProps) {
                 <ThemeProvider theme={theme}>
                     {/* CssBaseline kickstart an elegant, consistent, and simple baseline to build upon. */}
                     <CssBaseline />
-                    <ErrorHandler>
-                        <WebHeader isServerSide={isServerSide} />
-                        <Component isServerSide={isServerSide} {...pageProps} />
-                    </ErrorHandler>
+                    <GlobalErrorBoundary>
+                        <ErrorHandler>
+                            <WebHeader isServerSide={isServerSide} />
+                            <Component isServerSide={isServerSide} {...pageProps} />
+                        </ErrorHandler>
+                    </GlobalErrorBoundary>
                 </ThemeProvider>
             </CacheProvider>
         </Router>
