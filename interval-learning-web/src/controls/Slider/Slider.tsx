@@ -1,4 +1,5 @@
 import { styled, Tooltip, tooltipClasses, TooltipProps } from '@mui/material';
+import zIndex from '@mui/material/styles/zIndex';
 import { padding } from '@mui/system';
 import { FC, useMemo } from 'react';
 import { useEventListener } from '../../hooks/useEventListener';
@@ -40,10 +41,10 @@ export const Slider: FC<SliderProps> = ({ min, max, value, activeValue, onValueC
     const heightProperty = vertical ? 'width' : 'height';
     const topProperty = vertical ? 'left' : 'top';
     const leftProperty = vertical ? 'top' : 'left';
-    const maxWidthProperty = vertical ? 'maxHeight' : 'maxWidth';
 
     const total = max - min;
     const sliderWidth = ((activeValue + 1 - min) / (total + 2)) * 100;
+
     const values = useMemo(() => {
         const values: number[] = [];
 
@@ -86,7 +87,8 @@ export const Slider: FC<SliderProps> = ({ min, max, value, activeValue, onValueC
                 style={{
                     [widthProperty]: `${sliderWidth}%`,
                     [topProperty]: '50%',
-                    transition: `${widthProperty} 1s ease;`,
+                    [heightProperty]: '4px',
+                    transition: `${widthProperty} 1s ease`,
                 }}
             />
             {values.map((v, index) => {
