@@ -14,16 +14,20 @@ import { Button } from '@mui/material';
 import { LearnCard } from './LearnCard/LearnCard';
 import { ErrorModal } from '../../../controls/Modals/ErrorModal';
 import { useGetCollectionQuery } from '../../../redux/collectionApi';
+import { AssertionModal } from '../../../controls/Modals/AssertionModal';
+import { CardResult } from '../CardResult/CardResult';
 
-interface LearnCollectionPageContentProps {}
+interface LearnCollectionPageContentProps {
+    userId: string;
+    collectionId: string;
+    setDisableLoading: (disable: boolean) => void;
+}
 
-export const LearnCollectionPageContent: FC<LearnCollectionPageContentProps> = () => {
-    const { userId, collectionId } = useParams();
-
-    if (!collectionId || !userId) {
-        throw new Error();
-    }
-
+export const LearnCollectionPageContent: FC<LearnCollectionPageContentProps> = ({
+    userId,
+    collectionId,
+    setDisableLoading,
+}) => {
     const collection = useTypedSelector((state) => selectCollectionById(state, userId, collectionId));
 
     if (collection === undefined) {
@@ -34,8 +38,10 @@ export const LearnCollectionPageContent: FC<LearnCollectionPageContentProps> = (
     const notStartedCards = useTypedSelector(selectNotStartedCardsIds);
 
     const navigate = useNavigate();
-    const [startCards, { isLoading, isSuccess }] = useStartCardsMutation();
+    const [startCards, { data, isLoading: isMutationLoading, isSuccess }] = useStartCardsMutation();
+    const [showAssetModal, setShowAssertModal] = useState(false);
     const [showErrorModal, setShowErrorModal] = useState(false);
+    const [activeCardIndex, setActiveCardIndex] = useState(0);
     const [cardIndex, setCardIndex] = useState(0);
 
     if (notStartedCards.length === 0) {
@@ -46,29 +52,53 @@ export const LearnCollectionPageContent: FC<LearnCollectionPageContentProps> = (
 
     const currentCard = notStartedCards[cardIndex];
 
-    const onFinish = async () => {
-        if (isLoading || isSuccess) {
+    const onSuccessFinish = () => {
+        navigate('/learning');
+    };
+
+    const onFinish = async (fromAssertionModal: boolean) => {
+        if (isMutationLoading || isSuccess) {
+            onSuccessFinish();
             return;
         }
 
+        if (!fromAssertionModal) {
+            setShowAssertModal(true);
+            return;
+        }
+
+        if (fromAssertionModal && showAssetModal) {
+            setShowAssertModal(false);
+        }
+
+        const cardsToStart = [...notStartedCards];
+
+        if (cardIndex + 1 < maxCards) {
+            cardsToStart.splice(cardIndex + 1);
+        }
+
         const item: CardsItem = {
-            cardIds: notStartedCards.map((i) => i.id),
+            cardIds: cardsToStart.map((i) => i.id),
         };
 
         try {
+            setDisableLoading(true);
             await startCards({ userId, collectionId, request: item }).unwrap();
-            navigate('/learning');
+            setActiveCardIndex(activeCardIndex + 1);
         } catch {
+            setDisableLoading(false);
             setShowErrorModal(true);
         }
     };
 
     const onNext = () => {
         setCardIndex(cardIndex + 1);
+        setActiveCardIndex(activeCardIndex + 1);
     };
 
     const onPrevious = () => {
         setCardIndex(cardIndex - 1);
+        setActiveCardIndex(activeCardIndex - 1);
     };
 
     return (
@@ -77,7 +107,7 @@ export const LearnCollectionPageContent: FC<LearnCollectionPageContentProps> = (
                 title={collection?.title || ''}
                 subTitle={theme?.name || ''}
                 subMenu={
-                    <Button variant="outlined" onClick={onFinish}>
+                    <Button variant="outlined" onClick={() => onFinish(cardIndex + 1 === maxCards)}>
                         Завершить
                     </Button>
                 }
@@ -87,7 +117,18 @@ export const LearnCollectionPageContent: FC<LearnCollectionPageContentProps> = (
                     errorMessage="Не удалось завершить изучение коллекции"
                     open
                     onClose={() => setShowErrorModal(false)}
-                    onRetry={onFinish}
+                    onRetry={() => onFinish(true)}
+                />
+            )}
+            {showAssetModal && (
+                <AssertionModal
+                    open
+                    title="Не все карточки изучены"
+                    message="Завершить изучение на текущей карточке?"
+                    assertTitle="Да"
+                    cancelTitle="Отмена"
+                    onAssert={() => onFinish(true)}
+                    onClose={() => setShowAssertModal(false)}
                 />
             )}
             <CenterContainer>
@@ -103,17 +144,28 @@ export const LearnCollectionPageContent: FC<LearnCollectionPageContentProps> = (
                         value={cardIndex}
                         min={0}
                         max={maxCards - 1}
-                        activeValue={-1}
-                        onValueChange={(v) => setCardIndex(v)}
+                        activeValue={activeCardIndex}
+                        onValueChange={(v) => {
+                            setCardIndex(v);
+                            setActiveCardIndex(v);
+                        }}
                         vertical
                     />
 
-                    {currentCard && (
+                    {isSuccess && data && (
+                        <CardResult
+                            nextRepeatDate={data.nextRepeatDate}
+                            wordsLearned={cardIndex + 1}
+                            onEndButtonClick={onSuccessFinish}
+                        />
+                    )}
+
+                    {currentCard && !isSuccess && (
                         <LearnCard
                             card={currentCard}
                             showNext={cardIndex < maxCards - 1}
                             showPrevious={cardIndex !== 0}
-                            onFinish={onFinish}
+                            onFinish={() => onFinish(true)}
                             onNext={onNext}
                             onPrevious={onPrevious}
                         />
@@ -127,6 +179,11 @@ export const LearnCollectionPageContent: FC<LearnCollectionPageContentProps> = (
 const ConnectedLearnCollectionPage = withQueryResolver(useGetNotStartedCardsQuery)(LearnCollectionPageContent);
 const ConnectedOtherResolver = withOtherQueryResolver(useGetCollectionQuery)(ConnectedLearnCollectionPage);
 
+interface CardResult {
+    nextRepeatDate: string | null;
+    learnedCardsCount: number;
+}
+
 export const LearnCollection: FC = () => {
     const { userId, collectionId } = useParams();
 
@@ -134,5 +191,15 @@ export const LearnCollection: FC = () => {
         throw new Error();
     }
 
-    return <ConnectedOtherResolver queryArg={{ userId, collectionId, request: undefined }} />;
+    const [disableLoading, setDisableLoading] = useState(false);
+
+    return (
+        <ConnectedOtherResolver
+            queryArg={{ userId, collectionId, request: undefined }}
+            disableLoading={disableLoading}
+            userId={userId}
+            collectionId={collectionId}
+            setDisableLoading={(disable) => setDisableLoading(disable)}
+        />
+    );
 };

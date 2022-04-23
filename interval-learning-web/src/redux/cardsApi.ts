@@ -37,6 +37,10 @@ export interface RememberRequest {
     date: string;
 }
 
+export interface StartCardResponse {
+    nextRepeatDate: string | null;
+}
+
 interface RememberItem {
     cardId: string;
     weight: number;
@@ -109,7 +113,7 @@ export const cardsApi = api.injectEndpoints({
                 data: request,
             }),
         }),
-        startCards: build.mutation<void, BaseRequestItem<CardsItem>>({
+        startCards: build.mutation<StartCardResponse, BaseRequestItem<CardsItem>>({
             query: ({ collectionId, request }) => ({
                 url: `/collections/${collectionId}/cards/start`,
                 method: 'POST',
@@ -122,11 +126,10 @@ export const cardsApi = api.injectEndpoints({
                     dispatch(addStartedCards({ userId, collectionId, startedCards: request.cardIds.length }));
                 } catch {}
             },
-            invalidatesTags: [
-                tagTypes.notStartedCardsList,
-                tagTypes.queueCollectionsList,
-                tagTypes.notFinishedCollectionsList,
-            ],
+            invalidatesTags: (result, arg) =>
+                result
+                    ? [tagTypes.notStartedCardsList, tagTypes.queueCollectionsList, tagTypes.notFinishedCollectionsList]
+                    : [],
         }),
     }),
 });
