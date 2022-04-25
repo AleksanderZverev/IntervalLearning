@@ -7,6 +7,7 @@ namespace DB.Models;
 [Table("RememberWeights")]
 public class RememberEntity : IParentCardReference
 {
+    [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
     [Key]
     public short Id { get; set; }
 
