@@ -15,6 +15,8 @@ import { LocalStorageHelper } from '../../../helpers/localStorageHelper';
 import { useGetCollectionQuery } from '../../../redux/collectionApi';
 import { selectCardsByIds } from '../../../redux/slices/cardsSlice';
 import { AssertionModal } from '../../../controls/Modals/AssertionModal';
+import { ErrorModal } from '../../../controls/Modals/ErrorModal';
+import { CardResult } from '../CardResult/CardResult';
 
 interface RepeatCollectionPageContentProps extends WithQueryResolverData<{ cardIds: string[] }> {}
 
@@ -38,8 +40,9 @@ export const RepeatCollectionPageContent: FC<RepeatCollectionPageContentProps> =
     const repeatCards = useTypedSelector((state) => selectCardsByIds(state, userId, collectionId, cardIds));
     const [showAssertionModal, setShowAssertionModal] = useState(false);
     const [showCurrentCardError, setShowCurrentCardError] = useState(false);
+    const [showLoadingError, setShowLoadingError] = useState(false);
 
-    const [rememberCards, { isLoading, isError, isSuccess }] = usePatchRememberCardsMutation();
+    const [rememberCards, { data, isLoading, isError, isSuccess }] = usePatchRememberCardsMutation();
 
     const [rememberWeights, setRememberWeights] = useState<Record<string, number | undefined>>(
         () =>
@@ -49,14 +52,19 @@ export const RepeatCollectionPageContent: FC<RepeatCollectionPageContentProps> =
             ) ?? {}
     );
 
-    const [cardIndex, setCardIndex] = useState(0);
-    const card = repeatCards[cardIndex];
     const maxCards = repeatCards.length;
 
     let notActiveIndex = repeatCards.map((c) => rememberWeights[c.id]).indexOf(undefined);
     notActiveIndex = notActiveIndex < 0 ? maxCards : notActiveIndex;
 
+    const [cardIndex, setCardIndex] = useState(notActiveIndex >= maxCards ? maxCards - 1 : notActiveIndex);
+    const card = repeatCards[cardIndex];
+
     const currentCard = repeatCards[cardIndex];
+
+    const onExit = () => {
+        navigate('/learning');
+    };
 
     const onFinish = async (fromAssertionModal: boolean) => {
         if (isLoading || isSuccess) {
@@ -86,7 +94,7 @@ export const RepeatCollectionPageContent: FC<RepeatCollectionPageContentProps> =
         try {
             await rememberCards({ userId, collectionId, request }).unwrap();
         } catch (e) {
-            console.log('error remember', e);
+            setShowLoadingError(true);
         }
     };
 
@@ -116,7 +124,7 @@ export const RepeatCollectionPageContent: FC<RepeatCollectionPageContentProps> =
                 subTitle={theme?.name || ''}
                 subMenu={
                     !isEmptyCollection && (
-                        <Button variant="outlined" onClick={() => onFinish(false)}>
+                        <Button variant="outlined" onClick={() => (isSuccess ? onExit() : onFinish(false))}>
                             Завершить
                         </Button>
                     )
@@ -139,7 +147,21 @@ export const RepeatCollectionPageContent: FC<RepeatCollectionPageContentProps> =
                     assertTitle="Да"
                     cancelTitle="Отмена"
                     onClose={() => setShowAssertionModal(false)}
-                    onAssert={() => onFinish(true)}
+                    onAssert={() => {
+                        setShowAssertionModal(false);
+                        onFinish(true);
+                    }}
+                />
+            )}
+            {showLoadingError && (
+                <ErrorModal
+                    open
+                    errorMessage="Не удалось завершить повторение"
+                    onClose={() => setShowLoadingError(false)}
+                    onRetry={() => {
+                        setShowLoadingError(false);
+                        onFinish(true);
+                    }}
                 />
             )}
             <CenterContainer>
@@ -163,7 +185,14 @@ export const RepeatCollectionPageContent: FC<RepeatCollectionPageContentProps> =
                             rowGap: 25,
                         }}
                     >
-                        {currentCard && (
+                        {isSuccess && data && (
+                            <CardResult
+                                wordsLearned={notActiveIndex}
+                                nextRepeatDate={data.nextRepeatDate}
+                                onEndButtonClick={onExit}
+                            />
+                        )}
+                        {!isSuccess && currentCard && (
                             <RepeatCard
                                 value={rememberWeights[card.id] ?? null}
                                 card={currentCard}
@@ -184,6 +213,7 @@ export const RepeatCollectionPageContent: FC<RepeatCollectionPageContentProps> =
                             min={0}
                             max={maxCards - 1}
                             activeValue={notActiveIndex}
+                            finishMode={isSuccess}
                             onValueChange={(v) => {
                                 if (v > notActiveIndex) return;
                                 setCardIndex(v);

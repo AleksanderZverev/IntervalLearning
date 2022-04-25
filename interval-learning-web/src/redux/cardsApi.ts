@@ -41,6 +41,10 @@ export interface StartCardResponse {
     nextRepeatDate: string | null;
 }
 
+export interface RememberCardResponse {
+    nextRepeatDate: string | null;
+}
+
 interface RememberItem {
     cardId: string;
     weight: number;
@@ -106,7 +110,7 @@ export const cardsApi = api.injectEndpoints({
             //     result ? [...result.cardIds.map(cardId => {type: tagTypes.card, id: })] : []
             // )
         }),
-        patchRememberCards: build.mutation<void, BaseRequestItem<RememberRequest>>({
+        patchRememberCards: build.mutation<RememberCardResponse, BaseRequestItem<RememberRequest>>({
             query: ({ collectionId, request }) => ({
                 url: `/collections/${collectionId}/cards/remember`,
                 method: 'PATCH',
