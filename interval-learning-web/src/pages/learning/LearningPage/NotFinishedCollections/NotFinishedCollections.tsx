@@ -23,7 +23,7 @@ export const NotFinishedCollections: FC = () => {
 
     return (
         <Table>
-            <TableHead borderless>
+            <TableHead>
                 <TableHeaderCell>Название</TableHeaderCell>
                 <TableHeaderCell>Изучено</TableHeaderCell>
                 <TableHeaderCell>Слов в этапе</TableHeaderCell>

@@ -5,6 +5,7 @@ import React, { FC, Fragment } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Table, TableBody, TableCell, TableHead, TableHeaderCell, TableRow } from '../../../../controls/Table/Table';
 import { useGetQueueCollectionsQuery } from '../../../../redux/collectionApi';
+import { CollectionRow } from './CollectionRow/CollectionRow';
 import styles from './styles.module.css';
 
 function getDifferenceString(now: Dayjs, date: Dayjs) {
@@ -34,9 +35,9 @@ export const InProgressCollections: FC = () => {
         <Table>
             <TableHead>
                 <TableHeaderCell></TableHeaderCell>
-                <TableHeaderCell>Изучено</TableHeaderCell>
-                <TableHeaderCell>Слов в этапе</TableHeaderCell>
-                <TableHeaderCell>Тип</TableHeaderCell>
+                {/* <TableHeaderCell align="center">Изучено</TableHeaderCell> */}
+                <TableHeaderCell align="center">Осталось слов</TableHeaderCell>
+                <TableHeaderCell align="center">Тип</TableHeaderCell>
             </TableHead>
             <TableBody>
                 {Object.entries(dateToCollectionsQueue).map((pair) => {
@@ -65,20 +66,16 @@ export const InProgressCollections: FC = () => {
                             </TableRow>
                             {collectionsQueue.map((c) => {
                                 return (
-                                    <TableRow
-                                        hover
+                                    <CollectionRow
                                         key={c.collection.id}
+                                        collection={c.collection}
+                                        cardsToRepeatCount={c.cardsToRepeatCount}
                                         onClick={() =>
                                             navigate(
                                                 `/learning/repeat/${c.collection.userId}-${c.collection.id}?date=${dateString}`
                                             )
                                         }
-                                    >
-                                        <TableCell>{c.collection.title}</TableCell>
-                                        <TableCell>{c.cardsToRepeatCount}</TableCell>
-                                        <TableCell>{}</TableCell>
-                                        <TableCell>{}</TableCell>
-                                    </TableRow>
+                                    />
                                 );
                             })}
                         </Fragment>

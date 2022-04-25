@@ -14,6 +14,7 @@ import { Button, Paper } from '@mui/material';
 import { LocalStorageHelper } from '../../../helpers/localStorageHelper';
 import { useGetCollectionQuery } from '../../../redux/collectionApi';
 import { selectCardsByIds } from '../../../redux/slices/cardsSlice';
+import { AssertionModal } from '../../../controls/Modals/AssertionModal';
 
 interface RepeatCollectionPageContentProps extends WithQueryResolverData<{ cardIds: string[] }> {}
 
@@ -35,6 +36,8 @@ export const RepeatCollectionPageContent: FC<RepeatCollectionPageContentProps> =
     const navigate = useNavigate();
     const theme = useTypedSelector((state) => selectTheme(state, collection.themeId));
     const repeatCards = useTypedSelector((state) => selectCardsByIds(state, userId, collectionId, cardIds));
+    const [showAssertionModal, setShowAssertionModal] = useState(false);
+    const [showCurrentCardError, setShowCurrentCardError] = useState(false);
 
     const [rememberCards, { isLoading, isError, isSuccess }] = usePatchRememberCardsMutation();
 
@@ -55,7 +58,7 @@ export const RepeatCollectionPageContent: FC<RepeatCollectionPageContentProps> =
 
     const currentCard = repeatCards[cardIndex];
 
-    const onFinish = async () => {
+    const onFinish = async (fromAssertionModal: boolean) => {
         if (isLoading || isSuccess) {
             return;
         }
@@ -63,6 +66,16 @@ export const RepeatCollectionPageContent: FC<RepeatCollectionPageContentProps> =
         const resultWeights = Object.entries(rememberWeights);
         if (resultWeights.some(([_, weight]) => weight === undefined || weight === null)) {
             console.error('remember weights are incorrect');
+            return;
+        }
+
+        if (!rememberWeights[card.id]) {
+            setShowCurrentCardError(true);
+            return;
+        }
+
+        if (!fromAssertionModal && cardIndex + 1 < maxCards) {
+            setShowAssertionModal(true);
             return;
         }
 
@@ -103,12 +116,32 @@ export const RepeatCollectionPageContent: FC<RepeatCollectionPageContentProps> =
                 subTitle={theme?.name || ''}
                 subMenu={
                     !isEmptyCollection && (
-                        <Button variant="outlined" onClick={onFinish}>
+                        <Button variant="outlined" onClick={() => onFinish(false)}>
                             Завершить
                         </Button>
                     )
                 }
             />
+            {showCurrentCardError && (
+                <AssertionModal
+                    open
+                    title="Значение не выбрано"
+                    message="Выберите значение текущей карточки"
+                    assertTitle="OK"
+                    onClose={() => setShowCurrentCardError(false)}
+                />
+            )}
+            {showAssertionModal && (
+                <AssertionModal
+                    open
+                    title="Не все карточки повторены"
+                    message="Завершить повторение на текущей карточке?"
+                    assertTitle="Да"
+                    cancelTitle="Отмена"
+                    onClose={() => setShowAssertionModal(false)}
+                    onAssert={() => onFinish(true)}
+                />
+            )}
             <CenterContainer>
                 {isEmptyCollection ? (
                     <Paper sx={{ padding: '30px 50px' }}>
@@ -137,10 +170,11 @@ export const RepeatCollectionPageContent: FC<RepeatCollectionPageContentProps> =
                                 showNext={cardIndex < maxCards - 1}
                                 showPrevious={cardIndex !== 0}
                                 isActive={notActiveIndex - 1 === cardIndex}
-                                onFinish={onFinish}
+                                onFinish={() => onFinish(false)}
                                 onNext={onNext}
                                 onChange={onChange}
                                 onPrevious={onPrevious}
+                                forceShowError={showCurrentCardError}
                                 errorMessage={'Помните слово?'}
                             />
                         )}

@@ -5,10 +5,10 @@ interface AssertionModalProps {
     title: string;
     message: string;
     open: boolean;
-    cancelTitle?: string;
     assertTitle: string;
+    cancelTitle?: string;
     onClose: () => void;
-    onAssert: () => void;
+    onAssert?: () => void;
     onCancel?: () => void;
 }
 
@@ -35,7 +35,7 @@ export const AssertionModal: FC<AssertionModalProps> = ({
                     ) : (
                         <div />
                     )}
-                    <Button variant="contained" onClick={onAssert}>
+                    <Button variant="contained" onClick={() => (onAssert ? onAssert() : onClose())}>
                         {assertTitle}
                     </Button>
                 </div>

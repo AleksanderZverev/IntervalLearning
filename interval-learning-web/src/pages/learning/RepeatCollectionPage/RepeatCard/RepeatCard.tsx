@@ -1,7 +1,7 @@
 import { InfoOutlined, RefreshOutlined } from '@mui/icons-material';
 import { Button, colors, FormControlLabel, IconButton, Paper, Radio, RadioGroup, Typography } from '@mui/material';
 import classNames from 'classnames';
-import { FC, useState } from 'react';
+import { FC, useLayoutEffect, useState } from 'react';
 import { useEventListener } from '../../../../hooks/useEventListener';
 import { Card } from '../../../../types/Collection';
 import styles from './styles.module.css';
@@ -17,6 +17,7 @@ interface RepeatCardProps {
     onChange: (weight: number | undefined) => void;
     onFinish: () => void;
     isActive: boolean;
+    forceShowError: boolean;
 }
 
 export const RepeatCard: FC<RepeatCardProps> = ({
@@ -94,7 +95,10 @@ export const RepeatCard: FC<RepeatCardProps> = ({
 
                 <div
                     className={styles.errorMessage}
-                    style={{ border: `1px solid ${colors.red[400]}`, visibility: isError ? 'visible' : 'hidden' }}
+                    style={{
+                        border: `1px solid ${colors.red[400]}`,
+                        visibility: isError ? 'visible' : 'hidden',
+                    }}
                 >
                     {errorMessage}
                 </div>

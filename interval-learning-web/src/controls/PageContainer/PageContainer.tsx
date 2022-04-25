@@ -20,6 +20,7 @@ export const PageContainer: FC<PropsWithChildren<PageContainerProps>> = ({ trans
                 style={{
                     backgroundColor: transparent ? undefined : 'white',
                     padding: '20px 50px',
+                    height: 'inherit',
                 }}
             >
                 {children}
