@@ -318,7 +318,7 @@ public class CardsService
         return (closestRepeatDate, null);
     }
 
-    public async Task<(bool ok, string? reason)> Remember(
+    public async Task<(bool ok, string? reason, DateTime? closestRepeatDate)> Remember(
         long userId,
         short collectionId,
         List<RememberItem> rememberItems, 
@@ -331,7 +331,7 @@ public class CardsService
 
         if (collection == null)
         {
-            return (false, "card's collection not found");
+            return (false, "card's collection not found", null);
         }
 
         var queueItems = await db.Queue
@@ -342,7 +342,7 @@ public class CardsService
             .ToListAsync();
 
         if (queueItems.Count == 0 || queueItems.Count != cardIds.Count)
-            return (false, "Incorrect request");
+            return (false, "Incorrect request", null);
 
         var cards = await db.Cards
             .Where(c => c.ParentUserId == userId
@@ -359,6 +359,7 @@ public class CardsService
             .ToListAsync();
 
         var metadata = metadataService.GetMetadata(userId);
+        var closestRepeatDate = DateTime.MaxValue;
 
         foreach (var rememberItem in rememberItems)
         {
@@ -389,13 +390,17 @@ public class CardsService
 
             var nextPhaseIndex = remember.PhaseStep;
             var nextPhase = schedule.Phases[nextPhaseIndex];
+            var nextRepeatDate = now.AddSeconds(nextPhase.SecondsFromLastPhase);
+
+            if (nextRepeatDate < closestRepeatDate)
+                closestRepeatDate = nextRepeatDate;
 
             var newQueueItem = new CardRepeatQueueEntity(
                 userId,
                 collectionId,
                 cardId,
                 (short) (nextPhaseIndex + 1),
-                now.AddSeconds(nextPhase.SecondsFromLastPhase));
+                nextRepeatDate);
 
             db.Entry(queueItem).State = EntityState.Deleted;
             db.Entry(newQueueItem).State = EntityState.Added;
@@ -407,11 +412,11 @@ public class CardsService
         try
         {
             db.SaveChanges();
-            return (true, null);
+            return (true, null, closestRepeatDate == DateTime.MaxValue ? null : closestRepeatDate);
         }
         catch
         {
-            return (false, "unknown error");
+            return (false, "unknown error", null);
         }
     }
 

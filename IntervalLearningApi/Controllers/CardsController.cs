@@ -25,7 +25,7 @@ namespace IntervalLearningApi.Controllers
         {
             var userId = HttpContext.GetUserId();
             var cards = await cardsService.GetCards(userId, collectionId, page, count);
-            return Ok(cards.Select(CollectionsController.ToCard).ToList());
+            return cards.Select(CollectionsController.ToCard).ToList();
         }
 
         [HttpGet("not-started")]
@@ -95,18 +95,19 @@ namespace IntervalLearningApi.Controllers
         }
 
         [HttpPatch("remember")]
-        public async Task<IActionResult> RememberCard(short collectionId, [FromBody] RememberRequest request)
+        public async Task<ActionResult<RememberCardResponse>> RememberCard(short collectionId, [FromBody] RememberRequest request)
         {
+            return new RememberCardResponse(DateTime.UtcNow.AddDays(1));
             var userId = HttpContext.GetUserId();
 
-            var (ok, error) = await cardsService.Remember(
+            var (ok, error, closestRepeatDate) = await cardsService.Remember(
                 userId,
                 collectionId,
                 ToCardServiceRememberItems(request.RememberItems),
                 request.Date
             );
 
-            return ok ? Ok() : BadRequest(error);
+            return ok ? new RememberCardResponse(closestRepeatDate) : BadRequest(error);
         }
 
         private List<CardsService.RememberItem> ToCardServiceRememberItems(List<RememberItem> requestRememberItems)
@@ -137,6 +138,16 @@ namespace IntervalLearningApi.Controllers
         public DateTime? NextRepeatDate { get; }
 
         public StartCardResponse(DateTime? nextRepeatDate)
+        {
+            NextRepeatDate = nextRepeatDate;
+        }
+    }
+
+    public class RememberCardResponse
+    {
+        public DateTime? NextRepeatDate { get; }
+
+        public RememberCardResponse(DateTime? nextRepeatDate)
         {
             NextRepeatDate = nextRepeatDate;
         }
