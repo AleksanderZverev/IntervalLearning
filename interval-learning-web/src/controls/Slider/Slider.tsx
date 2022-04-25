@@ -1,4 +1,5 @@
 import { styled, Tooltip, tooltipClasses, TooltipProps } from '@mui/material';
+import classNames from 'classnames';
 import { FC, useMemo } from 'react';
 import { useEventListener } from '../../hooks/useEventListener';
 import styles from './styles.module.css';
@@ -9,6 +10,7 @@ interface SliderProps {
     value: number;
     activeValue: number;
 
+    finishMode?: boolean;
     onValueChange: (newValue: number) => void;
     vertical?: boolean;
 }
@@ -34,7 +36,7 @@ const verticalKeys: Record<string, number> = {
     ArrowDown: 1,
 };
 
-export const Slider: FC<SliderProps> = ({ min, max, value, activeValue, onValueChange, vertical }) => {
+export const Slider: FC<SliderProps> = ({ min, max, value, activeValue, onValueChange, vertical, finishMode }) => {
     const widthProperty = vertical ? 'height' : 'width';
     const heightProperty = vertical ? 'width' : 'height';
     const topProperty = vertical ? 'left' : 'top';
@@ -77,7 +79,7 @@ export const Slider: FC<SliderProps> = ({ min, max, value, activeValue, onValueC
             }}
         >
             <span
-                className={styles.backLine}
+                className={classNames(styles.backLine, { [styles.markNotFinished]: finishMode })}
                 style={{ [widthProperty]: '100%', [topProperty]: '50%', [heightProperty]: '4px' }}
             />
             <span
@@ -91,18 +93,22 @@ export const Slider: FC<SliderProps> = ({ min, max, value, activeValue, onValueC
             />
             {values.map((v, index) => {
                 const left = ((index + 1) / (total + 2)) * 100;
-                const activeClass = v < activeValue ? styles.markActive : '';
-                const currentElement = v == value ? styles.markCurrent : '';
+                const isActive = v < activeValue;
+                const isCurrentElement = v == value && !finishMode;
 
                 const mark = (
                     <span
                         key={v}
                         onClick={() => onValueChange(v)}
-                        className={styles.mark + ' ' + activeClass + ' ' + currentElement}
-                        style={{ [leftProperty]: `${left}%`, [topProperty]: currentElement ? 8 : 11 }}
+                        className={classNames(styles.mark, {
+                            [styles.markActive]: isActive,
+                            [styles.markCurrent]: isCurrentElement,
+                            [styles.markNotFinished]: finishMode && !isActive,
+                        })}
+                        style={{ [leftProperty]: `${left}%`, [topProperty]: isCurrentElement ? 8 : 11 }}
                     />
                 );
-                return currentElement ? (
+                return isCurrentElement ? (
                     mark
                 ) : (
                     <LightTooltip key={v} title={v.toString()}>
