@@ -106,6 +106,7 @@ export const cardsApi = api.injectEndpoints({
                 };
                 return item;
             },
+            providesTags: [tagTypes.repeatCardsList],
             // providesTags: (result) => (
             //     result ? [...result.cardIds.map(cardId => {type: tagTypes.card, id: })] : []
             // )
@@ -116,6 +117,7 @@ export const cardsApi = api.injectEndpoints({
                 method: 'PATCH',
                 data: request,
             }),
+            invalidatesTags: [tagTypes.repeatCardsList, tagTypes.queueCollectionsList],
         }),
         startCards: build.mutation<StartCardResponse, BaseRequestItem<CardsItem>>({
             query: ({ collectionId, request }) => ({

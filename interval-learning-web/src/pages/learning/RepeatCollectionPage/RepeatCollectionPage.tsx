@@ -18,17 +18,20 @@ import { AssertionModal } from '../../../controls/Modals/AssertionModal';
 import { ErrorModal } from '../../../controls/Modals/ErrorModal';
 import { CardResult } from '../CardResult/CardResult';
 
-interface RepeatCollectionPageContentProps extends WithQueryResolverData<{ cardIds: string[] }> {}
+interface RepeatCollectionPageContentProps extends WithQueryResolverData<{ cardIds: string[] }> {
+    userId: string;
+    collectionId: string;
+    date: string;
+    setSkipLoading: (skip: boolean) => void;
+}
 
-export const RepeatCollectionPageContent: FC<RepeatCollectionPageContentProps> = ({ resolverData: { cardIds } }) => {
-    const { userId, collectionId } = useParams();
-    const params = new URLSearchParams(location.search);
-    const date = params.get('date');
-
-    if (!collectionId || !userId || !date) {
-        throw new Error();
-    }
-
+export const RepeatCollectionPageContent: FC<RepeatCollectionPageContentProps> = ({
+    resolverData: { cardIds },
+    userId,
+    collectionId,
+    date,
+    setSkipLoading,
+}) => {
     const collection = useTypedSelector((state) => selectCollectionById(state, userId, collectionId));
 
     if (collection === undefined) {
@@ -93,8 +96,10 @@ export const RepeatCollectionPageContent: FC<RepeatCollectionPageContentProps> =
             rememberItems: resultWeights.map(([cardId, weight]) => ({ cardId, weight: weight ?? 0 })),
         };
         try {
+            setSkipLoading(true);
             await rememberCards({ userId, collectionId, request }).unwrap();
         } catch (e) {
+            setSkipLoading(false);
             setShowLoadingError(true);
         }
     };
@@ -243,9 +248,18 @@ export const RepeatCollection: FC = () => {
     const params = new URLSearchParams(location.search);
     const date = params.get('date');
 
+    const [skipLoading, setSkipLoading] = useState(false);
+
     if (!collectionId || !userId || !date) {
         return <div>INCORRECT LINK</div>;
     }
 
-    return <CollectionQueryResolver queryArg={{ userId, collectionId, request: { date } }} />;
+    return (
+        <CollectionQueryResolver
+            queryArg={{ userId, collectionId, request: { date } }}
+            disableLoading={skipLoading}
+            date={date}
+            setSkipLoading={(skip) => setSkipLoading(skip)}
+        />
+    );
 };

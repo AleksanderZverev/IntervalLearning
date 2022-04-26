@@ -8,6 +8,7 @@ export const tagTypes = {
     notStartedCardsList: 'NotStartedCardsList',
     queueCollectionsList: 'QueueCollectionsList',
     notFinishedCollectionsList: 'NotFinishedCollectionsList',
+    repeatCardsList: 'RepeatCardsList,',
 } as const;
 
 export type TagType = typeof tagTypes[keyof typeof tagTypes];
