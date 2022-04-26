@@ -72,6 +72,7 @@ export const RepeatCollectionPageContent: FC<RepeatCollectionPageContentProps> =
         }
 
         const resultWeights = Object.entries(rememberWeights);
+
         if (resultWeights.some(([_, weight]) => weight === undefined || weight === null)) {
             console.error('remember weights are incorrect');
             return;
@@ -99,7 +100,12 @@ export const RepeatCollectionPageContent: FC<RepeatCollectionPageContentProps> =
     };
 
     const onChange = (weight: number | undefined) => {
-        rememberWeights[card.id] = weight;
+        if (weight !== undefined) {
+            rememberWeights[card.id] = weight;
+        } else {
+            delete rememberWeights[card.id];
+        }
+
         setRememberWeights({ ...rememberWeights });
         LocalStorageHelper.saveLearningCardsWeights(
             collectionId,
