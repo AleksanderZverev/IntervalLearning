@@ -25,7 +25,7 @@ export const InProgressCollections: FC = () => {
         return <CircularProgress />;
     }
 
-    if (isError || !isSuccess) {
+    if (isError || !data) {
         return <div>ERROR</div>;
     }
     const dateToCollectionsQueue = data.dateToCollectionsQueue;

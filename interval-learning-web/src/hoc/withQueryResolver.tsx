@@ -1,3 +1,4 @@
+/* eslint-disable react/display-name */
 import React from 'react';
 import { QueryDefinition } from '@reduxjs/toolkit/dist/query';
 import { UseQuery } from '@reduxjs/toolkit/dist/query/react/buildHooks';
@@ -21,8 +22,7 @@ export const withQueryResolver =
     <TComponentProps,>(
         Component: React.FunctionComponent<WithQueryResolverData<TResult> & TQueryArg & TComponentProps>
     ) =>
-    // eslint-disable-next-line react/display-name
-    (props: ResolverProps<TQueryArg> & TComponentProps) => {
+    (props: ResolverProps<TQueryArg> & Omit<TComponentProps, keyof (WithQueryResolverData<TResult> & TQueryArg)>) => {
         const { queryArg, containsError, disableLoading, containsFetching, ...otherProps } = props;
         const {
             data,
@@ -45,7 +45,10 @@ export const withQueryResolver =
             return <div>Error</div>;
         }
 
-        return <Component resolverData={data} {...queryArg} {...props} />;
+        //TODO: don't know how to fix
+        const HackComponent = Component as any;
+
+        return <HackComponent resolverData={data} {...queryArg} {...otherProps} />;
     };
 
 export const withOtherQueryResolver =

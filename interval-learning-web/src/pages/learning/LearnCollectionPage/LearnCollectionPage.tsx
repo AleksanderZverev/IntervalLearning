@@ -197,8 +197,6 @@ export const LearnCollection: FC = () => {
         <ConnectedOtherResolver
             queryArg={{ userId, collectionId, request: undefined }}
             disableLoading={disableLoading}
-            userId={userId}
-            collectionId={collectionId}
             setDisableLoading={(disable) => setDisableLoading(disable)}
         />
     );
