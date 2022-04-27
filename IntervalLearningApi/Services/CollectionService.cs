@@ -156,9 +156,9 @@ public class CollectionService
         }
     }
 
-    public (CardEntity? card, string? error) AddCard(
-        long userId,
+    public (CardEntity? card, string? error) CreateOrEditCard(long userId,
         short collectionId,
+        short? cardId,
         string frontText,
         string backText,
         long scheduleUserId,
@@ -173,8 +173,8 @@ public class CollectionService
 
         db.Database.BeginTransaction();
 
-        var (card, error) = cardsService.Create(
-            userId, collectionId, frontText, backText, scheduleUserId, scheduleId, description, examples);
+        var (card, error, isCreated) = cardsService.CreateOrEdit(
+            userId, collectionId, cardId, frontText, backText, scheduleUserId, scheduleId, description, examples);
 
         if (error != null)
         {
@@ -182,8 +182,12 @@ public class CollectionService
             return (card, error);
         }
 
-        collection.CardsCount++;
-        collection.NotStartedCards++;
+        if (isCreated)
+        {
+            collection.CardsCount++;
+            collection.NotStartedCards++;
+        }
+
         db.SaveChanges();
 
         db.Database.CommitTransaction();

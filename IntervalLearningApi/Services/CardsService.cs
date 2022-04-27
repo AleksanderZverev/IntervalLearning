@@ -135,9 +135,9 @@ public class CardsService
         return (collectionsResult, cardsWithDates);
     }
 
-    public (CardEntity? card, string? error) Create(
-        long userId,
+    public (CardEntity? card, string? error, bool isCreated) CreateOrEdit(long userId,
         short collectionId,
+        short? cardId,
         string frontText,
         string backText,
         long scheduleUserId,
@@ -145,6 +145,20 @@ public class CardsService
         string? description = null,
         List<string>? examples = null)
     {
+        var isCreation = cardId == null;
+
+        if (!isCreation)
+        {
+            var entity = db.Cards.Find(userId, collectionId, cardId);
+
+            if (entity == null)
+                isCreation = true;
+            else
+            {
+                db.Entry(entity).State = EntityState.Detached;
+            }
+        }
+
         var card = new CardEntity(
             userId,
             collectionId,
@@ -156,15 +170,20 @@ public class CardsService
             examples
         );
 
+        if (cardId != null)
+        {
+            card.Id = cardId.Value;
+        }
+
         try
         {
-            db.Entry(card).State = EntityState.Added;
+            db.Entry(card).State = isCreation ?  EntityState.Added : EntityState.Modified;
             db.SaveChanges();
-            return (card, null);
+            return (card, null, isCreation);
         }
         catch
         {
-            return (null, "Unknown error");
+            return (null, "Unknown error", false);
         }
     }
 

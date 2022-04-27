@@ -47,9 +47,10 @@ namespace IntervalLearningApi.Controllers
 
             var userId = HttpContext.GetUserId();
 
-            var (card, error) = collectionService.AddCard(
+            var (card, error) = collectionService.CreateOrEditCard(
                 userId,
                 collectionId,
+                item.CardId,
                 item.FrontText,
                 item.BackText,
                 item.ScheduleUserId,
@@ -58,7 +59,7 @@ namespace IntervalLearningApi.Controllers
                 item.Examples);
 
             return card != null
-                ? Ok(CollectionsController.ToCard(card))
+                ? CollectionsController.ToCard(card)
                 : BadRequest(error);
         }
 
@@ -97,7 +98,6 @@ namespace IntervalLearningApi.Controllers
         [HttpPatch("remember")]
         public async Task<ActionResult<RememberCardResponse>> RememberCard(short collectionId, [FromBody] RememberRequest request)
         {
-            return new RememberCardResponse(DateTime.UtcNow.AddDays(1));
             var userId = HttpContext.GetUserId();
 
             var (ok, error, closestRepeatDate) = await cardsService.Remember(
@@ -172,6 +172,7 @@ namespace IntervalLearningApi.Controllers
 
     public class CreateCardItem
     {
+        public short? CardId { get; set; }
         [Required]
         [StringLength(255)]
         public string FrontText { get; set; }
