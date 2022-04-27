@@ -13,7 +13,7 @@ function getDifferenceString(now: Dayjs, date: Dayjs) {
     const timeStamp = dayjs.duration(diffMilliseconds);
 
     const diffString = timeStamp.humanize();
-    return `${diffString} (${date.format('L')})`;
+    return diffString;
 }
 
 export const InProgressCollections: FC = () => {
@@ -40,47 +40,52 @@ export const InProgressCollections: FC = () => {
                 <TableHeaderCell align="center">Тип</TableHeaderCell>
             </TableHead>
             <TableBody>
-                {Object.entries(dateToCollectionsQueue).map((pair) => {
-                    const [dateString, collectionsQueue] = pair;
-                    const date = dayjs(dateString);
-                    const isWarn = now.isAfter(date, 'd');
-                    const isToday = now.isSame(date, 'd');
-                    const isTomorrow = now.add(dayjs.duration(1, 'd')).isSame(date, 'd');
+                {Object.entries(dateToCollectionsQueue)
+                    .sort((f, s) => f[0].localeCompare(s[0]))
+                    .map((pair) => {
+                        const [dateString, collectionsQueue] = pair;
+                        const date = dayjs(dateString);
+                        const isWarn = now.isAfter(date, 'd');
+                        const isToday = now.isSame(date, 'd');
+                        const isTomorrow = now.add(dayjs.duration(1, 'd')).isSame(date, 'd');
 
-                    return (
-                        <Fragment key={dateString}>
-                            <TableRow borderless>
-                                <TableCell
-                                    className={classNames({ [styles.warn]: isWarn, [styles.today]: isToday })}
-                                    colSpan={4}
-                                    fontSize={14}
-                                >
-                                    {isToday
-                                        ? 'Сегодня'
-                                        : isWarn
-                                        ? `Просрочено на ${getDifferenceString(now, date)}`
-                                        : isTomorrow
-                                        ? 'Завтра'
-                                        : `Через ${getDifferenceString(date, now)}`}
-                                </TableCell>
-                            </TableRow>
-                            {collectionsQueue.map((c) => {
-                                return (
-                                    <CollectionRow
-                                        key={c.collection.id}
-                                        collection={c.collection}
-                                        cardsToRepeatCount={c.cardsToRepeatCount}
-                                        onClick={() =>
-                                            navigate(
-                                                `/learning/repeat/${c.collection.userId}-${c.collection.id}?date=${dateString}`
-                                            )
-                                        }
-                                    />
-                                );
-                            })}
-                        </Fragment>
-                    );
-                })}
+                        return (
+                            <Fragment key={dateString}>
+                                <TableRow borderless>
+                                    <TableCell
+                                        className={classNames(styles.subLabel, {
+                                            [styles.warn]: isWarn,
+                                            [styles.today]: isToday,
+                                        })}
+                                        colSpan={4}
+                                        fontSize={14}
+                                    >
+                                        {isToday
+                                            ? 'Сегодня'
+                                            : isWarn
+                                            ? `Просрочено на ${getDifferenceString(now, date)} (${date.format('L')})`
+                                            : isTomorrow
+                                            ? 'Завтра'
+                                            : `Через ${getDifferenceString(date, now)} (${date.format('L')})`}
+                                    </TableCell>
+                                </TableRow>
+                                {collectionsQueue.map((c) => {
+                                    return (
+                                        <CollectionRow
+                                            key={c.collection.id}
+                                            collection={c.collection}
+                                            cardsToRepeatCount={c.cardsToRepeatCount}
+                                            onClick={() =>
+                                                navigate(
+                                                    `/learning/repeat/${c.collection.userId}-${c.collection.id}?date=${dateString}`
+                                                )
+                                            }
+                                        />
+                                    );
+                                })}
+                            </Fragment>
+                        );
+                    })}
             </TableBody>
         </Table>
     );
