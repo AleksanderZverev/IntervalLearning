@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using System.ComponentModel.DataAnnotations;
+using Newtonsoft.Json;
 using NodaTime;
 
 namespace IntervalLearningApi.Models.ByUser;
@@ -40,9 +41,14 @@ public class Collection
 
 public class CreateCollectionItem
 {
+    [Required]
     public long ScheduleUserId { get; set; }
+    [Required]
     public short ScheduleId { get; set; }
+    [Required]
     public short ThemeId { get; set; }
+    [Required]
+    [StringLength(100)]
     public string Title { get; set; }
     public bool IsDefaultBackSide { get; set; }
 }

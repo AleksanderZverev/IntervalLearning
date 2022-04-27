@@ -78,7 +78,7 @@ interface TableCellProps extends MuiTableCellProps {
 
 export const TableCell: FC<PropsWithChildren<TableCellProps>> = ({ children, fontSize, ...props }) => {
     return (
-        <MuiTableCell {...props} style={{ fontSize: fontSize ?? 20 }}>
+        <MuiTableCell {...props} style={{ fontSize: fontSize ?? 16 }}>
             {children}
         </MuiTableCell>
     );

@@ -43,7 +43,8 @@ export const Slider: FC<SliderProps> = ({ min, max, value, activeValue, onValueC
     const leftProperty = vertical ? 'top' : 'left';
 
     const total = max - min;
-    const sliderWidth = ((activeValue + 1 - min) / (total + 2)) * 100;
+    const activePoint = activeValue - min;
+    const sliderWidth = activeValue > max ? 100 : (activePoint / (total + 2)) * 100;
 
     const values = useMemo(() => {
         const values: number[] = [];
@@ -88,7 +89,7 @@ export const Slider: FC<SliderProps> = ({ min, max, value, activeValue, onValueC
                     [widthProperty]: `${sliderWidth}%`,
                     [topProperty]: '50%',
                     [heightProperty]: '4px',
-                    transition: `${widthProperty} 1s ease`,
+                    transition: `${widthProperty} ${sliderWidth === 100 ? '2s' : '1s'} ease`,
                 }}
             />
             {values.map((v, index) => {
@@ -105,7 +106,11 @@ export const Slider: FC<SliderProps> = ({ min, max, value, activeValue, onValueC
                             [styles.markCurrent]: isCurrentElement,
                             [styles.markNotFinished]: finishMode && !isActive,
                         })}
-                        style={{ [leftProperty]: `${left}%`, [topProperty]: isCurrentElement ? 8 : 11 }}
+                        style={{
+                            [leftProperty]: `${left}%`,
+                            [topProperty]: isCurrentElement ? 8 : 11,
+                            transition: finishMode ? undefined : `background-color .5s ease 1s`,
+                        }}
                     />
                 );
                 return isCurrentElement ? (

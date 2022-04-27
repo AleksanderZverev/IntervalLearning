@@ -198,7 +198,7 @@ export const RepeatCollectionPageContent: FC<RepeatCollectionPageContentProps> =
                     >
                         {isSuccess && data && (
                             <CardResult
-                                wordsLearned={notActiveIndex}
+                                wordsLearned={notActiveIndex > maxCards ? maxCards : notActiveIndex}
                                 nextRepeatDate={data.nextRepeatDate}
                                 onEndButtonClick={onExit}
                             />
