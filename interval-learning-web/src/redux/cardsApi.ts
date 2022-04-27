@@ -11,6 +11,7 @@ interface BaseRequestItem<T> {
 }
 
 export interface CreateCardItem {
+    cardId: string | undefined;
     frontText: string;
     backText: string;
     scheduleUserId: string;
@@ -75,7 +76,9 @@ export const cardsApi = api.injectEndpoints({
                     const newCard = await queryFulfilled;
 
                     dispatch(addCard(newCard.data));
-                    dispatch(cardAddedToCollection({ collectionId: arg.collectionId, userId: arg.userId }));
+                    if (!arg.request.cardId) {
+                        dispatch(cardAddedToCollection({ collectionId: arg.collectionId, userId: arg.userId }));
+                    }
                 } catch {}
             },
         }),

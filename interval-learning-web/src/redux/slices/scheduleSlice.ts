@@ -2,7 +2,7 @@ import { createEntityAdapter, createSlice, PayloadAction } from '@reduxjs/toolki
 import { Schedule } from '../../types/schedule';
 import { RootState } from '../store';
 
-export const getScheduleId = (userId: string, scheduleId: number) => `${userId}-${scheduleId}`;
+export const getScheduleId = (userId: string, scheduleId: string | number) => `${userId}-${scheduleId}`;
 
 const adapter = createEntityAdapter<Schedule>({ selectId: (s) => getScheduleId(s.userId, s.id) });
 const initialState = adapter.getInitialState();

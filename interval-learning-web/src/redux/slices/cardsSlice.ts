@@ -18,13 +18,13 @@ const initialState: State = { userToCollectionToCard: {} };
 const setCard = (state: State, card: Card) => {
     const root = state.userToCollectionToCard;
 
-    if (!Object.hasOwn(root, card.userId)) {
+    if (!(card.userId in root)) {
         root[card.userId] = {};
     }
 
     const collectionsIndex = root[card.userId];
 
-    if (!Object.hasOwn(collectionsIndex, card.collectionId)) {
+    if (!(card.collectionId in collectionsIndex)) {
         collectionsIndex[card.collectionId] = {};
     }
 
@@ -53,9 +53,9 @@ export const selectCards = (state: RootState, userId?: string, collectionId?: st
     }
 
     const collectionsIndex = state.cards.userToCollectionToCard[userId] ?? {};
-    const collection = collectionsIndex[collectionId];
+    const cardsIndex = collectionsIndex[collectionId];
 
-    return collection ? Object.values(collection) : [];
+    return cardsIndex ? Object.values(cardsIndex) : [];
 };
 
 export const selectCardsByIds = (state: RootState, userId?: string, collectionId?: string, cardIds?: string[]) => {
@@ -65,6 +65,21 @@ export const selectCardsByIds = (state: RootState, userId?: string, collectionId
 
     const cards = selectCards(state, userId, collectionId);
     return cards.filter((c) => cardIds.includes(c.id));
+};
+
+export const selectCardById = (
+    state: RootState,
+    userId: string,
+    collectionId: string,
+    cardId?: string
+): Card | undefined => {
+    if (!userId || !collectionId || !cardId) {
+        return undefined;
+    }
+
+    const collectionsIndex = state.cards.userToCollectionToCard[userId] ?? {};
+    const cardsIndex = collectionsIndex[collectionId] ?? {};
+    return cardsIndex[cardId];
 };
 
 export const { addCard, addManyCards } = cardsSlice.actions;

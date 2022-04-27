@@ -4,7 +4,11 @@ import { Dialog, DialogTitle, DialogContent, DialogActions, Button } from '@mui/
 import { FC } from 'react';
 import { FieldError, FormProvider, SubmitHandler, useFieldArray, useForm } from 'react-hook-form';
 import * as yup from 'yup';
+import useTypedSelector from '../../hooks/useTypedSelector';
 import { CreateCardItem, useAddCardMutation } from '../../redux/cardsApi';
+import { selectCardById, selectCardsByIds } from '../../redux/slices/cardsSlice';
+import { getScheduleId, selectScheduleById } from '../../redux/slices/scheduleSlice';
+import { Card } from '../../types/Collection';
 import { Schedule } from '../../types/schedule';
 import { Form, FormField, FormFiledLabel, IconFormField } from '../Form/Form';
 import { SelectSchedule } from '../SelectSchedule/SelectSchedule';
@@ -36,17 +40,48 @@ const schema = yup
     .required();
 
 interface CreateCardModalProps {
-    open: boolean;
-    onClose: () => void;
     collectionId: string;
     collectionUserId: string;
+    open: boolean;
+    onClose: () => void;
+    cardId?: string;
     defaultSchedule?: Schedule;
 }
 
+function getDefaultValues(card: Card, defaultSchedule: Schedule): CardForm {
+    const examples = card.examples?.map((e) => ({ value: e })) ?? [];
+    examples.push({ value: '' });
+
+    const cardForm: CardForm = {
+        frontText: card.frontSideText,
+        backText: card.backSideText,
+        schedule: defaultSchedule,
+        description: card.description,
+        examples,
+    };
+
+    return cardForm;
+}
+
 export const CreateCardModal: FC<CreateCardModalProps> = (props) => {
+    const card = useTypedSelector((state) =>
+        selectCardById(state, props.collectionUserId, props.collectionId, props.cardId)
+    );
+
+    const cardSchedule = useTypedSelector((state) =>
+        selectScheduleById(state, getScheduleId(card?.scheduleUserId ?? '', card?.scheduleId ?? ''))
+    );
+
+    if (card && !cardSchedule) {
+        throw new Error();
+    }
+
     const formMethods = useForm<CardForm>({
         resolver: yupResolver(schema),
-        defaultValues: { schedule: props.defaultSchedule, examples: [{ value: '' }] },
+        defaultValues:
+            card && cardSchedule
+                ? getDefaultValues(card, cardSchedule)
+                : { schedule: props.defaultSchedule, examples: [{ value: '' }] },
     });
     const {
         register,
@@ -69,6 +104,7 @@ export const CreateCardModal: FC<CreateCardModalProps> = (props) => {
 
     const onCreate: SubmitHandler<CardForm> = async (data) => {
         const item: CreateCardItem = {
+            cardId: props.cardId,
             frontText: data.frontText,
             backText: data.backText,
             scheduleUserId: data.schedule.userId,
@@ -85,7 +121,7 @@ export const CreateCardModal: FC<CreateCardModalProps> = (props) => {
 
     return (
         <Dialog open={props.open} onClose={props.onClose} maxWidth={'sm'} fullWidth>
-            <DialogTitle>Создание карточки</DialogTitle>
+            <DialogTitle>{props.cardId ? 'Изменение карточки' : 'Создание карточки'}</DialogTitle>
             <DialogContent>
                 <FormProvider {...formMethods}>
                     <Form>
@@ -136,7 +172,7 @@ export const CreateCardModal: FC<CreateCardModalProps> = (props) => {
             </DialogContent>
             <DialogActions>
                 <Button onClick={handleSubmit(onCreate)} disabled={isLoading}>
-                    Создать
+                    {props.cardId ? 'Сохранить' : 'Создать'}
                 </Button>
             </DialogActions>
         </Dialog>
