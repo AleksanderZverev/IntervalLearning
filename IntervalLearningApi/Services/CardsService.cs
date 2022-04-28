@@ -1,7 +1,6 @@
 ﻿using System.Diagnostics;
 using DB;
 using DB.Models;
-using Microsoft.AspNetCore.Razor.TagHelpers;
 using Microsoft.EntityFrameworkCore;
 
 namespace IntervalLearningApi.Services;
@@ -64,7 +63,6 @@ public class CardsService
                         && c.ParentCollectionId == collectionId 
                         && c.Date.Date == date.Date)
             .ToListAsync();
-
 
         if (queueItems.Count == 0)
             return new List<CardEntity>(0);

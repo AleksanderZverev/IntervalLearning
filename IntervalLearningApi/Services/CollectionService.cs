@@ -127,26 +127,49 @@ public class CollectionService
         return (new List<CollectionEntity>(0), notStartedCollections);
     }
 
-    public (CollectionEntity? collection, string? error) Create(
-        long userId, 
-        long repeatsScheduleUserId,
-        short repeatsScheduleId, 
-        short themeId, 
-        string title, 
-        bool isDefaultBackSide)
+    public class CreateOrPatchCollection : ICreateOrEditModel
     {
-        var collection = new CollectionEntity(
-            userId,
-            repeatsScheduleUserId,
-            repeatsScheduleId,
-            themeId,
-            title,
-            isDefaultBackSide
-        );
+        public long ParentUserId { get; }
+        public short ThemeId { get; }
+        public short DefaultRepeatsScheduleId { get; }
+        public long DefaultRepeatsScheduleParentUserId { get; }
+        public string Title { get;  }
+        public bool IsDefaultBackSide { get; }
+
+        public CreateOrPatchCollection(
+            long parentUserId, 
+            string title, 
+            bool isDefaultBackSide,
+            short themeId,
+            long defaultRepeatsScheduleParentUserId,
+            short defaultRepeatsScheduleId)
+        {
+            ParentUserId = parentUserId;
+            Title = title;
+            IsDefaultBackSide = isDefaultBackSide;
+            ThemeId = themeId;
+            DefaultRepeatsScheduleId = defaultRepeatsScheduleId;
+            DefaultRepeatsScheduleParentUserId = defaultRepeatsScheduleParentUserId;
+        }
+    }
+
+    public (CollectionEntity? collection, string? error) CreateOrEdit(CreateOrPatchCollection item, short? collectionId)
+    {
+        var collection = collectionId == null
+            ? new CollectionEntity()
+            : db.Collections.Find(item.ParentUserId, collectionId);
+
+        if (collection == null)
+            return (null, "Collection not found");
+
+        var entry = db.Entry(collection);
+        entry.CurrentValues.SetValues(item);
 
         try
         {
-            db.Entry(collection).State = EntityState.Added;
+            if (collectionId == null)
+                entry.State = EntityState.Added;
+
             db.SaveChanges();
             return (collection, null);
         }

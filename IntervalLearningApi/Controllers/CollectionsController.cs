@@ -20,20 +20,23 @@ namespace IntervalLearningApi.Controllers
         }
 
         [HttpPost]
-        public IActionResult CreateCollection([FromBody]CreateCollectionItem item)
+        public ActionResult<Collection> CreateCollection([FromBody]CreateCollectionItem item)
         {
             var userId = HttpContext.GetUserId();
 
-            var (collection, error) = collectionService.Create(
-                userId,
-                item.ScheduleUserId,
-                item.ScheduleId,
-                item.ThemeId,
-                item.Title,
-                item.IsDefaultBackSide);
+            var (collection, error) = collectionService.CreateOrEdit(
+                new CollectionService.CreateOrPatchCollection(
+                    userId,
+                    item.Title,
+                    item.IsDefaultBackSide,
+                    item.ThemeId,
+                    item.ScheduleUserId,
+                    item.ScheduleId
+                ),
+                item.CollectionId);
 
             return collection != null
-                ? Ok(ToCollection(collection))
+                ? ToCollection(collection)
                 : BadRequest(error);
         }
 

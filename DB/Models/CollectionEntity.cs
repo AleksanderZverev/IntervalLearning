@@ -1,6 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using NodaTime;
 
 namespace DB.Models;
 
@@ -10,8 +9,18 @@ public interface IParentCollectionReference : IParentUserReference
     public CollectionEntity? ParentCollection { get; set; }
 }
 
+public interface ICreateOrEditModel
+{
+    public string Title { get; }
+    public bool IsDefaultBackSide { get; }
+    public short ThemeId { get; }
+    public long DefaultRepeatsScheduleParentUserId { get; }
+    public short DefaultRepeatsScheduleId { get; }
+    public long ParentUserId { get; }
+}
+
 [Table("Collections")]
-public class CollectionEntity : IParentUserReference
+public class CollectionEntity : IParentUserReference, ICreateOrEditModel
 {
     [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
     public short Id { get; set; }
@@ -46,20 +55,4 @@ public class CollectionEntity : IParentUserReference
 
     public long ParentUserId { get; set; }
     public virtual UserEntity? ParentUser { get; set; }
-
-    public CollectionEntity(
-        long parentUserId,
-        long defaultRepeatsScheduleParentUserId,
-        short defaultRepeatsScheduleId,
-        short themeId,
-        string title, 
-        bool isDefaultBackSide)
-    {
-        ParentUserId = parentUserId;
-        DefaultRepeatsScheduleParentUserId = defaultRepeatsScheduleParentUserId;
-        DefaultRepeatsScheduleId = defaultRepeatsScheduleId;
-        Title = title;
-        IsDefaultBackSide = isDefaultBackSide;
-        ThemeId = themeId;
-    }
 }

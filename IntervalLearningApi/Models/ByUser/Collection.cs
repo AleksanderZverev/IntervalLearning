@@ -41,6 +41,8 @@ public class Collection
 
 public class CreateCollectionItem
 {
+    public short? CollectionId { get; set; }
+
     [Required]
     public long ScheduleUserId { get; set; }
     [Required]
