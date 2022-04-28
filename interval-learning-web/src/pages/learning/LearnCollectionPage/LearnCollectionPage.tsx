@@ -1,9 +1,8 @@
 import { FC, useState } from 'react';
 import useTypedSelector from '../../../hooks/useTypedSelector';
-import { selectNotStartedCardsIds } from '../../../redux/slices/notStartedCardsSlice';
 import { useNavigate, useParams } from 'react-router-dom';
 import { selectCollectionById } from '../../../redux/slices/collectionsSlice';
-import { withOtherQueryResolver, withQueryResolver } from '../../../hoc/withQueryResolver';
+import { withOtherQueryResolver, withQueryResolver, WithQueryResolverData } from '../../../hoc/withQueryResolver';
 import { CardsItem, useGetNotStartedCardsQuery, useStartCardsMutation } from '../../../redux/cardsApi';
 import { PageContainer } from '../../../controls/PageContainer/PageContainer';
 import { PageHeader } from '../../../controls/PageHeader/PageHeader';
@@ -17,7 +16,7 @@ import { useGetCollectionQuery } from '../../../redux/collectionApi';
 import { AssertionModal } from '../../../controls/Modals/AssertionModal';
 import { CardResult } from '../CardResult/CardResult';
 
-interface LearnCollectionPageContentProps {
+interface LearnCollectionPageContentProps extends WithQueryResolverData<string[]> {
     userId: string;
     collectionId: string;
     setDisableLoading: (disable: boolean) => void;
@@ -27,6 +26,7 @@ export const LearnCollectionPageContent: FC<LearnCollectionPageContentProps> = (
     userId,
     collectionId,
     setDisableLoading,
+    resolverData: notStartedCardIds,
 }) => {
     const collection = useTypedSelector((state) => selectCollectionById(state, userId, collectionId));
 
@@ -35,7 +35,6 @@ export const LearnCollectionPageContent: FC<LearnCollectionPageContentProps> = (
     }
 
     const theme = useTypedSelector((state) => selectTheme(state, collection.themeId));
-    const notStartedCards = useTypedSelector(selectNotStartedCardsIds);
 
     const navigate = useNavigate();
     const [startCards, { data, isLoading: isMutationLoading, isSuccess }] = useStartCardsMutation();
@@ -44,13 +43,13 @@ export const LearnCollectionPageContent: FC<LearnCollectionPageContentProps> = (
     const [activeCardIndex, setActiveCardIndex] = useState(0);
     const [cardIndex, setCardIndex] = useState(0);
 
-    if (notStartedCards.length === 0) {
+    if (notStartedCardIds.length === 0) {
         return <div>No cards</div>;
     }
 
-    const maxCards = notStartedCards.length;
+    const maxCards = notStartedCardIds.length;
 
-    const currentCard = notStartedCards[cardIndex];
+    const currentCardId = notStartedCardIds[cardIndex];
 
     const onSuccessFinish = () => {
         navigate('/learning');
@@ -71,14 +70,14 @@ export const LearnCollectionPageContent: FC<LearnCollectionPageContentProps> = (
             setShowAssertModal(false);
         }
 
-        const cardsToStart = [...notStartedCards];
+        const cardIdsToStart = [...notStartedCardIds];
 
         if (cardIndex + 1 < maxCards) {
-            cardsToStart.splice(cardIndex + 1);
+            cardIdsToStart.splice(cardIndex + 1);
         }
 
         const item: CardsItem = {
-            cardIds: cardsToStart.map((i) => i.id),
+            cardIds: [...cardIdsToStart],
         };
 
         try {
@@ -160,9 +159,11 @@ export const LearnCollectionPageContent: FC<LearnCollectionPageContentProps> = (
                         />
                     )}
 
-                    {currentCard && !isSuccess && (
+                    {currentCardId && !isSuccess && (
                         <LearnCard
-                            card={currentCard}
+                            userId={userId}
+                            collectionId={collectionId}
+                            cardId={currentCardId}
                             showNext={cardIndex < maxCards - 1}
                             showPrevious={cardIndex !== 0}
                             onFinish={() => onFinish(true)}

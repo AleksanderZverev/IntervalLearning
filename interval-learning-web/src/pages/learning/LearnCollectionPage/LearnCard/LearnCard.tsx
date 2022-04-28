@@ -1,11 +1,16 @@
-import { FC } from 'react';
-import { Button, Paper, Typography } from '@mui/material';
+import { FC, useState } from 'react';
+import { Button, IconButton, Paper, Portal, Typography } from '@mui/material';
 import { Card } from '../../../../types/Collection';
 import styles from './styles.module.css';
-import { KeyboardArrowRight } from '@mui/icons-material';
+import { Edit, KeyboardArrowRight } from '@mui/icons-material';
+import { CreateCardModal } from '../../../../controls/Modals/CreateCardModal';
+import useTypedSelector from '../../../../hooks/useTypedSelector';
+import { selectCardById } from '../../../../redux/slices/cardsSlice';
 
 interface LearnCardProps {
-    card: Card;
+    userId: string;
+    collectionId: string;
+    cardId: string;
     showNext: boolean;
     showPrevious: boolean;
     onNext: () => void;
@@ -14,20 +19,45 @@ interface LearnCardProps {
 }
 
 export const LearnCard: FC<LearnCardProps> = ({
-    card,
+    userId,
+    collectionId,
+    cardId,
     showNext,
     showPrevious,
     onNext,
     onPrevious,
     onFinish: onEndButtonClick,
 }) => {
+    const card = useTypedSelector((state) => selectCardById(state, userId, collectionId, cardId));
+
+    if (!card) {
+        throw new Error();
+    }
+
     const containsDescriptionAndExamples = Boolean(card.description || (card.examples && card.examples.length > 0));
+
+    const [showEditCardModal, setShowEditCardModal] = useState(false);
 
     return (
         <Paper
             className={styles.container}
             style={{ justifyContent: containsDescriptionAndExamples ? 'flex-start' : 'center' }}
         >
+            <Portal>
+                {showEditCardModal && (
+                    <CreateCardModal
+                        open
+                        onClose={() => setShowEditCardModal(false)}
+                        collectionId={card.collectionId}
+                        collectionUserId={card.userId}
+                        cardId={card.id}
+                    />
+                )}
+            </Portal>
+            <IconButton className={styles.editButton} onClick={() => setShowEditCardModal(true)}>
+                <Edit fontSize="small" />
+            </IconButton>
+
             <div className={styles.headerContainer}>
                 <Typography variant="h3" fontSize={32}>
                     {card.frontSideText}

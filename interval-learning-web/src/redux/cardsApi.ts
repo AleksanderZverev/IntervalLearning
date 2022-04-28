@@ -2,7 +2,6 @@ import { Card } from './../types/Collection';
 import { api, tagTypes } from './apiSlice';
 import { addCard, addManyCards, getCardUniqueKey } from './slices/cardsSlice';
 import { addStartedCards, cardAddedToCollection } from './slices/collectionsSlice';
-import { setNotStartedCards } from './slices/notStartedCardsSlice';
 
 interface BaseRequestItem<T> {
     userId: string;
@@ -82,15 +81,18 @@ export const cardsApi = api.injectEndpoints({
                 } catch {}
             },
         }),
-        getNotStartedCards: build.query<Card[], BaseRequestItem<undefined>>({
+        getNotStartedCards: build.query<string[], BaseRequestItem<undefined>>({
             query: ({ collectionId, request }) => ({
                 url: `/collections/${collectionId}/cards/not-started`,
                 method: 'GET',
                 onSuccess: async (dispatch, data) => {
-                    dispatch(setNotStartedCards(data as Card[]));
                     dispatch(addManyCards(data as Card[]));
                 },
             }),
+            transformResponse: (result, meta, arg) => {
+                const cards = result as Card[];
+                return cards.map((c) => c.id);
+            },
             providesTags: [tagTypes.notStartedCardsList],
         }),
         getRepeatCards: build.query<CardsItem, BaseRequestItem<GetRepeatCardsRequest>>({
