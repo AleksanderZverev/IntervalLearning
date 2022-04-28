@@ -9,6 +9,7 @@ export const CenterContainer: FC<{ children: ReactNode }> = ({ children }) => {
                 height: '100%',
                 justifyContent: 'center',
                 alignItems: 'center',
+                flexGrow: 1,
             }}
         >
             {children}
