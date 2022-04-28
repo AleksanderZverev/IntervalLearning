@@ -3,6 +3,7 @@ import { api, tagTypes } from './apiSlice';
 import { setOneCollection, setCollections } from './slices/collectionsSlice';
 
 export interface CreateCollectionItem {
+    collectionId: string | undefined;
     scheduleUserId: string;
     scheduleId: number;
     themeId: number;

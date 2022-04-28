@@ -34,7 +34,7 @@ export const CardRow: FC<CardRowProps> = ({ card }) => {
                     />
                 )}
             </Portal>
-            <TableRow borderless hover={hasExamples} onClick={() => onShowDetails()}>
+            <TableRow borderless hover={Boolean(hasExamples)} onClick={() => onShowDetails()}>
                 <TableCell>{card.frontSideText}</TableCell>
                 <TableCell>{card.backSideText}</TableCell>
                 <TableCell sx={{ position: 'relative', paddingRight: 5 }}>
