@@ -1,4 +1,4 @@
-import { Button, Divider } from '@mui/material';
+import { Button, Divider, IconButton } from '@mui/material';
 import Link from 'next/link';
 import MuiLink from '../../Link';
 import React, { FC, useMemo } from 'react';
@@ -8,6 +8,7 @@ import { signOutUser } from '../../redux/currentUserSlice';
 import { useTypedDispatch } from '../../hooks/useTypedDispatch';
 import styles from './WebHeader.module.css';
 import { useNavigate } from 'react-router-dom';
+import { Logout } from '@mui/icons-material';
 
 interface WebHeaderProps {
     isServerSide: boolean;
@@ -61,9 +62,9 @@ const WebHeader: FC<WebHeaderProps> = ({ isServerSide }) => {
                 {currentUser !== null ? (
                     <>
                         <span>{userNameTitle}</span>
-                        <Button variant="contained" onClick={signOut}>
-                            Sign Out
-                        </Button>
+                        <IconButton onClick={signOut}>
+                            <Logout />
+                        </IconButton>
                     </>
                 ) : (
                     <>

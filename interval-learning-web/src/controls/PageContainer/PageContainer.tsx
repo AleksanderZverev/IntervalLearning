@@ -12,22 +12,10 @@ export const PageContainer: FC<PropsWithChildren<PageContainerProps>> = ({ trans
             sx={{
                 marginTop: '10px',
                 backgroundColor: transparent ? undefined : 'white',
-                height: '100%',
             }}
-            style={{ padding: 0 }}
+            style={{ padding: '20px 50px' }}
         >
-            <div
-                style={{
-                    backgroundColor: transparent ? undefined : 'white',
-                    padding: '20px 50px',
-                    minHeight: '100%',
-                    height: 'auto',
-                    display: 'flex',
-                    flexDirection: 'column',
-                }}
-            >
-                {children}
-            </div>
+            {children}
         </Container>
     );
 };
