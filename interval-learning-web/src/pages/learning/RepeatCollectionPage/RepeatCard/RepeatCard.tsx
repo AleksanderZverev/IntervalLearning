@@ -1,7 +1,19 @@
 import { InfoOutlined, RefreshOutlined } from '@mui/icons-material';
-import { Button, colors, FormControlLabel, IconButton, Paper, Radio, RadioGroup, Typography } from '@mui/material';
+import {
+    Button,
+    colors,
+    FormControlLabel,
+    Icon,
+    IconButton,
+    Paper,
+    Portal,
+    Radio,
+    RadioGroup,
+    Typography,
+} from '@mui/material';
 import classNames from 'classnames';
 import { FC, useLayoutEffect, useState } from 'react';
+import { ShowCardModal } from '../../../../controls/Modals/ShowCardModal';
 import { useEventListener } from '../../../../hooks/useEventListener';
 import { Card } from '../../../../types/Collection';
 import styles from './styles.module.css';
@@ -34,6 +46,7 @@ export const RepeatCard: FC<RepeatCardProps> = ({
 }) => {
     const [backIsHidden, setBackIsHidden] = useState(true);
     const [isError, setIsError] = useState(false);
+    const [showCardInfoModal, setShowCardInfoModal] = useState(false);
 
     useEventListener('keydown', (e) => {
         e.key === '1' && onChange(0);
@@ -43,7 +56,20 @@ export const RepeatCard: FC<RepeatCardProps> = ({
 
     return (
         <Paper className={styles.container}>
-            <InfoOutlined className={styles.infoIcon} />
+            <Portal>
+                {showCardInfoModal && (
+                    <ShowCardModal
+                        open
+                        onClose={() => setShowCardInfoModal(false)}
+                        userId={card.userId}
+                        collectionId={card.collectionId}
+                        cardId={card.id}
+                    />
+                )}
+            </Portal>
+            <IconButton className={styles.infoIcon} onClick={() => setShowCardInfoModal(true)}>
+                <InfoOutlined />
+            </IconButton>
             {isActive && (
                 <IconButton
                     className={styles.refreshIcon}
