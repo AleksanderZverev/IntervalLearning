@@ -1,24 +1,15 @@
 import { CircularProgress } from '@mui/material';
 import { FC, useState } from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeaderCell, TableRow } from '../../../../controls/Table/Table';
-import { useGetNotFinishedQuery } from '../../../../redux/collectionApi';
-import { Collection } from '../../../../types/Collection';
+import { withQueryResolver, WithQueryResolverData } from '../../../../hoc/withQueryResolver';
+import { GetNotFinishedResponse, useGetNotFinishedQuery } from '../../../../redux/collectionApi';
 import { CollectionRow } from './CollectionRow/CollectionRow';
 
-export const NotFinishedCollections: FC = () => {
-    const [page, setPage] = useState(1);
-    const [collectionsCount, setCollectionsCount] = useState(30);
-    const { data, isFetching, isError, isSuccess } = useGetNotFinishedQuery({ page: page, count: collectionsCount });
+interface NotFinishedCollectionsContentProps extends WithQueryResolverData<GetNotFinishedResponse> {}
 
-    if (isFetching) {
-        return <CircularProgress />;
-    }
-
-    if (isError || !isSuccess) {
-        return <div>ERROR</div>;
-    }
-
-    const { startedCollections, notStartedCollections } = data;
+const NotFinishedCollectionsContent: FC<NotFinishedCollectionsContentProps> = ({
+    resolverData: { startedCollections, notStartedCollections },
+}) => {
     const collections = [...startedCollections, ...notStartedCollections];
 
     return (
@@ -30,10 +21,25 @@ export const NotFinishedCollections: FC = () => {
                 <TableHeaderCell>Тип</TableHeaderCell>
             </TableHead>
             <TableBody>
-                {collections.map((c) => (
-                    <CollectionRow key={c.id} collection={c} />
-                ))}
+                {collections.length > 0 ? (
+                    collections.map((c) => <CollectionRow key={c.id} collection={c} />)
+                ) : (
+                    <TableRow borderless>
+                        <TableCell colSpan={4} align={'center'}>
+                            Все слова изучены...
+                        </TableCell>
+                    </TableRow>
+                )}
             </TableBody>
         </Table>
     );
+};
+
+const ConnectedNotFinishedCollectionsContent = withQueryResolver(useGetNotFinishedQuery)(NotFinishedCollectionsContent);
+
+export const NotFinishedCollections: FC = () => {
+    const [page, setPage] = useState(1);
+    const [collectionsCount, setCollectionsCount] = useState(30);
+
+    return <ConnectedNotFinishedCollectionsContent queryArg={{ page, count: collectionsCount }} />;
 };

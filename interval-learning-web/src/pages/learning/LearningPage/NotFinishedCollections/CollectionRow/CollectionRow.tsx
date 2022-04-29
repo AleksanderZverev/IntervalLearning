@@ -28,7 +28,7 @@ export const CollectionRow: FC<CollectionRowProps> = ({ collection }) => {
     };
 
     return (
-        <TableRow onClick={onClick} style={{ cursor: clickable ? 'pointer' : undefined }}>
+        <TableRow hover onClick={onClick}>
             <TableCell>{collection.title}</TableCell>
             <TableCell>
                 {collection.cardsCount > 0 ? `${learnedCards}/${collection.cardsCount}` : 'пустая коллекция'}
