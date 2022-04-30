@@ -1,0 +1,28 @@
+.rememberList {
+    position: absolute;
+    right: 5px;
+    top: -30px;
+
+    display: flex;
+    flex-direction: row-reverse;
+    column-gap: 8px;
+
+    list-style: none;
+}
+
+.rememberList li {
+    width: 10px;
+    height: 25px;
+}
+
+.rememberList .good {
+    background-color: #29cc2f;
+}
+
+.rememberList .warn {
+    background-color: #ecbe4a;
+}
+
+.rememberList .bad {
+    background-color: #dc5d5d;
+}

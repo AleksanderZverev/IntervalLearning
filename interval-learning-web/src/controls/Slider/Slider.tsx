@@ -2,6 +2,7 @@ import { styled, Tooltip, tooltipClasses, TooltipProps } from '@mui/material';
 import classNames from 'classnames';
 import { FC, useMemo } from 'react';
 import { useEventListener } from '../../hooks/useEventListener';
+import { LightTooltip } from '../LightTooltip/LightTooltip';
 import styles from './styles.module.css';
 
 interface SliderProps {
@@ -14,17 +15,6 @@ interface SliderProps {
     onValueChange: (newValue: number) => void;
     vertical?: boolean;
 }
-
-const LightTooltip = styled(({ className, ...props }: TooltipProps) => (
-    <Tooltip {...props} classes={{ popper: className }} />
-))(({ theme }) => ({
-    [`& .${tooltipClasses.tooltip}`]: {
-        backgroundColor: theme.palette.common.white,
-        color: 'rgba(0, 0, 0, 0.87)',
-        boxShadow: theme.shadows[1],
-        fontSize: 11,
-    },
-}));
 
 const horizontalKeys: Record<string, number> = {
     ArrowRight: 1,

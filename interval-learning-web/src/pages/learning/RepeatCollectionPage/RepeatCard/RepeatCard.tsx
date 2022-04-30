@@ -16,6 +16,7 @@ import { FC, useLayoutEffect, useState } from 'react';
 import { ShowCardModal } from '../../../../controls/Modals/ShowCardModal';
 import { useEventListener } from '../../../../hooks/useEventListener';
 import { Card } from '../../../../types/Collection';
+import { RememberList } from './RememberList/RememberList';
 import styles from './styles.module.css';
 
 interface RepeatCardProps {
@@ -67,6 +68,9 @@ export const RepeatCard: FC<RepeatCardProps> = ({
                     />
                 )}
             </Portal>
+
+            {card.remembers && card.remembers.length > 0 && <RememberList remembers={card.remembers} />}
+
             <IconButton className={styles.infoIcon} onClick={() => setShowCardInfoModal(true)}>
                 <InfoOutlined />
             </IconButton>
