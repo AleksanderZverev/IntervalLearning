@@ -9,6 +9,32 @@ import { CenterContainer } from '../controls/CenterContainer/CenterContainer';
 import { ModalLoader } from '../ModalLoader/ModalLoader';
 import { AssertionModal } from '../controls/Modals/AssertionModal';
 
+type GetInnerType<S> = S extends UseMutation<infer T> ? T : never;
+
+type GetMutationArgs<S> = S extends UseMutation<infer TDefinition>
+    ? TDefinition extends MutationDefinition<infer TArg, CustomBaseQueryType, TagType, any>
+        ? TArg
+        : never
+    : never;
+
+type GetMutationResult<S> = S extends UseMutation<infer TDefinition>
+    ? TDefinition extends MutationDefinition<any, CustomBaseQueryType, TagType, infer TResult>
+        ? TResult
+        : never
+    : never;
+
+type GetQueryArgs<S> = S extends UseQuery<infer TDefinition>
+    ? TDefinition extends QueryDefinition<infer TArg, CustomBaseQueryType, TagType, any>
+        ? TArg
+        : never
+    : never;
+
+type GetQueryResult<S> = S extends UseQuery<infer TDefinition>
+    ? TDefinition extends QueryDefinition<any, CustomBaseQueryType, TagType, infer TResult>
+        ? TResult
+        : never
+    : never;
+
 interface ResolverProps<TQueryArg> {
     containsFetching?: boolean;
     containsError?: boolean;
@@ -16,16 +42,19 @@ interface ResolverProps<TQueryArg> {
     queryArg: TQueryArg;
 }
 
-export interface WithQueryResolverData<TData> {
-    resolverData: TData;
+export interface WithQueryResolverData<T extends UseQuery<QueryDefinition<any, CustomBaseQueryType, TagType, any>>> {
+    queryData: GetQueryResult<T>;
 }
 
 export const withQueryResolver =
     <TQueryArg, TResult>(useQuery: UseQuery<QueryDefinition<TQueryArg, CustomBaseQueryType, TagType, TResult>>) =>
     <TComponentProps,>(
-        Component: React.FunctionComponent<WithQueryResolverData<TResult> & TQueryArg & TComponentProps>
+        Component: React.FunctionComponent<WithQueryResolverData<typeof useQuery> & TQueryArg & TComponentProps>
     ) =>
-    (props: ResolverProps<TQueryArg> & Omit<TComponentProps, keyof (WithQueryResolverData<TResult> & TQueryArg)>) => {
+    (
+        props: ResolverProps<TQueryArg> &
+            Omit<TComponentProps, keyof (WithQueryResolverData<typeof useQuery> & TQueryArg)>
+    ) => {
         const { queryArg, containsError, disableLoading, containsFetching, ...otherProps } = props;
         const {
             data,
@@ -53,9 +82,9 @@ export const withQueryResolver =
         }
 
         //TODO: don't know how to fix
-        const HackComponent = Component as any;
+        // const HackComponent = Component as any;
 
-        return <HackComponent resolverData={data} {...queryArg} {...otherProps} />;
+        return <Component queryData={data} {...queryArg} {...otherProps} />;
     };
 
 export const withOtherQueryResolver =
@@ -77,28 +106,16 @@ export const withOtherQueryResolver =
         );
     };
 
-type GetInnerType<S> = S extends UseMutation<infer T> ? T : never;
-
-type GetArgs<S> = S extends UseMutation<infer TDefinition>
-    ? TDefinition extends MutationDefinition<infer TArg, CustomBaseQueryType, TagType, any>
-        ? TArg
-        : never
-    : never;
-
-type GetResult<S> = S extends UseMutation<infer TDefinition>
-    ? TDefinition extends MutationDefinition<any, CustomBaseQueryType, TagType, infer TResult>
-        ? TResult
-        : never
-    : never;
-
 export interface WithMutationResolverProps<
     T extends UseMutation<MutationDefinition<any, CustomBaseQueryType, TagType, any>>
 > {
-    mutate: (args: GetArgs<T>) => Promise<GetResult<T>>;
-    showRetryModal: (retry: () => void) => void;
-    isLoading: boolean;
-    isSuccess: boolean;
-    mutationData: GetResult<T> | undefined;
+    mutationProps: {
+        mutate: (args: GetMutationArgs<T>) => Promise<GetMutationResult<T>>;
+        showRetryModal: (retry: () => void) => void;
+        isLoading: boolean;
+        isSuccess: boolean;
+        data: GetMutationResult<T> | undefined;
+    };
 }
 
 interface MutationResolverProps {}
@@ -149,11 +166,13 @@ export const withMutationResolver =
                 </Portal>
                 <ModalLoader loading={isLoading} />
                 <Component
-                    mutate={onMutate}
-                    showRetryModal={showRetryModal}
-                    isLoading={isLoading}
-                    isSuccess={isSuccess}
-                    mutationData={data}
+                    mutationProps={{
+                        mutate: onMutate,
+                        showRetryModal: showRetryModal,
+                        isLoading: isLoading,
+                        isSuccess: isSuccess,
+                        data: data,
+                    }}
                     {...otherProps}
                 />
             </>

@@ -18,7 +18,7 @@ import { AssertionModal } from '../../../controls/Modals/AssertionModal';
 import { ErrorModal } from '../../../controls/Modals/ErrorModal';
 import { CardResult } from '../CardResult/CardResult';
 
-interface RepeatCollectionPageContentProps extends WithQueryResolverData<{ cardIds: string[] }> {
+interface RepeatCollectionPageContentProps extends WithQueryResolverData<typeof useGetRepeatCardsQuery> {
     userId: string;
     collectionId: string;
     date: string;
@@ -26,7 +26,7 @@ interface RepeatCollectionPageContentProps extends WithQueryResolverData<{ cardI
 }
 
 export const RepeatCollectionPageContent: FC<RepeatCollectionPageContentProps> = ({
-    resolverData: { cardIds },
+    queryData: { cardIds },
     userId,
     collectionId,
     date,

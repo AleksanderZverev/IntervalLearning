@@ -64,7 +64,10 @@ function getDefaultValues(card: Card, defaultSchedule: Schedule): CardForm {
     return cardForm;
 }
 
-const CreateCardModalContent: FC<CreateCardModalProps> = ({ mutate: addCard, showRetryModal, isLoading, ...props }) => {
+const CreateCardModalContent: FC<CreateCardModalProps> = ({
+    mutationProps: { mutate: addCard, showRetryModal, isLoading },
+    ...props
+}) => {
     const card = useTypedSelector((state) =>
         selectCardById(state, props.collectionUserId, props.collectionId, props.cardId)
     );

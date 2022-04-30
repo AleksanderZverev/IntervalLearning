@@ -1,14 +1,13 @@
-import { CircularProgress } from '@mui/material';
 import { FC, useState } from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeaderCell, TableRow } from '../../../../controls/Table/Table';
 import { withQueryResolver, WithQueryResolverData } from '../../../../hoc/withQueryResolver';
 import { GetNotFinishedResponse, useGetNotFinishedQuery } from '../../../../redux/collectionApi';
 import { CollectionRow } from './CollectionRow/CollectionRow';
 
-interface NotFinishedCollectionsContentProps extends WithQueryResolverData<GetNotFinishedResponse> {}
+interface NotFinishedCollectionsContentProps extends WithQueryResolverData<typeof useGetNotFinishedQuery> {}
 
 const NotFinishedCollectionsContent: FC<NotFinishedCollectionsContentProps> = ({
-    resolverData: { startedCollections, notStartedCollections },
+    queryData: { startedCollections, notStartedCollections },
 }) => {
     const collections = [...startedCollections, ...notStartedCollections];
 

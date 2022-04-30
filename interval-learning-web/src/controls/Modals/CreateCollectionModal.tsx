@@ -48,8 +48,7 @@ function getDefaultFormValue(collection: Collection, theme: Theme, schedule: Sch
 }
 
 const CreateCollectionModalContent: FC<CreateCollectionModalProps> = ({
-    mutate: createCollection,
-    showRetryModal,
+    mutationProps: { mutate: createCollection, showRetryModal },
     ...props
 }) => {
     const collection = useTypedSelector((state) =>

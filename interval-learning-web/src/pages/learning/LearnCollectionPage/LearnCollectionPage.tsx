@@ -21,7 +21,8 @@ import { useGetCollectionQuery } from '../../../redux/collectionApi';
 import { AssertionModal } from '../../../controls/Modals/AssertionModal';
 import { CardResult } from '../CardResult/CardResult';
 
-type WithResolvers = WithQueryResolverData<string[]> & WithMutationResolverProps<typeof useStartCardsMutation>;
+type WithResolvers = WithQueryResolverData<typeof useGetNotStartedCardsQuery> &
+    WithMutationResolverProps<typeof useStartCardsMutation>;
 
 interface LearnCollectionPageContentProps extends WithResolvers {
     userId: string;
@@ -33,12 +34,8 @@ export const LearnCollectionPageContent: FC<LearnCollectionPageContentProps> = (
     userId,
     collectionId,
     setDisableLoading,
-    resolverData: notStartedCardIds,
-    mutate: startCards,
-    showRetryModal,
-    isLoading: isMutationLoading,
-    isSuccess,
-    mutationData,
+    queryData: notStartedCardIds,
+    mutationProps: { mutate: startCards, showRetryModal, isLoading: isMutationLoading, isSuccess, data: mutationData },
 }) => {
     const collection = useTypedSelector((state) => selectCollectionById(state, userId, collectionId));
 
@@ -92,7 +89,7 @@ export const LearnCollectionPageContent: FC<LearnCollectionPageContentProps> = (
 
         try {
             setDisableLoading(true);
-            await startCards({ userId, collectionId, request: item }); //.unwrap();
+            await startCards({ userId, collectionId, request: item });
             setActiveCardIndex(activeCardIndex + 1);
         } catch {
             setDisableLoading(false);
