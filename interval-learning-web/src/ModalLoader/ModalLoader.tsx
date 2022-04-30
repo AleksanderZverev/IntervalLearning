@@ -1,7 +1,7 @@
-import { CircularProgress, Modal, Portal, Stack } from '@mui/material';
-import { blue } from '@mui/material/colors';
+import { Modal, Portal } from '@mui/material';
 import { FC } from 'react';
 import { CenterContainer } from '../controls/CenterContainer/CenterContainer';
+import { Loader } from '../controls/Loader/Loader';
 
 interface ModalLoaderProps {
     loading: boolean;
@@ -14,10 +14,7 @@ export const ModalLoader: FC<ModalLoaderProps> = ({ loading, title }) => {
             {loading && (
                 <Modal open>
                     <CenterContainer>
-                        <Stack direction={'column'}>
-                            <CircularProgress size={70} sx={{ color: blue[500] }} />
-                            <label style={{ color: 'white' }}>{title || 'Загрузка'}</label>
-                        </Stack>
+                        <Loader title={title} />
                     </CenterContainer>
                 </Modal>
             )}

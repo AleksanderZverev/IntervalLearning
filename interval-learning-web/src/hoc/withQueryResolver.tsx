@@ -3,11 +3,12 @@ import React, { useRef, useState } from 'react';
 import { MutationDefinition, QueryDefinition } from '@reduxjs/toolkit/dist/query';
 import { UseMutation, UseQuery } from '@reduxjs/toolkit/dist/query/react/buildHooks';
 import { TagType } from '../redux/apiSlice';
-import { CircularProgress, Portal } from '@mui/material';
+import { Button, Paper, Portal } from '@mui/material';
 import { CustomBaseQueryType } from '../redux/axiosBaseQuery';
 import { CenterContainer } from '../controls/CenterContainer/CenterContainer';
 import { ModalLoader } from '../ModalLoader/ModalLoader';
 import { AssertionModal } from '../controls/Modals/AssertionModal';
+import { Loader } from '../controls/Loader/Loader';
 
 type GetInnerType<S> = S extends UseMutation<infer T> ? T : never;
 
@@ -62,6 +63,7 @@ export const withQueryResolver =
             isFetching: isQueryFetching,
             isSuccess,
             error,
+            refetch,
         } = useQuery(queryArg, { skip: disableLoading });
 
         const isFetching = isQueryFetching || Boolean(containsFetching);
@@ -71,14 +73,29 @@ export const withQueryResolver =
             console.debug('loading');
             return (
                 <CenterContainer>
-                    <CircularProgress />
+                    <Loader textColor="black" />
                 </CenterContainer>
             );
         }
 
         if (isError || !data) {
             console.log(isError, isSuccess, data);
-            return <div>Error</div>;
+            return (
+                <CenterContainer>
+                    <Paper style={{ padding: '20px 20px 50px 20px', position: 'relative' }}>
+                        <div style={{ marginBottom: 20, paddingLeft: 6, fontSize: 20 }}>
+                            Не удалось загрузить данные
+                        </div>
+                        <Button
+                            variant="outlined"
+                            style={{ position: 'absolute', right: 20, bottom: 20 }}
+                            onClick={refetch}
+                        >
+                            Перезагрузить
+                        </Button>
+                    </Paper>
+                </CenterContainer>
+            );
         }
 
         //TODO: don't know how to fix
