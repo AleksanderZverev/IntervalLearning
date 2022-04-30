@@ -188,7 +188,7 @@ export const RepeatCollectionPageContent: FC<RepeatCollectionPageContentProps> =
                             width: 650,
                             display: 'flex',
                             flexDirection: 'column',
-                            rowGap: 25,
+                            rowGap: 35,
                         }}
                     >
                         {isSuccess && data && (

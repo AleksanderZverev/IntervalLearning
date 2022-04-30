@@ -135,7 +135,7 @@ export const LearnCollectionPageContent: FC<LearnCollectionPageContentProps> = (
                         margin: '20px 0',
                         display: 'flex',
                         alignItems: 'center',
-                        columnGap: 25,
+                        columnGap: 45,
                     }}
                 >
                     <Slider

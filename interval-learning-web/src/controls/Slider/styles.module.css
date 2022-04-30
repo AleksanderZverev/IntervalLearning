@@ -44,3 +44,8 @@
     border-radius: inherit;
     background-color: #29cc2f;
 }
+
+.counter {
+    position: absolute;
+    color: #b7b7b7;
+}

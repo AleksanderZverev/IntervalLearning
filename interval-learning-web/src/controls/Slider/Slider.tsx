@@ -32,6 +32,12 @@ export const Slider: FC<SliderProps> = ({ min, max, value, activeValue, onValueC
     const topProperty = vertical ? 'left' : 'top';
     const leftProperty = vertical ? 'top' : 'left';
 
+    const counterTopProperty = vertical ? 'bottom' : 'top';
+    const counterTopValuePrefix = vertical ? '' : '-';
+    const counterRightValuePrefix = vertical ? '-' : '';
+    const counterHeight = vertical ? '5px' : '25px';
+    const counterWidth = vertical ? '25px' : '5px';
+
     const total = max - min;
     const activePoint = activeValue - min;
     const sliderWidth = activeValue > max ? 100 : (activePoint / (total + 2)) * 100;
@@ -82,6 +88,15 @@ export const Slider: FC<SliderProps> = ({ min, max, value, activeValue, onValueC
                     transition: `${widthProperty} ${sliderWidth === 100 ? '2s' : '1s'} ease`,
                 }}
             />
+
+            <span
+                className={styles.counter}
+                style={{
+                    [counterTopProperty]: `${counterTopValuePrefix}${counterHeight}`,
+                    right: `${counterRightValuePrefix}${counterWidth}`,
+                }}
+            >{`${activeValue}/${max}`}</span>
+
             {values.map((v, index) => {
                 const left = ((index + 1) / (total + 2)) * 100;
                 const isActive = v < activeValue;
