@@ -36,9 +36,13 @@ type GetQueryResult<S> = S extends UseQuery<infer TDefinition>
         : never
     : never;
 
-interface ResolverProps<TQueryArg> {
+interface PrivateResolverProps {
     containsFetching?: boolean;
     containsError?: boolean;
+    onRefetch?: () => void;
+}
+
+interface ResolverProps<TQueryArg> {
     disableLoading?: boolean;
     queryArg: TQueryArg;
 }
@@ -53,10 +57,11 @@ export const withQueryResolver =
         Component: React.FunctionComponent<WithQueryResolverData<typeof useQuery> & TQueryArg & TComponentProps>
     ) =>
     (
-        props: ResolverProps<TQueryArg> &
+        props: PrivateResolverProps &
+            ResolverProps<TQueryArg> &
             Omit<TComponentProps, keyof (WithQueryResolverData<typeof useQuery> & TQueryArg)>
     ) => {
-        const { queryArg, containsError, disableLoading, containsFetching, ...otherProps } = props;
+        const { queryArg, containsError, disableLoading, containsFetching, onRefetch, ...otherProps } = props;
         const {
             data,
             isError: isQueryError,
@@ -68,6 +73,14 @@ export const withQueryResolver =
 
         const isFetching = isQueryFetching || Boolean(containsFetching);
         const isError = isQueryError || Boolean(containsError);
+
+        const tryRefetch = () => {
+            if (!isSuccess) {
+                console.debug('refetch 1');
+                refetch();
+            }
+            onRefetch && onRefetch();
+        };
 
         if (isFetching) {
             console.debug('loading');
@@ -89,7 +102,7 @@ export const withQueryResolver =
                         <Button
                             variant="outlined"
                             style={{ position: 'absolute', right: 20, bottom: 20 }}
-                            onClick={refetch}
+                            onClick={tryRefetch}
                         >
                             Перезагрузить
                         </Button>
@@ -107,17 +120,25 @@ export const withQueryResolver =
 export const withOtherQueryResolver =
     <TQueryArg, TResult>(useQuery: UseQuery<QueryDefinition<TQueryArg, CustomBaseQueryType, TagType, TResult>>) =>
     <TComponentProps, TOtherQueryArg>(
-        Component: React.FunctionComponent<ResolverProps<TOtherQueryArg> & TComponentProps>
+        Component: React.FunctionComponent<PrivateResolverProps & ResolverProps<TOtherQueryArg> & TComponentProps>
     ) =>
     (props: { queryArg: TQueryArg & TOtherQueryArg } & TComponentProps) => {
         const { queryArg, ...otherProps } = props;
-        const { data, isError, isFetching, isSuccess, error } = useQuery(queryArg);
+        const { data, isError, isFetching, isSuccess, error, refetch } = useQuery(queryArg);
+
+        const onRefetch = () => {
+            if (!isSuccess) {
+                refetch();
+                console.debug('refetch 2');
+            }
+        };
 
         return (
             <Component
                 // queryArg={queryArg}
                 containsFetching={isFetching}
                 containsError={isError || !isSuccess}
+                onRefetch={onRefetch}
                 {...props}
             />
         );

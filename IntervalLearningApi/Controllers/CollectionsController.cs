@@ -45,7 +45,7 @@ namespace IntervalLearningApi.Controllers
         {
             var userId = HttpContext.GetUserId();
             var collections = await collectionService.GetAllByUserId(userId);
-            return Ok(collections.Select(ToCollection).ToList());
+            return collections.Select(ToCollection).ToList();
         }
 
         [HttpGet("queue")]

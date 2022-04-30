@@ -95,7 +95,7 @@ export const Slider: FC<SliderProps> = ({ min, max, value, activeValue, onValueC
                     [counterTopProperty]: `${counterTopValuePrefix}${counterHeight}`,
                     right: `${counterRightValuePrefix}${counterWidth}`,
                 }}
-            >{`${activeValue}/${max}`}</span>
+            >{`${activeValue - min}/${max - min + 1}`}</span>
 
             {values.map((v, index) => {
                 const left = ((index + 1) / (total + 2)) * 100;
