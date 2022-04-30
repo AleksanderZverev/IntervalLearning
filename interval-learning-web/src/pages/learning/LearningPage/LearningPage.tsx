@@ -3,7 +3,7 @@ import { PageContainer } from '../../../controls/PageContainer/PageContainer';
 import { PageHeader } from '../../../controls/PageHeader/PageHeader';
 import { ToggleButton, ToggleButtonGroup } from '@mui/material';
 import { InProgressCollections } from './InProgressCollections/InProgressCollections';
-import { NotFinishedCollections } from './NotFinishedCollections/NotFinishedCollections';
+import { CanStartCollections } from './CanStartCollections/CanStartCollections';
 
 export const LearningPage: FC = () => {
     const [isInProcess, setIsInProcess] = useState(true);
@@ -24,7 +24,7 @@ export const LearningPage: FC = () => {
                     </ToggleButtonGroup>
                 }
             />
-            {isInProcess ? <InProgressCollections /> : <NotFinishedCollections />}
+            {isInProcess ? <InProgressCollections /> : <CanStartCollections />}
         </PageContainer>
     );
 };

@@ -1,12 +1,12 @@
 import { FC, useState } from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeaderCell, TableRow } from '../../../../controls/Table/Table';
 import { withQueryResolver, WithQueryResolverData } from '../../../../hoc/withQueryResolver';
-import { GetNotFinishedResponse, useGetNotFinishedQuery } from '../../../../redux/collectionApi';
+import { useGetNotFinishedQuery } from '../../../../redux/collectionApi';
 import { CollectionRow } from './CollectionRow/CollectionRow';
 
-interface NotFinishedCollectionsContentProps extends WithQueryResolverData<typeof useGetNotFinishedQuery> {}
+interface CanStartCollectionsContentProps extends WithQueryResolverData<typeof useGetNotFinishedQuery> {}
 
-const NotFinishedCollectionsContent: FC<NotFinishedCollectionsContentProps> = ({
+const CanStartCollectionsContent: FC<CanStartCollectionsContentProps> = ({
     queryData: { startedCollections, notStartedCollections },
 }) => {
     const collections = [...startedCollections, ...notStartedCollections];
@@ -34,11 +34,11 @@ const NotFinishedCollectionsContent: FC<NotFinishedCollectionsContentProps> = ({
     );
 };
 
-const ConnectedNotFinishedCollectionsContent = withQueryResolver(useGetNotFinishedQuery)(NotFinishedCollectionsContent);
+const ConnectedCanStartCollectionsContent = withQueryResolver(useGetNotFinishedQuery)(CanStartCollectionsContent);
 
-export const NotFinishedCollections: FC = () => {
+export const CanStartCollections: FC = () => {
     const [page, setPage] = useState(1);
     const [collectionsCount, setCollectionsCount] = useState(30);
 
-    return <ConnectedNotFinishedCollectionsContent queryArg={{ page, count: collectionsCount }} />;
+    return <ConnectedCanStartCollectionsContent queryArg={{ page, count: collectionsCount }} />;
 };
