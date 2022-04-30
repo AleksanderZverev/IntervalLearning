@@ -3,7 +3,13 @@ import useTypedSelector from '../../../hooks/useTypedSelector';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { selectCollectionById } from '../../../redux/slices/collectionsSlice';
 import { RepeatCard } from './RepeatCard/RepeatCard';
-import { withOtherQueryResolver, withQueryResolver, WithQueryResolverData } from '../../../hoc/withQueryResolver';
+import {
+    withMutationResolver,
+    WithMutationResolverProps,
+    withOtherQueryResolver,
+    withQueryResolver,
+    WithQueryResolverData,
+} from '../../../hoc/withQueryResolver';
 import { RememberRequest, useGetRepeatCardsQuery, usePatchRememberCardsMutation } from '../../../redux/cardsApi';
 import { PageContainer } from '../../../controls/PageContainer/PageContainer';
 import { PageHeader } from '../../../controls/PageHeader/PageHeader';
@@ -15,10 +21,12 @@ import { LocalStorageHelper } from '../../../helpers/localStorageHelper';
 import { useGetCollectionQuery } from '../../../redux/collectionApi';
 import { selectCardsByIds } from '../../../redux/slices/cardsSlice';
 import { AssertionModal } from '../../../controls/Modals/AssertionModal';
-import { ErrorModal } from '../../../controls/Modals/ErrorModal';
 import { CardResult } from '../CardResult/CardResult';
 
-interface RepeatCollectionPageContentProps extends WithQueryResolverData<typeof useGetRepeatCardsQuery> {
+type WithResolvers = WithQueryResolverData<typeof useGetRepeatCardsQuery> &
+    WithMutationResolverProps<typeof usePatchRememberCardsMutation>;
+
+interface RepeatCollectionPageContentProps extends WithResolvers {
     userId: string;
     collectionId: string;
     date: string;
@@ -31,6 +39,7 @@ export const RepeatCollectionPageContent: FC<RepeatCollectionPageContentProps> =
     collectionId,
     date,
     setSkipLoading,
+    mutationProps: { mutate: rememberCards, data, showRetryModal, isLoading, isSuccess },
 }) => {
     const collection = useTypedSelector((state) => selectCollectionById(state, userId, collectionId));
 
@@ -43,9 +52,6 @@ export const RepeatCollectionPageContent: FC<RepeatCollectionPageContentProps> =
     const repeatCards = useTypedSelector((state) => selectCardsByIds(state, userId, collectionId, cardIds));
     const [showAssertionModal, setShowAssertionModal] = useState(false);
     const [showCurrentCardError, setShowCurrentCardError] = useState(false);
-    const [showLoadingError, setShowLoadingError] = useState(false);
-
-    const [rememberCards, { data, isLoading, isError, isSuccess }] = usePatchRememberCardsMutation();
 
     const [rememberWeights, setRememberWeights] = useState<Record<string, number | undefined>>(
         () =>
@@ -97,10 +103,10 @@ export const RepeatCollectionPageContent: FC<RepeatCollectionPageContentProps> =
         };
         try {
             setSkipLoading(true);
-            await rememberCards({ userId, collectionId, request }).unwrap();
+            await rememberCards({ userId, collectionId, request });
         } catch (e) {
             setSkipLoading(false);
-            setShowLoadingError(true);
+            showRetryModal(() => onFinish(true));
         }
     };
 
@@ -160,17 +166,6 @@ export const RepeatCollectionPageContent: FC<RepeatCollectionPageContentProps> =
                     onClose={() => setShowAssertionModal(false)}
                     onAssert={() => {
                         setShowAssertionModal(false);
-                        onFinish(true);
-                    }}
-                />
-            )}
-            {showLoadingError && (
-                <ErrorModal
-                    open
-                    errorMessage="Не удалось завершить повторение"
-                    onClose={() => setShowLoadingError(false)}
-                    onRetry={() => {
-                        setShowLoadingError(false);
                         onFinish(true);
                     }}
                 />
@@ -238,8 +233,11 @@ export const RepeatCollectionPageContent: FC<RepeatCollectionPageContentProps> =
 };
 
 const ConnectedRepeatCollectionPage = withQueryResolver(useGetRepeatCardsQuery)(RepeatCollectionPageContent);
-
 const CollectionQueryResolver = withOtherQueryResolver(useGetCollectionQuery)(ConnectedRepeatCollectionPage);
+const ConnectedMutationResolver = withMutationResolver(
+    usePatchRememberCardsMutation,
+    'Не удалось завершить повторение'
+)(CollectionQueryResolver);
 
 export const RepeatCollection: FC = () => {
     const { userId, collectionId } = useParams();
@@ -255,7 +253,7 @@ export const RepeatCollection: FC = () => {
     }
 
     return (
-        <CollectionQueryResolver
+        <ConnectedMutationResolver
             queryArg={{ userId, collectionId, request: { date } }}
             disableLoading={skipLoading}
             date={date}
