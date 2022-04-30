@@ -10,8 +10,25 @@ public interface IParentCardReference : IParentCollectionReference
     public CardEntity? ParentCard { get; set; }
 }
 
+public interface ICreateOrPatchCard
+{
+    public string FrontSideText { get; set; }
+    public string BackSideText { get; set; }
+    public string? Description { get; set; }
+    public List<string>? Examples { get; set; }
+
+
+    public long ParentRepeatsScheduleUserId { get; set; }
+    public short ParentRepeatsScheduleId { get; set; }
+
+
+    public long ParentUserId { get; set; }
+    public short ParentCollectionId { get; set; }
+}
+
+
 [Table("Cards")]
-public class CardEntity : IParentCollectionReference, IParentRepeatsScheduleReference
+public class CardEntity : ICreateOrPatchCard, IParentCollectionReference, IParentRepeatsScheduleReference
 {
     [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
     public short Id { get; set; }
@@ -25,7 +42,7 @@ public class CardEntity : IParentCollectionReference, IParentRepeatsScheduleRefe
     public string BackSideText { get; set; }
 
     [Required]
-    public DateTime CreatedDate { get; set; } = DateTime.UtcNow; // SystemClock.Instance.GetCurrentInstant();
+    public DateTime CreatedDate { get; set; } = DateTime.UtcNow;
 
     [StringLength(500)]
     public string? Description { get; set; }
@@ -40,26 +57,6 @@ public class CardEntity : IParentCollectionReference, IParentRepeatsScheduleRefe
     public bool? IsFinished { get; set; }
 
     public virtual List<RememberEntity> Remembers { get; set; } = new();
-
-    public CardEntity(
-        long parentUserId,
-        short parentCollectionId,
-        string frontSideText,
-        string backSideText,
-        long parentRepeatsScheduleUserId,
-        short parentRepeatsScheduleId,
-        string? description = null,
-        List<string>? examples = null)
-    {
-        ParentUserId = parentUserId;
-        ParentCollectionId = parentCollectionId;
-        FrontSideText = frontSideText;
-        BackSideText = backSideText;
-        ParentRepeatsScheduleUserId = parentRepeatsScheduleUserId;
-        ParentRepeatsScheduleId = parentRepeatsScheduleId;
-        Description = description;
-        Examples = examples;
-    }
 
     public long ParentRepeatsScheduleUserId { get; set; }
     public short ParentRepeatsScheduleId { get; set; }

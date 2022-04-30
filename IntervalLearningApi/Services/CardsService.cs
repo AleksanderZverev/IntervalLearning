@@ -133,51 +133,27 @@ public class CardsService
         return (collectionsResult, cardsWithDates);
     }
 
-    public (CardEntity? card, string? error, bool isCreated) CreateOrEdit(long userId,
-        short collectionId,
-        short? cardId,
-        string frontText,
-        string backText,
-        long scheduleUserId,
-        short scheduleId,
-        string? description = null,
-        List<string>? examples = null)
+    public (CardEntity? card, string? error, bool isCreated) CreateOrEdit(CreateOrPatchCard item, short? cardId)
     {
-        var isCreation = cardId == null;
+        var card = cardId == null
+            ? new CardEntity()
+            : db.Cards.Find(item.ParentUserId, item.ParentCollectionId, cardId);
 
-        if (!isCreation)
-        {
-            var entity = db.Cards.Find(userId, collectionId, cardId);
+        if (card == null)
+            return (null, "Card not found", false);
 
-            if (entity == null)
-                isCreation = true;
-            else
-            {
-                db.Entry(entity).State = EntityState.Detached;
-            }
-        }
-
-        var card = new CardEntity(
-            userId,
-            collectionId,
-            frontText,
-            backText,
-            scheduleUserId,
-            scheduleId,
-            description,
-            examples
-        );
-
-        if (cardId != null)
-        {
-            card.Id = cardId.Value;
-        }
+        var entry = db.Entry(card);
+        entry.CurrentValues.SetValues(item);
 
         try
         {
-            db.Entry(card).State = isCreation ?  EntityState.Added : EntityState.Modified;
+            var isCreating = cardId == null;
+
+            if (isCreating)
+                entry.State = EntityState.Added;
+
             db.SaveChanges();
-            return (card, null, isCreation);
+            return (card, null, isCreating);
         }
         catch
         {
@@ -434,6 +410,38 @@ public class CardsService
         catch
         {
             return (false, "unknown error", null);
+        }
+    }
+
+    public class CreateOrPatchCard : ICreateOrPatchCard
+    {
+        public string FrontSideText { get; set; }
+        public string BackSideText { get; set; }
+        public string? Description { get; set; }
+        public List<string>? Examples { get; set; }
+        public long ParentRepeatsScheduleUserId { get; set; }
+        public short ParentRepeatsScheduleId { get; set; }
+        public long ParentUserId { get; set; }
+        public short ParentCollectionId { get; set; }
+
+        public CreateOrPatchCard(
+            long parentUserId,
+            short parentCollectionId,
+            long parentRepeatsScheduleUserId,
+            short parentRepeatsScheduleId,
+            string frontSideText,
+            string backSideText,
+            string? description,
+            List<string>? examples)
+        {
+            ParentUserId = parentUserId;
+            ParentCollectionId = parentCollectionId;
+            ParentRepeatsScheduleUserId = parentRepeatsScheduleUserId;
+            ParentRepeatsScheduleId = parentRepeatsScheduleId;
+            FrontSideText = frontSideText;
+            BackSideText = backSideText;
+            Description = description;
+            Examples = examples;
         }
     }
 

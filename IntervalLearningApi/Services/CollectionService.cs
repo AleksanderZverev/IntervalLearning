@@ -197,7 +197,16 @@ public class CollectionService
         db.Database.BeginTransaction();
 
         var (card, error, isCreated) = cardsService.CreateOrEdit(
-            userId, collectionId, cardId, frontText, backText, scheduleUserId, scheduleId, description, examples);
+            new CardsService.CreateOrPatchCard(
+                userId,
+                collectionId,
+                scheduleUserId,
+                scheduleId,
+                frontText,
+                backText,
+                description,
+                examples),
+            cardId);
 
         if (error != null)
         {
