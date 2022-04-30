@@ -1,6 +1,7 @@
 import { Button, Paper, Typography } from '@mui/material';
 import dayjs from 'dayjs';
 import { FC } from 'react';
+import { DateHelper } from '../../../helpers/DateHelper';
 import styles from './styles.module.css';
 
 interface CardResultProps {
@@ -10,6 +11,8 @@ interface CardResultProps {
 }
 
 export const CardResult: FC<CardResultProps> = ({ nextRepeatDate, wordsLearned, onEndButtonClick }) => {
+    const date = dayjs(nextRepeatDate);
+
     return (
         <Paper className={styles.container}>
             <div className={styles.headerContainer}>
@@ -17,7 +20,12 @@ export const CardResult: FC<CardResultProps> = ({ nextRepeatDate, wordsLearned, 
                     Вы выучили слов: {wordsLearned}
                 </Typography>
             </div>
-            <div>Следующее повторение: {nextRepeatDate ? dayjs(nextRepeatDate).format('L') : 'Неизвестно'}</div>
+            <div>
+                Следующее повторение:{' '}
+                {nextRepeatDate
+                    ? `${date.format('L')} (через ${DateHelper.getDifferenceString(dayjs(), date)})`
+                    : 'Неизвестно'}
+            </div>
 
             <div className={styles.buttonsContainer}>
                 <div />

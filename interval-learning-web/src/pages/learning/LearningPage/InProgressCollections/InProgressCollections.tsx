@@ -4,17 +4,10 @@ import dayjs, { Dayjs } from 'dayjs';
 import React, { FC, Fragment } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Table, TableBody, TableCell, TableHead, TableHeaderCell, TableRow } from '../../../../controls/Table/Table';
+import { DateHelper } from '../../../../helpers/DateHelper';
 import { useGetQueueCollectionsQuery } from '../../../../redux/collectionApi';
 import { CollectionRow } from './CollectionRow/CollectionRow';
 import styles from './styles.module.css';
-
-function getDifferenceString(now: Dayjs, date: Dayjs) {
-    const diffMilliseconds = now.diff(date);
-    const timeStamp = dayjs.duration(diffMilliseconds);
-
-    const diffString = timeStamp.humanize();
-    return diffString;
-}
 
 export const InProgressCollections: FC = () => {
     const { data, isFetching, isError, isSuccess } = useGetQueueCollectionsQuery();
@@ -63,10 +56,15 @@ export const InProgressCollections: FC = () => {
                                         {isToday
                                             ? 'Сегодня'
                                             : isWarn
-                                            ? `Просрочено на ${getDifferenceString(now, date)} (${date.format('L')})`
+                                            ? `Просрочено на ${DateHelper.getDifferenceString(
+                                                  now,
+                                                  date
+                                              )} (${date.format('L')})`
                                             : isTomorrow
                                             ? 'Завтра'
-                                            : `Через ${getDifferenceString(date, now)} (${date.format('L')})`}
+                                            : `Через ${DateHelper.getDifferenceString(date, now)} (${date.format(
+                                                  'L'
+                                              )})`}
                                     </TableCell>
                                 </TableRow>
                                 {collectionsQueue.map((c) => {
