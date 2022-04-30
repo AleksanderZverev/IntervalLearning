@@ -75,6 +75,7 @@ export const InProgressCollections: FC = () => {
                                             key={c.collection.id}
                                             collection={c.collection}
                                             cardsToRepeatCount={c.cardsToRepeatCount}
+                                            hover={isToday || isWarn}
                                             onClick={() =>
                                                 navigate(
                                                     `/learning/repeat/${c.collection.userId}-${c.collection.id}?date=${dateString}`

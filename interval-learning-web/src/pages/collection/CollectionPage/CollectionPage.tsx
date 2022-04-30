@@ -1,12 +1,12 @@
 /* eslint-disable react-hooks/rules-of-hooks */
 import { Add } from '@mui/icons-material';
-import { Button, CircularProgress, Pagination } from '@mui/material';
+import { Button, CircularProgress, Pagination, TableCell } from '@mui/material';
 import { FC, useMemo, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { CreateCardModal } from '../../../controls/Modals/CreateCardModal';
 import { PageContainer } from '../../../controls/PageContainer/PageContainer';
 import { PageHeader } from '../../../controls/PageHeader/PageHeader';
-import { Table, TableBody, TableHead, TableHeaderCell } from '../../../controls/Table/Table';
+import { Table, TableBody, TableHead, TableHeaderCell, TableRow } from '../../../controls/Table/Table';
 import useTypedSelector from '../../../hooks/useTypedSelector';
 import { useGetCardsQuery } from '../../../redux/cardsApi';
 import { useGetCollectionQuery } from '../../../redux/collectionApi';
@@ -99,9 +99,15 @@ export const CollectionPage: FC = () => {
                     <TableHeaderCell>Описание</TableHeaderCell>
                 </TableHead>
                 <TableBody>
-                    {cards.map((c) => (
-                        <CardRow key={c.id} card={c} />
-                    ))}
+                    {cards && cards.length > 0 ? (
+                        cards.map((c) => <CardRow key={c.id} card={c} />)
+                    ) : (
+                        <TableRow borderless>
+                            <TableCell colSpan={3} align="center">
+                                Коллекция пуста
+                            </TableCell>
+                        </TableRow>
+                    )}
                 </TableBody>
             </Table>
             {collection.cardsCount > cardsCountPerPage && (

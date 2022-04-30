@@ -9,13 +9,14 @@ interface CollectionRowProps {
     collection: Collection;
     cardsToRepeatCount: number;
     onClick: () => void;
+    hover: boolean;
 }
 
-export const CollectionRow: FC<CollectionRowProps> = ({ collection, cardsToRepeatCount, onClick }) => {
+export const CollectionRow: FC<CollectionRowProps> = ({ collection, cardsToRepeatCount, hover, onClick }) => {
     const theme = useTypedSelector((state) => selectTheme(state, collection.themeId));
 
     return (
-        <TableRow hover onClick={onClick}>
+        <TableRow hover={hover} onClick={() => hover && onClick()}>
             <TableCell>{collection.title}</TableCell>
             {/* <TableCell align="center">{}</TableCell> */}
             <TableCell align="center">{cardsToRepeatCount}</TableCell>

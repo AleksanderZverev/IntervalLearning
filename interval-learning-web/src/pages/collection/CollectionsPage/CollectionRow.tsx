@@ -37,7 +37,7 @@ export const CollectionRow: FC<CollectionRowProps> = ({ collection }) => {
                 <TableCell align="center">-</TableCell>
                 <TableCell align="center">{collection.cardsCount}</TableCell>
                 <TableCell align="center">{date.format('L')}</TableCell>
-                <div style={{ position: 'absolute', right: 0, top: 10 }}>
+                <TableCell width={50}>
                     <IconButton
                         onClick={(e) => {
                             e.stopPropagation();
@@ -46,7 +46,7 @@ export const CollectionRow: FC<CollectionRowProps> = ({ collection }) => {
                     >
                         <Edit fontSize="small" />
                     </IconButton>
-                </div>
+                </TableCell>
             </TableRow>
         </>
     );
