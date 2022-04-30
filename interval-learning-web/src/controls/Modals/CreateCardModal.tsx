@@ -4,9 +4,10 @@ import { Dialog, DialogTitle, DialogContent, DialogActions, Button } from '@mui/
 import { FC } from 'react';
 import { FieldError, FormProvider, SubmitHandler, useFieldArray, useForm } from 'react-hook-form';
 import * as yup from 'yup';
+import { withMutationResolver, WithMutationResolverProps } from '../../hoc/withQueryResolver';
 import useTypedSelector from '../../hooks/useTypedSelector';
 import { CreateCardItem, useAddCardMutation } from '../../redux/cardsApi';
-import { selectCardById, selectCardsByIds } from '../../redux/slices/cardsSlice';
+import { selectCardById } from '../../redux/slices/cardsSlice';
 import { getScheduleId, selectScheduleById } from '../../redux/slices/scheduleSlice';
 import { Card } from '../../types/Collection';
 import { Schedule } from '../../types/schedule';
@@ -39,7 +40,7 @@ const schema = yup
     })
     .required();
 
-interface CreateCardModalProps {
+interface CreateCardModalProps extends WithMutationResolverProps<typeof useAddCardMutation> {
     collectionId: string;
     collectionUserId: string;
     open: boolean;
@@ -63,7 +64,7 @@ function getDefaultValues(card: Card, defaultSchedule: Schedule): CardForm {
     return cardForm;
 }
 
-export const CreateCardModal: FC<CreateCardModalProps> = (props) => {
+const CreateCardModalContent: FC<CreateCardModalProps> = ({ mutate: addCard, showRetryModal, isLoading, ...props }) => {
     const card = useTypedSelector((state) =>
         selectCardById(state, props.collectionUserId, props.collectionId, props.cardId)
     );
@@ -93,8 +94,6 @@ export const CreateCardModal: FC<CreateCardModalProps> = (props) => {
 
     const { fields, append } = useFieldArray({ control, name: 'examples' });
 
-    const [addCard, { isLoading }] = useAddCardMutation();
-
     const onAddExample = () => {
         const currentState = getValues();
         if (currentState.examples.every((e) => Boolean(e.value))) {
@@ -114,9 +113,11 @@ export const CreateCardModal: FC<CreateCardModalProps> = (props) => {
         };
 
         try {
-            await addCard({ collectionId: props.collectionId, userId: props.collectionUserId, request: item }).unwrap();
+            await addCard({ collectionId: props.collectionId, userId: props.collectionUserId, request: item });
             props.onClose();
-        } catch {}
+        } catch {
+            showRetryModal(() => onCreate(data));
+        }
     };
 
     return (
@@ -178,3 +179,8 @@ export const CreateCardModal: FC<CreateCardModalProps> = (props) => {
         </Dialog>
     );
 };
+
+export const CreateCardModal = withMutationResolver(
+    useAddCardMutation,
+    'Не удалось добавить карточку'
+)(CreateCardModalContent);

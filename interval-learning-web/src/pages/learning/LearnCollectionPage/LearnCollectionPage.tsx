@@ -2,7 +2,13 @@ import { FC, useState } from 'react';
 import useTypedSelector from '../../../hooks/useTypedSelector';
 import { useNavigate, useParams } from 'react-router-dom';
 import { selectCollectionById } from '../../../redux/slices/collectionsSlice';
-import { withOtherQueryResolver, withQueryResolver, WithQueryResolverData } from '../../../hoc/withQueryResolver';
+import {
+    withMutationResolver,
+    withOtherQueryResolver,
+    withQueryResolver,
+    WithQueryResolverData,
+    WithMutationResolverProps,
+} from '../../../hoc/withQueryResolver';
 import { CardsItem, useGetNotStartedCardsQuery, useStartCardsMutation } from '../../../redux/cardsApi';
 import { PageContainer } from '../../../controls/PageContainer/PageContainer';
 import { PageHeader } from '../../../controls/PageHeader/PageHeader';
@@ -11,12 +17,13 @@ import { CenterContainer } from '../../../controls/CenterContainer/CenterContain
 import { Slider } from '../../../controls/Slider/Slider';
 import { Button } from '@mui/material';
 import { LearnCard } from './LearnCard/LearnCard';
-import { ErrorModal } from '../../../controls/Modals/ErrorModal';
 import { useGetCollectionQuery } from '../../../redux/collectionApi';
 import { AssertionModal } from '../../../controls/Modals/AssertionModal';
 import { CardResult } from '../CardResult/CardResult';
 
-interface LearnCollectionPageContentProps extends WithQueryResolverData<string[]> {
+type WithResolvers = WithQueryResolverData<string[]> & WithMutationResolverProps<typeof useStartCardsMutation>;
+
+interface LearnCollectionPageContentProps extends WithResolvers {
     userId: string;
     collectionId: string;
     setDisableLoading: (disable: boolean) => void;
@@ -27,6 +34,11 @@ export const LearnCollectionPageContent: FC<LearnCollectionPageContentProps> = (
     collectionId,
     setDisableLoading,
     resolverData: notStartedCardIds,
+    mutate: startCards,
+    showRetryModal,
+    isLoading: isMutationLoading,
+    isSuccess,
+    mutationData,
 }) => {
     const collection = useTypedSelector((state) => selectCollectionById(state, userId, collectionId));
 
@@ -37,9 +49,7 @@ export const LearnCollectionPageContent: FC<LearnCollectionPageContentProps> = (
     const theme = useTypedSelector((state) => selectTheme(state, collection.themeId));
 
     const navigate = useNavigate();
-    const [startCards, { data, isLoading: isMutationLoading, isSuccess }] = useStartCardsMutation();
     const [showAssetModal, setShowAssertModal] = useState(false);
-    const [showErrorModal, setShowErrorModal] = useState(false);
     const [activeCardIndex, setActiveCardIndex] = useState(0);
     const [cardIndex, setCardIndex] = useState(0);
 
@@ -82,11 +92,11 @@ export const LearnCollectionPageContent: FC<LearnCollectionPageContentProps> = (
 
         try {
             setDisableLoading(true);
-            await startCards({ userId, collectionId, request: item }).unwrap();
+            await startCards({ userId, collectionId, request: item }); //.unwrap();
             setActiveCardIndex(activeCardIndex + 1);
         } catch {
             setDisableLoading(false);
-            setShowErrorModal(true);
+            showRetryModal(() => onFinish(true));
         }
     };
 
@@ -111,14 +121,6 @@ export const LearnCollectionPageContent: FC<LearnCollectionPageContentProps> = (
                     </Button>
                 }
             />
-            {showErrorModal && (
-                <ErrorModal
-                    errorMessage="Не удалось завершить изучение коллекции"
-                    open
-                    onClose={() => setShowErrorModal(false)}
-                    onRetry={() => onFinish(true)}
-                />
-            )}
             {showAssetModal && (
                 <AssertionModal
                     open
@@ -151,9 +153,9 @@ export const LearnCollectionPageContent: FC<LearnCollectionPageContentProps> = (
                         vertical
                     />
 
-                    {isSuccess && data && (
+                    {isSuccess && mutationData && (
                         <CardResult
-                            nextRepeatDate={data.nextRepeatDate}
+                            nextRepeatDate={mutationData.nextRepeatDate}
                             wordsLearned={cardIndex + 1}
                             onEndButtonClick={onSuccessFinish}
                         />
@@ -179,6 +181,10 @@ export const LearnCollectionPageContent: FC<LearnCollectionPageContentProps> = (
 
 const ConnectedLearnCollectionPage = withQueryResolver(useGetNotStartedCardsQuery)(LearnCollectionPageContent);
 const ConnectedOtherResolver = withOtherQueryResolver(useGetCollectionQuery)(ConnectedLearnCollectionPage);
+const ConnectedMutationResolver = withMutationResolver(
+    useStartCardsMutation,
+    'Не удалось завершить изучение коллекции'
+)(ConnectedOtherResolver);
 
 interface CardResult {
     nextRepeatDate: string | null;
@@ -195,7 +201,7 @@ export const LearnCollection: FC = () => {
     const [disableLoading, setDisableLoading] = useState(false);
 
     return (
-        <ConnectedOtherResolver
+        <ConnectedMutationResolver
             queryArg={{ userId, collectionId, request: undefined }}
             disableLoading={disableLoading}
             setDisableLoading={(disable) => setDisableLoading(disable)}

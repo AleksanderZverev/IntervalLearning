@@ -14,6 +14,7 @@ import { selectCollectionById } from '../../redux/slices/collectionsSlice';
 import { Collection } from '../../types/Collection';
 import { selectTheme } from '../../redux/slices/themeSlice';
 import { getScheduleId, selectScheduleById } from '../../redux/slices/scheduleSlice';
+import { withMutationResolver, WithMutationResolverProps } from '../../hoc/withQueryResolver';
 
 interface IForm {
     title: string;
@@ -29,7 +30,7 @@ const schema = yup
     })
     .required();
 
-interface CreateCollectionModalProps {
+interface CreateCollectionModalProps extends WithMutationResolverProps<typeof useCreateCollectionMutation> {
     collectionId?: string;
     userId?: string;
     open: boolean;
@@ -46,7 +47,11 @@ function getDefaultFormValue(collection: Collection, theme: Theme, schedule: Sch
     return form;
 }
 
-export const CreateCollectionModal: FC<CreateCollectionModalProps> = (props) => {
+const CreateCollectionModalContent: FC<CreateCollectionModalProps> = ({
+    mutate: createCollection,
+    showRetryModal,
+    ...props
+}) => {
     const collection = useTypedSelector((state) =>
         selectCollectionById(state, props.userId ?? '', props.collectionId ?? '')
     );
@@ -69,8 +74,6 @@ export const CreateCollectionModal: FC<CreateCollectionModalProps> = (props) => 
         formState: { errors },
     } = formMethods;
 
-    const [createCollection, {}] = useCreateCollectionMutation();
-
     const onCreate: SubmitHandler<IForm> = async (data) => {
         const item: CreateCollectionItem = {
             collectionId: props.collectionId,
@@ -81,9 +84,11 @@ export const CreateCollectionModal: FC<CreateCollectionModalProps> = (props) => 
             isDefaultBackSide: false,
         };
         try {
-            await createCollection(item).unwrap();
+            await createCollection(item);
             props.onClose();
-        } catch {}
+        } catch {
+            showRetryModal(() => onCreate(data));
+        }
     };
 
     return (
@@ -125,3 +130,8 @@ export const CreateCollectionModal: FC<CreateCollectionModalProps> = (props) => 
         </Dialog>
     );
 };
+
+export const CreateCollectionModal = withMutationResolver(
+    useCreateCollectionMutation,
+    'Не удалось создать коллекцию'
+)(CreateCollectionModalContent);
