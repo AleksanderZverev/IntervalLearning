@@ -73,6 +73,8 @@ public class CardsService
             .Where(c => c.ParentUserId == userId
                         && c.ParentCollectionId == collectionId
                         && cardsIds.Contains(c.Id))
+            .Include(c => c.Remembers)
+            .AsSplitQuery()
             .ToListAsync();
 
         return cards;

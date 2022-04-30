@@ -114,23 +114,6 @@ namespace IntervalLearningApi.Controllers
         {
             return requestRememberItems.Select(r => new CardsService.RememberItem(r.CardId, r.Weight)).ToList();
         }
-
-        //[HttpPatch("{cardId}/remember")]
-        //public IActionResult RememberCard(short collectionId, short cardId, [FromBody] RememberItem rememberItem)
-        //{
-        //    var userId = HttpContext.GetUserId();
-
-        //    var (ok, error) = cardsService.Remember(
-        //        userId,
-        //        collectionId,
-        //        cardId,
-        //        rememberItem.Weight,
-        //        rememberItem.PhaseStep,
-        //        rememberItem.RepeatedDate
-        //    );
-
-        //    return ok ? Ok() : BadRequest(error);
-        //}
     }
 
     public class StartCardResponse
