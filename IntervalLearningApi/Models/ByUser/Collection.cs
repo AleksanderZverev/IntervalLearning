@@ -1,6 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using Newtonsoft.Json;
-using NodaTime;
 
 namespace IntervalLearningApi.Models.ByUser;
 
@@ -11,42 +10,33 @@ public class Collection
     public short Id { get; }
     public string Title { get; }
     public DateTime CreatedAt { get; }
-    public long DefaultScheduleUserId { get; }
-    public short DefaultScheduleId { get; }
     public short ThemeId { get; }
 
     public short CardsCount { get; }
     public short NotStartedCards { get; set; }
-    public short StartedCards { get; }
-    public short FinishedCards { get; }
 
     public Collection(
-        string parentUserId, short id, string title, DateTime createdAt,
-        long defaultScheduleUserId, short defaultScheduleId, short themeId, 
-        short cardsCount, short startedCards, short finishedCards, short notStartedCards)
+        string parentUserId,
+        short id,
+        string title,
+        DateTime createdAt,
+        short themeId,
+        short cardsCount,
+        short notStartedCards)
     {
         ParentUserId = parentUserId;
         Id = id;
         Title = title;
         CreatedAt = createdAt;
-        DefaultScheduleId = defaultScheduleId;
         ThemeId = themeId;
         CardsCount = cardsCount;
-        StartedCards = startedCards;
-        FinishedCards = finishedCards;
         NotStartedCards = notStartedCards;
-        DefaultScheduleUserId = defaultScheduleUserId;
     }
 }
 
 public class CreateCollectionItem
 {
     public short? CollectionId { get; set; }
-
-    [Required]
-    public long ScheduleUserId { get; set; }
-    [Required]
-    public short ScheduleId { get; set; }
     [Required]
     public short ThemeId { get; set; }
     [Required]
@@ -57,60 +47,59 @@ public class CreateCollectionItem
 
 public class GetNotFinishedResponse
 {
-    public List<Collection> StartedCollections { get; }
+    public List<Collection> CanStartCollections { get; }
 
-    public List<Collection> NotStartedCollections { get; }
-
-    public GetNotFinishedResponse(List<Collection> startedCollections, List<Collection> notStartedCollections)
+    public GetNotFinishedResponse(List<Collection> canStartCollections)
     {
-        StartedCollections = startedCollections;
-        NotStartedCollections = notStartedCollections;
+        CanStartCollections = canStartCollections;
     }
 }
 
-public class QueueCollectionResponse
+public class RepeatingCollectionResponse
 {
-    public Dictionary<DateTime, List<QueueCollectionDto>> DateToCollectionsQueue { get; }
+    public Dictionary<DateTime, List<RepeatingPhaseDto>> DateToRepeatingPhases { get; }
 
-    public QueueCollectionResponse(Dictionary<DateTime, List<QueueCollectionDto>> dateToCollectionsQueue)
+    public RepeatingCollectionResponse(Dictionary<DateTime, List<RepeatingPhaseDto>> dateToRepeatingPhases)
     {
-        DateToCollectionsQueue = dateToCollectionsQueue;
+        DateToRepeatingPhases = dateToRepeatingPhases;
     }
 }
 
-public class QueueCollectionDto
+public class RepeatingPhaseDto
+{
+    public long ScheduleUserId { get; }
+    public long ScheduleId { get; }
+    public short PhaseStep { get; }
+    public uint SecondsFromLastPhase { get; }
+    public string? Description { get; }
+    public List<RepeatingCollectionDto> RepeatingCollections { get; set; }
+
+    public RepeatingPhaseDto(
+        long scheduleUserId,
+        long scheduleId,
+        short phaseStep,
+        uint secondsFromLastPhase,
+        string? description, 
+        List<RepeatingCollectionDto> repeatingCollections)
+    {
+        ScheduleUserId = scheduleUserId;
+        ScheduleId = scheduleId;
+        PhaseStep = phaseStep;
+        SecondsFromLastPhase = secondsFromLastPhase;
+        Description = description;
+        RepeatingCollections = repeatingCollections;
+    }
+}
+
+public class RepeatingCollectionDto
 {
     public Collection Collection { get; }
 
     public int CardsToRepeatCount { get; }
 
-    public QueueCollectionDto(Collection collection, int cardsToRepeatCount)
+    public RepeatingCollectionDto(Collection collection, int cardsToRepeatCount)
     {
         Collection = collection;
         CardsToRepeatCount = cardsToRepeatCount;
     }
 }
-
-//public class LearningCollection : Collection
-//{
-//    public LearningCollection(
-//        string parentUserId, 
-//        short id, 
-//        string title, 
-//        Instant createdAt, 
-//        long defaultScheduleUserId, 
-//        short defaultScheduleId, 
-//        short themeId, 
-//        int cardsToRepeatCount) 
-//        : base(
-//            parentUserId, 
-//            id, 
-//            title, 
-//            createdAt, 
-//            defaultScheduleUserId, 
-//            defaultScheduleId, 
-//            themeId, 
-//            cardsToRepeatCount)
-//    {
-//    }
-//}

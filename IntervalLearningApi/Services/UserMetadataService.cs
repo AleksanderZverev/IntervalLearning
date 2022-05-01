@@ -35,36 +35,36 @@ namespace IntervalLearningApi.Services
                         if (isIncrement)
                         {
                             metadata.NotStartedCards++;
-                            collection.NotStartedCards++;
+                            //collection.NotStartedCards++;
                         }
                         else
                         {
                             metadata.NotStartedCards--;
-                            collection.NotStartedCards--;
+                            //collection.NotStartedCards--;
                         }
                         break;
                     case State.Started:
                         if (isIncrement)
                         {
                             metadata.StartedCards++;
-                            collection.StartedCards++;
+                            //collection.StartedCards++;
                         }
                         else
                         {
                             metadata.StartedCards--;
-                            collection.StartedCards--;
+                            //collection.StartedCards--;
                         }
                         break;
                     case State.Finished:
                         if (isIncrement)
                         {
                             metadata.FinishedCards++;
-                            collection.FinishedCards++;
+                            //collection.FinishedCards++;
                         }
                         else
                         {
                             metadata.FinishedCards--;
-                            collection.FinishedCards--;
+                            //collection.FinishedCards--;
                         }
                         break;
                     default:

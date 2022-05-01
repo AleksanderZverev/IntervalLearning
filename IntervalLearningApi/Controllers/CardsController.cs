@@ -3,7 +3,6 @@ using IntervalLearningApi.Extensions;
 using IntervalLearningApi.Models.ByUser;
 using IntervalLearningApi.Services;
 using Microsoft.AspNetCore.Mvc;
-using NodaTime;
 
 namespace IntervalLearningApi.Controllers
 {
@@ -29,12 +28,14 @@ namespace IntervalLearningApi.Controllers
         }
 
         [HttpGet("not-started")]
-        public async Task<ActionResult<List<Card>>> GetNotStartedCards(short collectionId)
+        public async Task<ActionResult<List<Card>>> GetNotStartedCards(
+            short collectionId,
+            long scheduleUserId,
+            long scheduleId)
         {
             var userId = HttpContext.GetUserId();
-            var (cards, error) = await cardsService.GetNotStartedCards(userId, collectionId);
-
-            return cards == null ? BadRequest(error) : Ok(cards.Select(CollectionsController.ToCard).ToList());
+            var (cards, error) = await cardsService.GetNotStartedCards(scheduleUserId, scheduleId, userId, collectionId);
+            return cards == null ? BadRequest(error) : cards.Select(CollectionsController.ToCard).ToList();
         }
 
         [HttpPost]
@@ -53,8 +54,6 @@ namespace IntervalLearningApi.Controllers
                 item.CardId,
                 item.FrontText,
                 item.BackText,
-                item.ScheduleUserId,
-                item.ScheduleId,
                 item.Description,
                 item.Examples);
 
@@ -67,33 +66,33 @@ namespace IntervalLearningApi.Controllers
         public ActionResult<StartCardResponse> StartCards(short collectionId, [FromBody]CardsItem item)
         {
             var userId = HttpContext.GetUserId();
-            var (closestRepeatDate, error) = cardsService.Start(userId, collectionId, item.CardIds);
+            var (closestRepeatDate, error) = cardsService.Start(userId, collectionId, item.ScheduleUserId, item.ScheduleId, item.CardIds);
             return string.IsNullOrEmpty(error) ? new StartCardResponse(closestRepeatDate) : BadRequest(error);
         }
 
-        [HttpGet("{cardId}/start")]
-        public IActionResult StartCard(short collectionId, short cardId)
-        {
-            var userId = HttpContext.GetUserId();
-            var (ok, error) = cardsService.Start(userId, collectionId, cardId);
-            return ok ? Ok() : BadRequest(error);
-        }
+        //[HttpGet("{cardId}/start")]
+        //public IActionResult StartCard(short collectionId, short cardId)
+        //{
+        //    var userId = HttpContext.GetUserId();
+        //    var (ok, error) = cardsService.Start(userId, collectionId, cardId);
+        //    return ok ? Ok() : BadRequest(error);
+        //}
 
-        [HttpGet("{cardId}/finish")]
-        public IActionResult FinishCard(short collectionId, short cardId)
-        {
-            var userId = HttpContext.GetUserId();
-            var (ok, error) = cardsService.Finish(userId, collectionId, cardId);
-            return ok ? Ok() : BadRequest(error);
-        }
+        //[HttpGet("{cardId}/finish")]
+        //public IActionResult FinishCard(short collectionId, short cardId)
+        //{
+        //    var userId = HttpContext.GetUserId();
+        //    var (ok, error) = cardsService.Finish(userId, collectionId, cardId);
+        //    return ok ? Ok() : BadRequest(error);
+        //}
 
-        [HttpGet("{cardId}/not-started")]
-        public IActionResult SetNotStartedCard(short collectionId, short cardId)
-        {
-            var userId = HttpContext.GetUserId();
-            var (ok, error) = cardsService.SetNotStarted(userId, collectionId, cardId);
-            return ok ? Ok() : BadRequest(error);
-        }
+        //[HttpGet("{cardId}/not-started")]
+        //public IActionResult SetNotStartedCard(short collectionId, short cardId)
+        //{
+        //    var userId = HttpContext.GetUserId();
+        //    var (ok, error) = cardsService.SetNotStarted(userId, collectionId, cardId);
+        //    return ok ? Ok() : BadRequest(error);
+        //}
 
         [HttpPatch("remember")]
         public async Task<ActionResult<RememberCardResponse>> RememberCard(short collectionId, [FromBody] RememberRequest request)
@@ -103,8 +102,10 @@ namespace IntervalLearningApi.Controllers
             var (ok, error, closestRepeatDate) = await cardsService.Remember(
                 userId,
                 collectionId,
-                ToCardServiceRememberItems(request.RememberItems),
-                request.Date
+                request.ScheduleUserId,
+                request.ScheduleId,
+                request.PhaseId,
+                ToCardServiceRememberItems(request.RememberItems)
             );
 
             return ok ? new RememberCardResponse(closestRepeatDate) : BadRequest(error);
@@ -138,13 +139,17 @@ namespace IntervalLearningApi.Controllers
 
     public class CardsItem
     {
+        public long ScheduleUserId { get; set; }
+        public short ScheduleId { get; set; }
         public List<short> CardIds { get; set; }
     }
 
     public class RememberRequest
     {
         public List<RememberItem> RememberItems { get; set; }
-        public DateTime Date { get; set; }
+        public long ScheduleUserId { get; set; }
+        public short ScheduleId { get; set; }
+        public short PhaseId { get; set; }
     }
 
     public class RememberItem
@@ -162,10 +167,6 @@ namespace IntervalLearningApi.Controllers
         [Required]
         [StringLength(255)]
         public string BackText { get; set; }
-        [Required]
-        public long ScheduleUserId { get; set; }
-        [Required]
-        public short ScheduleId { get; set; }
         [StringLength(500)]
         public string? Description { get; set; }
         [MaxLength(15)]

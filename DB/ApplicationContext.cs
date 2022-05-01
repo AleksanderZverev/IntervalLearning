@@ -14,6 +14,7 @@ namespace DB
         public DbSet<CollectionEntity> Collections { get; set; }
         public DbSet<CardEntity> Cards { get; set; }
         public DbSet<RememberEntity> Remembers { get; set; }
+        public DbSet<PhaseRememberEntity> PhaseRememberEntities { get; set; }
         public DbSet<ThemeEntity> Themes { get; set; }
         public DbSet<RepeatsScheduleEntity> RepeatsSchedules { get; set; }
         public DbSet<PhaseEntity> Phases { get; set; }
@@ -70,12 +71,6 @@ namespace DB
                 .HasForeignKey(c => c.ThemeId)
                 .OnDelete(DeleteBehavior.NoAction);
 
-            modelBuilder.Entity<CollectionEntity>()
-                .HasOne(c => c.DefaultRepeatsSchedule)
-                .WithMany()
-                .HasForeignKey(c => new {c.DefaultRepeatsScheduleParentUserId, c.DefaultRepeatsScheduleId})
-                .OnDelete(DeleteBehavior.NoAction);
-
             // CardEntity
 
             modelBuilder.Entity<CardEntity>()
@@ -93,29 +88,44 @@ namespace DB
                 .HasForeignKey(c => new {c.ParentUserId, c.ParentCollectionId})
                 .OnDelete(DeleteBehavior.NoAction);
 
-            modelBuilder.Entity<CardEntity>()
-                .HasOne(r => r.ParentRepeatsSchedule)
-                .WithMany()
-                .HasForeignKey(c => new { c.ParentRepeatsScheduleUserId, c.ParentRepeatsScheduleId })
-                .OnDelete(DeleteBehavior.NoAction);
-
             // RememberEntity
 
             modelBuilder.Entity<RememberEntity>()
-                .HasKey(r => new {r.ParentUserId, r.ParentCollectionId, r.ParentCardId, r.Id});
+                .HasKey(r => new
+                {
+                    r.ParentUserId,
+                    r.ParentCollectionId,
+                    r.ParentCardId,
+                    r.ParentRepeatsScheduleUserId,
+                    r.ParentRepeatsScheduleId,
+                    r.PhaseId,
+                    r.Id
+                });
 
-            modelBuilder.Entity<RememberEntity>()
-                .HasOne(r => r.ParentCard)
-                .WithMany(r => r.Remembers)
-                .HasForeignKey(c => new { c.ParentUserId, c.ParentCollectionId, c.ParentCardId })
-                .OnDelete(DeleteBehavior.NoAction);
-            
             ConfigureUserReference<RememberEntity>(modelBuilder);
 
             modelBuilder.Entity<RememberEntity>()
                 .HasOne(r => r.ParentCollection)
                 .WithMany()
                 .HasForeignKey(e => new { e.ParentUserId, e.ParentCollectionId })
+                .OnDelete(DeleteBehavior.NoAction);
+
+            modelBuilder.Entity<RememberEntity>()
+                .HasOne(r => r.ParentCard)
+                .WithMany(r => r.Remembers)
+                .HasForeignKey(c => new { c.ParentUserId, c.ParentCollectionId, c.ParentCardId })
+                .OnDelete(DeleteBehavior.NoAction);
+
+            modelBuilder.Entity<RememberEntity>()
+                .HasOne(c => c.ParentRepeatsSchedule)
+                .WithMany()
+                .HasForeignKey(c => new {c.ParentRepeatsScheduleUserId, c.ParentRepeatsScheduleId})
+                .OnDelete(DeleteBehavior.NoAction);
+
+            modelBuilder.Entity<RememberEntity>()
+                .HasOne(c => c.Phase)
+                .WithMany()
+                .HasForeignKey(c => new { c.ParentRepeatsScheduleUserId, c.ParentRepeatsScheduleId, c.PhaseId })
                 .OnDelete(DeleteBehavior.NoAction);
 
             // RepeatsScheduleEntity
@@ -141,14 +151,17 @@ namespace DB
             // CardRepeatQueueEntity
 
             modelBuilder.Entity<CardRepeatQueueEntity>()
-                .HasKey(q => new {q.ParentUserId, q.ParentCollectionId, q.ParentCardId, q.Id});
+                .HasKey(q => new
+                {
+                    q.ParentUserId,
+                    q.ParentCollectionId,
+                    q.ParentCardId,
+                    q.ParentRepeatsScheduleUserId,
+                    q.ParentRepeatsScheduleId,
+                    q.PhaseId
+                });
 
-            modelBuilder.Entity<CardRepeatQueueEntity>()
-                .HasOne(q => q.ParentCard)
-                .WithMany()
-                .HasForeignKey(q => new {q.ParentUserId, q.ParentCollectionId, q.ParentCardId})
-                .OnDelete(DeleteBehavior.NoAction);
-
+            ConfigureUserReference<CardRepeatQueueEntity>(modelBuilder);
 
             modelBuilder.Entity<CardRepeatQueueEntity>()
                 .HasOne(q => q.ParentCollection)
@@ -156,11 +169,22 @@ namespace DB
                 .HasForeignKey(q => new { q.ParentUserId, q.ParentCollectionId})
                 .OnDelete(DeleteBehavior.NoAction);
 
+            modelBuilder.Entity<CardRepeatQueueEntity>()
+                .HasOne(q => q.ParentCard)
+                .WithMany()
+                .HasForeignKey(q => new { q.ParentUserId, q.ParentCollectionId, q.ParentCardId })
+                .OnDelete(DeleteBehavior.NoAction);
 
             modelBuilder.Entity<CardRepeatQueueEntity>()
-                .HasOne(q => q.ParentUser)
+                .HasOne(q => q.ParentRepeatsSchedule)
                 .WithMany()
-                .HasForeignKey(q => new { q.ParentUserId })
+                .HasForeignKey(q => new {q.ParentRepeatsScheduleUserId, q.ParentRepeatsScheduleId})
+                .OnDelete(DeleteBehavior.NoAction);
+
+            modelBuilder.Entity<CardRepeatQueueEntity>()
+                .HasOne(q => q.Phase)
+                .WithMany()
+                .HasForeignKey(q => new {q.ParentRepeatsScheduleUserId, q.ParentRepeatsScheduleId, q.PhaseId})
                 .OnDelete(DeleteBehavior.NoAction);
 
             // UserMetadataEntity
@@ -172,6 +196,31 @@ namespace DB
                 .HasOne(m => m.ParentUser)
                 .WithOne()
                 .HasForeignKey<UserMetadataEntity>(m => m.ParentUserId)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            // PhaseRememberEntity 
+
+            modelBuilder.Entity<PhaseRememberEntity>()
+                .HasKey(r => new {r.ParentUserId, r.ParentRepeatsScheduleId, r.ParentPhaseId, r.RepeatedUserId, r.Id});
+
+            ConfigureUserReference<PhaseRememberEntity>(modelBuilder);
+
+            modelBuilder.Entity<PhaseRememberEntity>()
+                .HasOne(p => p.RepeatedUser)
+                .WithMany()
+                .HasForeignKey(p => p.RepeatedUserId)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            modelBuilder.Entity<PhaseRememberEntity>()
+                .HasOne(r => r.ParentRepeatsSchedule)
+                .WithMany()
+                .HasForeignKey(r => new {r.ParentUserId, r.ParentRepeatsScheduleId})
+                .OnDelete(DeleteBehavior.NoAction);
+
+            modelBuilder.Entity<PhaseRememberEntity>()
+                .HasOne(r => r.ParentPhase)
+                .WithMany()
+                .HasForeignKey(r => new { r.ParentUserId, r.ParentRepeatsScheduleId, r.ParentPhaseId })
                 .OnDelete(DeleteBehavior.NoAction);
         }
 

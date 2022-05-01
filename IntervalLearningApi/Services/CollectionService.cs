@@ -1,8 +1,6 @@
-﻿using System.Collections.Generic;
-using DB;
+﻿using DB;
 using DB.Models;
 using Microsoft.EntityFrameworkCore;
-using NodaTime;
 
 namespace IntervalLearningApi.Services;
 
@@ -33,10 +31,12 @@ public class CollectionService
         return collections;
     }
 
-    public async Task<Dictionary<DateTime, List<QueueCollection>>> GetQueueCollections(long userId)
+    public async Task<Dictionary<DateTime, List<RepeatingPhase>>> GetQueueCollections(long userId)
     {
         var queueItems = await db.Queue
             .Where(q => q.ParentUserId == userId)
+            .Include(q => q.ParentRepeatsSchedule).ThenInclude(q => q.Phases)
+            .AsSplitQuery()
             .ToListAsync();
 
         var collectionIds = queueItems
@@ -48,91 +48,106 @@ public class CollectionService
             .Where(c => c.ParentUserId == userId && collectionIds.Contains(c.Id))
             .ToDictionaryAsync(c => c.Id);
 
-        var result = new Dictionary<DateTime, List<QueueCollection>>();
+        var result = new Dictionary<DateTime, List<RepeatingPhase>>();
 
         foreach (var queueItem in queueItems)
         {
-            var date = queueItem.Date.Date;//queueItem.Date.ToDateTimeUtc().Date;
+            var date = queueItem.Date.Date;
+            var schedule = queueItem.ParentRepeatsSchedule;
+            var phase = schedule.Phases.Single(p => p.Id == queueItem.PhaseId);
 
             if (!result.ContainsKey(date))
-                result.Add(date, new List<QueueCollection>());
+            {
+                result.Add(date, new List<RepeatingPhase>());
+            }
+
+            var repeatingPhasesList = result[date];
+
+            var repeatingPhase = repeatingPhasesList.SingleOrDefault(p =>
+                p.ScheduleUserId == queueItem.ParentRepeatsScheduleUserId
+                && p.ScheduleUserId == queueItem.ParentRepeatsScheduleId
+                && p.PhaseStep == queueItem.PhaseId);
+
+            if (repeatingPhase == null)
+            {
+                repeatingPhase = new RepeatingPhase(
+                    queueItem.ParentRepeatsScheduleUserId,
+                    queueItem.ParentRepeatsScheduleId,
+                    queueItem.PhaseId,
+                    phase.SecondsFromLastPhase,
+                    phase.Description);
+
+                repeatingPhasesList.Add(repeatingPhase);
+            }
 
             var collection = collectionIdToCollection[queueItem.ParentCollectionId];
 
-            var collectionsList = result[date];
-            var queueCollection = collectionsList.SingleOrDefault(q => q.Collection.Id == queueItem.ParentCollectionId);
+            var repeatingCollection =
+                repeatingPhase.RepeatingCollections.SingleOrDefault(q =>
+                    q.Collection.Id == queueItem.ParentCollectionId);
 
-            if (queueCollection == null)
+            if (repeatingCollection == null)
             {
-                queueCollection = new QueueCollection(collection);
-                collectionsList.Add(queueCollection);
+                repeatingCollection = new RepeatingCollection(collection);
+                repeatingPhase.RepeatingCollections.Add(repeatingCollection);
             }
 
-            queueCollection.CardsToRepeatCount++;
+            repeatingCollection.CardsToRepeatCount++;
         }
 
         return result;
     }
 
-    public async Task<(List<CollectionEntity> started, List<CollectionEntity> notStarted)> GetNotFinished(long userId, int page = 1, int count = 30)
+    public async Task<List<CollectionEntity>> GetCanStart(
+        long userId,
+        long scheduleUserId,
+        short scheduleId,
+        int page = 1,
+        int count = 30)
     {
-        var metadata = metadataService.GetMetadata(userId);
+        //TODO: can be mistakes if started today. Need to use metadata
+        var startedCardIds = await db.Remembers
+            .Where(r => r.ParentUserId == userId
+                        && r.ParentRepeatsScheduleUserId == scheduleUserId
+                        && r.ParentRepeatsScheduleId == scheduleId)
+            .Select(c => c.ParentCardId)
+            .ToListAsync();
+
+        var canStartCards = await db.Cards
+            .Where(c => c.ParentUserId == userId && !startedCardIds.Contains(c.Id))
+            .ToListAsync();
 
         var totalCollections = page * count;
         var skip = (page - 1) * count;
 
-        //if (skip > (metadata.NotStartedCollections + metadata.StartedCollections))
-        //    return (new List<CollectionEntity>(0), new List<CollectionEntity>(0));
-
-        var startedCollections = await db.Collections
-            .Where(c => c.NotStartedCards != 0 && c.StartedCards > 0)
-            .ToListAsync();
-
-        if (totalCollections <= startedCollections.Count)
-        {
-            var started = startedCollections
-                .Skip(skip)
-                .Take(count)
-                .ToList();
-
-            return (started, new List<CollectionEntity>(0));
-        }
-
-        var notStartedCollectionsToTake = totalCollections - startedCollections.Count;
-
-        if (notStartedCollectionsToTake <= count)
-        {
-            var started = startedCollections
-                .Skip(skip)
-                .Take(count)
-                .ToList();
-
-            var notStarted = await db.Collections
-                .Where(c => c.NotStartedCards > 0 && c.StartedCards == 0)
-                .Take(notStartedCollectionsToTake)
-                .ToListAsync();
-
-            return (started, notStarted);
-        }
-        
-        var newPage = (int) Math.Ceiling((double) metadata.NotStartedCollections / count);
-        var newSkip = (skip - metadata.NotStartedCollections) + ((newPage - 1) * count);
-
-        var notStartedCollections = db.Collections
-            .Where(c => c.NotStartedCards == 0)
-            .Skip(newSkip)
-            .Take(count)
+        var canStartCollectionsId = canStartCards
+            .Select(c => c.ParentCollectionId)
+            .Skip(skip)
+            .Take(totalCollections)
             .ToList();
 
-        return (new List<CollectionEntity>(0), notStartedCollections);
+        var canStartCollections = await db.Collections
+            .Where(c => c.ParentUserId == userId && canStartCollectionsId.Contains(c.Id))
+            .ToListAsync();
+
+
+        var collectionToCardsCount = canStartCards
+            .GroupBy(c => c.Id)
+            .ToDictionary(c => c.Key, c => c.Count());
+
+        foreach (var collection in canStartCollections)
+        {
+            var notStartedCards = collectionToCardsCount[collection.Id];
+            collection.NotStartedCardsCount = (short)notStartedCards;
+        }
+
+        return canStartCollections;
     }
 
     public class CreateOrPatchCollection : ICreateOrEditModel
     {
         public long ParentUserId { get; }
         public short ThemeId { get; }
-        public short DefaultRepeatsScheduleId { get; }
-        public long DefaultRepeatsScheduleParentUserId { get; }
         public string Title { get;  }
         public bool IsDefaultBackSide { get; }
 
@@ -140,16 +155,12 @@ public class CollectionService
             long parentUserId, 
             string title, 
             bool isDefaultBackSide,
-            short themeId,
-            long defaultRepeatsScheduleParentUserId,
-            short defaultRepeatsScheduleId)
+            short themeId)
         {
             ParentUserId = parentUserId;
             Title = title;
             IsDefaultBackSide = isDefaultBackSide;
             ThemeId = themeId;
-            DefaultRepeatsScheduleId = defaultRepeatsScheduleId;
-            DefaultRepeatsScheduleParentUserId = defaultRepeatsScheduleParentUserId;
         }
     }
 
@@ -184,8 +195,6 @@ public class CollectionService
         short? cardId,
         string frontText,
         string backText,
-        long scheduleUserId,
-        short scheduleId,
         string? description,
         List<string>? examples)
     {
@@ -200,8 +209,6 @@ public class CollectionService
             new CardsService.CreateOrPatchCard(
                 userId,
                 collectionId,
-                scheduleUserId,
-                scheduleId,
                 frontText,
                 backText,
                 description,
@@ -217,7 +224,6 @@ public class CollectionService
         if (isCreated)
         {
             collection.CardsCount++;
-            collection.NotStartedCards++;
         }
 
         db.SaveChanges();
@@ -227,13 +233,38 @@ public class CollectionService
         return (card, null);
     }
 
-    public class QueueCollection
+    public class RepeatingPhase
+    {
+        public long ScheduleUserId { get; }
+        public long ScheduleId { get;  }
+        public short PhaseStep { get;  }
+        public uint SecondsFromLastPhase { get; }
+        public string? Description { get; }
+
+        public List<RepeatingCollection> RepeatingCollections { get; set; } = new();
+
+        public RepeatingPhase(
+            long scheduleUserId,
+            long scheduleId,
+            short phaseStep,
+            uint secondsFromLastPhase,
+            string? description)
+        {
+            ScheduleUserId = scheduleUserId;
+            ScheduleId = scheduleId;
+            PhaseStep = phaseStep;
+            SecondsFromLastPhase = secondsFromLastPhase;
+            Description = description;
+        }
+    }
+
+    public class RepeatingCollection
     {
         public CollectionEntity Collection { get; }
 
         public int CardsToRepeatCount { get; set; }
 
-        public QueueCollection(CollectionEntity collection)
+        public RepeatingCollection(CollectionEntity collection)
         {
             Collection = collection;
         }

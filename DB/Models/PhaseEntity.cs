@@ -3,11 +3,18 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace DB.Models;
 
+public interface IParentPhaseReference : IParentRepeatsScheduleReference
+{
+    public short ParentPhaseId { get; set; }
+    public PhaseEntity ParentPhase { get; set; }
+}
+
+//Первая фаза всегда = изучение на первом этапе
 [Table("SchedulePhases")]
 public class PhaseEntity : IParentRepeatsScheduleReference
 {
     [DatabaseGenerated(DatabaseGeneratedOption.None)]
-    public byte Id { get; set; }
+    public short Id { get; set; }
 
     [Required]
     public uint SecondsFromLastPhase { get; set; }
@@ -22,7 +29,7 @@ public class PhaseEntity : IParentRepeatsScheduleReference
     public long ParentUserId { get; set; }
     public UserEntity? ParentUser { get; set; }
 
-    public PhaseEntity(long parentUserId, byte id, short parentRepeatsScheduleId, uint secondsFromLastPhase, string? description)
+    public PhaseEntity(long parentUserId, short id, short parentRepeatsScheduleId, uint secondsFromLastPhase, string? description)
     {
         ParentUserId = parentUserId;
         Id = id;

@@ -13,18 +13,24 @@ public class Remember
     public short ParentCardId { get; }
     public short Id { get; }
     public float Weight { get; }
-    public short PhaseStep { get; }
+    public short PhaseId { get; }
     public DateTime RepeatedDate { get; }
 
-    public Remember(long parentUserId, short parentCollectionId, short parentCardId, short id, float weight,
-        short phaseStep, DateTime repeatedDate)
+    public Remember(
+        long parentUserId,
+        short parentCollectionId,
+        short parentCardId,
+        short id,
+        float weight,
+        short phaseId,
+        DateTime repeatedDate)
     {
         ParentUserId = parentUserId;
         ParentCollectionId = parentCollectionId;
         ParentCardId = parentCardId;
         Id = id;
         Weight = weight;
-        PhaseStep = phaseStep;
+        PhaseId = phaseId;
         RepeatedDate = repeatedDate;
     }
 }

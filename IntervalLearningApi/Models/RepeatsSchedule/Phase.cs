@@ -9,11 +9,11 @@ public class Phase
 
     [JsonProperty("scheduleId")]
     public short ParentRepeatsScheduleId { get; }
-    public byte Id { get; }
+    public short Id { get; }
     public uint SecondsFromLastPhase { get; }
     public string? Description { get; }
 
-    public Phase(string parentUserId, short parentRepeatsScheduleId, byte id, uint secondsFromLastPhase, string? description)
+    public Phase(string parentUserId, short parentRepeatsScheduleId, short id, uint secondsFromLastPhase, string? description)
     {
         ParentUserId = parentUserId;
         ParentRepeatsScheduleId = parentRepeatsScheduleId;

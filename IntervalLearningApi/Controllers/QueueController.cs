@@ -2,7 +2,6 @@
 using IntervalLearningApi.Models.ByUser;
 using IntervalLearningApi.Services;
 using Microsoft.AspNetCore.Mvc;
-using NodaTime;
 
 namespace IntervalLearningApi.Controllers
 {
@@ -21,42 +20,46 @@ namespace IntervalLearningApi.Controllers
             this.collectionService = collectionService;
         }
 
-        [HttpGet("learn")]
-        public async Task<ActionResult<IList<Collection>>> GetCardsFromQueue()
-        {
-            var userId = HttpContext.GetUserId();
-            var (collections, cardsWithDates) = await cardsService.GetLearningCollectionWithCards(userId);
+        //[HttpGet("learn")]
+        //public async Task<ActionResult<IList<Collection>>> GetCardsFromQueue()
+        //{
+        //    var userId = HttpContext.GetUserId();
+        //    var (collections, cardsWithDates) = await cardsService.GetLearningCollectionWithCards(userId);
 
-            var collectionsDto = collections.Select(CollectionsController.ToCollection).ToList();
-            var cardsDto = cardsWithDates
-                .Select(tuple => new QueueCard(tuple.Item1, CollectionsController.ToCard(tuple.Item2)))
-                .ToList();
+        //    var collectionsDto = collections.Select(CollectionsController.ToCollection).ToList();
+        //    var cardsDto = cardsWithDates
+        //        .Select(tuple => new QueueCard(tuple.Item1, CollectionsController.ToCard(tuple.Item2)))
+        //        .ToList();
 
-            var response = new LearnResponse(collectionsDto, cardsDto);
-            return Ok(response);
-        }
+        //    var response = new LearnResponse(collectionsDto, cardsDto);
+        //    return Ok(response);
+        //}
 
         [HttpGet("{collectionId}/cards/repeat")]
-        public async Task<ActionResult<List<Card>>> GetCardsQueue(short collectionId, [FromQuery] DateTime date)
+        public async Task<ActionResult<List<Card>>> GetCardsQueue(
+            short collectionId,
+            [FromQuery] long scheduleUserId,
+            [FromQuery] short scheduleId,
+            [FromQuery] short phaseId)
         {
             var userId = HttpContext.GetUserId();
-            var cards = await cardsService.GetCardsQueue(userId, collectionId, date);
+            var cards = await cardsService.GetCardsQueue(userId, collectionId, scheduleUserId, scheduleId, phaseId);
             return cards.Select(CollectionsController.ToCard).ToList();
         }
     }
 
-    public class LearnResponse
-    {
-        public List<Collection> Collections { get; }
+    //public class LearnResponse
+    //{
+    //    public List<Collection> Collections { get; }
 
-        public List<QueueCard> QueueCards { get; }
+    //    public List<QueueCard> QueueCards { get; }
 
-        public LearnResponse(List<Collection> collections, List<QueueCard> queueCards)
-        {
-            Collections = collections;
-            QueueCards = queueCards;
-        }
-    }
+    //    public LearnResponse(List<Collection> collections, List<QueueCard> queueCards)
+    //    {
+    //        Collections = collections;
+    //        QueueCards = queueCards;
+    //    }
+    //}
 
     public class QueueCard
     {
