@@ -3,30 +3,25 @@ import { FC } from 'react';
 import { Theme } from '../../types/global';
 import { SelectTheme } from '../SelectTheme/SelectTheme';
 import * as yup from 'yup';
-import { Schedule } from '../../types/schedule';
 import { FormProvider, SubmitHandler, useForm, FieldError } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { Form, FormField } from '../Form/Form';
-import { SelectSchedule } from '../SelectSchedule/SelectSchedule';
 import { CreateCollectionItem, useCreateCollectionMutation } from '../../redux/collectionApi';
 import useTypedSelector from '../../hooks/useTypedSelector';
 import { selectCollectionById } from '../../redux/slices/collectionsSlice';
 import { Collection } from '../../types/Collection';
 import { selectTheme } from '../../redux/slices/themeSlice';
-import { getScheduleId, selectScheduleById } from '../../redux/slices/scheduleSlice';
 import { withMutationResolver, WithMutationResolverProps } from '../../hoc/withQueryResolver';
 
 interface IForm {
     title: string;
     theme: Theme;
-    schedule: Schedule;
 }
 
 const schema = yup
     .object({
         title: yup.string().max(100).required(),
         theme: yup.object().required(),
-        schedule: yup.object().required(),
     })
     .required();
 
@@ -37,11 +32,10 @@ interface CreateCollectionModalProps extends WithMutationResolverProps<typeof us
     onClose: () => void;
 }
 
-function getDefaultFormValue(collection: Collection, theme: Theme, schedule: Schedule) {
+function getDefaultFormValue(collection: Collection, theme: Theme) {
     const form: IForm = {
         title: collection.title,
         theme,
-        schedule,
     };
 
     return form;
@@ -55,17 +49,14 @@ const CreateCollectionModalContent: FC<CreateCollectionModalProps> = ({
         selectCollectionById(state, props.userId ?? '', props.collectionId ?? '')
     );
     const theme = useTypedSelector((state) => selectTheme(state, collection?.themeId ?? ''));
-    const schedule = useTypedSelector((state) =>
-        selectScheduleById(state, getScheduleId(collection?.userId ?? '', collection?.defaultScheduleId ?? ''))
-    );
 
-    if (collection && (!theme || !schedule)) {
+    if (collection && !theme) {
         throw new Error();
     }
 
     const formMethods = useForm<IForm>({
         resolver: yupResolver(schema),
-        defaultValues: collection && theme && schedule ? getDefaultFormValue(collection, theme, schedule) : undefined,
+        defaultValues: collection && theme ? getDefaultFormValue(collection, theme) : undefined,
     });
     const {
         handleSubmit,
@@ -78,8 +69,6 @@ const CreateCollectionModalContent: FC<CreateCollectionModalProps> = ({
             collectionId: props.collectionId,
             title: data.title,
             themeId: data.theme.id,
-            scheduleId: data.schedule.id,
-            scheduleUserId: data.schedule.userId,
             isDefaultBackSide: false,
         };
         try {
@@ -109,12 +98,6 @@ const CreateCollectionModalContent: FC<CreateCollectionModalProps> = ({
                             error={!!errors.theme}
                             errorMessage={(errors.theme as FieldError)?.message}
                             registeredName="theme"
-                        />
-                        <SelectSchedule
-                            label="Учебный план"
-                            error={!!errors.schedule}
-                            errorMessage={(errors.schedule as FieldError)?.message}
-                            registeredName="schedule"
                         />
                     </Form>
                 </FormProvider>

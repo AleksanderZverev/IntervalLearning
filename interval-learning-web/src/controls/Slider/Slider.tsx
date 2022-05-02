@@ -1,4 +1,3 @@
-import { styled, Tooltip, tooltipClasses, TooltipProps } from '@mui/material';
 import classNames from 'classnames';
 import { FC, useMemo } from 'react';
 import { useEventListener } from '../../hooks/useEventListener';
@@ -53,6 +52,10 @@ export const Slider: FC<SliderProps> = ({ min, max, value, activeValue, onValueC
     }, [min, max]);
 
     useEventListener('keydown', (e) => {
+        if (finishMode) {
+            return;
+        }
+
         const keys = vertical ? verticalKeys : horizontalKeys;
 
         if (e.key in keys) {

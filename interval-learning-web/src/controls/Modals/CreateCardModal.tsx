@@ -2,17 +2,15 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import { ArrowForwardIos } from '@mui/icons-material';
 import { Dialog, DialogTitle, DialogContent, DialogActions, Button } from '@mui/material';
 import { FC } from 'react';
-import { FieldError, FormProvider, SubmitHandler, useFieldArray, useForm } from 'react-hook-form';
+import { FormProvider, SubmitHandler, useFieldArray, useForm } from 'react-hook-form';
 import * as yup from 'yup';
 import { withMutationResolver, WithMutationResolverProps } from '../../hoc/withQueryResolver';
 import useTypedSelector from '../../hooks/useTypedSelector';
 import { CreateCardItem, useAddCardMutation } from '../../redux/cardsApi';
 import { selectCardById } from '../../redux/slices/cardsSlice';
-import { getScheduleId, selectScheduleById } from '../../redux/slices/scheduleSlice';
 import { Card } from '../../types/Collection';
 import { Schedule } from '../../types/schedule';
 import { Form, FormField, FormFiledLabel, IconFormField } from '../Form/Form';
-import { SelectSchedule } from '../SelectSchedule/SelectSchedule';
 
 interface Example {
     value: string;
@@ -21,7 +19,6 @@ interface Example {
 interface CardForm {
     frontText: string;
     backText: string;
-    schedule: Schedule;
     description: string | null;
     examples: Example[];
 }
@@ -34,7 +31,6 @@ const schema = yup
     .object({
         frontText: yup.string().required().max(255),
         backText: yup.string().required().max(255),
-        schedule: yup.object().required(),
         description: yup.string().max(500),
         examples: yup.array().of(exampleSchema),
     })
@@ -49,14 +45,13 @@ interface CreateCardModalProps extends WithMutationResolverProps<typeof useAddCa
     defaultSchedule?: Schedule;
 }
 
-function getDefaultValues(card: Card, defaultSchedule: Schedule): CardForm {
+function getDefaultValues(card: Card): CardForm {
     const examples = card.examples?.map((e) => ({ value: e })) ?? [];
     examples.push({ value: '' });
 
     const cardForm: CardForm = {
         frontText: card.frontSideText,
         backText: card.backSideText,
-        schedule: defaultSchedule,
         description: card.description,
         examples,
     };
@@ -72,21 +67,11 @@ const CreateCardModalContent: FC<CreateCardModalProps> = ({
         selectCardById(state, props.collectionUserId, props.collectionId, props.cardId)
     );
 
-    const cardSchedule = useTypedSelector((state) =>
-        selectScheduleById(state, getScheduleId(card?.scheduleUserId ?? '', card?.scheduleId ?? ''))
-    );
-
-    if (card && !cardSchedule) {
-        throw new Error();
-    }
-
     const formMethods = useForm<CardForm>({
         resolver: yupResolver(schema),
-        defaultValues:
-            card && cardSchedule
-                ? getDefaultValues(card, cardSchedule)
-                : { schedule: props.defaultSchedule, examples: [{ value: '' }] },
+        defaultValues: card ? getDefaultValues(card) : { examples: [{ value: '' }] },
     });
+
     const {
         register,
         handleSubmit,
@@ -109,8 +94,6 @@ const CreateCardModalContent: FC<CreateCardModalProps> = ({
             cardId: props.cardId,
             frontText: data.frontText,
             backText: data.backText,
-            scheduleUserId: data.schedule.userId,
-            scheduleId: data.schedule.id,
             description: data.description,
             examples: data.examples.filter((e) => Boolean(e.value)).map((e) => e.value),
         };
@@ -141,12 +124,6 @@ const CreateCardModalContent: FC<CreateCardModalProps> = ({
                             error={!!errors.backText}
                             errorMessage={errors.backText?.message}
                             {...register('backText')}
-                        />
-                        <SelectSchedule
-                            label="Учебный план"
-                            error={!!errors.schedule}
-                            errorMessage={(errors.schedule as FieldError)?.message}
-                            registeredName="schedule"
                         />
                         <FormField
                             label="Описание"
