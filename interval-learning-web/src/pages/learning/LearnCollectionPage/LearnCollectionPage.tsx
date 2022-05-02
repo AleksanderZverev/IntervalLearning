@@ -1,6 +1,6 @@
 import { FC, useState } from 'react';
 import useTypedSelector from '../../../hooks/useTypedSelector';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { selectCollectionById } from '../../../redux/slices/collectionsSlice';
 import {
     withMutationResolver,
@@ -27,12 +27,16 @@ type WithResolvers = WithQueryResolverData<typeof useGetNotStartedCardsQuery> &
 interface LearnCollectionPageContentProps extends WithResolvers {
     userId: string;
     collectionId: string;
+    scheduleId: string;
+    scheduleUserId: string;
     setDisableLoading: (disable: boolean) => void;
 }
 
 export const LearnCollectionPageContent: FC<LearnCollectionPageContentProps> = ({
     userId,
     collectionId,
+    scheduleId,
+    scheduleUserId,
     setDisableLoading,
     queryData: notStartedCardIds,
     mutationProps: { mutate: startCards, showRetryModal, isLoading: isMutationLoading, isSuccess, data: mutationData },
@@ -84,6 +88,8 @@ export const LearnCollectionPageContent: FC<LearnCollectionPageContentProps> = (
         }
 
         const item: CardsItem = {
+            scheduleId,
+            scheduleUserId,
             cardIds: [...cardIdsToStart],
         };
 
@@ -147,6 +153,7 @@ export const LearnCollectionPageContent: FC<LearnCollectionPageContentProps> = (
                             setCardIndex(v);
                             setActiveCardIndex(v);
                         }}
+                        finishMode={isSuccess}
                         vertical
                     />
 
@@ -191,7 +198,12 @@ interface CardResult {
 export const LearnCollection: FC = () => {
     const { userId, collectionId } = useParams();
 
-    if (!collectionId || !userId) {
+    const location = useLocation();
+    const params = new URLSearchParams(location.search);
+    const scheduleUserId = params.get('scheduleUserId');
+    const scheduleId = params.get('scheduleId');
+
+    if (!collectionId || !userId || !scheduleUserId || !scheduleId) {
         throw new Error();
     }
 
@@ -199,8 +211,10 @@ export const LearnCollection: FC = () => {
 
     return (
         <ConnectedMutationResolver
-            queryArg={{ userId, collectionId, request: undefined }}
+            queryArg={{ userId, collectionId, request: { scheduleUserId, scheduleId } }}
             disableLoading={disableLoading}
+            scheduleUserId={scheduleId}
+            scheduleId={scheduleUserId}
             setDisableLoading={(disable) => setDisableLoading(disable)}
         />
     );

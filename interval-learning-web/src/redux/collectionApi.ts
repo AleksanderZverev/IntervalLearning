@@ -4,30 +4,38 @@ import { setOneCollection, setCollections } from './slices/collectionsSlice';
 
 export interface CreateCollectionItem {
     collectionId: string | undefined;
-    scheduleUserId: string;
-    scheduleId: number;
     themeId: number;
     title: string;
     isDefaultBackSide: boolean;
 }
 
 export interface GetNotFinishedResponse {
-    startedCollections: Collection[];
-    notStartedCollections: Collection[];
+    canStartCollections: Collection[];
+}
+
+export interface RepeatingCollectionResponse {
+    dateToRepeatingPhases: Record<string, RepeatingPhaseDto[]>;
+}
+
+export interface RepeatingPhaseDto {
+    scheduleUserId: string;
+    scheduleId: string;
+    phaseIndex: number;
+    secondsFromLastPhase: number;
+    description: string | null;
+    repeatingCollections: RepeatingCollectionDto[];
+}
+
+export interface RepeatingCollectionDto {
+    collection: Collection;
+    cardsToRepeatCount: number;
 }
 
 export interface GetNotFinishedRequest {
+    scheduleUserId: string;
+    scheduleId: string;
     page: number;
     count: number;
-}
-
-export interface QueueCollectionResponse {
-    dateToCollectionsQueue: Record<string, QueueCollection[]>;
-}
-
-export interface QueueCollection {
-    collection: Collection;
-    cardsToRepeatCount: number;
 }
 
 export interface GetCollectionQuery {
@@ -68,7 +76,20 @@ export const collectionsApi = api.injectEndpoints({
                 } catch {}
             },
         }),
-        getQueueCollections: build.query<QueueCollectionResponse, void>({
+        getNotFinished: build.query<GetNotFinishedResponse, GetNotFinishedRequest>({
+            query: (req) => ({ url: `${baseUrl}/not-finished`, method: 'GET', params: req }),
+            async onQueryStarted(arg, { queryFulfilled, dispatch }) {
+                try {
+                    const response = await queryFulfilled;
+
+                    const { canStartCollections } = response.data;
+                    dispatch(setCollections(canStartCollections));
+                } catch {}
+            },
+            providesTags: [tagTypes.notFinishedCollectionsList],
+        }),
+        //↑OK↑
+        getQueueCollections: build.query<RepeatingCollectionResponse, void>({
             query: () => ({
                 url: `${baseUrl}/queue`,
                 method: 'GET',
@@ -78,19 +99,6 @@ export const collectionsApi = api.injectEndpoints({
                 // },
             }),
             providesTags: [tagTypes.queueCollectionsList],
-        }),
-        getNotFinished: build.query<GetNotFinishedResponse, GetNotFinishedRequest>({
-            query: (req) => ({ url: `${baseUrl}/not-finished?page=${req.page}&count=${req.count}`, method: 'GET' }),
-            async onQueryStarted(arg, { queryFulfilled, dispatch }) {
-                try {
-                    const response = await queryFulfilled;
-                    const { startedCollections, notStartedCollections } = response.data;
-
-                    dispatch(setCollections(startedCollections));
-                    dispatch(setCollections(notStartedCollections));
-                } catch {}
-            },
-            providesTags: [tagTypes.notFinishedCollectionsList],
         }),
     }),
 });

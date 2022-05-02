@@ -5,7 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import { Table, TableBody, TableCell, TableHead, TableHeaderCell, TableRow } from '../../../../controls/Table/Table';
 import { DateHelper } from '../../../../helpers/DateHelper';
 import { withQueryResolver, WithQueryResolverData } from '../../../../hoc/withQueryResolver';
-import { useGetQueueCollectionsQuery } from '../../../../redux/collectionApi';
+import { RepeatingCollectionDto, useGetQueueCollectionsQuery } from '../../../../redux/collectionApi';
 import { CollectionRow } from './CollectionRow/CollectionRow';
 import styles from './styles.module.css';
 
@@ -13,7 +13,7 @@ interface InProgressCollectionsProps extends WithQueryResolverData<typeof useGet
 
 const InProgressCollectionsContent: FC<InProgressCollectionsProps> = ({ queryData }) => {
     const navigate = useNavigate();
-    const dateToCollectionsQueue = queryData.dateToCollectionsQueue;
+    const dateToCollectionsQueue = queryData.dateToRepeatingPhases;
     const now = dayjs();
 
     return (
@@ -28,7 +28,7 @@ const InProgressCollectionsContent: FC<InProgressCollectionsProps> = ({ queryDat
                 {Object.entries(dateToCollectionsQueue)
                     .sort((f, s) => f[0].localeCompare(s[0]))
                     .map((pair) => {
-                        const [dateString, collectionsQueue] = pair;
+                        const [dateString, repeatingPhases] = pair;
                         const date = dayjs(dateString);
                         const isWarn = now.isAfter(date, 'd');
                         const isToday = now.isSame(date, 'd');
@@ -59,19 +59,48 @@ const InProgressCollectionsContent: FC<InProgressCollectionsProps> = ({ queryDat
                                               )})`}
                                     </TableCell>
                                 </TableRow>
-                                {collectionsQueue.map((c) => {
+                                {repeatingPhases.map((p) => {
+                                    if (!p.repeatingCollections || p.repeatingCollections.length === 0) {
+                                        console.error('repeating collections not found!');
+                                        return false;
+                                    }
+
+                                    const duration = dayjs.duration(p.secondsFromLastPhase, 's');
+
                                     return (
-                                        <CollectionRow
-                                            key={c.collection.id}
-                                            collection={c.collection}
-                                            cardsToRepeatCount={c.cardsToRepeatCount}
-                                            hover={isToday || isWarn}
-                                            onClick={() =>
-                                                navigate(
-                                                    `/learning/repeat/${c.collection.userId}-${c.collection.id}?date=${dateString}`
-                                                )
-                                            }
-                                        />
+                                        <Fragment key={`${p.scheduleUserId}-${p.scheduleId}-${p.phaseIndex}`}>
+                                            <TableRow borderless>
+                                                <TableCell
+                                                    className={classNames(styles.subLabel)}
+                                                    colSpan={4}
+                                                    fontSize={14}
+                                                >
+                                                    Спустя {duration.humanize()}
+                                                </TableCell>
+                                            </TableRow>
+                                            {p.repeatingCollections.map((c) => {
+                                                const searchParams = new URLSearchParams({
+                                                    scheduleUserId: p.scheduleUserId,
+                                                    scheduleId: p.scheduleId,
+                                                    phaseIndex: p.phaseIndex.toString(),
+                                                });
+
+                                                return (
+                                                    <CollectionRow
+                                                        key={c.collection.id}
+                                                        collection={c.collection}
+                                                        cardsToRepeatCount={c.cardsToRepeatCount}
+                                                        hover={true || isToday || isWarn}
+                                                        onClick={() =>
+                                                            navigate(
+                                                                `/learning/repeat/${c.collection.userId}-${c.collection.id}?` +
+                                                                    searchParams.toString()
+                                                            )
+                                                        }
+                                                    />
+                                                );
+                                            })}
+                                        </Fragment>
                                     );
                                 })}
                             </Fragment>
@@ -82,4 +111,8 @@ const InProgressCollectionsContent: FC<InProgressCollectionsProps> = ({ queryDat
     );
 };
 
-export const InProgressCollections = withQueryResolver(useGetQueueCollectionsQuery)(InProgressCollectionsContent);
+const ConnectedInProgressCollections = withQueryResolver(useGetQueueCollectionsQuery)(InProgressCollectionsContent);
+
+export const InProgressCollections: FC = () => {
+    return <ConnectedInProgressCollections queryArg={undefined} />;
+};

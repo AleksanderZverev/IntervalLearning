@@ -67,9 +67,9 @@ public class RepeatingCollectionResponse
 
 public class RepeatingPhaseDto
 {
-    public long ScheduleUserId { get; }
-    public long ScheduleId { get; }
-    public short PhaseStep { get; }
+    public string ScheduleUserId { get; }
+    public string ScheduleId { get; }
+    public short PhaseIndex { get; }
     public uint SecondsFromLastPhase { get; }
     public string? Description { get; }
     public List<RepeatingCollectionDto> RepeatingCollections { get; set; }
@@ -77,14 +77,14 @@ public class RepeatingPhaseDto
     public RepeatingPhaseDto(
         long scheduleUserId,
         long scheduleId,
-        short phaseStep,
+        short phaseIndex,
         uint secondsFromLastPhase,
         string? description, 
         List<RepeatingCollectionDto> repeatingCollections)
     {
-        ScheduleUserId = scheduleUserId;
-        ScheduleId = scheduleId;
-        PhaseStep = phaseStep;
+        ScheduleUserId = scheduleUserId.ToString();
+        ScheduleId = scheduleId.ToString();
+        PhaseIndex = phaseIndex;
         SecondsFromLastPhase = secondsFromLastPhase;
         Description = description;
         RepeatingCollections = repeatingCollections;

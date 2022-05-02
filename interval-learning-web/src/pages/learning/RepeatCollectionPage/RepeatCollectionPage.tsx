@@ -29,7 +29,9 @@ type WithResolvers = WithQueryResolverData<typeof useGetRepeatCardsQuery> &
 interface RepeatCollectionPageContentProps extends WithResolvers {
     userId: string;
     collectionId: string;
-    date: string;
+    scheduleUserId: string;
+    scheduleId: string;
+    phaseIndex: number;
     setSkipLoading: (skip: boolean) => void;
 }
 
@@ -37,7 +39,9 @@ export const RepeatCollectionPageContent: FC<RepeatCollectionPageContentProps> =
     queryData: { cardIds },
     userId,
     collectionId,
-    date,
+    scheduleUserId,
+    scheduleId,
+    phaseIndex,
     setSkipLoading,
     mutationProps: { mutate: rememberCards, data, showRetryModal, isLoading, isSuccess },
 }) => {
@@ -98,7 +102,9 @@ export const RepeatCollectionPageContent: FC<RepeatCollectionPageContentProps> =
         }
 
         const request: RememberRequest = {
-            date,
+            scheduleUserId,
+            scheduleId,
+            phaseIndex,
             rememberItems: resultWeights.map(([cardId, weight]) => ({ cardId, weight: weight ?? 0 })),
         };
         try {
@@ -244,19 +250,35 @@ export const RepeatCollection: FC = () => {
 
     const location = useLocation();
     const params = new URLSearchParams(location.search);
-    const date = params.get('date');
+    const scheduleUserId = params.get('scheduleUserId');
+    const scheduleId = params.get('scheduleId');
+    const phaseIndexString = params.get('phaseIndex');
 
     const [skipLoading, setSkipLoading] = useState(false);
 
-    if (!collectionId || !userId || !date) {
-        return <div>INCORRECT LINK</div>;
+    if (!collectionId || !userId) {
+        throw new Error();
     }
+
+    if (
+        !scheduleUserId ||
+        !scheduleId ||
+        phaseIndexString === undefined ||
+        phaseIndexString == null ||
+        parseInt(phaseIndexString) < 0
+    ) {
+        return <div>Incorrect link</div>;
+    }
+
+    const phaseIndex = parseInt(phaseIndexString);
 
     return (
         <ConnectedMutationResolver
-            queryArg={{ userId, collectionId, request: { date } }}
+            queryArg={{ userId, collectionId, request: { scheduleUserId, scheduleId, phaseIndex } }}
             disableLoading={skipLoading}
-            date={date}
+            scheduleUserId={scheduleUserId}
+            scheduleId={scheduleId}
+            phaseIndex={phaseIndex}
             setSkipLoading={(skip) => setSkipLoading(skip)}
         />
     );

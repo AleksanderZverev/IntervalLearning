@@ -315,6 +315,14 @@ public class CardsService
 
             var queueItem = queueItems.Single(q => q.ParentCardId == cardId);
 
+            if (queueItem.Date.Date >= DateTime.UtcNow.Date && env.IsProduction())
+            {
+                logger.LogInformation("Unable to remember. Not time!");
+                continue;
+            }
+
+            var currentPhase = schedule.Phases.OrderBy(p => p.Id).Skip(queueItem.PhaseIndex).First();
+
             var remember = new RememberEntity(
                 schedule.ParentUserId,
                 schedule.Id,
@@ -331,15 +339,14 @@ public class CardsService
             var phaseRemember = new PhaseRememberEntity(
                 schedule.ParentUserId,
                 schedule.Id,
-                queueItem.PhaseIndex,
+                currentPhase.Id,
                 userId,
                 weight);
 
-
             db.Entry(phaseRemember).State = EntityState.Added;
 
-            var nextPhaseId = remember.PhaseIndex + 1;
-            var nextPhase = schedule.Phases.SingleOrDefault(p => p.Id == nextPhaseId);
+            var nextPhaseIndex = remember.PhaseIndex + 1;
+            var nextPhase = schedule.Phases.Skip(nextPhaseIndex).FirstOrDefault();
 
             if (nextPhase == null)
                 continue;
@@ -355,7 +362,7 @@ public class CardsService
                 userId,
                 collectionId,
                 cardId,
-                nextPhase.Id,
+                (short)nextPhaseIndex,
                 nextRepeatDate);
 
             db.Entry(queueItem).State = EntityState.Deleted;

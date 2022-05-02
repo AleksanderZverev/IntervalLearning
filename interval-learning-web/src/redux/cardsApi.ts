@@ -13,8 +13,6 @@ export interface CreateCardItem {
     cardId: string | undefined;
     frontText: string;
     backText: string;
-    scheduleUserId: string;
-    scheduleId: number;
     description: string | null;
     examples: string[] | null;
 }
@@ -24,17 +22,32 @@ export interface GetCardItem {
     count: number;
 }
 
+export interface CardIdsList {
+    cardIds: string[];
+}
+
 export interface CardsItem {
+    scheduleUserId: string;
+    scheduleId: string;
     cardIds: string[];
 }
 
 interface GetRepeatCardsRequest {
-    date: string;
+    scheduleUserId: string;
+    scheduleId: string;
+    phaseIndex: number;
 }
 
 export interface RememberRequest {
     rememberItems: RememberItem[];
-    date: string;
+    scheduleUserId: string;
+    scheduleId: string;
+    phaseIndex: number;
+}
+
+export interface RememberItem {
+    cardId: string;
+    weight: number;
 }
 
 export interface StartCardResponse {
@@ -45,9 +58,9 @@ export interface RememberCardResponse {
     nextRepeatDate: string | null;
 }
 
-interface RememberItem {
-    cardId: string;
-    weight: number;
+export interface GetNotStartedCardsRequest {
+    scheduleUserId: string;
+    scheduleId: string;
 }
 
 export const cardsApi = api.injectEndpoints({
@@ -81,10 +94,11 @@ export const cardsApi = api.injectEndpoints({
                 } catch {}
             },
         }),
-        getNotStartedCards: build.query<string[], BaseRequestItem<undefined>>({
+        getNotStartedCards: build.query<string[], BaseRequestItem<GetNotStartedCardsRequest>>({
             query: ({ collectionId, request }) => ({
                 url: `/collections/${collectionId}/cards/not-started`,
                 method: 'GET',
+                params: request,
                 onSuccess: async (dispatch, data) => {
                     dispatch(addManyCards(data as Card[]));
                 },
@@ -94,35 +108,6 @@ export const cardsApi = api.injectEndpoints({
                 return cards.map((c) => c.id);
             },
             providesTags: [tagTypes.notStartedCardsList],
-        }),
-        getRepeatCards: build.query<CardsItem, BaseRequestItem<GetRepeatCardsRequest>>({
-            query: ({ collectionId, request }) => ({
-                url: `/queue/${collectionId}/cards/repeat`,
-                method: 'GET',
-                params: { date: request.date },
-                onSuccess: async (dispatch, data) => {
-                    const cards = data as Card[];
-                    dispatch(addManyCards(cards));
-                },
-            }),
-            transformResponse: (response: Card[], meta, arg) => {
-                const item: CardsItem = {
-                    cardIds: response.map((c) => c.id),
-                };
-                return item;
-            },
-            providesTags: [tagTypes.repeatCardsList],
-            // providesTags: (result) => (
-            //     result ? [...result.cardIds.map(cardId => {type: tagTypes.card, id: })] : []
-            // )
-        }),
-        patchRememberCards: build.mutation<RememberCardResponse, BaseRequestItem<RememberRequest>>({
-            query: ({ collectionId, request }) => ({
-                url: `/collections/${collectionId}/cards/remember`,
-                method: 'PATCH',
-                data: request,
-            }),
-            invalidatesTags: [tagTypes.repeatCardsList, tagTypes.queueCollectionsList],
         }),
         startCards: build.mutation<StartCardResponse, BaseRequestItem<CardsItem>>({
             query: ({ collectionId, request }) => ({
@@ -141,6 +126,36 @@ export const cardsApi = api.injectEndpoints({
                 result
                     ? [tagTypes.notStartedCardsList, tagTypes.queueCollectionsList, tagTypes.notFinishedCollectionsList]
                     : [],
+        }),
+        //↑OK↑
+        getRepeatCards: build.query<CardIdsList, BaseRequestItem<GetRepeatCardsRequest>>({
+            query: ({ collectionId, request }) => ({
+                url: `/queue/${collectionId}/cards/repeat`,
+                method: 'GET',
+                params: request,
+                onSuccess: async (dispatch, data) => {
+                    const cards = data as Card[];
+                    dispatch(addManyCards(cards));
+                },
+            }),
+            transformResponse: (response: Card[], meta, arg) => {
+                const item: CardIdsList = {
+                    cardIds: response.map((c) => c.id),
+                };
+                return item;
+            },
+            providesTags: [tagTypes.repeatCardsList],
+            // providesTags: (result) => (
+            //     result ? [...result.cardIds.map(cardId => {type: tagTypes.card, id: })] : []
+            // )
+        }),
+        patchRememberCards: build.mutation<RememberCardResponse, BaseRequestItem<RememberRequest>>({
+            query: ({ collectionId, request }) => ({
+                url: `/collections/${collectionId}/cards/remember`,
+                method: 'PATCH',
+                data: request,
+            }),
+            invalidatesTags: [tagTypes.repeatCardsList, tagTypes.queueCollectionsList],
         }),
     }),
 });

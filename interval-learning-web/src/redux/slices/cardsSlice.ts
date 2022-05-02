@@ -1,6 +1,5 @@
-import { createEntityAdapter, createSlice, PayloadAction } from '@reduxjs/toolkit';
+import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { Card } from '../../types/Collection';
-import { cardsApi } from '../cardsApi';
 import { RootState } from '../store';
 
 export const getCardKey = (userId: string, collectionId: string) => `${userId}-${collectionId}`;
