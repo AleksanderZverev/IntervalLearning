@@ -7,8 +7,8 @@ public class Card
     [JsonProperty("userId")]
     public string ParentUserId { get; }
     [JsonProperty("collectionId")]
-    public short ParentCollectionId { get; }
-    public short Id { get; }
+    public string ParentCollectionId { get; }
+    public string Id { get; }
     public string BackSideText { get; }
     public string FrontSideText { get; }
     public DateTime CreatedDate { get; }
@@ -17,7 +17,7 @@ public class Card
     public List<Remember>? Remembers { get; }
 
     public Card(
-        string parentUserId,
+        long parentUserId,
         short parentCollectionId,
         short id,
         string backSideText,
@@ -27,9 +27,9 @@ public class Card
         List<string>? examples,
         List<Remember>? remembers)
     {
-        ParentUserId = parentUserId;
-        ParentCollectionId = parentCollectionId;
-        Id = id;
+        ParentUserId = parentUserId.ToString();
+        ParentCollectionId = parentCollectionId.ToString();
+        Id = id.ToString();
         BackSideText = backSideText;
         FrontSideText = frontSideText;
         CreatedDate = createdDate;

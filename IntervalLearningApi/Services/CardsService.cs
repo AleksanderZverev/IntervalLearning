@@ -64,11 +64,11 @@ public class CardsService
 
     public async Task<(List<CardEntity>? cards, string? error)> GetNotStartedCards(
         long scheduleUserId,
-        long scheduleId, 
+        short scheduleId, 
         long userId, 
         short collectionId)
     {
-        var schedule = db.RepeatsSchedules.Find(scheduleUserId, scheduleUserId);
+        var schedule = db.RepeatsSchedules.Find(scheduleUserId, scheduleId);
 
         if (schedule == null)
         {
@@ -77,13 +77,16 @@ public class CardsService
 
         var startedCardIds = await db.Remembers
             .Where(r => r.ParentUserId == userId
+                        && r.ParentCollectionId == collectionId
                         && r.ParentRepeatsScheduleUserId == scheduleUserId
                         && r.ParentRepeatsScheduleId == scheduleId)
             .Select(c => c.ParentCardId)
             .ToListAsync();
 
         var canStartCards = await db.Cards
-            .Where(c => c.ParentUserId == userId && !startedCardIds.Contains(c.Id))
+            .Where(c => c.ParentUserId == userId 
+                        && c.ParentCollectionId == collectionId 
+                        && !startedCardIds.Contains(c.Id))
             .Take(schedule.CardsCountPerPhase)
             .ToListAsync();
 
@@ -95,14 +98,14 @@ public class CardsService
         short collectionId,
         long scheduleUserId,
         short scheduleId,
-        short phaseId)
+        short phaseIndex)
     {
         var queueItems = await db.Queue
             .Where(c => c.ParentUserId == userId 
                         && c.ParentCollectionId == collectionId
                         && c.ParentRepeatsScheduleUserId == scheduleUserId
                         && c.ParentRepeatsScheduleId == scheduleId
-                        && c.PhaseId == phaseId)
+                        && c.PhaseIndex == phaseIndex)
             .ToListAsync();
 
         if (queueItems.Count == 0)
@@ -139,7 +142,8 @@ public class CardsService
     public (DateTime? nextRepeatDate, string? reason) Start(long userId,
         short collectionId,
         long scheduleUserId,
-        short scheduleId, List<short> cardIds)
+        short scheduleId, 
+        List<short> cardIds)
     {
         var schedule = db.RepeatsSchedules
             .Include(s => s.Phases)
@@ -156,7 +160,7 @@ public class CardsService
             return (null, "No phases found");
         }
 
-        var canLearnCards = db.Cards.Where(c => 
+        var startedCards = db.Cards.Where(c => 
                 c.ParentUserId == userId 
                 && c.ParentCollectionId == collectionId
                 && cardIds.Contains(c.Id))
@@ -164,17 +168,39 @@ public class CardsService
             .AsSplitQuery()
             .ToList();
 
-        if (canLearnCards.Count == 0)
+        if (startedCards.Count == 0)
         {
             return (null, "No cards");
         }
 
-        var (nextRepeatDate, queueError) = AddToQueue(userId, collectionId, canLearnCards, schedule);
+        db.Database.BeginTransaction();
+
+        startedCards.ForEach(c =>
+        {
+            var remember = new RememberEntity(scheduleUserId, scheduleId, userId, collectionId, c.Id, 1f, -1, DateTime.UtcNow);
+            db.Entry(remember).State = EntityState.Added;
+        });
+
+        try
+        {
+            db.SaveChanges();
+        }
+        catch (Exception e)
+        {
+            logger.LogError(e.ToString());
+            db.Database.RollbackTransaction();
+            return (null, "unknown error");
+        }
+
+        var (nextRepeatDate, queueError) = AddToQueue(userId, collectionId, startedCards, schedule);
 
         if (!string.IsNullOrEmpty(queueError))
         {
+            db.Database.RollbackTransaction();
             return (null, queueError);
         }
+
+        db.Database.CommitTransaction();
 
         return (nextRepeatDate, null);
     }
@@ -191,8 +217,11 @@ public class CardsService
         foreach (var card in cards)
         {
             var lastRemember = card.Remembers.MaxBy(c => c.Id);
-            var nextPhaseId = lastRemember == null ? 1 : lastRemember.PhaseId + 1;
-            var nextPhase = scheduleWithPhases.Phases.SingleOrDefault(p => p.Id == nextPhaseId);
+            var nextPhaseIndex = lastRemember == null ? 0 : lastRemember.PhaseIndex + 1;
+            var nextPhase = scheduleWithPhases.Phases
+                .OrderBy(p => p.Id)
+                .Skip(nextPhaseIndex)
+                .FirstOrDefault();
 
             if (nextPhase == null)
             {
@@ -200,7 +229,7 @@ public class CardsService
                 return (null, "Error in algorithm work");
             }
 
-            var nextRepeatDate = DateTime.UtcNow.AddSeconds(nextPhase.SecondsFromLastPhase).Date;
+            var nextRepeatDate = DateTime.UtcNow.AddSeconds(nextPhase.SecondsFromLastPhase);
 
             if (nextRepeatDate <= closestRepeatDate)
                 closestRepeatDate = nextRepeatDate;
@@ -211,7 +240,7 @@ public class CardsService
                 userId,
                 collectionId,
                 card.Id,
-                (short)nextPhaseId,
+                (short)nextPhaseIndex,
                 nextRepeatDate
             );
 
@@ -219,7 +248,16 @@ public class CardsService
         }
 
         queueItems.ForEach(q => db.Entry(q).State = EntityState.Added);
-        db.SaveChanges();
+
+        try
+        {
+            db.SaveChanges();
+        }
+        catch (Exception e)
+        {
+            logger.LogError(e.ToString());
+            return (null, "unknown error");
+        }
 
 #if DEBUG
         if (closestRepeatDate == DateTime.MaxValue)
@@ -234,7 +272,7 @@ public class CardsService
         short collectionId,
         long scheduleUserId,
         short scheduleId,
-        short phaseId,
+        short phaseIndex,
         List<RememberItem> rememberItems)
     {
         var now = DateTime.UtcNow;
@@ -252,7 +290,7 @@ public class CardsService
                         && q.ParentCollectionId == collectionId
                         && q.ParentRepeatsScheduleUserId == scheduleUserId
                         && q.ParentRepeatsScheduleId == scheduleId
-                        && q.PhaseId == phaseId
+                        && q.PhaseIndex == phaseIndex
                         && cardIds.Contains(q.ParentCardId))
             .ToListAsync();
 
@@ -284,7 +322,7 @@ public class CardsService
                 collectionId,
                 cardId,
                 weight,
-                queueItem.PhaseId,
+                queueItem.PhaseIndex,
                 now
             );
 
@@ -293,14 +331,14 @@ public class CardsService
             var phaseRemember = new PhaseRememberEntity(
                 schedule.ParentUserId,
                 schedule.Id,
-                queueItem.PhaseId,
+                queueItem.PhaseIndex,
                 userId,
                 weight);
 
 
             db.Entry(phaseRemember).State = EntityState.Added;
 
-            var nextPhaseId = remember.PhaseId + 1;
+            var nextPhaseId = remember.PhaseIndex + 1;
             var nextPhase = schedule.Phases.SingleOrDefault(p => p.Id == nextPhaseId);
 
             if (nextPhase == null)

@@ -21,9 +21,7 @@ public class RememberEntity : IParentCardReference
     public float Weight { get; set; }
 
     [Required]
-    public short PhaseId { get; set; }
-
-    public PhaseEntity? Phase { get; set; }
+    public short PhaseIndex { get; set; }
 
     /// <summary>
     /// Remembered or repeated date
@@ -38,14 +36,14 @@ public class RememberEntity : IParentCardReference
         short parentCollectionId,
         short parentCardId,
         float weight,
-        short phaseId,
+        short phaseIndex,
         DateTime repeatedDate)
     {
         ParentUserId = parentUserId;
         ParentCollectionId = parentCollectionId;
         ParentCardId = parentCardId;
         Weight = weight;
-        PhaseId = phaseId;
+        PhaseIndex = phaseIndex;
         RepeatedDate = repeatedDate;
         ParentRepeatsScheduleUserId = parentRepeatsScheduleUserId;
         ParentRepeatsScheduleId = parentRepeatsScheduleId;

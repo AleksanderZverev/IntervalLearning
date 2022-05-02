@@ -61,7 +61,7 @@ namespace IntervalLearningApi.Controllers
                             .Select(c => new RepeatingPhaseDto(
                                 c.ScheduleUserId,
                                 c.ScheduleId,
-                                c.PhaseStep,
+                                c.PhaseIndex,
                                 c.SecondsFromLastPhase,
                                 c.Description,
                                 c.RepeatingCollections
@@ -98,7 +98,7 @@ namespace IntervalLearningApi.Controllers
         public static Collection ToCollection(CollectionEntity c)
         {
             return new Collection(
-                c.ParentUserId.ToString(),
+                c.ParentUserId,
                 c.Id,
                 c.Title,
                 c.CreatedDate,
@@ -111,7 +111,7 @@ namespace IntervalLearningApi.Controllers
         public static Card ToCard(CardEntity c)
         {
             return new Card(
-                c.ParentUserId.ToString(),
+                c.ParentUserId,
                 c.ParentCollectionId,
                 c.Id,
                 c.BackSideText,
@@ -130,7 +130,7 @@ namespace IntervalLearningApi.Controllers
                 r.ParentCardId,
                 r.Id,
                 r.Weight,
-                r.PhaseId,
+                r.PhaseIndex,
                 r.RepeatedDate);
         }
     }

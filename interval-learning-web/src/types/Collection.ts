@@ -3,13 +3,9 @@ export interface Collection {
     id: string;
     title: string;
     createdAt: string;
-    defaultScheduleUserId: string;
-    defaultScheduleId: number;
     themeId: string;
     cardsCount: number;
-    startedCards: number;
     notStartedCards: number;
-    finishedCards: number;
 }
 
 export interface Card {
@@ -19,9 +15,6 @@ export interface Card {
     backSideText: string;
     frontSideText: string;
     createdDate: string;
-    scheduleUserId: string;
-    scheduleId: string;
-    isFinished: boolean | null;
     description: string | null;
     examples: string[] | null;
     remembers: Remember[] | null;
@@ -33,6 +26,6 @@ export interface Remember {
     cardId: string;
     id: string;
     weight: number;
-    phaseStep: number;
-    repeatedDate: Date;
+    phaseId: number;
+    repeatedDate: string;
 }

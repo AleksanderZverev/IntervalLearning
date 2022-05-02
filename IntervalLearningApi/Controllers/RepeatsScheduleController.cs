@@ -60,7 +60,7 @@ namespace IntervalLearningApi.Controllers
         private static Schedule ToSchedule(RepeatsScheduleEntity schedule)
         {
             return new Schedule(
-                schedule.ParentUserId.ToString(),
+                schedule.ParentUserId,
                 schedule.Id,
                 schedule.Title,
                 schedule.CardsCountPerPhase,
@@ -73,7 +73,7 @@ namespace IntervalLearningApi.Controllers
         private static Phase ToPhase(PhaseEntity phase)
         {
             return new Phase(
-                phase.ParentUserId.ToString(),
+                phase.ParentUserId,
                 phase.ParentRepeatsScheduleId,
                 phase.Id,
                 phase.SecondsFromLastPhase,

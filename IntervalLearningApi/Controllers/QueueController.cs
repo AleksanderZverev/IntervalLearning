@@ -38,12 +38,12 @@ namespace IntervalLearningApi.Controllers
         [HttpGet("{collectionId}/cards/repeat")]
         public async Task<ActionResult<List<Card>>> GetCardsQueue(
             short collectionId,
-            [FromQuery] long scheduleUserId,
-            [FromQuery] short scheduleId,
-            [FromQuery] short phaseId)
+            long scheduleUserId,
+            short scheduleId,
+            short phaseIndex)
         {
             var userId = HttpContext.GetUserId();
-            var cards = await cardsService.GetCardsQueue(userId, collectionId, scheduleUserId, scheduleId, phaseId);
+            var cards = await cardsService.GetCardsQueue(userId, collectionId, scheduleUserId, scheduleId, phaseIndex);
             return cards.Select(CollectionsController.ToCard).ToList();
         }
     }

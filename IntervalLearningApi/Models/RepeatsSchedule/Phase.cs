@@ -8,16 +8,16 @@ public class Phase
     public string ParentUserId { get; }
 
     [JsonProperty("scheduleId")]
-    public short ParentRepeatsScheduleId { get; }
-    public short Id { get; }
+    public string ParentRepeatsScheduleId { get; }
+    public string Id { get; }
     public uint SecondsFromLastPhase { get; }
     public string? Description { get; }
 
-    public Phase(string parentUserId, short parentRepeatsScheduleId, short id, uint secondsFromLastPhase, string? description)
+    public Phase(long parentUserId, short parentRepeatsScheduleId, short id, uint secondsFromLastPhase, string? description)
     {
-        ParentUserId = parentUserId;
-        ParentRepeatsScheduleId = parentRepeatsScheduleId;
-        Id = id;
+        ParentUserId = parentUserId.ToString();
+        ParentRepeatsScheduleId = parentRepeatsScheduleId.ToString();
+        Id = id.ToString();
         SecondsFromLastPhase = secondsFromLastPhase;
         Description = description;
     }

@@ -6,14 +6,14 @@ namespace IntervalLearningApi.Models.ByUser;
 public class Remember
 {
     [JsonProperty("userId")]
-    public long ParentUserId { get; }
+    public string ParentUserId { get; }
     [JsonProperty("collectionId")]
-    public short ParentCollectionId { get; }
+    public string ParentCollectionId { get; }
     [JsonProperty("cardId")]
-    public short ParentCardId { get; }
-    public short Id { get; }
+    public string ParentCardId { get; }
+    public string Id { get; }
     public float Weight { get; }
-    public short PhaseId { get; }
+    public short PhaseIndex { get; }
     public DateTime RepeatedDate { get; }
 
     public Remember(
@@ -22,15 +22,15 @@ public class Remember
         short parentCardId,
         short id,
         float weight,
-        short phaseId,
+        short phaseIndex,
         DateTime repeatedDate)
     {
-        ParentUserId = parentUserId;
-        ParentCollectionId = parentCollectionId;
-        ParentCardId = parentCardId;
-        Id = id;
+        ParentUserId = parentUserId.ToString();
+        ParentCollectionId = parentCollectionId.ToString();
+        ParentCardId = parentCardId.ToString();
+        Id = id.ToString();
         Weight = weight;
-        PhaseId = phaseId;
+        PhaseIndex = phaseIndex;
         RepeatedDate = repeatedDate;
     }
 }

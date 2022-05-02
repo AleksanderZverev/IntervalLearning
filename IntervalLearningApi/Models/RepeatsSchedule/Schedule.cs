@@ -7,7 +7,7 @@ public class Schedule
 {
     [JsonProperty("userId")]
     public string ParentUserId { get; }
-    public short Id { get; }
+    public string Id { get; }
     public string Title { get; }
     public short CardsCountPerPhase { get; }
     public string? Description { get; }
@@ -16,11 +16,18 @@ public class Schedule
     
     public List<Phase> Phases { get; }
 
-    public Schedule(string parentUserId, short id, string title, short cardsCountPerPhase, string? description,
-        ForgottenBehavior forgottenBehavior, bool isRecommended, List<Phase> phases)
+    public Schedule(
+        long parentUserId,
+        short id,
+        string title,
+        short cardsCountPerPhase,
+        string? description,
+        ForgottenBehavior forgottenBehavior,
+        bool isRecommended,
+        List<Phase> phases)
     {
-        ParentUserId = parentUserId;
-        Id = id;
+        ParentUserId = parentUserId.ToString();
+        Id = id.ToString();
         Title = title;
         CardsCountPerPhase = cardsCountPerPhase;
         Description = description;

@@ -31,7 +31,7 @@ namespace IntervalLearningApi.Controllers
         public async Task<ActionResult<List<Card>>> GetNotStartedCards(
             short collectionId,
             long scheduleUserId,
-            long scheduleId)
+            short scheduleId)
         {
             var userId = HttpContext.GetUserId();
             var (cards, error) = await cardsService.GetNotStartedCards(scheduleUserId, scheduleId, userId, collectionId);
@@ -104,7 +104,7 @@ namespace IntervalLearningApi.Controllers
                 collectionId,
                 request.ScheduleUserId,
                 request.ScheduleId,
-                request.PhaseId,
+                request.PhaseIndex,
                 ToCardServiceRememberItems(request.RememberItems)
             );
 
@@ -149,7 +149,7 @@ namespace IntervalLearningApi.Controllers
         public List<RememberItem> RememberItems { get; set; }
         public long ScheduleUserId { get; set; }
         public short ScheduleId { get; set; }
-        public short PhaseId { get; set; }
+        public short PhaseIndex { get; set; }
     }
 
     public class RememberItem

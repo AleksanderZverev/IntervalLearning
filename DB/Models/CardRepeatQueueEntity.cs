@@ -5,8 +5,9 @@ namespace DB.Models;
 [Table("Queue")]
 public class CardRepeatQueueEntity : IParentCardReference
 {
-    public short PhaseId { get; set; }
-    public PhaseEntity? Phase { get; set; }
+    [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+    public short Id { get; set; }
+    public short PhaseIndex { get; set; }
 
     public DateTime Date { get; set; }
 
@@ -16,13 +17,13 @@ public class CardRepeatQueueEntity : IParentCardReference
         long parentUserId, 
         short parentCollectionId, 
         short parentCardId,
-        short phaseId, 
+        short phaseIndex, 
         DateTime date)
     {
         ParentUserId = parentUserId;
         ParentCollectionId = parentCollectionId;
         ParentCardId = parentCardId;
-        PhaseId = phaseId;
+        PhaseIndex = phaseIndex;
         Date = date;
         ParentRepeatsScheduleUserId = parentRepeatsScheduleUserId;
         ParentRepeatsScheduleId = parentRepeatsScheduleId;

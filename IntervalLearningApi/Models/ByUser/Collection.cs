@@ -7,7 +7,7 @@ public class Collection
 {
     [JsonProperty("userId")]
     public string ParentUserId { get; }
-    public short Id { get; }
+    public string Id { get; }
     public string Title { get; }
     public DateTime CreatedAt { get; }
     public short ThemeId { get; }
@@ -16,7 +16,7 @@ public class Collection
     public short NotStartedCards { get; set; }
 
     public Collection(
-        string parentUserId,
+        long parentUserId,
         short id,
         string title,
         DateTime createdAt,
@@ -24,8 +24,8 @@ public class Collection
         short cardsCount,
         short notStartedCards)
     {
-        ParentUserId = parentUserId;
-        Id = id;
+        ParentUserId = parentUserId.ToString();
+        Id = id.ToString();
         Title = title;
         CreatedAt = createdAt;
         ThemeId = themeId;

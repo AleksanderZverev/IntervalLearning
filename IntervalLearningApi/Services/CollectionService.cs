@@ -54,7 +54,7 @@ public class CollectionService
         {
             var date = queueItem.Date.Date;
             var schedule = queueItem.ParentRepeatsSchedule;
-            var phase = schedule.Phases.Single(p => p.Id == queueItem.PhaseId);
+            var phase = schedule.Phases.OrderBy(p => p.Id).Skip(queueItem.PhaseIndex).First();
 
             if (!result.ContainsKey(date))
             {
@@ -66,14 +66,14 @@ public class CollectionService
             var repeatingPhase = repeatingPhasesList.SingleOrDefault(p =>
                 p.ScheduleUserId == queueItem.ParentRepeatsScheduleUserId
                 && p.ScheduleUserId == queueItem.ParentRepeatsScheduleId
-                && p.PhaseStep == queueItem.PhaseId);
+                && p.PhaseIndex == queueItem.PhaseIndex);
 
             if (repeatingPhase == null)
             {
                 repeatingPhase = new RepeatingPhase(
                     queueItem.ParentRepeatsScheduleUserId,
                     queueItem.ParentRepeatsScheduleId,
-                    queueItem.PhaseId,
+                    queueItem.PhaseIndex,
                     phase.SecondsFromLastPhase,
                     phase.Description);
 
@@ -122,6 +122,7 @@ public class CollectionService
 
         var canStartCollectionsId = canStartCards
             .Select(c => c.ParentCollectionId)
+            .Distinct()
             .Skip(skip)
             .Take(totalCollections)
             .ToList();
@@ -130,10 +131,9 @@ public class CollectionService
             .Where(c => c.ParentUserId == userId && canStartCollectionsId.Contains(c.Id))
             .ToListAsync();
 
-
-        var collectionToCardsCount = canStartCards
+        var collectionToCardsCount = canStartCollections
             .GroupBy(c => c.Id)
-            .ToDictionary(c => c.Key, c => c.Count());
+            .ToDictionary(c => c.Key, c => canStartCards.Count(card => card.ParentCollectionId == c.Key));
 
         foreach (var collection in canStartCollections)
         {
@@ -237,7 +237,7 @@ public class CollectionService
     {
         public long ScheduleUserId { get; }
         public long ScheduleId { get;  }
-        public short PhaseStep { get;  }
+        public short PhaseIndex { get;  }
         public uint SecondsFromLastPhase { get; }
         public string? Description { get; }
 
@@ -246,13 +246,13 @@ public class CollectionService
         public RepeatingPhase(
             long scheduleUserId,
             long scheduleId,
-            short phaseStep,
+            short phaseIndex,
             uint secondsFromLastPhase,
             string? description)
         {
             ScheduleUserId = scheduleUserId;
             ScheduleId = scheduleId;
-            PhaseStep = phaseStep;
+            PhaseIndex = phaseIndex;
             SecondsFromLastPhase = secondsFromLastPhase;
             Description = description;
         }

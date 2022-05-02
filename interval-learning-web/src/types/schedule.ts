@@ -1,6 +1,6 @@
 export interface Schedule {
     userId: string;
-    id: number;
+    id: string;
     title: string;
     description: string | null;
     cardsCountPerPhase: number;
