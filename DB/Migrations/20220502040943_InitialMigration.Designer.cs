@@ -6,7 +6,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-using NodaTime;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #nullable disable
@@ -14,8 +13,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace DB.Migrations
 {
     [DbContext(typeof(ApplicationContext))]
-    [Migration("20220402071636_AddCardsCountToCollection")]
-    partial class AddCardsCountToCollection
+    [Migration("20220502040943_InitialMigration")]
+    partial class InitialMigration
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -35,14 +34,17 @@ namespace DB.Migrations
                         .HasColumnType("smallint");
 
                     b.Property<short>("Id")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("smallint");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<short>("Id"));
 
                     b.Property<string>("BackSideText")
                         .IsRequired()
                         .HasMaxLength(255)
                         .HasColumnType("character varying(255)");
 
-                    b.Property<Instant>("CreatedDate")
+                    b.Property<DateTime>("CreatedDate")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("Description")
@@ -58,17 +60,39 @@ namespace DB.Migrations
                         .HasMaxLength(255)
                         .HasColumnType("character varying(255)");
 
-                    b.Property<bool?>("IsFinished")
-                        .HasColumnType("boolean");
+                    b.HasKey("ParentUserId", "ParentCollectionId", "Id");
+
+                    b.ToTable("Cards");
+                });
+
+            modelBuilder.Entity("DB.Models.CardRepeatQueueEntity", b =>
+                {
+                    b.Property<long>("ParentUserId")
+                        .HasColumnType("bigint");
+
+                    b.Property<short>("ParentCollectionId")
+                        .HasColumnType("smallint");
+
+                    b.Property<short>("ParentCardId")
+                        .HasColumnType("smallint");
+
+                    b.Property<long>("ParentRepeatsScheduleUserId")
+                        .HasColumnType("bigint");
 
                     b.Property<short>("ParentRepeatsScheduleId")
                         .HasColumnType("smallint");
 
-                    b.HasKey("ParentUserId", "ParentCollectionId", "Id");
+                    b.Property<short>("PhaseId")
+                        .HasColumnType("smallint");
 
-                    b.HasIndex("ParentUserId", "ParentRepeatsScheduleId");
+                    b.Property<DateTime>("Date")
+                        .HasColumnType("timestamp with time zone");
 
-                    b.ToTable("Cards");
+                    b.HasKey("ParentUserId", "ParentCollectionId", "ParentCardId", "ParentRepeatsScheduleUserId", "ParentRepeatsScheduleId", "PhaseId");
+
+                    b.HasIndex("ParentRepeatsScheduleUserId", "ParentRepeatsScheduleId", "PhaseId");
+
+                    b.ToTable("Queue");
                 });
 
             modelBuilder.Entity("DB.Models.CollectionEntity", b =>
@@ -82,17 +106,11 @@ namespace DB.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<short>("Id"));
 
-                    b.Property<int>("CardsCount")
-                        .HasColumnType("integer");
-
-                    b.Property<Instant>("CreatedDate")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<short>("DefaultRepeatsScheduleId")
+                    b.Property<short>("CardsCount")
                         .HasColumnType("smallint");
 
-                    b.Property<long>("DefaultRepeatsScheduleParentUserId")
-                        .HasColumnType("bigint");
+                    b.Property<DateTime>("CreatedDate")
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<bool>("IsDefaultBackSide")
                         .HasColumnType("boolean");
@@ -109,8 +127,6 @@ namespace DB.Migrations
 
                     b.HasIndex("ThemeId");
 
-                    b.HasIndex("DefaultRepeatsScheduleParentUserId", "DefaultRepeatsScheduleId");
-
                     b.ToTable("Collections");
                 });
 
@@ -122,7 +138,7 @@ namespace DB.Migrations
                     b.Property<short>("ParentRepeatsScheduleId")
                         .HasColumnType("smallint");
 
-                    b.Property<byte>("Id")
+                    b.Property<short>("Id")
                         .HasColumnType("smallint");
 
                     b.Property<string>("Description")
@@ -137,6 +153,36 @@ namespace DB.Migrations
                     b.ToTable("SchedulePhases");
                 });
 
+            modelBuilder.Entity("DB.Models.PhaseRememberEntity", b =>
+                {
+                    b.Property<long>("ParentUserId")
+                        .HasColumnType("bigint");
+
+                    b.Property<short>("ParentRepeatsScheduleId")
+                        .HasColumnType("smallint");
+
+                    b.Property<short>("ParentPhaseId")
+                        .HasColumnType("smallint");
+
+                    b.Property<long>("RepeatedUserId")
+                        .HasColumnType("bigint");
+
+                    b.Property<short>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("smallint");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<short>("Id"));
+
+                    b.Property<float>("Weight")
+                        .HasColumnType("real");
+
+                    b.HasKey("ParentUserId", "ParentRepeatsScheduleId", "ParentPhaseId", "RepeatedUserId", "Id");
+
+                    b.HasIndex("RepeatedUserId");
+
+                    b.ToTable("PhaseRememberEntities");
+                });
+
             modelBuilder.Entity("DB.Models.RefreshTokenEntity", b =>
                 {
                     b.Property<long>("ParentUserId")
@@ -145,7 +191,7 @@ namespace DB.Migrations
                     b.Property<short>("Id")
                         .HasColumnType("smallint");
 
-                    b.Property<Instant>("Created")
+                    b.Property<DateTime>("Created")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("CreatedByIp")
@@ -153,7 +199,7 @@ namespace DB.Migrations
                         .HasMaxLength(15)
                         .HasColumnType("character varying(15)");
 
-                    b.Property<Instant>("Expires")
+                    b.Property<DateTime>("Expires")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("ReasonRevoked")
@@ -162,7 +208,7 @@ namespace DB.Migrations
                     b.Property<string>("ReplacedByToken")
                         .HasColumnType("text");
 
-                    b.Property<Instant?>("Revoked")
+                    b.Property<DateTime?>("Revoked")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("RevokedByIp")
@@ -189,19 +235,30 @@ namespace DB.Migrations
                     b.Property<short>("ParentCardId")
                         .HasColumnType("smallint");
 
-                    b.Property<byte>("Id")
+                    b.Property<long>("ParentRepeatsScheduleUserId")
+                        .HasColumnType("bigint");
+
+                    b.Property<short>("ParentRepeatsScheduleId")
                         .HasColumnType("smallint");
 
-                    b.Property<int>("PassedSecondsFromLastStep")
-                        .HasColumnType("integer");
-
-                    b.Property<byte>("PhaseStep")
+                    b.Property<short>("PhaseId")
                         .HasColumnType("smallint");
+
+                    b.Property<short>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("smallint");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<short>("Id"));
+
+                    b.Property<DateTime>("RepeatedDate")
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<float>("Weight")
                         .HasColumnType("real");
 
-                    b.HasKey("ParentUserId", "ParentCollectionId", "ParentCardId", "Id");
+                    b.HasKey("ParentUserId", "ParentCollectionId", "ParentCardId", "ParentRepeatsScheduleUserId", "ParentRepeatsScheduleId", "PhaseId", "Id");
+
+                    b.HasIndex("ParentRepeatsScheduleUserId", "ParentRepeatsScheduleId", "PhaseId");
 
                     b.ToTable("RememberWeights");
                 });
@@ -228,6 +285,9 @@ namespace DB.Migrations
                         .HasColumnType("integer");
 
                     b.Property<bool>("IsArchived")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("IsRecommended")
                         .HasColumnType("boolean");
 
                     b.Property<string>("Title")
@@ -289,6 +349,34 @@ namespace DB.Migrations
                     b.ToTable("Users");
                 });
 
+            modelBuilder.Entity("DB.Models.UserMetadataEntity", b =>
+                {
+                    b.Property<long>("ParentUserId")
+                        .HasColumnType("bigint");
+
+                    b.Property<short>("FinishedCards")
+                        .HasColumnType("smallint");
+
+                    b.Property<short>("FinishedCollections")
+                        .HasColumnType("smallint");
+
+                    b.Property<short>("NotStartedCards")
+                        .HasColumnType("smallint");
+
+                    b.Property<short>("NotStartedCollections")
+                        .HasColumnType("smallint");
+
+                    b.Property<short>("StartedCards")
+                        .HasColumnType("smallint");
+
+                    b.Property<short>("StartedCollections")
+                        .HasColumnType("smallint");
+
+                    b.HasKey("ParentUserId");
+
+                    b.ToTable("UserMetadata");
+                });
+
             modelBuilder.Entity("DB.Models.UserPasswordsEntity", b =>
                 {
                     b.Property<long>("ParentUserId")
@@ -317,17 +405,52 @@ namespace DB.Migrations
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
-                    b.HasOne("DB.Models.RepeatsScheduleEntity", "ParentRepeatsSchedule")
+                    b.Navigation("ParentCollection");
+
+                    b.Navigation("ParentUser");
+                });
+
+            modelBuilder.Entity("DB.Models.CardRepeatQueueEntity", b =>
+                {
+                    b.HasOne("DB.Models.UserEntity", "ParentUser")
                         .WithMany()
-                        .HasForeignKey("ParentUserId", "ParentRepeatsScheduleId")
+                        .HasForeignKey("ParentUserId")
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
+
+                    b.HasOne("DB.Models.RepeatsScheduleEntity", "ParentRepeatsSchedule")
+                        .WithMany()
+                        .HasForeignKey("ParentRepeatsScheduleUserId", "ParentRepeatsScheduleId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.HasOne("DB.Models.CollectionEntity", "ParentCollection")
+                        .WithMany()
+                        .HasForeignKey("ParentUserId", "ParentCollectionId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.HasOne("DB.Models.PhaseEntity", "Phase")
+                        .WithMany()
+                        .HasForeignKey("ParentRepeatsScheduleUserId", "ParentRepeatsScheduleId", "PhaseId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.HasOne("DB.Models.CardEntity", "ParentCard")
+                        .WithMany()
+                        .HasForeignKey("ParentUserId", "ParentCollectionId", "ParentCardId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.Navigation("ParentCard");
 
                     b.Navigation("ParentCollection");
 
                     b.Navigation("ParentRepeatsSchedule");
 
                     b.Navigation("ParentUser");
+
+                    b.Navigation("Phase");
                 });
 
             modelBuilder.Entity("DB.Models.CollectionEntity", b =>
@@ -343,14 +466,6 @@ namespace DB.Migrations
                         .HasForeignKey("ThemeId")
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
-
-                    b.HasOne("DB.Models.RepeatsScheduleEntity", "DefaultRepeatsSchedule")
-                        .WithMany()
-                        .HasForeignKey("DefaultRepeatsScheduleParentUserId", "DefaultRepeatsScheduleId")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired();
-
-                    b.Navigation("DefaultRepeatsSchedule");
 
                     b.Navigation("ParentUser");
 
@@ -376,6 +491,41 @@ namespace DB.Migrations
                     b.Navigation("ParentUser");
                 });
 
+            modelBuilder.Entity("DB.Models.PhaseRememberEntity", b =>
+                {
+                    b.HasOne("DB.Models.UserEntity", "ParentUser")
+                        .WithMany()
+                        .HasForeignKey("ParentUserId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.HasOne("DB.Models.UserEntity", "RepeatedUser")
+                        .WithMany()
+                        .HasForeignKey("RepeatedUserId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.HasOne("DB.Models.RepeatsScheduleEntity", "ParentRepeatsSchedule")
+                        .WithMany()
+                        .HasForeignKey("ParentUserId", "ParentRepeatsScheduleId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.HasOne("DB.Models.PhaseEntity", "ParentPhase")
+                        .WithMany()
+                        .HasForeignKey("ParentUserId", "ParentRepeatsScheduleId", "ParentPhaseId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.Navigation("ParentPhase");
+
+                    b.Navigation("ParentRepeatsSchedule");
+
+                    b.Navigation("ParentUser");
+
+                    b.Navigation("RepeatedUser");
+                });
+
             modelBuilder.Entity("DB.Models.RefreshTokenEntity", b =>
                 {
                     b.HasOne("DB.Models.UserEntity", "ParentUser")
@@ -395,9 +545,21 @@ namespace DB.Migrations
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
+                    b.HasOne("DB.Models.RepeatsScheduleEntity", "ParentRepeatsSchedule")
+                        .WithMany()
+                        .HasForeignKey("ParentRepeatsScheduleUserId", "ParentRepeatsScheduleId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
                     b.HasOne("DB.Models.CollectionEntity", "ParentCollection")
                         .WithMany()
                         .HasForeignKey("ParentUserId", "ParentCollectionId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.HasOne("DB.Models.PhaseEntity", "Phase")
+                        .WithMany()
+                        .HasForeignKey("ParentRepeatsScheduleUserId", "ParentRepeatsScheduleId", "PhaseId")
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
@@ -411,7 +573,11 @@ namespace DB.Migrations
 
                     b.Navigation("ParentCollection");
 
+                    b.Navigation("ParentRepeatsSchedule");
+
                     b.Navigation("ParentUser");
+
+                    b.Navigation("Phase");
                 });
 
             modelBuilder.Entity("DB.Models.RepeatsScheduleEntity", b =>
@@ -419,6 +585,17 @@ namespace DB.Migrations
                     b.HasOne("DB.Models.UserEntity", "ParentUser")
                         .WithMany()
                         .HasForeignKey("ParentUserId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.Navigation("ParentUser");
+                });
+
+            modelBuilder.Entity("DB.Models.UserMetadataEntity", b =>
+                {
+                    b.HasOne("DB.Models.UserEntity", "ParentUser")
+                        .WithOne()
+                        .HasForeignKey("DB.Models.UserMetadataEntity", "ParentUserId")
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
