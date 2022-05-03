@@ -58,7 +58,7 @@ export const collectionSlice = createSlice({
             adapter.updateOne(state, {
                 id: key,
                 changes: {
-                    startedCards: collection.startedCards + startedCards,
+                    // startedCards: collection.startedCards + startedCards,
                     notStartedCards: collection.notStartedCards - startedCards,
                 },
             });

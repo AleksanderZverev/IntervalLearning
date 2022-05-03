@@ -21,16 +21,21 @@ export interface FormFieldProps extends FormFieldOtherProps {
     label: string;
     error?: boolean;
     errorMessage?: string;
+    withoutErrorMessage?: boolean;
 }
 
 interface FormFieldLabelProps {
     label: string;
     htmlFor?: string;
+    justifyContent?: string;
 }
 
-export const FormFiledLabel: FC<PropsWithChildren<FormFieldLabelProps>> = (props) => {
+export const FormFiledLabel: FC<PropsWithChildren<FormFieldLabelProps>> = ({
+    justifyContent = 'space-between',
+    ...props
+}) => {
     return (
-        <div className={styles.formField}>
+        <div className={styles.formField} style={{ justifyContent }}>
             <FormLabel htmlFor={props.htmlFor}>{props.label}</FormLabel>
             {props.children}
         </div>
@@ -39,7 +44,7 @@ export const FormFiledLabel: FC<PropsWithChildren<FormFieldLabelProps>> = (props
 
 // eslint-disable-next-line react/display-name
 export const FormField = forwardRef<HTMLDivElement, FormFieldProps>(
-    ({ label, error, errorMessage, ...otherProps }, ref) => {
+    ({ label, error, errorMessage, withoutErrorMessage, ...otherProps }, ref) => {
         return (
             <TextField
                 ref={ref}
@@ -55,7 +60,7 @@ export const FormField = forwardRef<HTMLDivElement, FormFieldProps>(
                 }}
                 label={label}
                 error={error}
-                helperText={errorMessage ?? ' '}
+                helperText={errorMessage ?? (withoutErrorMessage ? undefined : ' ')}
                 fullWidth
                 variant="standard"
                 {...otherProps}

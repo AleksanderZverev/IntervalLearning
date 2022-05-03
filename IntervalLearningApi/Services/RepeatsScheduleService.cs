@@ -18,6 +18,7 @@ public class RepeatsScheduleService
         => db.RepeatsSchedules
             .Where(s => s.ParentUserId == userId || s.IsRecommended)
             .Include(s => s.Phases)
+            .AsSplitQuery()
             .ToList();
 
     public (RepeatsScheduleEntity? schedule, string? error) Create(
