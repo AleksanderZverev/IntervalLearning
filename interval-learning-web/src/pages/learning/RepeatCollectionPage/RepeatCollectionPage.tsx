@@ -97,7 +97,7 @@ export const RepeatCollectionPageContent: FC<RepeatCollectionPageContentProps> =
             return;
         }
 
-        if (!rememberWeights[card.id]) {
+        if (rememberWeights[card.id] === undefined || rememberWeights[card.id] === null) {
             setShowCurrentCardError(true);
             return;
         }
