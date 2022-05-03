@@ -1,11 +1,11 @@
 import classNames from 'classnames';
-import dayjs, { Dayjs } from 'dayjs';
+import dayjs from 'dayjs';
 import React, { FC, Fragment } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Table, TableBody, TableCell, TableHead, TableHeaderCell, TableRow } from '../../../../controls/Table/Table';
 import { DateHelper } from '../../../../helpers/DateHelper';
 import { withQueryResolver, WithQueryResolverData } from '../../../../hoc/withQueryResolver';
-import { RepeatingCollectionDto, useGetQueueCollectionsQuery } from '../../../../redux/collectionApi';
+import { useGetQueueCollectionsQuery } from '../../../../redux/collectionApi';
 import { CollectionRow } from './CollectionRow/CollectionRow';
 import styles from './styles.module.css';
 
@@ -38,6 +38,7 @@ const InProgressCollectionsContent: FC<InProgressCollectionsProps> = ({ queryDat
                             <Fragment key={dateString}>
                                 <TableRow borderless>
                                     <TableCell
+                                        align="center"
                                         className={classNames(styles.subLabel, {
                                             [styles.warn]: isWarn,
                                             [styles.today]: isToday,

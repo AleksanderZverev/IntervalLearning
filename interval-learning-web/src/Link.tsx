@@ -1,9 +1,9 @@
 import * as React from 'react';
 import clsx from 'clsx';
-import { useRouter } from 'next/router';
 import NextLink, { LinkProps as NextLinkProps } from 'next/link';
 import MuiLink, { LinkProps as MuiLinkProps } from '@mui/material/Link';
 import { styled } from '@mui/material/styles';
+import { useLocation } from 'react-router-dom';
 
 // Add support for the sx prop for consistency with the other branches.
 const Anchor = styled('a')({});
@@ -60,10 +60,12 @@ const Link = React.forwardRef<HTMLAnchorElement, LinkProps>(function Link(props,
         ...other
     } = props;
 
-    const router = useRouter();
+    const location = useLocation();
+
     const pathname = typeof href === 'string' ? href : href.pathname;
+
     const className = clsx(classNameProps, {
-        [activeClassName]: router.pathname === pathname && activeClassName,
+        [activeClassName]: pathname && location.pathname.startsWith(pathname) && activeClassName,
     });
 
     const isExternal = typeof href === 'string' && (href.indexOf('http') === 0 || href.indexOf('mailto:') === 0);

@@ -127,7 +127,6 @@ export const cardsApi = api.injectEndpoints({
                     ? [tagTypes.notStartedCardsList, tagTypes.queueCollectionsList, tagTypes.notFinishedCollectionsList]
                     : [],
         }),
-        //↑OK↑
         getRepeatCards: build.query<CardIdsList, BaseRequestItem<GetRepeatCardsRequest>>({
             query: ({ collectionId, request }) => ({
                 url: `/queue/${collectionId}/cards/repeat`,

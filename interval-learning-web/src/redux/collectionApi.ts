@@ -88,7 +88,6 @@ export const collectionsApi = api.injectEndpoints({
             },
             providesTags: [tagTypes.notFinishedCollectionsList],
         }),
-        //↑OK↑
         getQueueCollections: build.query<RepeatingCollectionResponse, void>({
             query: () => ({
                 url: `${baseUrl}/queue`,
