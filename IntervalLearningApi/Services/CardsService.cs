@@ -1,6 +1,7 @@
 ﻿using System.Diagnostics;
 using DB;
 using DB.Models;
+using Infrastructure;
 using Microsoft.EntityFrameworkCore;
 
 namespace IntervalLearningApi.Services;
@@ -401,10 +402,10 @@ public class CardsService
         {
             ParentUserId = parentUserId;
             ParentCollectionId = parentCollectionId;
-            FrontSideText = frontSideText;
-            BackSideText = backSideText;
-            Description = description;
-            Examples = examples;
+            FrontSideText = TextMaster.RemoveWhitespaces(frontSideText, true);
+            BackSideText = TextMaster.RemoveWhitespaces(backSideText, true);
+            Description = string.IsNullOrEmpty(description) ? description : TextMaster.RemoveWhitespaces(description);
+            Examples = examples?.Select(e => TextMaster.RemoveWhitespaces(e)).Where(e => !string.IsNullOrEmpty(e)).ToList();
         }
     }
 

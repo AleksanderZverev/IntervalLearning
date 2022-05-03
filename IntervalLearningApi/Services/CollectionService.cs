@@ -1,5 +1,6 @@
 ﻿using DB;
 using DB.Models;
+using Infrastructure;
 using Microsoft.EntityFrameworkCore;
 
 namespace IntervalLearningApi.Services;
@@ -158,7 +159,7 @@ public class CollectionService
             short themeId)
         {
             ParentUserId = parentUserId;
-            Title = title;
+            Title = TextMaster.RemoveWhitespaces(title, true);
             IsDefaultBackSide = isDefaultBackSide;
             ThemeId = themeId;
         }
