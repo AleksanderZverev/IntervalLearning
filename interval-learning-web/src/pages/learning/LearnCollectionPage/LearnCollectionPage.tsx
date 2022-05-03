@@ -15,11 +15,15 @@ import { PageHeader } from '../../../controls/PageHeader/PageHeader';
 import { selectTheme } from '../../../redux/slices/themeSlice';
 import { CenterContainer } from '../../../controls/CenterContainer/CenterContainer';
 import { Slider } from '../../../controls/Slider/Slider';
-import { Button } from '@mui/material';
+import { Button, Stack } from '@mui/material';
 import { LearnCard } from './LearnCard/LearnCard';
 import { useGetCollectionQuery } from '../../../redux/collectionApi';
 import { AssertionModal } from '../../../controls/Modals/AssertionModal';
 import { CardResult } from '../CardResult/CardResult';
+import { getScheduleId, selectScheduleById } from '../../../redux/slices/scheduleSlice';
+import { LightTooltip } from '../../../controls/LightTooltip/LightTooltip';
+import { padding } from '@mui/system';
+import { HelpOutline } from '@mui/icons-material';
 
 type WithResolvers = WithQueryResolverData<typeof useGetNotStartedCardsQuery> &
     WithMutationResolverProps<typeof useStartCardsMutation>;
@@ -42,8 +46,9 @@ export const LearnCollectionPageContent: FC<LearnCollectionPageContentProps> = (
     mutationProps: { mutate: startCards, showRetryModal, isLoading: isMutationLoading, isSuccess, data: mutationData },
 }) => {
     const collection = useTypedSelector((state) => selectCollectionById(state, userId, collectionId));
+    const schedule = useTypedSelector((state) => selectScheduleById(state, getScheduleId(scheduleUserId, scheduleId)));
 
-    if (collection === undefined) {
+    if (!collection || !schedule) {
         throw new Error();
     }
 
@@ -124,6 +129,21 @@ export const LearnCollectionPageContent: FC<LearnCollectionPageContentProps> = (
                     </Button>
                 }
             />
+            <div style={{ marginTop: 10, cursor: 'pointer', color: '#b7b7b7' }}>
+                {schedule.description && (
+                    <LightTooltip
+                        placement="bottom-start"
+                        title={
+                            <div style={{ padding: 5, fontSize: 18, fontWeight: 'normal' }}>{schedule.description}</div>
+                        }
+                    >
+                        <Stack direction={'row'} alignItems={'center'} columnGap={'5px'}>
+                            <HelpOutline />
+                            <span>Что делать?</span>
+                        </Stack>
+                    </LightTooltip>
+                )}
+            </div>
             {showAssetModal && (
                 <AssertionModal
                     open
@@ -138,7 +158,7 @@ export const LearnCollectionPageContent: FC<LearnCollectionPageContentProps> = (
             <CenterContainer>
                 <div
                     style={{
-                        margin: '20px 0',
+                        margin: '10px 0',
                         display: 'flex',
                         alignItems: 'center',
                         columnGap: 45,

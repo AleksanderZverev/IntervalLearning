@@ -15,6 +15,7 @@ const InProgressCollectionsContent: FC<InProgressCollectionsProps> = ({ queryDat
     const navigate = useNavigate();
     const dateToCollectionsQueue = queryData.dateToRepeatingPhases;
     const now = dayjs();
+    const allowFutureSelect = process.env.NODE_ENV === 'development';
 
     return (
         <Table>
@@ -91,7 +92,7 @@ const InProgressCollectionsContent: FC<InProgressCollectionsProps> = ({ queryDat
                                                         key={c.collection.id}
                                                         collection={c.collection}
                                                         cardsToRepeatCount={c.cardsToRepeatCount}
-                                                        hover={true || isToday || isWarn}
+                                                        hover={allowFutureSelect || isToday || isWarn}
                                                         onClick={() =>
                                                             navigate(
                                                                 `/learning/repeat/${c.collection.userId}-${c.collection.id}?` +

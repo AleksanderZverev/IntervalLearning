@@ -26,7 +26,7 @@ export interface CreateScheduleItem {
 }
 
 export interface PhaseInfo {
-    id: number;
+    id: string;
     secondsFromLastPhase: number;
     description: string | null;
 }

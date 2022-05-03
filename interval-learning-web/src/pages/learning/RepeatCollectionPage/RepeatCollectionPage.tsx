@@ -16,12 +16,16 @@ import { PageHeader } from '../../../controls/PageHeader/PageHeader';
 import { selectTheme } from '../../../redux/slices/themeSlice';
 import { CenterContainer } from '../../../controls/CenterContainer/CenterContainer';
 import { Slider } from '../../../controls/Slider/Slider';
-import { Button, Paper } from '@mui/material';
+import { Button, Paper, Stack } from '@mui/material';
 import { LocalStorageHelper } from '../../../helpers/localStorageHelper';
 import { useGetCollectionQuery } from '../../../redux/collectionApi';
 import { selectCardsByIds } from '../../../redux/slices/cardsSlice';
 import { AssertionModal } from '../../../controls/Modals/AssertionModal';
 import { CardResult } from '../CardResult/CardResult';
+import { getScheduleId, selectScheduleById } from '../../../redux/slices/scheduleSlice';
+import { LightTooltip } from '../../../controls/LightTooltip/LightTooltip';
+import { HelpOutline } from '@mui/icons-material';
+import dayjs from 'dayjs';
 
 type WithResolvers = WithQueryResolverData<typeof useGetRepeatCardsQuery> &
     WithMutationResolverProps<typeof usePatchRememberCardsMutation>;
@@ -46,8 +50,9 @@ export const RepeatCollectionPageContent: FC<RepeatCollectionPageContentProps> =
     mutationProps: { mutate: rememberCards, data, showRetryModal, isLoading, isSuccess },
 }) => {
     const collection = useTypedSelector((state) => selectCollectionById(state, userId, collectionId));
+    const schedule = useTypedSelector((state) => selectScheduleById(state, getScheduleId(scheduleUserId, scheduleId)));
 
-    if (collection === undefined) {
+    if (!collection || !schedule) {
         throw new Error();
     }
 
@@ -140,6 +145,10 @@ export const RepeatCollectionPageContent: FC<RepeatCollectionPageContentProps> =
     };
 
     const isEmptyCollection = repeatCards.length === 0;
+
+    const sortedPhases = [...schedule.phases].sort((f, s) => f.id.localeCompare(s.id));
+    const phase = sortedPhases[phaseIndex];
+
     return (
         <PageContainer transparent>
             <PageHeader
@@ -176,6 +185,21 @@ export const RepeatCollectionPageContent: FC<RepeatCollectionPageContentProps> =
                     }}
                 />
             )}
+            <div style={{ marginTop: 10, cursor: 'pointer', color: '#b7b7b7' }}>
+                {phase && phase.description && (
+                    <LightTooltip
+                        placement="bottom-start"
+                        title={
+                            <div style={{ padding: 5, fontSize: 18, fontWeight: 'normal' }}>{phase.description}</div>
+                        }
+                    >
+                        <Stack direction={'row'} alignItems={'center'} columnGap={'5px'}>
+                            <HelpOutline />
+                            <span>Спустя {dayjs.duration(phase.secondsFromLastPhase, 's').humanize()}</span>
+                        </Stack>
+                    </LightTooltip>
+                )}
+            </div>
             <CenterContainer>
                 {isEmptyCollection ? (
                     <Paper sx={{ padding: '30px 50px' }}>
