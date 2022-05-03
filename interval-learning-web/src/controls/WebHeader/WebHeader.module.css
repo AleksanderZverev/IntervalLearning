@@ -1,14 +1,16 @@
 .header {
-    padding: 5px 10%;
+    padding: 0 10% 0;
 
     border-bottom: 1px solid #e0e0e0;
     background-color: white;
 
-    display: flex;
-    flex-wrap: wrap;
+    display: grid;
+    grid-template-columns: auto auto;
+
     justify-content: space-between;
     align-items: center;
-    row-gap: 5px;
+
+    column-gap: 15px;
 }
 
 .leftHeaderContainer {
@@ -21,7 +23,7 @@
     border-bottom: 1px solid #e5e5e5;
 }
 
-.leftHeaderContainer .logo {
+.logo {
     text-decoration: none;
 
     font-size: 25px;
@@ -40,4 +42,15 @@
 
 .button {
     padding: 5px 10px;
+}
+
+.link {
+    height: 50px;
+    padding-top: 9px;
+    padding-bottom: 2px;
+}
+
+.activeLink {
+    padding-bottom: 0;
+    border-bottom: 2px solid #1976d2;
 }

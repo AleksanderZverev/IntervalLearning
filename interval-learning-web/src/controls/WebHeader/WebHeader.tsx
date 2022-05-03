@@ -42,6 +42,8 @@ const WebHeader: FC<WebHeaderProps> = ({ isServerSide }) => {
                 </Link>
                 <Divider orientation="vertical" flexItem />
                 <MuiLink
+                    className={styles.link}
+                    activeClassName={styles.activeLink}
                     href="/collections"
                     underline="none"
                     fontSize={23}
@@ -50,6 +52,8 @@ const WebHeader: FC<WebHeaderProps> = ({ isServerSide }) => {
                     Коллекции
                 </MuiLink>
                 <MuiLink
+                    className={styles.link}
+                    activeClassName={styles.activeLink}
                     href="/learning"
                     underline="none"
                     fontSize={23}
