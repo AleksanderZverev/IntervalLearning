@@ -4,6 +4,7 @@ import React, { FC, Fragment } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Table, TableBody, TableCell, TableHead, TableHeaderCell, TableRow } from '../../../../controls/Table/Table';
 import { DateHelper } from '../../../../helpers/DateHelper';
+import { LocalStorageHelper } from '../../../../helpers/localStorageHelper';
 import { withQueryResolver, WithQueryResolverData } from '../../../../hoc/withQueryResolver';
 import { useGetQueueCollectionsQuery } from '../../../../redux/collectionApi';
 import { CollectionRow } from './CollectionRow/CollectionRow';
@@ -85,7 +86,20 @@ const InProgressCollectionsContent: FC<InProgressCollectionsProps> = ({ queryDat
                                                     scheduleUserId: p.scheduleUserId,
                                                     scheduleId: p.scheduleId,
                                                     phaseIndex: p.phaseIndex.toString(),
+                                                    date: dateString,
                                                 });
+
+                                                const weights = LocalStorageHelper.getRepeatingCards(
+                                                    p.scheduleUserId,
+                                                    p.scheduleId,
+                                                    p.phaseIndex,
+                                                    dateString,
+                                                    c.collection.id
+                                                );
+
+                                                const hasSavings = Boolean(
+                                                    weights && Object.values(weights).length > 0
+                                                );
 
                                                 return (
                                                     <CollectionRow
@@ -93,6 +107,7 @@ const InProgressCollectionsContent: FC<InProgressCollectionsProps> = ({ queryDat
                                                         collection={c.collection}
                                                         cardsToRepeatCount={c.cardsToRepeatCount}
                                                         hover={allowFutureSelect || isToday || isWarn}
+                                                        notFinished={hasSavings}
                                                         onClick={() =>
                                                             navigate(
                                                                 `/learning/repeat/${c.collection.userId}-${c.collection.id}?` +

@@ -10,16 +10,25 @@ interface CollectionRowProps {
     cardsToRepeatCount: number;
     onClick: () => void;
     hover: boolean;
+    notFinished: boolean;
 }
 
-export const CollectionRow: FC<CollectionRowProps> = ({ collection, cardsToRepeatCount, hover, onClick }) => {
+export const CollectionRow: FC<CollectionRowProps> = ({
+    collection,
+    cardsToRepeatCount,
+    hover,
+    notFinished,
+    onClick,
+}) => {
     const theme = useTypedSelector((state) => selectTheme(state, collection.themeId));
 
     return (
         <TableRow hover={hover} onClick={() => hover && onClick()}>
             <TableCell>{collection.title}</TableCell>
             {/* <TableCell align="center">{}</TableCell> */}
-            <TableCell align="center">{cardsToRepeatCount}</TableCell>
+            <TableCell align="center">
+                {notFinished ? <span style={{ color: '#DC5D5D' }}>В процессе</span> : cardsToRepeatCount}
+            </TableCell>
             <TableCell align="center">{theme?.name}</TableCell>
         </TableRow>
     );

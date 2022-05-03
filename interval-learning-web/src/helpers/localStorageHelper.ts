@@ -1,5 +1,15 @@
 const redirectKey = 'RedirectUrlAfterAuthorization';
 const forbidShowingKey = 'ForbidShowing';
+const repeatingCardsKey = 'Repeating cards';
+
+interface RepeatingCards {
+    scheduleUserId: string;
+    scheduleId: string;
+    collectionId: string;
+    phaseIndex: number;
+    date: string;
+    cardIdToWeight: Record<string, number | undefined>;
+}
 
 export class LocalStorageHelper {
     static saveRedirectUrlAfterAuthorization = () => {
@@ -26,27 +36,57 @@ export class LocalStorageHelper {
         return '/';
     };
 
-    static saveLearningCardsWeights = (
-        collectionsId: string,
-        cardIds: string[],
+    static saveRepeatingCardsWeights = (
+        scheduleUserId: string,
+        scheduleId: string,
+        phaseIndex: number,
+        collectionId: string,
+        date: string,
         weights: Record<string, number | undefined>
     ) => {
-        if (LocalStorageHelper.isStorageDefined()) {
-            const key = [collectionsId, ...cardIds].join('-');
-            localStorage.setItem(key, JSON.stringify(weights));
+        if (!LocalStorageHelper.isStorageDefined()) {
+            return;
         }
+
+        const item: RepeatingCards = {
+            scheduleUserId,
+            scheduleId,
+            collectionId,
+            date,
+            cardIdToWeight: weights,
+            phaseIndex,
+        };
+
+        localStorage.setItem(repeatingCardsKey, JSON.stringify(item));
     };
 
-    static getLearningCards = (collectionsId: string, cardIds: string[]): Record<string, number | undefined> | null => {
+    static getRepeatingCards = (
+        scheduleUserId: string,
+        scheduleId: string,
+        phaseIndex: number,
+        date: string,
+        collectionId: string
+    ): Record<string, number | undefined> | null => {
         if (!LocalStorageHelper.isStorageDefined()) {
             return null;
         }
 
-        const key = [collectionsId, ...cardIds].join('-');
-        const item = localStorage.getItem(key);
-        if (!item) return null;
-        const weights: Record<string, number | undefined> = JSON.parse(item);
-        return weights;
+        const itemString = localStorage.getItem(repeatingCardsKey);
+        if (!itemString) return null;
+
+        const item: RepeatingCards = JSON.parse(itemString);
+
+        if (
+            !item ||
+            item.scheduleUserId !== scheduleUserId ||
+            item.scheduleId !== scheduleId ||
+            item.collectionId !== collectionId ||
+            item.phaseIndex !== phaseIndex ||
+            item.date !== date
+        ) {
+            return null;
+        }
+        return item.cardIdToWeight;
     };
 
     static setForbidShowing = (key: string) => {

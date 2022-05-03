@@ -37,6 +37,7 @@ interface RepeatCollectionPageContentProps extends WithResolvers {
     scheduleId: string;
     phaseIndex: number;
     setSkipLoading: (skip: boolean) => void;
+    date: string;
 }
 
 export const RepeatCollectionPageContent: FC<RepeatCollectionPageContentProps> = ({
@@ -47,6 +48,7 @@ export const RepeatCollectionPageContent: FC<RepeatCollectionPageContentProps> =
     scheduleId,
     phaseIndex,
     setSkipLoading,
+    date,
     mutationProps: { mutate: rememberCards, data, showRetryModal, isLoading, isSuccess },
 }) => {
     const collection = useTypedSelector((state) => selectCollectionById(state, userId, collectionId));
@@ -64,11 +66,7 @@ export const RepeatCollectionPageContent: FC<RepeatCollectionPageContentProps> =
     const [showStartModal, setShowStartModal] = useState(true);
 
     const [rememberWeights, setRememberWeights] = useState<Record<string, number | undefined>>(
-        () =>
-            LocalStorageHelper.getLearningCards(
-                collection.id,
-                repeatCards.map((c) => c.id)
-            ) ?? {}
+        () => LocalStorageHelper.getRepeatingCards(schedule.userId, schedule.id, phaseIndex, date, collection.id) ?? {}
     );
 
     const maxCards = repeatCards.length;
@@ -76,7 +74,9 @@ export const RepeatCollectionPageContent: FC<RepeatCollectionPageContentProps> =
     let notActiveIndex = repeatCards.map((c) => rememberWeights[c.id]).indexOf(undefined);
     notActiveIndex = notActiveIndex < 0 ? maxCards : notActiveIndex;
 
-    const [cardIndex, setCardIndex] = useState(notActiveIndex >= maxCards ? maxCards - 1 : notActiveIndex);
+    const [cardIndex, setCardIndex] = useState(
+        notActiveIndex >= maxCards ? maxCards - 1 : notActiveIndex - 1 >= 0 ? notActiveIndex - 1 : 0
+    );
     const card = repeatCards[cardIndex];
 
     const currentCard = repeatCards[cardIndex];
@@ -130,9 +130,13 @@ export const RepeatCollectionPageContent: FC<RepeatCollectionPageContentProps> =
         }
 
         setRememberWeights({ ...rememberWeights });
-        LocalStorageHelper.saveLearningCardsWeights(
-            collectionId,
-            repeatCards.map((c) => c.id),
+
+        LocalStorageHelper.saveRepeatingCardsWeights(
+            schedule.userId,
+            schedule.id,
+            phaseIndex,
+            collection.id,
+            date,
             rememberWeights
         );
     };
@@ -265,6 +269,7 @@ export const RepeatCollectionPageContent: FC<RepeatCollectionPageContentProps> =
                                 if (v > notActiveIndex) return;
                                 setCardIndex(v);
                             }}
+                            getHoverTitle={(index) => repeatCards[index].frontSideText}
                         />
                     </div>
                 )}
@@ -288,6 +293,7 @@ export const RepeatCollection: FC = () => {
     const scheduleUserId = params.get('scheduleUserId');
     const scheduleId = params.get('scheduleId');
     const phaseIndexString = params.get('phaseIndex');
+    const date = params.get('date');
 
     const [skipLoading, setSkipLoading] = useState(false);
 
@@ -298,6 +304,7 @@ export const RepeatCollection: FC = () => {
     if (
         !scheduleUserId ||
         !scheduleId ||
+        !date ||
         phaseIndexString === undefined ||
         phaseIndexString == null ||
         parseInt(phaseIndexString) < 0
@@ -314,6 +321,7 @@ export const RepeatCollection: FC = () => {
             scheduleUserId={scheduleUserId}
             scheduleId={scheduleId}
             phaseIndex={phaseIndex}
+            date={date}
             setSkipLoading={(skip) => setSkipLoading(skip)}
         />
     );

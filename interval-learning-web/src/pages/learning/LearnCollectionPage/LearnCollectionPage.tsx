@@ -22,8 +22,8 @@ import { AssertionModal } from '../../../controls/Modals/AssertionModal';
 import { CardResult } from '../CardResult/CardResult';
 import { getScheduleId, selectScheduleById } from '../../../redux/slices/scheduleSlice';
 import { LightTooltip } from '../../../controls/LightTooltip/LightTooltip';
-import { padding } from '@mui/system';
 import { HelpOutline } from '@mui/icons-material';
+import { selectCards } from '../../../redux/slices/cardsSlice';
 
 type WithResolvers = WithQueryResolverData<typeof useGetNotStartedCardsQuery> &
     WithMutationResolverProps<typeof useStartCardsMutation>;
@@ -47,8 +47,9 @@ export const LearnCollectionPageContent: FC<LearnCollectionPageContentProps> = (
 }) => {
     const collection = useTypedSelector((state) => selectCollectionById(state, userId, collectionId));
     const schedule = useTypedSelector((state) => selectScheduleById(state, getScheduleId(scheduleUserId, scheduleId)));
+    const cards = useTypedSelector((state) => selectCards(state, userId, collectionId));
 
-    if (!collection || !schedule) {
+    if (!collection || !schedule || !cards) {
         throw new Error();
     }
 
@@ -185,6 +186,11 @@ export const LearnCollectionPageContent: FC<LearnCollectionPageContentProps> = (
                             setActiveCardIndex(v);
                         }}
                         finishMode={isSuccess}
+                        getHoverTitle={(index) => {
+                            const cardId = notStartedCardIds[index];
+                            const target = cards.find((c) => c.id === cardId);
+                            return target?.frontSideText ?? index.toString();
+                        }}
                         vertical
                     />
 
