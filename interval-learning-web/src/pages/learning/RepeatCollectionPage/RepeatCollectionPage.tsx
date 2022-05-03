@@ -61,6 +61,7 @@ export const RepeatCollectionPageContent: FC<RepeatCollectionPageContentProps> =
     const repeatCards = useTypedSelector((state) => selectCardsByIds(state, userId, collectionId, cardIds));
     const [showAssertionModal, setShowAssertionModal] = useState(false);
     const [showCurrentCardError, setShowCurrentCardError] = useState(false);
+    const [showStartModal, setShowStartModal] = useState(true);
 
     const [rememberWeights, setRememberWeights] = useState<Record<string, number | undefined>>(
         () =>
@@ -162,6 +163,16 @@ export const RepeatCollectionPageContent: FC<RepeatCollectionPageContentProps> =
                     )
                 }
             />
+            {showStartModal && phase && phase.description && (
+                <AssertionModal
+                    open
+                    title="Учебный план"
+                    message={phase.description}
+                    assertTitle="OK"
+                    onClose={() => setShowStartModal(false)}
+                    forbidShowingKey={`${scheduleUserId}-${scheduleId}`}
+                />
+            )}
             {showCurrentCardError && (
                 <AssertionModal
                     open

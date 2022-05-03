@@ -56,6 +56,7 @@ export const LearnCollectionPageContent: FC<LearnCollectionPageContentProps> = (
 
     const navigate = useNavigate();
     const [showAssetModal, setShowAssertModal] = useState(false);
+    const [showStartModal, setShowStartModal] = useState(true);
     const [activeCardIndex, setActiveCardIndex] = useState(0);
     const [cardIndex, setCardIndex] = useState(0);
 
@@ -144,6 +145,16 @@ export const LearnCollectionPageContent: FC<LearnCollectionPageContentProps> = (
                     </LightTooltip>
                 )}
             </div>
+            {showStartModal && schedule && schedule.description && (
+                <AssertionModal
+                    open
+                    title="Учебный план"
+                    message={schedule.description}
+                    assertTitle="OK"
+                    onClose={() => setShowStartModal(false)}
+                    forbidShowingKey={`${scheduleUserId}-${scheduleId}`}
+                />
+            )}
             {showAssetModal && (
                 <AssertionModal
                     open
