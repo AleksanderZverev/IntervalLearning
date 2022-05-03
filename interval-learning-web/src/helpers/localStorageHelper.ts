@@ -1,4 +1,5 @@
 const redirectKey = 'RedirectUrlAfterAuthorization';
+const forbidShowingKey = 'ForbidShowing';
 
 export class LocalStorageHelper {
     static saveRedirectUrlAfterAuthorization = () => {
@@ -46,6 +47,29 @@ export class LocalStorageHelper {
         if (!item) return null;
         const weights: Record<string, number | undefined> = JSON.parse(item);
         return weights;
+    };
+
+    static setForbidShowing = (key: string) => {
+        if (!LocalStorageHelper.isStorageDefined()) {
+            return;
+        }
+
+        const itemJson = localStorage.getItem(forbidShowingKey);
+        const forbidItems: string[] = itemJson ? JSON.parse(itemJson) : [];
+        forbidItems.push(key);
+
+        localStorage.setItem(forbidShowingKey, JSON.stringify(forbidItems));
+    };
+
+    static hasForbidShowing = (key: string): boolean => {
+        if (!LocalStorageHelper.isStorageDefined()) {
+            return false;
+        }
+
+        const itemJson = localStorage.getItem(forbidShowingKey);
+        const forbidItems: string[] = itemJson ? JSON.parse(itemJson) : [];
+        const itemIndex = forbidItems.findIndex((item) => item === key);
+        return itemIndex >= 0;
     };
 
     private static isStorageDefined = () => Boolean(typeof window !== 'undefined' && window?.localStorage);
