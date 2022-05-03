@@ -12,6 +12,7 @@ interface SliderProps {
 
     finishMode?: boolean;
     onValueChange: (newValue: number) => void;
+    getHoverTitle: (value: number) => string;
     vertical?: boolean;
 }
 
@@ -25,7 +26,16 @@ const verticalKeys: Record<string, number> = {
     ArrowDown: 1,
 };
 
-export const Slider: FC<SliderProps> = ({ min, max, value, activeValue, onValueChange, vertical, finishMode }) => {
+export const Slider: FC<SliderProps> = ({
+    min,
+    max,
+    value,
+    activeValue,
+    onValueChange,
+    getHoverTitle,
+    vertical,
+    finishMode,
+}) => {
     const widthProperty = vertical ? 'height' : 'width';
     const heightProperty = vertical ? 'width' : 'height';
     const topProperty = vertical ? 'left' : 'top';
@@ -124,7 +134,7 @@ export const Slider: FC<SliderProps> = ({ min, max, value, activeValue, onValueC
                 return isCurrentElement ? (
                     mark
                 ) : (
-                    <LightTooltip key={v} title={v.toString()}>
+                    <LightTooltip key={v} title={getHoverTitle ? getHoverTitle(v) : v.toString()}>
                         {mark}
                     </LightTooltip>
                 );
