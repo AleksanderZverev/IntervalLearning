@@ -45,13 +45,12 @@ namespace IntervalLearningApi.Controllers
             var collections = await collectionService.GetAllByUserId(userId);
             return collections.Select(ToCollection).ToList();
         }
-
-        //TODO: Rename to repeat
-        [HttpGet("queue")]
-        public async Task<ActionResult<RepeatingCollectionResponse>> GetQueueCollections()
+        
+        [HttpGet("repeat")]
+        public async Task<ActionResult<RepeatingCollectionResponse>> GetRepeatCollections()
         {
             var userId = HttpContext.GetUserId();
-            var dateToRepeatingCollections = await collectionService.GetQueueCollections(userId);
+            var dateToRepeatingCollections = await collectionService.GetRepeatCollections(userId);
 
             return new RepeatingCollectionResponse(
                 dateToRepeatingCollections

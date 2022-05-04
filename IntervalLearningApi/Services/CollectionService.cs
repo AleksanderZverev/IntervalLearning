@@ -33,7 +33,7 @@ public class CollectionService
         return collections;
     }
 
-    public async Task<Dictionary<DateTime, List<RepeatingPhase>>> GetQueueCollections(long userId)
+    public async Task<Dictionary<DateTime, List<RepeatingPhase>>> GetRepeatCollections(long userId)
     {
         var queueItems = await db.Queue
             .Where(q => q.ParentUserId == userId)

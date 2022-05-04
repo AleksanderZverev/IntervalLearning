@@ -130,7 +130,7 @@ export const cardsApi = api.injectEndpoints({
         }),
         getRepeatCards: build.query<CardIdsList, BaseRequestItem<GetRepeatCardsRequest>>({
             query: ({ collectionId, request }) => ({
-                url: `/queue/${collectionId}/cards/repeat`,
+                url: `/collections/${collectionId}/cards/repeat`,
                 method: 'GET',
                 params: request,
                 onSuccess: async (dispatch, data) => {

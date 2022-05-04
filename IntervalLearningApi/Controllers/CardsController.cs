@@ -27,6 +27,18 @@ namespace IntervalLearningApi.Controllers
             return cards.Select(CollectionsController.ToCard).ToList();
         }
 
+        [HttpGet("repeat")]
+        public async Task<ActionResult<List<Card>>> GetCardsQueue(
+            short collectionId,
+            [FromQuery] long scheduleUserId,
+            [FromQuery] short scheduleId,
+            [FromQuery] short phaseIndex)
+        {
+            var userId = HttpContext.GetUserId();
+            var cards = await cardsService.GetCardsQueue(userId, collectionId, scheduleUserId, scheduleId, phaseIndex);
+            return cards.Select(CollectionsController.ToCard).ToList();
+        }
+
         [HttpGet("not-started")]
         public async Task<ActionResult<List<Card>>> GetNotStartedCards(
             short collectionId,
@@ -69,30 +81,6 @@ namespace IntervalLearningApi.Controllers
             var (closestRepeatDate, error) = cardsService.Start(userId, collectionId, item.ScheduleUserId, item.ScheduleId, item.CardIds);
             return string.IsNullOrEmpty(error) ? new StartCardResponse(closestRepeatDate) : BadRequest(error);
         }
-
-        //[HttpGet("{cardId}/start")]
-        //public IActionResult StartCard(short collectionId, short cardId)
-        //{
-        //    var userId = HttpContext.GetUserId();
-        //    var (ok, error) = cardsService.Start(userId, collectionId, cardId);
-        //    return ok ? Ok() : BadRequest(error);
-        //}
-
-        //[HttpGet("{cardId}/finish")]
-        //public IActionResult FinishCard(short collectionId, short cardId)
-        //{
-        //    var userId = HttpContext.GetUserId();
-        //    var (ok, error) = cardsService.Finish(userId, collectionId, cardId);
-        //    return ok ? Ok() : BadRequest(error);
-        //}
-
-        //[HttpGet("{cardId}/not-started")]
-        //public IActionResult SetNotStartedCard(short collectionId, short cardId)
-        //{
-        //    var userId = HttpContext.GetUserId();
-        //    var (ok, error) = cardsService.SetNotStarted(userId, collectionId, cardId);
-        //    return ok ? Ok() : BadRequest(error);
-        //}
 
         [HttpPatch("remember")]
         public async Task<ActionResult<RememberCardResponse>> RememberCard(short collectionId, [FromBody] RememberRequest request)
