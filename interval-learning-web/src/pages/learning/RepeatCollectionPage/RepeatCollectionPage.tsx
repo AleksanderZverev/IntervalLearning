@@ -85,6 +85,17 @@ export const RepeatCollectionPageContent: FC<RepeatCollectionPageContentProps> =
         navigate('/learning');
     };
 
+    const saveWeights = (clearSaves: boolean) => {
+        LocalStorageHelper.saveRepeatingCardsWeights(
+            schedule.userId,
+            schedule.id,
+            phaseIndex,
+            collection.id,
+            date,
+            clearSaves ? {} : rememberWeights
+        );
+    };
+
     const onFinish = async (fromAssertionModal: boolean) => {
         if (isLoading || isSuccess) {
             return;
@@ -116,6 +127,7 @@ export const RepeatCollectionPageContent: FC<RepeatCollectionPageContentProps> =
         try {
             setSkipLoading(true);
             await rememberCards({ userId, collectionId, request });
+            saveWeights(true);
         } catch (e) {
             setSkipLoading(false);
             showRetryModal(() => onFinish(true));
@@ -130,15 +142,7 @@ export const RepeatCollectionPageContent: FC<RepeatCollectionPageContentProps> =
         }
 
         setRememberWeights({ ...rememberWeights });
-
-        LocalStorageHelper.saveRepeatingCardsWeights(
-            schedule.userId,
-            schedule.id,
-            phaseIndex,
-            collection.id,
-            date,
-            rememberWeights
-        );
+        saveWeights(false);
     };
 
     const onNext = () => {

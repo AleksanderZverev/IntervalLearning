@@ -319,7 +319,7 @@ public class CardsService
             if (queueItem.Date.Date >= DateTime.UtcNow.Date && env.IsProduction())
             {
                 logger.LogInformation("Unable to remember. Not time!");
-                continue;
+                return (false, "unable to repeat", null);
             }
 
             var currentPhase = schedule.Phases.OrderBy(p => p.Id).Skip(queueItem.PhaseIndex).First();
