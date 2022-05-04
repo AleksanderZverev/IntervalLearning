@@ -1,6 +1,6 @@
+import { Pagination } from '@mui/material';
 import { FC, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FormFiledLabel } from '../../../../controls/Form/Form';
 import { SelectSchedule } from '../../../../controls/SelectSchedule/SelectSchedule';
 import { Table, TableBody, TableCell, TableHead, TableHeaderCell, TableRow } from '../../../../controls/Table/Table';
 import { withQueryResolver, WithQueryResolverData } from '../../../../hoc/withQueryResolver';
@@ -12,12 +12,18 @@ import { CollectionRow } from './CollectionRow/CollectionRow';
 interface CanStartCollectionsContentProps extends WithQueryResolverData<typeof useGetNotFinishedQuery> {
     scheduleUserId: string;
     scheduleId: string;
+    page: number;
+    count: number;
+    setPage: (page: number) => void;
 }
 
 const CanStartCollectionsContent: FC<CanStartCollectionsContentProps> = ({
     scheduleUserId,
     scheduleId,
-    queryData: { canStartCollections },
+    page,
+    count: collectionsCount,
+    setPage,
+    queryData: { totalCollections, canStartCollections },
 }) => {
     const collections = [...canStartCollections];
 
@@ -29,26 +35,39 @@ const CanStartCollectionsContent: FC<CanStartCollectionsContentProps> = ({
         );
     };
 
+    const pagesCount = Math.ceil(totalCollections / collectionsCount);
     return (
-        <Table>
-            <TableHead>
-                <TableHeaderCell>Название</TableHeaderCell>
-                <TableHeaderCell>Изучено</TableHeaderCell>
-                <TableHeaderCell>Слов в этапе</TableHeaderCell>
-                <TableHeaderCell>Тип</TableHeaderCell>
-            </TableHead>
-            <TableBody>
-                {collections.length > 0 ? (
-                    collections.map((c) => <CollectionRow key={c.id} collection={c} onClick={onClick} />)
-                ) : (
-                    <TableRow borderless>
-                        <TableCell colSpan={4} align={'center'}>
-                            Все слова изучены...
-                        </TableCell>
-                    </TableRow>
-                )}
-            </TableBody>
-        </Table>
+        <div
+            style={{
+                display: 'grid',
+                gridTemplateRows: 'auto auto',
+                alignContent: 'space-between',
+                // minHeight: '100%',
+                // height: 'auto',
+                rowGap: 10,
+            }}
+        >
+            <Table>
+                <TableHead>
+                    <TableHeaderCell>Название</TableHeaderCell>
+                    <TableHeaderCell>Изучено</TableHeaderCell>
+                    <TableHeaderCell>Слов в этапе</TableHeaderCell>
+                    <TableHeaderCell>Тип</TableHeaderCell>
+                </TableHead>
+                <TableBody>
+                    {collections.length > 0 ? (
+                        collections.map((c) => <CollectionRow key={c.id} collection={c} onClick={onClick} />)
+                    ) : (
+                        <TableRow borderless>
+                            <TableCell colSpan={4} align={'center'}>
+                                Все слова изучены...
+                            </TableCell>
+                        </TableRow>
+                    )}
+                </TableBody>
+            </Table>
+            {pagesCount > 1 && <Pagination count={pagesCount} page={page} onChange={(e, page) => setPage(page)} />}
+        </div>
     );
 };
 
@@ -58,11 +77,12 @@ interface CanStartCollectionsProps {}
 
 export const CanStartCollections: FC<CanStartCollectionsProps> = ({}) => {
     const [page, setPage] = useState(1);
-    const [collectionsCount, setCollectionsCount] = useState(30);
+
+    const count = window ? Math.ceil((window.innerHeight - 50) / 80) : 10;
     const [schedule, setSchedule] = useState<Schedule>();
 
     return (
-        <>
+        <div style={{ display: 'grid', gridTemplateRows: 'auto 1fr' }}>
             <div style={{ display: 'flex', columnGap: 20, marginTop: 10, fontSize: '20px' }}>
                 <label style={{ marginTop: 2 }}>Выберите учебный план:</label>
                 <SelectSchedule
@@ -77,12 +97,13 @@ export const CanStartCollections: FC<CanStartCollectionsProps> = ({}) => {
                 <ConnectedCanStartCollectionsContent
                     queryArg={{
                         page,
-                        count: collectionsCount,
+                        count,
                         scheduleUserId: schedule.userId,
                         scheduleId: schedule.id,
                     }}
+                    setPage={setPage}
                 />
             )}
-        </>
+        </div>
     );
 };

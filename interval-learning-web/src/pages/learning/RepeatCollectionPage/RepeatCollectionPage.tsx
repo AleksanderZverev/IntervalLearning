@@ -167,113 +167,117 @@ export const RepeatCollectionPageContent: FC<RepeatCollectionPageContentProps> =
                     )
                 }
             />
-            {showStartModal && phase && phase.description && (
-                <AssertionModal
-                    open
-                    title="Учебный план"
-                    message={phase.description}
-                    assertTitle="OK"
-                    onClose={() => setShowStartModal(false)}
-                    forbidShowingKey={`${scheduleUserId}-${scheduleId}`}
-                />
-            )}
-            {showCurrentCardError && (
-                <AssertionModal
-                    open
-                    title="Значение не выбрано"
-                    message="Выберите значение текущей карточки"
-                    assertTitle="OK"
-                    onClose={() => setShowCurrentCardError(false)}
-                />
-            )}
-            {showAssertionModal && (
-                <AssertionModal
-                    open
-                    title="Не все карточки повторены"
-                    message="Завершить повторение на текущей карточке?"
-                    assertTitle="Да"
-                    cancelTitle="Отмена"
-                    onClose={() => setShowAssertionModal(false)}
-                    onAssert={() => {
-                        setShowAssertionModal(false);
-                        onFinish(true);
-                    }}
-                />
-            )}
-            <div style={{ marginTop: 10, cursor: 'pointer', color: '#b7b7b7' }}>
-                {phase && phase.description && (
-                    <LightTooltip
-                        placement="bottom-start"
-                        title={
-                            <div style={{ padding: 5, fontSize: 18, fontWeight: 'normal' }}>{phase.description}</div>
-                        }
-                    >
-                        <Stack direction={'row'} alignItems={'center'} columnGap={'5px'}>
-                            <HelpOutline />
-                            <span>Спустя {dayjs.duration(phase.secondsFromLastPhase, 's').humanize()}</span>
-                        </Stack>
-                    </LightTooltip>
+            <div>
+                {showStartModal && phase && phase.description && (
+                    <AssertionModal
+                        open
+                        title="Учебный план"
+                        message={phase.description}
+                        assertTitle="OK"
+                        onClose={() => setShowStartModal(false)}
+                        forbidShowingKey={`${scheduleUserId}-${scheduleId}`}
+                    />
                 )}
-            </div>
-            <CenterContainer>
-                {isEmptyCollection ? (
-                    <Paper sx={{ padding: '30px 50px' }}>
-                        <CenterContainer>
-                            <div style={{ display: 'flex', flexDirection: 'column', rowGap: 10 }}>
-                                <div>Нет карт для повторения</div>
-                                <Button variant="outlined" onClick={() => navigate('/learning')}>
-                                    Вернуться
-                                </Button>
-                            </div>
-                        </CenterContainer>
-                    </Paper>
-                ) : (
-                    <div
-                        style={{
-                            width: 650,
-                            display: 'flex',
-                            flexDirection: 'column',
-                            rowGap: 35,
+                {showCurrentCardError && (
+                    <AssertionModal
+                        open
+                        title="Значение не выбрано"
+                        message="Выберите значение текущей карточки"
+                        assertTitle="OK"
+                        onClose={() => setShowCurrentCardError(false)}
+                    />
+                )}
+                {showAssertionModal && (
+                    <AssertionModal
+                        open
+                        title="Не все карточки повторены"
+                        message="Завершить повторение на текущей карточке?"
+                        assertTitle="Да"
+                        cancelTitle="Отмена"
+                        onClose={() => setShowAssertionModal(false)}
+                        onAssert={() => {
+                            setShowAssertionModal(false);
+                            onFinish(true);
                         }}
-                    >
-                        {isSuccess && data && (
-                            <CardResult
-                                wordsLearned={notActiveIndex > maxCards ? maxCards : notActiveIndex}
-                                nextRepeatDate={data.nextRepeatDate}
-                                onEndButtonClick={onExit}
-                            />
-                        )}
-                        {!isSuccess && currentCard && (
-                            <RepeatCard
-                                value={rememberWeights[card.id] ?? null}
-                                card={currentCard}
-                                showNext={cardIndex < maxCards - 1}
-                                showPrevious={cardIndex !== 0}
-                                isActive={notActiveIndex - 1 === cardIndex}
-                                onFinish={() => onFinish(false)}
-                                onNext={onNext}
-                                onChange={onChange}
-                                onPrevious={onPrevious}
-                                forceShowError={showCurrentCardError}
-                                errorMessage={'Помните слово?'}
-                            />
-                        )}
-
-                        <Slider
-                            value={cardIndex}
-                            min={0}
-                            max={maxCards - 1}
-                            activeValue={notActiveIndex}
-                            finishMode={isSuccess}
-                            onValueChange={(v) => {
-                                if (v > notActiveIndex) return;
-                                setCardIndex(v);
-                            }}
-                            getHoverTitle={(index) => repeatCards[index].frontSideText}
-                        />
-                    </div>
+                    />
                 )}
-            </CenterContainer>
+                <div style={{ marginTop: 10, cursor: 'pointer', color: '#b7b7b7' }}>
+                    {phase && phase.description && (
+                        <LightTooltip
+                            placement="bottom-start"
+                            title={
+                                <div style={{ padding: 5, fontSize: 18, fontWeight: 'normal' }}>
+                                    {phase.description}
+                                </div>
+                            }
+                        >
+                            <Stack direction={'row'} alignItems={'center'} columnGap={'5px'}>
+                                <HelpOutline />
+                                <span>Спустя {dayjs.duration(phase.secondsFromLastPhase, 's').humanize()}</span>
+                            </Stack>
+                        </LightTooltip>
+                    )}
+                </div>
+                <CenterContainer>
+                    {isEmptyCollection ? (
+                        <Paper sx={{ padding: '30px 50px' }}>
+                            <CenterContainer>
+                                <div style={{ display: 'flex', flexDirection: 'column', rowGap: 10 }}>
+                                    <div>Нет карт для повторения</div>
+                                    <Button variant="outlined" onClick={() => navigate('/learning')}>
+                                        Вернуться
+                                    </Button>
+                                </div>
+                            </CenterContainer>
+                        </Paper>
+                    ) : (
+                        <div
+                            style={{
+                                width: 650,
+                                display: 'flex',
+                                flexDirection: 'column',
+                                rowGap: 35,
+                            }}
+                        >
+                            {isSuccess && data && (
+                                <CardResult
+                                    wordsLearned={notActiveIndex > maxCards ? maxCards : notActiveIndex}
+                                    nextRepeatDate={data.nextRepeatDate}
+                                    onEndButtonClick={onExit}
+                                />
+                            )}
+                            {!isSuccess && currentCard && (
+                                <RepeatCard
+                                    value={rememberWeights[card.id] ?? null}
+                                    card={currentCard}
+                                    showNext={cardIndex < maxCards - 1}
+                                    showPrevious={cardIndex !== 0}
+                                    isActive={notActiveIndex - 1 === cardIndex}
+                                    onFinish={() => onFinish(false)}
+                                    onNext={onNext}
+                                    onChange={onChange}
+                                    onPrevious={onPrevious}
+                                    forceShowError={showCurrentCardError}
+                                    errorMessage={'Помните слово?'}
+                                />
+                            )}
+
+                            <Slider
+                                value={cardIndex}
+                                min={0}
+                                max={maxCards - 1}
+                                activeValue={notActiveIndex}
+                                finishMode={isSuccess}
+                                onValueChange={(v) => {
+                                    if (v > notActiveIndex) return;
+                                    setCardIndex(v);
+                                }}
+                                getHoverTitle={(index) => repeatCards[index].frontSideText}
+                            />
+                        </div>
+                    )}
+                </CenterContainer>
+            </div>
         </PageContainer>
     );
 };

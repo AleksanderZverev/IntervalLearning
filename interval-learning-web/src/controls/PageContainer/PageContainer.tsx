@@ -13,7 +13,7 @@ export const PageContainer: FC<PropsWithChildren<PageContainerProps>> = ({ trans
                 marginTop: '10px',
                 backgroundColor: transparent ? undefined : 'white',
             }}
-            style={{ padding: '20px 50px' }}
+            style={{ padding: '20px 50px', display: 'grid', gridTemplateRows: 'auto 1fr' }}
         >
             {children}
         </Container>

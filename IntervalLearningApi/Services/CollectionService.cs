@@ -1,4 +1,5 @@
-﻿using DB;
+﻿using System.Diagnostics;
+using DB;
 using DB.Models;
 using Infrastructure;
 using Microsoft.EntityFrameworkCore;
@@ -99,37 +100,38 @@ public class CollectionService
         return result;
     }
 
-    public async Task<List<CollectionEntity>> GetCanStart(
+    public async Task<(int totalCollections, List<CollectionEntity> canStartCollections)> GetCanStart(
         long userId,
         long scheduleUserId,
         short scheduleId,
         int page = 1,
         int count = 30)
     {
-        //TODO: can be mistakes if started today. Need to use metadata
-        var startedCardIds = await db.Remembers
-            .Where(r => r.ParentUserId == userId
-                        && r.ParentRepeatsScheduleUserId == scheduleUserId
-                        && r.ParentRepeatsScheduleId == scheduleId)
-            .Select(c => c.ParentCardId)
-            .ToListAsync();
+        //TODO: can be slow.
 
         var canStartCards = await db.Cards
-            .Where(c => c.ParentUserId == userId && !startedCardIds.Contains(c.Id))
+            .Where(c => c.ParentUserId == userId
+                        && !db.Remembers.Any(r =>
+                            r.ParentUserId == userId
+                            && r.ParentCollectionId == c.ParentCollectionId
+                            && r.ParentCardId == c.Id
+                            && r.ParentRepeatsScheduleUserId == scheduleUserId
+                            && r.ParentRepeatsScheduleId == scheduleId))
             .ToListAsync();
-
-        var totalCollections = page * count;
+        
         var skip = (page - 1) * count;
 
-        var canStartCollectionsId = canStartCards
+        var canStartAllCollectionsIds = canStartCards
             .Select(c => c.ParentCollectionId)
             .Distinct()
-            .Skip(skip)
-            .Take(totalCollections)
             .ToList();
 
+        var totalCollections = canStartAllCollectionsIds.Count;
+
+        var collectionIdsToStart = canStartAllCollectionsIds.Skip(skip).Take(count).ToList();
+
         var canStartCollections = await db.Collections
-            .Where(c => c.ParentUserId == userId && canStartCollectionsId.Contains(c.Id))
+            .Where(c => c.ParentUserId == userId && collectionIdsToStart.Contains(c.Id))
             .ToListAsync();
 
         var collectionToCardsCount = canStartCollections
@@ -142,7 +144,7 @@ public class CollectionService
             collection.NotStartedCardsCount = (short)notStartedCards;
         }
 
-        return canStartCollections;
+        return (totalCollections, canStartCollections);
     }
 
     public class CreateOrPatchCollection : ICreateOrEditModel

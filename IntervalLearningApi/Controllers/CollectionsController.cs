@@ -80,8 +80,8 @@ namespace IntervalLearningApi.Controllers
             int count = 30)
         {
             var userId = HttpContext.GetUserId();
-            var canStartCollections = await collectionService.GetCanStart(userId, scheduleUserId, scheduleId, page, count);
-            return new GetNotFinishedResponse(ToCollection(canStartCollections));
+            var (totalCollections, canStartCollections) = await collectionService.GetCanStart(userId, scheduleUserId, scheduleId, page, count);
+            return new GetNotFinishedResponse(totalCollections, ToCollection(canStartCollections));
         }
 
         [HttpGet("{collectionId}")]

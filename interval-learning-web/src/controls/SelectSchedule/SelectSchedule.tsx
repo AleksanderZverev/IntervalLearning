@@ -24,7 +24,7 @@ export const SelectSchedule = forwardRef<HTMLDivElement, SelectScheduleProps>(
         return (
             <Autocomplete
                 sx={{ minWidth: '150px', width }}
-                value={value}
+                value={value ?? null}
                 options={schedules}
                 getOptionLabel={(s: Schedule) => s.title}
                 renderOption={(props, option, state) => (

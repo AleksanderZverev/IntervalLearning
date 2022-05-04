@@ -47,10 +47,12 @@ public class CreateCollectionItem
 
 public class GetNotFinishedResponse
 {
+    public int TotalCollections { get; }
     public List<Collection> CanStartCollections { get; }
 
-    public GetNotFinishedResponse(List<Collection> canStartCollections)
+    public GetNotFinishedResponse(int totalCollections, List<Collection> canStartCollections)
     {
+        this.TotalCollections = totalCollections;
         CanStartCollections = canStartCollections;
     }
 }

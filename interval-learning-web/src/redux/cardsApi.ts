@@ -93,6 +93,7 @@ export const cardsApi = api.injectEndpoints({
                     }
                 } catch {}
             },
+            invalidatesTags: [tagTypes.notFinishedCollectionsList],
         }),
         getNotStartedCards: build.query<string[], BaseRequestItem<GetNotStartedCardsRequest>>({
             query: ({ collectionId, request }) => ({
