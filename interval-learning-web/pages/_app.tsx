@@ -9,7 +9,7 @@ import { CacheProvider, EmotionCache } from '@emotion/react';
 import theme from '../src/theme';
 import createEmotionCache from '../src/createEmotionCache';
 import { AppDispatch, wrapper } from '../src/redux/store';
-import { ErrorHandler } from './ErrorHandler';
+import { ErrorHandler } from '../src/ErrorHandler';
 import { themesApi } from '../src/redux/themeSlice';
 import { useOnMount } from '../src/hooks/useOnMount';
 import { useTypedDispatch } from '../src/hooks/useTypedDispatch';
@@ -26,7 +26,7 @@ import relativeTime from 'dayjs/plugin/relativeTime';
 import localizedFormat from 'dayjs/plugin/localizedFormat';
 import 'dayjs/locale/ru';
 import { NextComponentType } from 'next';
-import GlobalErrorBoundary from './GlobalErrorBoundary';
+import GlobalErrorBoundary from '../src/GlobalErrorBoundary';
 
 dayjs.extend(duration);
 dayjs.extend(relativeTime);

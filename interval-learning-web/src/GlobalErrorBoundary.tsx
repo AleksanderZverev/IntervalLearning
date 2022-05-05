@@ -1,5 +1,5 @@
 import React, { ReactNode } from 'react';
-import { AssertionModal } from '../src/controls/Modals/AssertionModal';
+import { AssertionModal } from './controls/Modals/AssertionModal';
 
 interface GlobalErrorBoundaryProps {
     children: ReactNode;

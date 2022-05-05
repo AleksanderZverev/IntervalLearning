@@ -1,9 +1,9 @@
 import { useRouter } from 'next/router';
 import React, { FC } from 'react';
-import { LocalStorageHelper } from '../src/helpers/localStorageHelper';
-import { useTypedDispatch } from '../src/hooks/useTypedDispatch';
-import useTypedSelector from '../src/hooks/useTypedSelector';
-import { clearErrors, selectErrors } from '../src/redux/errorSlice';
+import { LocalStorageHelper } from './helpers/localStorageHelper';
+import { useTypedDispatch } from './hooks/useTypedDispatch';
+import useTypedSelector from './hooks/useTypedSelector';
+import { clearErrors, selectErrors } from './redux/errorSlice';
 
 interface ErrorHandlerProps {
     children: any;
