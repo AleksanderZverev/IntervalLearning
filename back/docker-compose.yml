@@ -12,3 +12,6 @@ services:
     build:
       context: ../interval-learning-web
       dockerfile: Dockerfile
+
+  proxy:
+    image: nginx:mainline
