@@ -5,6 +5,9 @@ const nextConfig = {
         locales: ['en', 'ru'],
         defaultLocale: 'en',
     },
+    experimental: {
+        outputStandalone: true,
+    },
     // async rewrites() {
     //     return [
     //         {
