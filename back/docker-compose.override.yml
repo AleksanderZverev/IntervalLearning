@@ -1,0 +1,19 @@
+version: '3.4'
+
+services:
+  backend:
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=https://+:443;http://+:80
+    ports:
+      - "5249:80"
+      - "7249:443"
+      #- "7249:7249"
+      #- "5249:5249"
+    volumes:
+      - ${APPDATA}/Microsoft/UserSecrets:/root/.microsoft/usersecrets:ro
+      - ${APPDATA}/ASP.NET/Https:/root/.aspnet/https:ro
+
+  client:
+    ports:
+      - "3000:3000"

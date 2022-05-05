@@ -20,6 +20,7 @@ namespace IntervalLearningApi.Controllers
             this.collectionService = collectionService;
         }
 
+        [HttpGet]
         public async Task<ActionResult<IList<Card>>> GetCards(short collectionId, [FromQuery] int page = 1, [FromQuery] int count = 10)
         {
             var userId = HttpContext.GetUserId();

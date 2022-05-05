@@ -1,0 +1,14 @@
+version: '3.4'
+
+services:
+  backend:
+    image: ${DOCKER_REGISTRY-}intervallearningapi
+    build:
+      context: .
+      dockerfile: IntervalLearningApi/Dockerfile
+
+  client:
+    image: client
+    build:
+      context: ../interval-learning-web
+      dockerfile: Dockerfile
