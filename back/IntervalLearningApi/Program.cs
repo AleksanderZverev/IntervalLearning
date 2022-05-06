@@ -99,10 +99,11 @@ using (var scope = app.Services.CreateScope())
     {
         var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
         logger.LogError(ex, "An error occurred while migrating the database.");
-        throw;
+        //throw;
     }
 }
 
+app.UseHttpLogging();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
@@ -121,12 +122,12 @@ if (app.Environment.IsDevelopment())
 else
 {
     app.UseCors("Default");
-    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
-    app.UseHsts();
-    app.UseHttpsRedirection();
-}
 
-app.UseHttpLogging();
+    //TODO: In Docker remove
+    //app.UseHttpsRedirection();
+    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
+    //app.UseHsts();
+}
 
 app.UseStaticFiles();
 app.UseRouting();

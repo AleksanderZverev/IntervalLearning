@@ -2,16 +2,35 @@ version: '3.4'
 
 services:
   backend:
-    image: ${DOCKER_REGISTRY-}intervallearningapi
+    image: cr.yandex/crphggso9r6t8kclldqf/intervallearningapi:test
     build:
       context: .
       dockerfile: IntervalLearningApi/Dockerfile
 
   client:
-    image: client
+    image: cr.yandex/crphggso9r6t8kclldqf/client:test
     build:
       context: ../interval-learning-web
       dockerfile: Dockerfile
 
   proxy:
-    image: nginx:mainline
+    image: cr.yandex/crphggso9r6t8kclldqf/nginx:test
+    build:
+      context: ../nginx
+      dockerfile: Dockerfile
+    ports:
+      - "443:443"
+      - "80:80"
+
+  #proxy:
+  #  image: nginx:mainline
+  #  volumes:
+  #    - ./nginx.conf:/etc/nginx/nginx.conf
+  #    - ./fullchain.pem:/etc/nginx/fullchain.pem
+  #    - ./privkey.pem:/etc/nginx/privkey.pem
+  #  ports:
+  #    - "443:443"
+  #    - "80:80"
+    # build:
+    #   context: ../nginx
+    #   dockerfile: Dockerfile

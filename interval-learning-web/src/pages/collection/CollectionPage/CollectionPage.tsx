@@ -49,11 +49,11 @@ export const CollectionPage: FC = () => {
     }, [storageCards, page]);
 
     const [showCreateCardModal, setShowCreateCardModal] = useState(false);
-    const defaultSchedule = useTypedSelector(
-        (state) =>
-            collection &&
-            selectScheduleById(state, getScheduleId(collection?.defaultScheduleUserId, collection?.defaultScheduleId))
-    );
+    // const defaultSchedule = useTypedSelector(
+    //     (state) =>
+    //         collection &&
+    //         selectScheduleById(state, getScheduleId(collection?.defaultScheduleUserId, collection?.defaultScheduleId))
+    // );
 
     if (isFetching || isError) {
         return (
@@ -89,7 +89,7 @@ export const CollectionPage: FC = () => {
                     collectionUserId={collection.userId}
                     open={showCreateCardModal}
                     onClose={() => setShowCreateCardModal(false)}
-                    defaultSchedule={defaultSchedule}
+                    // defaultSchedule={defaultSchedule}
                 />
             )}
             <Table>

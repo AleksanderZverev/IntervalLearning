@@ -42,7 +42,7 @@ interface CreateCardModalProps extends WithMutationResolverProps<typeof useAddCa
     open: boolean;
     onClose: () => void;
     cardId?: string;
-    defaultSchedule?: Schedule;
+    // defaultSchedule?: Schedule;
 }
 
 function getDefaultValues(card: Card): CardForm {

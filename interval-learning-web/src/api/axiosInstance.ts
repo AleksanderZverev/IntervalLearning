@@ -1,7 +1,9 @@
 import axios, { AxiosError, AxiosInstance } from 'axios';
 
+const baseUrl = process.env.NODE_ENV === 'development' ? 'http://localhost:5249/api' : '/api';
+
 const axiosInstance: AxiosInstance = axios.create({
-    baseURL: 'http://localhost:5249/api', //'/api/backend',
+    baseURL: baseUrl,
     withCredentials: true,
 });
 

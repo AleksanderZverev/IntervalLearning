@@ -112,9 +112,9 @@ export const withQueryResolver =
         }
 
         //TODO: don't know how to fix
-        // const HackComponent = Component as any;
+        const HackComponent = Component as any;
 
-        return <Component queryData={data} {...queryArg} {...otherProps} />;
+        return <HackComponent queryData={data} {...queryArg} {...otherProps} />;
     };
 
 export const withOtherQueryResolver =
@@ -186,6 +186,9 @@ export const withMutationResolver =
             current.retryFunc = retry;
         };
 
+        //TODO: don't know how to fix
+        const HackComponent = Component as any;
+
         return (
             <>
                 <Portal>
@@ -203,7 +206,7 @@ export const withMutationResolver =
                     )}
                 </Portal>
                 <ModalLoader loading={isLoading} />
-                <Component
+                <HackComponent
                     mutationProps={{
                         mutate: onMutate,
                         showRetryModal: showRetryModal,

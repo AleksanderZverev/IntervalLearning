@@ -95,7 +95,7 @@ export const CreateScheduleModal: FC<CreateScheduleModalProps> = (props) => {
             phases: data.phases.map((p, i) => {
                 const seconds = DurationTypeToSeconds(p.durationFromLastPhase, p.durationType);
                 const phase: PhaseInfo = {
-                    id: i + 1,
+                    id: (i + 1).toString(),
                     secondsFromLastPhase: seconds,
                     description: p.description,
                 };
