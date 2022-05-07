@@ -1,23 +1,45 @@
 version: '3.4'
 
 services:
+  postgres:
+    image: postgres:13.3
+    environment:
+      POSTGRES_DB: "postgres"
+      POSTGRES_USER: "postgres"
+      POSTGRES_PASSWORD: "postgres"
+      PGDATA: "/var/lib/postgresql/data/pgdata"
+    volumes:
+      - .:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
   backend:
+    depends_on: 
+      - postgres
     image: cr.yandex/crphggso9r6t8kclldqf/intervallearningapi:test
-    build:
-      context: .
-      dockerfile: IntervalLearningApi/Dockerfile
+    environment:
+      DB_CONNECTION_STRING: "Host=postgres;Port=5432;Database=postgres;User Id=postgres;Password=postgres;Include Error Detail=true;"
+      ASPNETCORE_ENVIRONMENT: "Development"
+      #PUBLIC
+      #- ASPNETCORE_URLS=https://+:443;http://+:80
+      #IN_DOCKER
+      ASPNETCORE_URLS: "http://+:80"
+    ports: #USE EXPOSE
+      - "5249:80"
+      - "7249:443"
 
   client:
+    depends_on:
+      - backend
     image: cr.yandex/crphggso9r6t8kclldqf/client:test
-    build:
-      context: ../interval-learning-web
-      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
 
   proxy:
+    depends_on:
+      - backend
+      - client
     image: cr.yandex/crphggso9r6t8kclldqf/nginx:test
-    build:
-      context: ../nginx
-      dockerfile: Dockerfile
     ports:
       - "443:443"
       - "80:80"
@@ -31,6 +53,3 @@ services:
   #  ports:
   #    - "443:443"
   #    - "80:80"
-    # build:
-    #   context: ../nginx
-    #   dockerfile: Dockerfile

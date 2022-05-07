@@ -49,7 +49,7 @@ public class AuthenticationService : IAuthenticationService
             LastName = request.LastName ?? "",
         };
 
-        if (environment.IsProduction())
+        //if (environment.IsProduction())
         {
             //TODO: TEST
             db.Database.BeginTransaction();
