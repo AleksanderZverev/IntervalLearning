@@ -2,11 +2,11 @@ version: '3.4'
 
 services:
   postgres:
-    image: postgres:13.3
+    image: postgres:13
     environment:
-      POSTGRES_DB: "postgres"
-      POSTGRES_USER: "postgres"
-      POSTGRES_PASSWORD: "postgres"
+      POSTGRES_DB: "postgres-test"
+      POSTGRES_USER: "postgres-test"
+      POSTGRES_PASSWORD: "postgres-test"
       PGDATA: "/var/lib/postgresql/data/pgdata"
     volumes:
       - .:/var/lib/postgresql/data
@@ -18,7 +18,7 @@ services:
       - postgres
     image: cr.yandex/crphggso9r6t8kclldqf/intervallearningapi:test
     environment:
-      DB_CONNECTION_STRING: "Host=postgres;Port=5432;Database=postgres;User Id=postgres;Password=postgres;Include Error Detail=true;"
+      DB_CONNECTION_STRING: "Host=postgres;Port=5432;Database=postgres-test;User Id=postgres-test;Password=postgres-test;Include Error Detail=true;"
       ASPNETCORE_ENVIRONMENT: "Development"
       #PUBLIC
       #- ASPNETCORE_URLS=https://+:443;http://+:80
@@ -29,8 +29,8 @@ services:
       - "7249:443"
 
   client:
-    depends_on:
-      - backend
+    depends_on: 
+      - postgres
     image: cr.yandex/crphggso9r6t8kclldqf/client:test
     ports:
       - "3000:3000"
@@ -43,13 +43,3 @@ services:
     ports:
       - "443:443"
       - "80:80"
-
-  #proxy:
-  #  image: nginx:mainline
-  #  volumes:
-  #    - ./nginx.conf:/etc/nginx/nginx.conf
-  #    - ./fullchain.pem:/etc/nginx/fullchain.pem
-  #    - ./privkey.pem:/etc/nginx/privkey.pem
-  #  ports:
-  #    - "443:443"
-  #    - "80:80"

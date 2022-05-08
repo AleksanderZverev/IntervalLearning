@@ -23,7 +23,7 @@ bin/
 Bin/
 obj/
 Obj/
-back/pgdata
+pgdata/
 
 # Visual Studio 2015 cache/options directory
 .vs/
@@ -66,6 +66,7 @@ dlldata.c
 *.pidb
 *.svclog
 *.scc
+*.bak
 
 # Chutzpah Test files
 _Chutzpah*
@@ -231,3 +232,6 @@ _Pvt_Extensions
 
 # FAKE - F# Make
 .fake/
+
+# FRONT 
+interval-learning-web/.vscode/
