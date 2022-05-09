@@ -214,6 +214,7 @@ export const RepeatCollectionPageContent: FC<RepeatCollectionPageContentProps> =
                                     {phase.description}
                                 </div>
                             }
+                            sx={{ maxWidth: '70%' }}
                         >
                             <Stack direction={'row'} alignItems={'center'} columnGap={'5px'}>
                                 <HelpOutline />

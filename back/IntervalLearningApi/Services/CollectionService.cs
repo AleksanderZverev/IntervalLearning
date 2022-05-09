@@ -65,10 +65,10 @@ public class CollectionService
 
             var repeatingPhasesList = result[date];
 
-            var repeatingPhase = repeatingPhasesList.SingleOrDefault(p =>
-                p.ScheduleUserId == queueItem.ParentRepeatsScheduleUserId
-                && p.ScheduleUserId == queueItem.ParentRepeatsScheduleId
-                && p.PhaseIndex == queueItem.PhaseIndex);
+            var repeatingPhase = repeatingPhasesList.SingleOrDefault(r =>
+                r.ScheduleUserId == queueItem.ParentRepeatsScheduleUserId
+                && r.ScheduleId == queueItem.ParentRepeatsScheduleId
+                && r.PhaseIndex == queueItem.PhaseIndex);
 
             if (repeatingPhase == null)
             {
@@ -239,7 +239,7 @@ public class CollectionService
     public class RepeatingPhase
     {
         public long ScheduleUserId { get; }
-        public long ScheduleId { get;  }
+        public short ScheduleId { get;  }
         public short PhaseIndex { get;  }
         public uint SecondsFromLastPhase { get; }
         public string? Description { get; }
@@ -248,7 +248,7 @@ public class CollectionService
 
         public RepeatingPhase(
             long scheduleUserId,
-            long scheduleId,
+            short scheduleId,
             short phaseIndex,
             uint secondsFromLastPhase,
             string? description)

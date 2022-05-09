@@ -138,6 +138,7 @@ export const LearnCollectionPageContent: FC<LearnCollectionPageContentProps> = (
                         title={
                             <div style={{ padding: 5, fontSize: 18, fontWeight: 'normal' }}>{schedule.description}</div>
                         }
+                        sx={{ maxWidth: '70%' }}
                     >
                         <Stack direction={'row'} alignItems={'center'} columnGap={'5px'}>
                             <HelpOutline />
@@ -250,8 +251,8 @@ export const LearnCollection: FC = () => {
         <ConnectedMutationResolver
             queryArg={{ userId, collectionId, request: { scheduleUserId, scheduleId } }}
             disableLoading={disableLoading}
-            scheduleUserId={scheduleId}
-            scheduleId={scheduleUserId}
+            scheduleUserId={scheduleUserId}
+            scheduleId={scheduleId}
             setDisableLoading={(disable) => setDisableLoading(disable)}
         />
     );
