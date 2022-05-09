@@ -47,7 +47,7 @@ const defaultDuration = DurationType.Days;
 const phaseSchema = yup.object({
     durationFromLastPhase: yup.number().min(1).required(),
     durationType: yup.number().required().default(defaultDuration),
-    description: yup.string().max(500),
+    description: yup.string().max(1000),
 });
 
 interface IForm {
@@ -64,7 +64,7 @@ const schema = yup
         title: yup.string().min(1).max(255).required(),
         forgottenBehavior: yup.number().required().default(1),
         phases: yup.array().of(phaseSchema).required(),
-        description: yup.string().max(500),
+        description: yup.string().max(1000),
     })
     .required();
 

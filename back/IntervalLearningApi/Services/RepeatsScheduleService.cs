@@ -86,6 +86,6 @@ public class PhaseInfo
     [Required]
     public uint SecondsFromLastPhase { get; set; }
 
-    [StringLength(150)]
+    [StringLength(1000)]
     public string? Description { get; set; }
 }

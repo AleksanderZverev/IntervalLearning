@@ -18,8 +18,7 @@ public class PhaseEntity : IParentRepeatsScheduleReference
 
     [Required]
     public uint SecondsFromLastPhase { get; set; }
-
-    [StringLength(150)]
+    
     public string? Description { get; set; }
 
     public short ParentRepeatsScheduleId { get; set; }

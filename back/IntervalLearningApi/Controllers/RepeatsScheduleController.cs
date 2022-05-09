@@ -38,7 +38,7 @@ namespace IntervalLearningApi.Controllers
                 item.Phases,
                 item.Description);
 
-            return schedule != null ? Ok(ToSchedule(schedule)) : BadRequest(error);
+            return schedule != null ? ToSchedule(schedule) : BadRequest(error);
         }
 
         public class CreateScheduleItem
@@ -49,7 +49,7 @@ namespace IntervalLearningApi.Controllers
             public int ForgottenBehavior { get; set; }
             [Required]
             public string Title { get; set; }
-            [StringLength(500)]
+            [StringLength(1000)]
             public string? Description { get; set; }
             [Required]
             public List<PhaseInfo> Phases { get; set; }
