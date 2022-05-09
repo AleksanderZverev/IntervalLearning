@@ -1,0 +1,136 @@
+curl -sSL https://storage.yandexcloud.net/yandexcloud-yc/install.sh | bash
+bash
+
+yc init
+
+https://oauth.yandex.ru/authorize?response_type=token&client_id=1a6990aa636648e9b2ef855fa7bec2fb
+
+----
+DOCKER:
+----
+
+sudo apt-get update
+
+sudo apt-get install \
+    ca-certificates \
+    curl \
+    gnupg \
+    lsb-release
+
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
+
+echo \
+  "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu \
+  $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+
+sudo apt-get update
+
+sudo apt-get install docker-ce docker-ce-cli containerd.io docker-compose-plugin
+
+sudo apt-get install docker-compose
+
+sudo usermod -a -G docker $USER
+
+reboot
+
+sudo docker run hello-world
+
+---
+CONFIGER YANDERX REGISTRY:
+---
+
+yc container registry configure-docker 
+
+docker pull cr.yandex/crphggso9r6t8kclldqf/intervallearningapi:test
+docker pull cr.yandex/crphggso9r6t8kclldqf/client:test
+docker pull cr.yandex/crphggso9r6t8kclldqf/nginx:test
+
+---
+(Если надо снести базу данных) DB to delete folder:
+---
+
+sudo chown $USER:$USER pgdata
+
+sudo rm -r ./pgdata
+
+---
+make superuser:
+---
+
+
+
+---
+DB migrating:
+---
+
+sudo apt-get install wget ca-certificates
+
+wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo apt-key add -
+
+sudo sh -c 'echo "deb http://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list'
+
+sudo apt-get install postgresql-client
+
+sudo apt-get install postgresql-13-wal2json
+
+---
+
+pg_dump -h localhost \
+    -U postgres-test \
+    -p 5432 \
+    --schema-only \
+    --no-privileges \
+    --no-subscriptions \
+    -d postgres-test -Fd -f /tmp/db_dump
+
+pg_restore -Fd -v --single-transaction -s --no-privileges \
+          -h rc1b-j6sxq2y8fbcjhk3r.mdb.yandexcloud.net \
+          -U postgres-test \
+          -p 6432 \
+          -d postgres-test /tmp/db_dump
+
+---
+
+pg_dump -h localhost \
+    -U postgres-test \
+    -p 5432 \
+    --schema-only \
+    --no-privileges \
+    --no-subscriptions \
+    -d postgres-test -Fd -f /tmp/db_dump
+
+pg_restore -Fd -v --single-transaction -s --no-privileges \
+          -h rc1b-qbft19aprvadtdfj.mdb.yandexcloud.net \
+          -U postgres-test \
+          -p 6432 \
+          -d postgres-test /tmp/db_dump
+
+
+#IN SOURCE
+
+CREATE ROLE repmaster WITH REPLICATION LOGIN ENCRYPTED PASSWORD 'repmaster';
+
+GRANT SELECT ON ALL TABLES IN SCHEMA public TO repmaster;
+GRANT USAGE ON SCHEMA public TO repmaster;
+
+
+CREATE PUBLICATION p_data_migration FOR ALL TABLES; 
+
+#CONNECT TO DB DEST
+
+psql "host=rc1b-qbft19aprvadtdfj.mdb.yandexcloud.net \
+      port=6432 \
+      sslmode=verify-full \
+      dbname=postgres-test \
+      user=postgres-test \
+      target_session_attrs=read-write"
+
+#MAKE SUB
+
+CREATE SUBSCRIPTION s_data_migration CONNECTION 'host=51.250.8.215 port=5432 user=postgres-test sslmode=verify-full dbname=postgres-test password=postgres-test' PUBLICATION p_data_migration;
+CREATE SUBSCRIPTION s_data_migration CONNECTION 'host=51.250.8.215 port=5432 user=repmaster sslmode=verify-full dbname=postgres-test password=repmaster' PUBLICATION p_data_migration;
+CREATE SUBSCRIPTION <имя подписки> CONNECTION 'host=<FQDN хоста кластера-источника> port=6432 sslmode=verify-full dbname=<имя БД, которую нужно мигрировать> user=<имя пользователя для управления репликацией> password=<пароль пользователя>' PUBLICATION <имя публикации>;
+
+
+
+

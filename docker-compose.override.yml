@@ -3,8 +3,8 @@ version: '3.4'
 services:
   backend:
     build:
-      context: ./back/IntervalLearningApi
-      dockerfile: Dockerfile
+      context: ./back
+      dockerfile: IntervalLearningApi/Dockerfile
     #volumes:
     #  - ${APPDATA}/Microsoft/UserSecrets:/root/.microsoft/usersecrets:ro
     #  - ${APPDATA}/ASP.NET/Https:/root/.aspnet/https:ro

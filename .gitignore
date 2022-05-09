@@ -67,6 +67,7 @@ dlldata.c
 *.svclog
 *.scc
 *.bak
+*.pem
 
 # Chutzpah Test files
 _Chutzpah*
@@ -235,3 +236,6 @@ _Pvt_Extensions
 
 # FRONT 
 interval-learning-web/.vscode/
+
+#Secrets
+.env
