@@ -19,18 +19,15 @@ public class JwtMiddleware
     private readonly RequestDelegate _next;
     private readonly IWebHostEnvironment env;
     private readonly JwtSettings _jwtSettings;
-    private readonly GoogleSettings _googleSettings;
 
     public JwtMiddleware(
         RequestDelegate next, 
-        IOptions<JwtSettings> appSettings, 
-        IOptions<GoogleSettings> googleSettings, 
+        IOptions<JwtSettings> appSettings,  
         IWebHostEnvironment env)
     {
         _next = next;
         this.env = env;
         _jwtSettings = appSettings.Value;
-        _googleSettings = googleSettings.Value;
     }
 
     public async Task Invoke(HttpContext context, ApplicationContext db, IJwtService jwtService)
@@ -49,16 +46,11 @@ public class JwtMiddleware
         var securityToken = authorizationHeader[BearerPrefix.Length..];
 
         var customIdentity = await ValidateCustom(securityToken, db, jwtService);
+
         if (customIdentity != null)
         {
             principal.AddIdentity(customIdentity);
         }
-        //else
-        //{
-        //    var googleIdentity = ValidateGoogle(securityToken, db);
-        //    if (googleIdentity != null)
-        //        principal.AddIdentity(googleIdentity);
-        //}
 
         context.User = principal;
         await _next(context);
@@ -79,46 +71,6 @@ public class JwtMiddleware
         var claims = JwtService.GetClaims(user);
         return new ClaimsIdentity(claims);
     }
-
-    private ClaimsIdentity? ValidateGoogle(string securityToken, ApplicationContext db)
-    {
-        GoogleJsonWebSignature.Payload payload;
-
-        try
-        {
-            payload = GoogleJsonWebSignature.ValidateAsync(securityToken,
-                new GoogleJsonWebSignature.ValidationSettings()
-                {
-                    Audience = new[] {_googleSettings.ClientId},
-                }).Result;
-        }
-        catch
-        {
-            return null;
-        }
-
-        var user = db.Users.SingleOrDefault(u => u.Email == payload.Email);
-
-        if (user == null)
-        {
-            user = new UserEntity()
-            {
-                Email = payload.Email,
-                EmailConfirmed = payload.EmailVerified,
-                FirstName = payload.GivenName,
-                LastName = payload.FamilyName,
-            };
-
-            if (env.IsProduction())
-            {
-                db.Users.Add(user);
-                db.SaveChanges();
-            }
-        }
-
-        var claims = JwtService.GetClaims(user);
-        return new ClaimsIdentity(claims);
-    }
 }
 
 [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method)]
@@ -127,6 +79,7 @@ public class AuthorizeAttribute : Attribute, IAuthorizationFilter
     public void OnAuthorization(AuthorizationFilterContext context)
     {
         var allowAnonymous = context.ActionDescriptor.EndpointMetadata.OfType<AllowAnonymousAttribute>().Any();
+
         if (allowAnonymous)
             return;
 

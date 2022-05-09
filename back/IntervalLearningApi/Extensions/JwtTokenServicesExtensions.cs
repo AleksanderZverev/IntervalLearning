@@ -10,6 +10,5 @@ public static class JwtTokenServicesExtensions
         configuration.Bind("JsonWebTokenKeys", bindJwtSettings);
 
         services.Configure<JwtSettings>(configuration.GetSection("JsonWebTokenKeys"));
-        services.Configure<GoogleSettings>(configuration.GetSection("GoogleAuth"));
     }
 }

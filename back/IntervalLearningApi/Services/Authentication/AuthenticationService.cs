@@ -28,7 +28,7 @@ public class AuthenticationService : IAuthenticationService
         this.jwtSettings = jwtSettings.Value;
     }
 
-    public (bool ok, string error) Register(RegisterRequest request, string sourceIpAddress)
+    public (bool ok, string? error) Register(RegisterRequest request, string sourceIpAddress)
     {
         var emailLower = request.Email.ToLowerInvariant();
         var sameUser = db.Users.FirstOrDefault(u => u.Email == emailLower);
@@ -48,8 +48,8 @@ public class AuthenticationService : IAuthenticationService
             FirstName = request.FirstName,
             LastName = request.LastName ?? "",
         };
-
-        //if (environment.IsProduction())
+        
+        try
         {
             //TODO: TEST
             db.Database.BeginTransaction();
@@ -63,21 +63,25 @@ public class AuthenticationService : IAuthenticationService
             db.SaveChanges();
             db.Database.CommitTransaction();
         }
+        catch
+        {
+            return (false, "Unknown error");
+        }
 
-        return (true, string.Empty);
+        return (true, null);
     }
 
-    public AuthenticateResponse Authenticate(AuthenticateRequest req, string ipAddress)
+    public (AuthenticateResponse? response, string? errorMessage) Authenticate(AuthenticateRequest req, string ipAddress)
     {
         var user = db.Users.Include(u => u.PasswordHash).Include(u => u.RefreshTokens).SingleOrDefault(x => x.Email == req.Email);
 
         if (user is {PasswordHash: null})
-            throw new AppException("Not signed up user!");
+            return (null, "Not signed up user!");
 
         if (user == null || !BCrypt.Net.BCrypt.Verify(req.Password, user.PasswordHash.PasswordHash))
-            throw new AppException("Email or password is incorrect");
+            return (null, "Email or password is incorrect");
 
-        return Authenticate(user, ipAddress);
+        return (Authenticate(user, ipAddress), null);
     }
 
     public AuthenticateResponse? TryAuthenticateByOldToken(string jwtToken, string refreshToken)
@@ -85,9 +89,7 @@ public class AuthenticationService : IAuthenticationService
         var userId = jwtService.ValidateJwtToken(jwtToken, DateTime.UtcNow.AddMinutes(5));
 
         if (userId == null)
-        {
             return null;
-        }
 
         var user = db.Users.Single(u => u.Id == userId);
         return new AuthenticateResponse(user, jwtToken, refreshToken);
@@ -106,9 +108,13 @@ public class AuthenticationService : IAuthenticationService
         return new AuthenticateResponse(user, jwtToken, refreshToken.Token);
     }
 
-    public AuthenticateResponse? RefreshToken(string refreshToken, string ipAddress)
+    public (AuthenticateResponse? response, string? error) RefreshToken(string refreshToken, string ipAddress)
     {
-        var user = GetUserByRefreshToken(refreshToken);
+        var (user, userError) = GetUserByRefreshToken(refreshToken);
+
+        if (user == null)
+            return (null, userError);
+
         var refreshTokenItem = user.RefreshTokens.Single(x => x.Token == refreshToken);
 
         if (refreshTokenItem.IsRevoked)
@@ -119,9 +125,7 @@ public class AuthenticationService : IAuthenticationService
         }
 
         if (!refreshTokenItem.IsActive)
-            return null;
-        
-
+            return (null, "Invalid token");
 
         var newRefreshToken = ReplaceOldRefreshToken(user, refreshTokenItem, ipAddress);
         user.RefreshTokens.Add(newRefreshToken);
@@ -131,31 +135,33 @@ public class AuthenticationService : IAuthenticationService
 
         var jwtToken = jwtService.GenerateJwtToken(user);
 
-        return new AuthenticateResponse(user, jwtToken, newRefreshToken.Token);
+        return (new AuthenticateResponse(user, jwtToken, newRefreshToken.Token), null);
     }
 
-    public void RevokeToken(string token, string ipAddress)
+    public (bool ok, string? error) RevokeToken(string token, string ipAddress)
     {
-        var user = GetUserByRefreshToken(token);
+        var (user, userError) = GetUserByRefreshToken(token);
+
+        if (user == null)
+            return (false, userError);
+
         var refreshToken = user.RefreshTokens.Single(x => x.Token == token);
 
         if (!refreshToken.IsActive)
-            throw new AppException("Invalid token");
+            return (false, "Invalid token");
         
         RevokeRefreshToken(refreshToken, ipAddress, "Revoked without replacement");
 
         db.Update(user);
         db.SaveChanges();
+
+        return (true, null);
     }
 
-    private UserEntity GetUserByRefreshToken(string token)
+    private (UserEntity? user, string? error) GetUserByRefreshToken(string token)
     {
         var user = db.Users.Include(u => u.RefreshTokens).SingleOrDefault(u => u.RefreshTokens.Any(t => t.Token == token));
-
-        if (user == null)
-            throw new AppException("Invalid token");
-
-        return user;
+        return (user, user == null ? "Invalid token" : null);
     }
 
     private RefreshTokenEntity ReplaceOldRefreshToken(UserEntity user, RefreshTokenEntity tokenToRevoke, string ipAddress)
@@ -167,13 +173,12 @@ public class AuthenticationService : IAuthenticationService
 
     private void RemoveOldRefreshTokens(UserEntity userEntity)
     {
-        var now = DateTime.UtcNow; // SystemClock.Instance.GetCurrentInstant();
+        var now = DateTime.UtcNow;
 
         foreach (var refreshToken in userEntity.RefreshTokens)
         {
             if (!refreshToken.IsActive &&
                 refreshToken.Created.AddDays(jwtSettings.RefreshTokenTTLInDays) <= now)
-            //refreshToken.Created + Duration.FromDays(jwtSettings.RefreshTokenTTLInDays) <= now)
             {
                 db.RefreshTokens.Remove(refreshToken);
             }
@@ -202,7 +207,7 @@ public class AuthenticationService : IAuthenticationService
         string reason = null, 
         string replacedByToken = null)
     {
-        tokenEntity.Revoked = DateTime.UtcNow; //NodaTime.SystemClock.Instance.GetCurrentInstant();
+        tokenEntity.Revoked = DateTime.UtcNow;
         tokenEntity.RevokedByIp = ipAddress;
         tokenEntity.ReasonRevoked = reason;
         tokenEntity.ReplacedByToken = replacedByToken;

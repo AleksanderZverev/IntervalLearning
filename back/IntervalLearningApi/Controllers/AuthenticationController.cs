@@ -40,10 +40,14 @@ public class AuthenticationController : ControllerBase
     [HttpPost("authenticate")]
     public ActionResult<AuthenticateResponse> Authenticate(AuthenticateRequest model)
     {
-        var response = authService.Authenticate(model, GetSourceIpAddress());
+        var (response, error) = authService.Authenticate(model, GetSourceIpAddress());
+
+        if (response == null)
+            return BadRequest(error);
+
         SetRefreshTokenCookie(response.RefreshToken);
         SetJwtTokenCookie(response.JwtToken);
-        return Ok(response);
+        return response;
     }
 
     [AllowAnonymous]
@@ -63,14 +67,14 @@ public class AuthenticationController : ControllerBase
         if (oldResponse != null)
             return Ok(oldResponse);
 
-        var response = authService.RefreshToken(refreshToken, GetSourceIpAddress());
+        var (response, error) = authService.RefreshToken(refreshToken, GetSourceIpAddress());
 
         if (response == null)
-            return BadRequest();
+            return BadRequest(error);
 
         SetRefreshTokenCookie(response.RefreshToken);
         SetJwtTokenCookie(response.JwtToken);
-        return Ok(response);
+        return response;
     }
 
     [HttpPost("revoke-token")]
@@ -81,8 +85,8 @@ public class AuthenticationController : ControllerBase
         if (string.IsNullOrEmpty(token))
             return BadRequest("Token is required");
 
-        authService.RevokeToken(token, GetSourceIpAddress());
-        return Ok();
+        var (ok, error) = authService.RevokeToken(token, GetSourceIpAddress());
+        return ok ? Ok() : BadRequest(error);
     }
 
     private static string? GetJwtToken(HttpRequest req) => req.Cookies[JwtTokenKey];
