@@ -9,8 +9,63 @@ public interface IParentRepeatsScheduleReference : IParentUserReference
     public RepeatsScheduleEntity? ParentRepeatsSchedule { get; set; }
 }
 
+public interface IPatchRepeatsSchedule
+{
+    public string Title { get; set; }
+    public string? Description { get; set; }
+    public short CardsCountPerPhase { get; set; }
+    public ForgottenBehavior ForgottenBehavior { get; set; }
+}
+
+public interface ICreateOrPatchRepeatsSchedule : IPatchRepeatsSchedule
+{
+    public long ParentUserId { get; set; }
+}
+
+public class PatchRepeatsSchedule : IPatchRepeatsSchedule
+{
+    public string Title { get; set; }
+    public string? Description { get; set; }
+    public short CardsCountPerPhase { get; set; }
+    public ForgottenBehavior ForgottenBehavior { get; set; }
+
+    public PatchRepeatsSchedule(
+        short cardsCountPerPhase,
+        ForgottenBehavior forgottenBehavior,
+        string title,
+        string? description)
+    {
+        CardsCountPerPhase = cardsCountPerPhase;
+        ForgottenBehavior = forgottenBehavior;
+        Title = title;
+        Description = description;
+    }
+}
+
+public class CreateScheduleItem : PatchRepeatsSchedule, ICreateOrPatchRepeatsSchedule
+{
+    public long ParentUserId { get; set; }
+
+    public CreateScheduleItem(
+        long parentUserId,
+        short cardsCountPerPhase,
+        ForgottenBehavior forgottenBehavior,
+        string title,
+        string? description)
+        :
+        base(
+            cardsCountPerPhase,
+            forgottenBehavior,
+            title,
+            description)
+
+    {
+        ParentUserId = parentUserId;
+    }
+}
+
 [Table("RepeatsSchedules")]
-public class RepeatsScheduleEntity : IParentUserReference
+public class RepeatsScheduleEntity : IParentUserReference, ICreateOrPatchRepeatsSchedule
 {
     [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
     public short Id { get; set; }
@@ -36,17 +91,4 @@ public class RepeatsScheduleEntity : IParentUserReference
 
     public long ParentUserId { get; set; }
     public UserEntity? ParentUser { get; set; }
-
-    public RepeatsScheduleEntity(long parentUserId,
-        short cardsCountPerPhase,
-        ForgottenBehavior forgottenBehavior,
-        string title,
-        string? description)
-    {
-        ParentUserId = parentUserId;
-        CardsCountPerPhase = cardsCountPerPhase;
-        ForgottenBehavior = forgottenBehavior;
-        Title = title;
-        Description = description;
-    }
 }

@@ -27,10 +27,10 @@ namespace IntervalLearningApi.Controllers
         }
 
         [HttpPost]
-        public ActionResult<Schedule> CreateSchedule([FromBody] CreateScheduleItem item)
+        public async Task<ActionResult<Schedule>> CreateSchedule([FromBody] CreateScheduleItem item)
         {
             var userId = HttpContext.GetUserId();
-            var (schedule, error) = repeatsScheduleService.Create(
+            var (schedule, error) = await repeatsScheduleService.Create(
                 userId,
                 item.CardsCountPerPhase,
                 (ForgottenBehavior)item.ForgottenBehavior,
@@ -54,8 +54,6 @@ namespace IntervalLearningApi.Controllers
             [Required]
             public List<PhaseInfo> Phases { get; set; }
         }
-
-        
 
         private static Schedule ToSchedule(RepeatsScheduleEntity schedule)
         {

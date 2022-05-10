@@ -29,6 +29,7 @@ export interface PhaseInfo {
     id: string;
     secondsFromLastPhase: number;
     description: string | null;
+    isDefaultValueSide: boolean;
 }
 
 export enum ForgottenBehavior {

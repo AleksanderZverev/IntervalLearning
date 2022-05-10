@@ -1,5 +1,16 @@
 import { yupResolver } from '@hookform/resolvers/yup';
-import { Button, Dialog, DialogActions, DialogContent, DialogTitle, MenuItem, Select, Typography } from '@mui/material';
+import {
+    Button,
+    Dialog,
+    DialogActions,
+    DialogContent,
+    DialogTitle,
+    MenuItem,
+    Select,
+    Typography,
+    FormControlLabel,
+    Checkbox,
+} from '@mui/material';
 import { FC, useState } from 'react';
 import { FormProvider, SubmitHandler, useFieldArray, useForm } from 'react-hook-form';
 import * as yup from 'yup';
@@ -40,6 +51,7 @@ interface IPhaseForm {
     durationFromLastPhase: number;
     durationType: DurationType;
     description: string | null;
+    isDefaultValueSide: boolean;
 }
 
 const defaultDuration = DurationType.Days;
@@ -48,6 +60,7 @@ const phaseSchema = yup.object({
     durationFromLastPhase: yup.number().min(1).required(),
     durationType: yup.number().required().default(defaultDuration),
     description: yup.string().max(1000),
+    isDefaultValueSide: yup.boolean().default(false),
 });
 
 interface IForm {
@@ -98,6 +111,7 @@ export const CreateScheduleModal: FC<CreateScheduleModalProps> = (props) => {
                     id: (i + 1).toString(),
                     secondsFromLastPhase: seconds,
                     description: p.description,
+                    isDefaultValueSide: p.isDefaultValueSide,
                 };
 
                 return phase;
@@ -168,7 +182,16 @@ export const CreateScheduleModal: FC<CreateScheduleModalProps> = (props) => {
                                         error={!!errors.phases?.at(i)?.description}
                                         errorMessage={errors.phases?.at(i)?.description?.message || ' '}
                                         {...register(`phases.${i}.description`)}
-                                    ></FormField>
+                                    />
+                                    <FormControlLabel
+                                        label="Закрыть слово"
+                                        control={
+                                            <Checkbox
+                                                checked={f.isDefaultValueSide}
+                                                {...register(`phases.${i}.isDefaultValueSide`)}
+                                            />
+                                        }
+                                    />
                                 </div>
                             ))}
                         </div>

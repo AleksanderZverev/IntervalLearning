@@ -7,10 +7,17 @@ namespace IntervalLearningApi.Services;
 
 public class RepeatsScheduleService
 {
+    private readonly Repository<PhaseEntity> phasesRep;
+    private readonly Repository<RepeatsScheduleEntity> scheduleRep;
     private readonly ApplicationContext db;
 
-    public RepeatsScheduleService(ApplicationContext db)
+    public RepeatsScheduleService(
+        Repository<PhaseEntity> phasesRep,
+        Repository<RepeatsScheduleEntity> scheduleRep,
+        ApplicationContext db)
     {
+        this.phasesRep = phasesRep;
+        this.scheduleRep = scheduleRep;
         this.db = db;
     }
 
@@ -21,29 +28,7 @@ public class RepeatsScheduleService
             .AsSplitQuery()
             .ToList();
 
-    public (RepeatsScheduleEntity? schedule, string? error) Create(
-        long userId,
-        short cardsCountPerPhase,
-        ForgottenBehavior forgottenBehavior,
-        string title,
-        List<PhaseInfo> phases,
-        string? description)
-    {
-        try
-        {
-            db.Database.BeginTransaction();
-            var result = CreateWithoutTransaction(userId, cardsCountPerPhase, forgottenBehavior, title, phases, description);
-            db.Database.CommitTransaction();
-            return result;
-        }
-        catch
-        {
-            db.Database.RollbackTransaction();
-            return (null, "Unknown error");
-        }
-    }
-
-    private (RepeatsScheduleEntity? schedule, string? error) CreateWithoutTransaction(
+    public async Task<(RepeatsScheduleEntity? schedule, string? error)> Create(
         long userId, 
         short cardsCountPerPhase, 
         ForgottenBehavior forgottenBehavior, 
@@ -51,30 +36,48 @@ public class RepeatsScheduleService
         List<PhaseInfo> phases, 
         string? description)
     {
-        var schedule = new RepeatsScheduleEntity(
+        db.Database.BeginTransaction();
+
+        var schedule = await scheduleRep.Create(new CreateScheduleItem(
             userId,
             cardsCountPerPhase,
             forgottenBehavior,
             title,
             description
-        );
+        ));
 
-        db.Entry(schedule).State = EntityState.Added;
-        db.SaveChanges();
+        try
+        {
+            await db.SaveChangesAsync();
+        }
+        catch
+        {
+            db.Database.RollbackTransaction();
+            return (null, "Unable to create schedule");
+        }
 
-        var phaseEntities = phases.Select(p => new PhaseEntity(
-            userId,
-            p.Id,
-            schedule.Id,
-            p.SecondsFromLastPhase,
-            p.Description)).ToList();
+        var phaseEntities = phases
+            .Select(p => phasesRep.Create(
+                new CreatePhaseItem(
+                    userId,
+                    p.Id,
+                    schedule.Id,
+                    p.SecondsFromLastPhase,
+                    p.Description,
+                    p.IsDefaultValueSide)))
+            .ToList();
 
-        phaseEntities.ForEach(f => db.Entry(f).State = EntityState.Added);
-        db.SaveChanges();
-
-        schedule.Phases = phaseEntities;
-
-        return (schedule, null);
+        try
+        {
+            await db.SaveChangesAsync();
+            db.Database.CommitTransaction();
+            return (schedule, null);
+        }
+        catch
+        {
+            db.Database.RollbackTransaction();
+            return (null, "Unable to create phases");
+        }
     }
 }
 
@@ -88,4 +91,6 @@ public class PhaseInfo
 
     [StringLength(1000)]
     public string? Description { get; set; }
+
+    public bool IsDefaultValueSide { get; set; }
 }

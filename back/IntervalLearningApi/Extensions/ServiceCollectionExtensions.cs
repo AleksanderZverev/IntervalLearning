@@ -1,4 +1,5 @@
-﻿using IntervalLearningApi.Services;
+﻿using DB;
+using IntervalLearningApi.Services;
 using IntervalLearningApi.Services.Authentication;
 using IntervalLearningApi.Services.Jwt;
 
@@ -17,5 +18,6 @@ public static class ServiceCollectionExtensions
         services.AddScoped<RepeatsScheduleService>();
         services.AddScoped<ThemeService>();
         services.AddScoped<UserMetadataService>();
+        services.AddScoped(typeof(Repository<>));
     }
 }
