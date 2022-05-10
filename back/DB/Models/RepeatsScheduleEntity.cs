@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using Infrastructure;
 
 namespace DB.Models;
 
@@ -81,13 +82,13 @@ public class CreateScheduleItem : PatchRepeatsSchedule, ICreateOrPatchRepeatsSch
         base(
             cardsCountPerPhase,
             forgottenBehavior,
-            title,
-            shortDescription,
-            description,
-            defaultPhaseShortDescription,
-            defaultPhaseDescription,
-            defaultRepeatPhaseShortDescription,
-            defaultRepeatPhaseDescription)
+            TextMaster.RemoveWhitespaces(title, true),
+            TextMaster.RemoveWhitespaces(shortDescription),
+            TextMaster.RemoveWhitespaces(description),
+            TextMaster.RemoveWhitespaces(defaultPhaseShortDescription),
+            TextMaster.RemoveWhitespaces(defaultPhaseDescription),
+            TextMaster.RemoveWhitespaces(defaultRepeatPhaseShortDescription),
+            TextMaster.RemoveWhitespaces(defaultRepeatPhaseDescription))
 
     {
         ParentUserId = parentUserId;

@@ -5,9 +5,15 @@ namespace Infrastructure
 {
     public class TextMaster
     {
-        public static string RemoveWhitespaces(string fullName, bool throwIfBecomeEmpty = false)
+        public static string RemoveWhitespaces(string? text, bool throwIfBecomeEmpty = false)
         {
-            var result = Regex.Replace(fullName, @"\s+", " ").Trim();
+            if (string.IsNullOrEmpty(text) && throwIfBecomeEmpty)
+                throw new ArgumentNullException();
+
+            if (string.IsNullOrEmpty(text))
+                return string.Empty;
+
+            var result = Regex.Replace(text, @"\s+", " ").Trim();
 
             if (throwIfBecomeEmpty && string.IsNullOrEmpty(result))
             {

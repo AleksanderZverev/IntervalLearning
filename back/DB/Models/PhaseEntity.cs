@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using Infrastructure;
 
 namespace DB.Models;
 
@@ -23,9 +24,9 @@ public class PatchPhaseItem
         bool isDefaultValueSide)
     {
         SecondsFromLastPhase = secondsFromLastPhase;
-        Description = description;
+        Description = TextMaster.RemoveWhitespaces(description);
         IsDefaultValueSide = isDefaultValueSide;
-        ShortDescription = shortDescription;
+        ShortDescription = TextMaster.RemoveWhitespaces(shortDescription);
     }
 }
 
