@@ -1,5 +1,4 @@
-﻿using System.Diagnostics;
-using DB;
+﻿using DB;
 using DB.Models;
 using Infrastructure;
 using Microsoft.EntityFrameworkCore;

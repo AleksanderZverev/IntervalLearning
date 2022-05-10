@@ -1,8 +1,5 @@
 ﻿using System.Security.Claims;
 using DB;
-using DB.Models;
-using Google.Apis.Auth;
-using IntervalLearningApi.Controllers;
 using IntervalLearningApi.Models;
 using IntervalLearningApi.Services.Jwt;
 using Microsoft.AspNetCore.Authorization;

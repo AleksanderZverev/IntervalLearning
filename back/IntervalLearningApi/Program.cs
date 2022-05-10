@@ -1,6 +1,5 @@
 using DB;
 using IntervalLearningApi;
-using IntervalLearningApi.Controllers;
 using IntervalLearningApi.Extensions;
 using Microsoft.AspNetCore.HttpLogging;
 using Microsoft.EntityFrameworkCore;

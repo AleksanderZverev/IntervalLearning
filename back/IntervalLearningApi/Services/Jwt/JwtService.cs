@@ -7,7 +7,6 @@ using DB.Models;
 using IntervalLearningApi.Models;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
-using NodaTime;
 
 namespace IntervalLearningApi.Services.Jwt;
 

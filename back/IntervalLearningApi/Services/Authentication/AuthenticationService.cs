@@ -5,7 +5,6 @@ using IntervalLearningApi.Models;
 using IntervalLearningApi.Services.Jwt;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
-using NodaTime;
 
 namespace IntervalLearningApi.Services.Authentication;
 
@@ -211,17 +210,5 @@ public class AuthenticationService : IAuthenticationService
         tokenEntity.RevokedByIp = ipAddress;
         tokenEntity.ReasonRevoked = reason;
         tokenEntity.ReplacedByToken = replacedByToken;
-    }
-}
-
-public class AppException : Exception
-{
-    public AppException() : base() { }
-
-    public AppException(string message) : base(message) { }
-
-    public AppException(string message, params object[] args)
-        : base(String.Format(CultureInfo.CurrentCulture, message, args))
-    {
     }
 }
