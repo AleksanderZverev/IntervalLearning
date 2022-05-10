@@ -2,32 +2,35 @@ export interface Schedule {
     userId: string;
     id: string;
     title: string;
-    description: string | null;
     cardsCountPerPhase: number;
-    forgottenBehavior: ForgottenBehavior;
-    isRecommended: boolean;
-    phases: PhaseInfo[];
-}
-
-export interface Phase {
-    userId: string;
-    scheduleId: string;
-    id: string;
-    secondsFromLastPhase: number;
+    shortDescription: string | null;
     description: string | null;
+    defaultPhaseShortDescription: string | null;
+    defaultPhaseDescription: string | null;
+    defaultRepeatPhaseShortDescription: string | null;
+    defaultRepeatPhaseDescription: string | null;
+    isRecommended: boolean;
+    forgottenBehavior: ForgottenBehavior;
+    phases: PhaseInfo[];
 }
 
 export interface CreateScheduleItem {
     cardsCountPerPhase: number;
     forgottenBehavior: ForgottenBehavior;
     title: string;
+    shortDescription: string | null;
     description: string | null;
     phases: PhaseInfo[];
+    defaultPhaseShortDescription: string | null;
+    defaultPhaseDescription: string | null;
+    defaultRepeatPhaseShortDescription: string | null;
+    defaultRepeatPhaseDescription: string | null;
 }
 
 export interface PhaseInfo {
     id: string;
     secondsFromLastPhase: number;
+    shortDescription: string | null;
     description: string | null;
     isDefaultValueSide: boolean;
 }

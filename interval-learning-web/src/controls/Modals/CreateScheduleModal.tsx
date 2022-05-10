@@ -50,6 +50,7 @@ function DurationTypeToSeconds(value: number, type: DurationType) {
 interface IPhaseForm {
     durationFromLastPhase: number;
     durationType: DurationType;
+    shortDescription: string | null;
     description: string | null;
     isDefaultValueSide: boolean;
     addRepeatingAtThatDay: boolean;
@@ -58,6 +59,7 @@ interface IPhaseForm {
 const phaseSchema = yup.object({
     durationFromLastPhase: yup.number().min(1).required(),
     durationType: yup.number().required().default(DurationType.Days),
+    shortDescription: yup.string().max(100),
     description: yup.string().max(1000),
     isDefaultValueSide: yup.boolean().default(false),
     addRepeatingAtThatDay: yup.boolean().default(true),
@@ -67,7 +69,12 @@ interface IForm {
     cardsCountPerPhase: number;
     forgottenBehavior: ForgottenBehavior;
     title: string;
+    shortDescription: string | null;
     description: string | null;
+    defaultPhaseShortDescription: string | null;
+    defaultPhaseDescription: string | null;
+    defaultRepeatPhaseShortDescription: string | null;
+    defaultRepeatPhaseDescription: string | null;
     phases: IPhaseForm[];
 }
 
@@ -77,7 +84,12 @@ const schema = yup
         title: yup.string().min(1).max(255).required(),
         forgottenBehavior: yup.number().required().default(1),
         phases: yup.array().of(phaseSchema).required(),
+        shortDescription: yup.string().max(100),
         description: yup.string().max(1000),
+        defaultPhaseShortDescription: yup.string().max(100),
+        defaultPhaseDescription: yup.string().max(1000),
+        defaultRepeatPhaseShortDescription: yup.string().max(100),
+        defaultRepeatPhaseDescription: yup.string().max(1000),
     })
     .required();
 
@@ -100,18 +112,18 @@ export const CreateScheduleModal: FC<CreateScheduleModalProps> = (props) => {
     const [createSchedule, { isLoading }] = useCreateScheduleMutation();
 
     const onSubmit: SubmitHandler<IForm> = async (data) => {
-        console.log(data);
-
         const phases: PhaseInfo[] = [];
         let i = 0;
 
         for (const p of data.phases) {
+            const { addRepeatingAtThatDay, durationFromLastPhase, durationType, ...mapProperties } = p;
+
             const seconds = DurationTypeToSeconds(p.durationFromLastPhase, p.durationType);
+
             const phase: PhaseInfo = {
+                ...mapProperties,
                 id: (i + 1).toString(),
                 secondsFromLastPhase: seconds,
-                description: p.description,
-                isDefaultValueSide: p.isDefaultValueSide,
             };
 
             phases.push(phase);
@@ -125,6 +137,7 @@ export const CreateScheduleModal: FC<CreateScheduleModalProps> = (props) => {
             const repeatingPhase: PhaseInfo = {
                 id: (i + 1).toString(),
                 secondsFromLastPhase: 1,
+                shortDescription: p.shortDescription,
                 description: p.description,
                 isDefaultValueSide: true,
             };
@@ -134,19 +147,16 @@ export const CreateScheduleModal: FC<CreateScheduleModalProps> = (props) => {
             i++;
         }
 
+        const { phases: _, ...scheduleMapProperties } = data;
+
         const schedule: CreateScheduleItem = {
-            cardsCountPerPhase: data.cardsCountPerPhase,
-            forgottenBehavior: data.forgottenBehavior,
-            title: data.title,
-            description: data.description,
+            ...scheduleMapProperties,
             phases: phases,
         };
 
-        console.log('schedule', schedule);
-
         try {
-            // await createSchedule(schedule).unwrap();
-            // props.onClose();
+            await createSchedule(schedule).unwrap();
+            props.onClose();
         } catch {}
     };
 
@@ -170,10 +180,40 @@ export const CreateScheduleModal: FC<CreateScheduleModalProps> = (props) => {
                             {...register('cardsCountPerPhase')}
                         />
                         <FormField
-                            label="Описание"
+                            label="Краткое описание при старте"
+                            error={!!errors.shortDescription}
+                            errorMessage={errors.shortDescription?.message || ' '}
+                            {...register('shortDescription')}
+                        />
+                        <FormField
+                            label="Описание при старте"
                             error={!!errors.description}
                             errorMessage={errors.description?.message || ' '}
                             {...register('description')}
+                        />
+                        <FormField
+                            label="Краткое описание для всех фаз"
+                            error={!!errors.defaultPhaseShortDescription}
+                            errorMessage={errors.defaultPhaseShortDescription?.message || ' '}
+                            {...register('defaultPhaseShortDescription')}
+                        />
+                        <FormField
+                            label="Описание для всех фаз"
+                            error={!!errors.defaultPhaseDescription}
+                            errorMessage={errors.defaultPhaseDescription?.message || ' '}
+                            {...register('defaultPhaseDescription')}
+                        />
+                        <FormField
+                            label="Краткое описание для фаз повторения"
+                            error={!!errors.defaultRepeatPhaseShortDescription}
+                            errorMessage={errors.defaultRepeatPhaseShortDescription?.message || ' '}
+                            {...register('defaultRepeatPhaseShortDescription')}
+                        />
+                        <FormField
+                            label="Описание для фаз повторения"
+                            error={!!errors.defaultRepeatPhaseDescription}
+                            errorMessage={errors.defaultRepeatPhaseDescription?.message || ' '}
+                            {...register('defaultRepeatPhaseDescription')}
                         />
                         <FormFiledLabel label="При забывании" htmlFor="title-input">
                             <ForgottenBehaviorSelect registerName="forgottenBehavior" />
@@ -203,7 +243,13 @@ export const CreateScheduleModal: FC<CreateScheduleModalProps> = (props) => {
                                         </Select>
                                     </div>
                                     <FormField
-                                        label={'Описание'}
+                                        label={'Переопределить краткое описание'}
+                                        error={!!errors.phases?.at(i)?.shortDescription}
+                                        errorMessage={errors.phases?.at(i)?.shortDescription?.message || ' '}
+                                        {...register(`phases.${i}.shortDescription`)}
+                                    />
+                                    <FormField
+                                        label={'Переопределить описание'}
                                         error={!!errors.phases?.at(i)?.description}
                                         errorMessage={errors.phases?.at(i)?.description?.message || ' '}
                                         {...register(`phases.${i}.description`)}
