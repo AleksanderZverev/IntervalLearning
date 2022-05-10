@@ -52,15 +52,15 @@ interface IPhaseForm {
     durationType: DurationType;
     description: string | null;
     isDefaultValueSide: boolean;
+    addRepeatingAtThatDay: boolean;
 }
-
-const defaultDuration = DurationType.Days;
 
 const phaseSchema = yup.object({
     durationFromLastPhase: yup.number().min(1).required(),
-    durationType: yup.number().required().default(defaultDuration),
+    durationType: yup.number().required().default(DurationType.Days),
     description: yup.string().max(1000),
     isDefaultValueSide: yup.boolean().default(false),
+    addRepeatingAtThatDay: yup.boolean().default(true),
 });
 
 interface IForm {
@@ -87,7 +87,7 @@ interface CreateScheduleModalProps {
 }
 
 export const CreateScheduleModal: FC<CreateScheduleModalProps> = (props) => {
-    const formMethods = useForm<IForm>({ resolver: yupResolver(schema) });
+    const formMethods = useForm<IForm>({ resolver: yupResolver(schema), defaultValues: schema.getDefault() });
     const {
         register,
         handleSubmit,
@@ -100,28 +100,53 @@ export const CreateScheduleModal: FC<CreateScheduleModalProps> = (props) => {
     const [createSchedule, { isLoading }] = useCreateScheduleMutation();
 
     const onSubmit: SubmitHandler<IForm> = async (data) => {
+        console.log(data);
+
+        const phases: PhaseInfo[] = [];
+        let i = 0;
+
+        for (const p of data.phases) {
+            const seconds = DurationTypeToSeconds(p.durationFromLastPhase, p.durationType);
+            const phase: PhaseInfo = {
+                id: (i + 1).toString(),
+                secondsFromLastPhase: seconds,
+                description: p.description,
+                isDefaultValueSide: p.isDefaultValueSide,
+            };
+
+            phases.push(phase);
+
+            i++;
+
+            if (!p.addRepeatingAtThatDay) {
+                continue;
+            }
+
+            const repeatingPhase: PhaseInfo = {
+                id: (i + 1).toString(),
+                secondsFromLastPhase: 1,
+                description: p.description,
+                isDefaultValueSide: true,
+            };
+
+            phases.push(repeatingPhase);
+
+            i++;
+        }
+
         const schedule: CreateScheduleItem = {
             cardsCountPerPhase: data.cardsCountPerPhase,
             forgottenBehavior: data.forgottenBehavior,
             title: data.title,
             description: data.description,
-            phases: data.phases.map((p, i) => {
-                const seconds = DurationTypeToSeconds(p.durationFromLastPhase, p.durationType);
-                const phase: PhaseInfo = {
-                    id: (i + 1).toString(),
-                    secondsFromLastPhase: seconds,
-                    description: p.description,
-                    isDefaultValueSide: p.isDefaultValueSide,
-                };
-
-                return phase;
-            }),
+            phases: phases,
         };
 
         console.log('schedule', schedule);
+
         try {
-            await createSchedule(schedule).unwrap();
-            props.onClose();
+            // await createSchedule(schedule).unwrap();
+            // props.onClose();
         } catch {}
     };
 
@@ -166,7 +191,7 @@ export const CreateScheduleModal: FC<CreateScheduleModalProps> = (props) => {
                                             {...register(`phases.${i}.durationFromLastPhase`)}
                                         />
                                         <Select
-                                            defaultValue={defaultDuration}
+                                            defaultValue={f.durationType}
                                             size="small"
                                             sx={{ width: 100 }}
                                             {...register(`phases.${i}.durationType`)}
@@ -184,7 +209,16 @@ export const CreateScheduleModal: FC<CreateScheduleModalProps> = (props) => {
                                         {...register(`phases.${i}.description`)}
                                     />
                                     <FormControlLabel
-                                        label="Закрыть слово"
+                                        label="Повторение после изучения"
+                                        control={
+                                            <Checkbox
+                                                checked={f.addRepeatingAtThatDay}
+                                                {...register(`phases.${i}.addRepeatingAtThatDay`)}
+                                            />
+                                        }
+                                    />
+                                    <FormControlLabel
+                                        label="Показывать только значение"
                                         control={
                                             <Checkbox
                                                 checked={f.isDefaultValueSide}
@@ -195,7 +229,7 @@ export const CreateScheduleModal: FC<CreateScheduleModalProps> = (props) => {
                                 </div>
                             ))}
                         </div>
-                        <Button onClick={() => append({ durationFromLastPhase: 0, description: '' })}>Add</Button>
+                        <Button onClick={() => append(phaseSchema.getDefault())}>Add</Button>
                         <Button disabled={isLoading} type="submit">
                             Создать
                         </Button>

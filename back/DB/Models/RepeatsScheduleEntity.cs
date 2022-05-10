@@ -11,34 +11,54 @@ public interface IParentRepeatsScheduleReference : IParentUserReference
 
 public interface IPatchRepeatsSchedule
 {
-    public string Title { get; set; }
-    public string? Description { get; set; }
-    public short CardsCountPerPhase { get; set; }
-    public ForgottenBehavior ForgottenBehavior { get; set; }
+    public string Title { get; }
+    public string? ShortDescription { get; }
+    public string? Description { get; }
+    public short CardsCountPerPhase { get; }
+    public ForgottenBehavior ForgottenBehavior { get; }
+    public string? DefaultPhaseShortDescription { get; }
+    public string? DefaultPhaseDescription { get; }
+    public string? DefaultRepeatPhaseShortDescription { get; }
+    public string? DefaultRepeatPhaseDescription { get; }
 }
 
 public interface ICreateOrPatchRepeatsSchedule : IPatchRepeatsSchedule
 {
-    public long ParentUserId { get; set; }
+    public long ParentUserId { get; }
 }
 
 public class PatchRepeatsSchedule : IPatchRepeatsSchedule
 {
-    public string Title { get; set; }
-    public string? Description { get; set; }
-    public short CardsCountPerPhase { get; set; }
-    public ForgottenBehavior ForgottenBehavior { get; set; }
+    public string Title { get; }
+    public string? ShortDescription { get;  }
+    public string? Description { get;  }
+    public short CardsCountPerPhase { get;  }
+    public ForgottenBehavior ForgottenBehavior { get;  }
+    public string? DefaultPhaseShortDescription { get;  }
+    public string? DefaultPhaseDescription { get;  }
+    public string? DefaultRepeatPhaseShortDescription { get;  }
+    public string? DefaultRepeatPhaseDescription { get;  }
 
     public PatchRepeatsSchedule(
         short cardsCountPerPhase,
         ForgottenBehavior forgottenBehavior,
         string title,
-        string? description)
+        string? shortDescription,
+        string? description,
+        string? defaultPhaseShortDescription,
+        string? defaultPhaseDescription,
+        string? defaultRepeatPhaseShortDescription,
+        string? defaultRepeatPhaseDescription)
     {
         CardsCountPerPhase = cardsCountPerPhase;
         ForgottenBehavior = forgottenBehavior;
         Title = title;
         Description = description;
+        ShortDescription = shortDescription;
+        DefaultPhaseShortDescription = defaultPhaseShortDescription;
+        DefaultPhaseDescription = defaultPhaseDescription;
+        DefaultRepeatPhaseShortDescription = defaultRepeatPhaseShortDescription;
+        DefaultRepeatPhaseDescription = defaultRepeatPhaseDescription;
     }
 }
 
@@ -51,13 +71,23 @@ public class CreateScheduleItem : PatchRepeatsSchedule, ICreateOrPatchRepeatsSch
         short cardsCountPerPhase,
         ForgottenBehavior forgottenBehavior,
         string title,
-        string? description)
+        string? shortDescription,
+        string? description,
+        string? defaultPhaseShortDescription,
+        string? defaultPhaseDescription,
+        string? defaultRepeatPhaseShortDescription,
+        string? defaultRepeatPhaseDescription)
         :
         base(
             cardsCountPerPhase,
             forgottenBehavior,
             title,
-            description)
+            shortDescription,
+            description,
+            defaultPhaseShortDescription,
+            defaultPhaseDescription,
+            defaultRepeatPhaseShortDescription,
+            defaultRepeatPhaseDescription)
 
     {
         ParentUserId = parentUserId;
@@ -67,14 +97,28 @@ public class CreateScheduleItem : PatchRepeatsSchedule, ICreateOrPatchRepeatsSch
 [Table("RepeatsSchedules")]
 public class RepeatsScheduleEntity : IParentUserReference, ICreateOrPatchRepeatsSchedule
 {
+    private const int ShortDescriptionLength = 100;
+
     [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
     public short Id { get; set; }
 
     [Required]
     [StringLength(255)]
     public string Title { get; set; }
-    
+
+    [StringLength(ShortDescriptionLength)]
+    public string? ShortDescription { get; set; }
+
+    [Column("OnStartLearningDescription")]
     public string? Description { get; set; }
+
+    [StringLength(ShortDescriptionLength)]
+    public string? DefaultPhaseShortDescription { get; set; }
+    public string? DefaultPhaseDescription { get; set; }
+
+    [StringLength(ShortDescriptionLength)]
+    public string? DefaultRepeatPhaseShortDescription { get; set; }
+    public string? DefaultRepeatPhaseDescription { get; set; }
 
     [Required] 
     public short CardsCountPerPhase { get; set; }

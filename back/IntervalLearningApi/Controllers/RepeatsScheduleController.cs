@@ -27,21 +27,14 @@ namespace IntervalLearningApi.Controllers
         }
 
         [HttpPost]
-        public async Task<ActionResult<Schedule>> CreateSchedule([FromBody] CreateScheduleItem item)
+        public async Task<ActionResult<Schedule>> CreateSchedule([FromBody] CreateScheduleRequest request)
         {
             var userId = HttpContext.GetUserId();
-            var (schedule, error) = await repeatsScheduleService.Create(
-                userId,
-                item.CardsCountPerPhase,
-                (ForgottenBehavior)item.ForgottenBehavior,
-                item.Title,
-                item.Phases,
-                item.Description);
-
+            var (schedule, error) = await repeatsScheduleService.Create(userId, request);
             return schedule != null ? ToSchedule(schedule) : BadRequest(error);
         }
 
-        public class CreateScheduleItem
+        public class CreateScheduleRequest
         {
             [Required]
             public short CardsCountPerPhase { get; set; }
@@ -49,10 +42,23 @@ namespace IntervalLearningApi.Controllers
             public int ForgottenBehavior { get; set; }
             [Required]
             public string Title { get; set; }
+
+            [StringLength(100)]
+            public string? ShortDescription { get; }
+
             [StringLength(1000)]
             public string? Description { get; set; }
             [Required]
             public List<PhaseInfo> Phases { get; set; }
+
+            [StringLength(100)]
+            public string? DefaultPhaseShortDescription { get; }
+            [StringLength(1000)]
+            public string? DefaultPhaseDescription { get; }
+            [StringLength(100)]
+            public string? DefaultRepeatPhaseShortDescription { get; }
+            [StringLength(1000)]
+            public string? DefaultRepeatPhaseDescription { get; }
         }
 
         private static Schedule ToSchedule(RepeatsScheduleEntity schedule)
@@ -62,10 +68,15 @@ namespace IntervalLearningApi.Controllers
                 schedule.Id,
                 schedule.Title,
                 schedule.CardsCountPerPhase,
+                schedule.ShortDescription,
                 schedule.Description,
                 schedule.ForgottenBehavior,
                 schedule.IsRecommended,
-                schedule.Phases.Select(ToPhase).ToList());
+                schedule.Phases.Select(ToPhase).ToList(),
+                schedule.DefaultPhaseShortDescription,
+                schedule.DefaultPhaseDescription,
+                schedule.DefaultRepeatPhaseShortDescription,
+                schedule.DefaultRepeatPhaseDescription);
         }
 
         private static Phase ToPhase(PhaseEntity phase)
@@ -75,6 +86,7 @@ namespace IntervalLearningApi.Controllers
                 phase.ParentRepeatsScheduleId,
                 phase.Id,
                 phase.SecondsFromLastPhase,
+                phase.ShortDescription,
                 phase.Description);
         }
     }

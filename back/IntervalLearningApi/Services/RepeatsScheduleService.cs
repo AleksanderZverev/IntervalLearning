@@ -1,6 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using DB;
 using DB.Models;
+using IntervalLearningApi.Controllers;
 using Microsoft.EntityFrameworkCore;
 
 namespace IntervalLearningApi.Services;
@@ -30,20 +31,21 @@ public class RepeatsScheduleService
 
     public async Task<(RepeatsScheduleEntity? schedule, string? error)> Create(
         long userId, 
-        short cardsCountPerPhase, 
-        ForgottenBehavior forgottenBehavior, 
-        string title,
-        List<PhaseInfo> phases, 
-        string? description)
+        RepeatsScheduleController.CreateScheduleRequest request)
     {
         db.Database.BeginTransaction();
 
         var schedule = await scheduleRep.Create(new CreateScheduleItem(
             userId,
-            cardsCountPerPhase,
-            forgottenBehavior,
-            title,
-            description
+            request.CardsCountPerPhase,
+            (ForgottenBehavior)request.ForgottenBehavior,
+            request.Title,
+            request.ShortDescription,
+            request.Description,
+            request.DefaultPhaseShortDescription,
+            request.DefaultPhaseDescription,
+            request.DefaultRepeatPhaseShortDescription,
+            request.DefaultRepeatPhaseDescription
         ));
 
         try
@@ -56,13 +58,14 @@ public class RepeatsScheduleService
             return (null, "Unable to create schedule");
         }
 
-        var phaseEntities = phases
+        var phaseEntities = request.Phases
             .Select(p => phasesRep.Create(
                 new CreatePhaseItem(
                     userId,
                     p.Id,
                     schedule.Id,
                     p.SecondsFromLastPhase,
+                    p.ShortDescription,
                     p.Description,
                     p.IsDefaultValueSide)))
             .ToList();
@@ -88,6 +91,8 @@ public class PhaseInfo
 
     [Required]
     public uint SecondsFromLastPhase { get; set; }
+    [StringLength(100)]
+    public string? ShortDescription { get; set; }
 
     [StringLength(1000)]
     public string? Description { get; set; }

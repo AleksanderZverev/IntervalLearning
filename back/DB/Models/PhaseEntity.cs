@@ -12,17 +12,20 @@ public interface IParentPhaseReference : IParentRepeatsScheduleReference
 public class PatchPhaseItem
 {
     public uint SecondsFromLastPhase { get; set; }
+    public string? ShortDescription { get; set; }
     public string? Description { get; set; }
     public bool IsDefaultValueSide { get; set; }
 
     public PatchPhaseItem(
         uint secondsFromLastPhase,
+        string? shortDescription,
         string? description,
         bool isDefaultValueSide)
     {
         SecondsFromLastPhase = secondsFromLastPhase;
         Description = description;
         IsDefaultValueSide = isDefaultValueSide;
+        ShortDescription = shortDescription;
     }
 }
 
@@ -37,11 +40,13 @@ public class CreatePhaseItem : PatchPhaseItem
         short id,
         short parentRepeatsScheduleId,
         uint secondsFromLastPhase,
+        string? shortDescription,
         string? description,
         bool isDefaultValueSide)
         :
         base(
             secondsFromLastPhase,
+            shortDescription,
             description,
             isDefaultValueSide)
     {
@@ -50,6 +55,7 @@ public class CreatePhaseItem : PatchPhaseItem
         ParentRepeatsScheduleId = parentRepeatsScheduleId;
     }
 }
+
 
 //Первая фаза всегда = изучение на первом этапе
 [Table("SchedulePhases")]
@@ -60,7 +66,10 @@ public class PhaseEntity : IParentRepeatsScheduleReference
 
     [Required]
     public uint SecondsFromLastPhase { get; set; }
-    
+
+    [StringLength(100)]
+    public string? ShortDescription { get; set; }
+    [Column("OnLearnDescription")]
     public string? Description { get; set; }
 
     public bool IsDefaultValueSide { get; set; }
