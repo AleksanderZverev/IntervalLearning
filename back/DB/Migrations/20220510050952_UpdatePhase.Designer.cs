@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using DB;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -12,9 +13,10 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace DB.Migrations
 {
     [DbContext(typeof(ApplicationContext))]
-    partial class ApplicationContextModelSnapshot : ModelSnapshot
+    [Migration("20220510050952_UpdatePhase")]
+    partial class UpdatePhase
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -146,18 +148,13 @@ namespace DB.Migrations
                         .HasColumnType("smallint");
 
                     b.Property<string>("Description")
-                        .HasColumnType("text")
-                        .HasColumnName("OnLearnDescription");
+                        .HasColumnType("text");
 
                     b.Property<bool>("IsDefaultValueSide")
                         .HasColumnType("boolean");
 
                     b.Property<long>("SecondsFromLastPhase")
                         .HasColumnType("bigint");
-
-                    b.Property<string>("ShortDescription")
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
 
                     b.HasKey("ParentUserId", "ParentRepeatsScheduleId", "Id");
 
@@ -288,23 +285,8 @@ namespace DB.Migrations
                     b.Property<short>("CardsCountPerPhase")
                         .HasColumnType("smallint");
 
-                    b.Property<string>("DefaultPhaseDescription")
-                        .HasColumnType("text");
-
-                    b.Property<string>("DefaultPhaseShortDescription")
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
-
-                    b.Property<string>("DefaultRepeatPhaseDescription")
-                        .HasColumnType("text");
-
-                    b.Property<string>("DefaultRepeatPhaseShortDescription")
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
-
                     b.Property<string>("Description")
-                        .HasColumnType("text")
-                        .HasColumnName("OnStartLearningDescription");
+                        .HasColumnType("text");
 
                     b.Property<int>("ForgottenBehavior")
                         .HasColumnType("integer");
@@ -314,10 +296,6 @@ namespace DB.Migrations
 
                     b.Property<bool>("IsRecommended")
                         .HasColumnType("boolean");
-
-                    b.Property<string>("ShortDescription")
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
 
                     b.Property<string>("Title")
                         .IsRequired()
