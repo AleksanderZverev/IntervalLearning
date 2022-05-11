@@ -4,7 +4,7 @@ import { LocalStorageHelper } from '../../helpers/localStorageHelper';
 
 interface AssertionModalProps {
     title: string;
-    message: string;
+    message: string | null;
     assertTitle: string;
     cancelTitle?: string;
     onClose: () => void;

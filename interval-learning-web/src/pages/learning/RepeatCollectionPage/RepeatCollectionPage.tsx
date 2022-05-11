@@ -26,6 +26,7 @@ import { getScheduleId, selectScheduleById } from '../../../redux/slices/schedul
 import { LightTooltip } from '../../../controls/LightTooltip/LightTooltip';
 import { HelpOutline } from '@mui/icons-material';
 import dayjs from 'dayjs';
+import { getRepeatingNavigationLink } from '../LearningPage/InProgressCollections/InProgressCollections';
 
 type WithResolvers = WithQueryResolverData<typeof useGetRepeatCardsQuery> &
     WithMutationResolverProps<typeof usePatchRememberCardsMutation>;
@@ -49,7 +50,14 @@ export const RepeatCollectionPageContent: FC<RepeatCollectionPageContentProps> =
     phaseIndex,
     setSkipLoading,
     date,
-    mutationProps: { mutate: rememberCards, data, showRetryModal, isLoading, isSuccess },
+    mutationProps: {
+        mutate: rememberCards,
+        data: mutationData,
+        showRetryModal,
+        isLoading,
+        isSuccess,
+        reset: mutationReset,
+    },
 }) => {
     const collection = useTypedSelector((state) => selectCollectionById(state, userId, collectionId));
     const schedule = useTypedSelector((state) => selectScheduleById(state, getScheduleId(scheduleUserId, scheduleId)));
@@ -64,6 +72,8 @@ export const RepeatCollectionPageContent: FC<RepeatCollectionPageContentProps> =
     const [showAssertionModal, setShowAssertionModal] = useState(false);
     const [showCurrentCardError, setShowCurrentCardError] = useState(false);
     const [showStartModal, setShowStartModal] = useState(true);
+    const [forceShowStartModal, setForceShowStartModal] = useState(false);
+    const [showMoveToRepeatModal, setShowMoveToRepeatModal] = useState(false);
 
     const [rememberWeights, setRememberWeights] = useState<Record<string, number | undefined>>(
         () => LocalStorageHelper.getRepeatingCards(schedule.userId, schedule.id, phaseIndex, date, collection.id) ?? {}
@@ -96,8 +106,45 @@ export const RepeatCollectionPageContent: FC<RepeatCollectionPageContentProps> =
         );
     };
 
+    const onSuccessFinish = (fromModal: boolean) => {
+        console.log('mutdata', mutationData);
+        if (mutationData && !fromModal) {
+            const now = dayjs();
+            const date = dayjs(mutationData.nextRepeatDate);
+            const diffMinutes = date.diff(now, 'minutes');
+
+            console.log(now, date, 'diff', diffMinutes);
+
+            if (diffMinutes <= 1) {
+                setShowMoveToRepeatModal(true);
+                return;
+            }
+        }
+
+        if (mutationData && mutationData.nextRepeatDate && fromModal) {
+            setSkipLoading(false);
+            mutationReset();
+
+            navigate(
+                getRepeatingNavigationLink(
+                    userId,
+                    collectionId,
+                    scheduleUserId,
+                    scheduleId,
+                    mutationData.nextPhaseIndex,
+                    mutationData.nextRepeatDate
+                )
+            );
+            return;
+        }
+        navigate('/learning');
+    };
+
     const onFinish = async (fromAssertionModal: boolean) => {
         if (isLoading || isSuccess) {
+            if (isSuccess) {
+                onSuccessFinish(false);
+            }
             return;
         }
 
@@ -158,6 +205,14 @@ export const RepeatCollectionPageContent: FC<RepeatCollectionPageContentProps> =
     const sortedPhases = [...schedule.phases].sort((f, s) => f.id.localeCompare(s.id));
     const phase = sortedPhases[phaseIndex];
 
+    const phaseShortDescription =
+        phase.shortDescription ||
+        (phase.secondsFromLastPhase < 10
+            ? schedule.defaultRepeatPhaseShortDescription
+            : schedule.defaultPhaseShortDescription);
+
+    console.log(schedule, phase);
+
     return (
         <PageContainer transparent>
             <PageHeader
@@ -165,19 +220,31 @@ export const RepeatCollectionPageContent: FC<RepeatCollectionPageContentProps> =
                 subTitle={theme?.name || ''}
                 subMenu={
                     !isEmptyCollection && (
-                        <Button variant="outlined" onClick={() => (isSuccess ? onExit() : onFinish(false))}>
+                        <Button
+                            variant="outlined"
+                            onClick={() => (isSuccess ? onSuccessFinish(false) : onFinish(false))}
+                        >
                             Завершить
                         </Button>
                     )
                 }
             />
             <div>
-                {showStartModal && phase && phase.description && (
+                {(showStartModal || forceShowStartModal) && phase && phase.description && (
                     <AssertionModal
-                        title="Учебный план"
-                        message={phase.description}
+                        forceOpen={forceShowStartModal}
+                        title={`Учебный план: ${schedule.title}`}
+                        message={
+                            phase.description ||
+                            (phase.secondsFromLastPhase < 10
+                                ? schedule.defaultRepeatPhaseDescription
+                                : schedule.defaultPhaseDescription)
+                        }
                         assertTitle="OK"
-                        onClose={() => setShowStartModal(false)}
+                        onClose={() => {
+                            setShowStartModal(false);
+                            setForceShowStartModal(false);
+                        }}
                         forbidShowingKey={`${scheduleUserId}-${scheduleId}`}
                     />
                 )}
@@ -202,13 +269,27 @@ export const RepeatCollectionPageContent: FC<RepeatCollectionPageContentProps> =
                         }}
                     />
                 )}
-                <div style={{ marginTop: 10, cursor: 'pointer', color: '#b7b7b7' }}>
-                    {phase && phase.description && (
+                {showMoveToRepeatModal && (
+                    <AssertionModal
+                        title="Слова необходимо повторить"
+                        message="Перейти к повторению?"
+                        assertTitle="Да"
+                        cancelTitle="Нет"
+                        onAssert={() => onSuccessFinish(true)}
+                        onClose={() => setShowMoveToRepeatModal(false)}
+                    />
+                )}
+                <div
+                    style={{ marginTop: 10, cursor: 'pointer', color: '#b7b7b7' }}
+                    onClick={() => setForceShowStartModal(true)}
+                >
+                    {phase && (
                         <LightTooltip
+                            open={Boolean(phaseShortDescription) ? undefined : false}
                             placement="bottom-start"
                             title={
                                 <div style={{ padding: 5, fontSize: 18, fontWeight: 'normal' }}>
-                                    {phase.description}
+                                    {phaseShortDescription}
                                 </div>
                             }
                             sx={{ maxWidth: '70%' }}
@@ -241,11 +322,11 @@ export const RepeatCollectionPageContent: FC<RepeatCollectionPageContentProps> =
                                 rowGap: 35,
                             }}
                         >
-                            {isSuccess && data && (
+                            {isSuccess && mutationData && (
                                 <CardResult
                                     wordsLearned={notActiveIndex > maxCards ? maxCards : notActiveIndex}
-                                    nextRepeatDate={data.nextRepeatDate}
-                                    onEndButtonClick={onExit}
+                                    nextRepeatDate={mutationData.nextRepeatDate}
+                                    onEndButtonClick={() => onSuccessFinish(false)}
                                 />
                             )}
                             {!isSuccess && currentCard && (
@@ -319,6 +400,8 @@ export const RepeatCollection: FC = () => {
     }
 
     const phaseIndex = parseInt(phaseIndexString);
+
+    console.log(skipLoading);
 
     return (
         <ConnectedMutationResolver

@@ -59,6 +59,8 @@ export interface StartCardResponse {
 
 export interface RememberCardResponse {
     nextRepeatDate: string | null;
+    nextRepeatPhase: PhaseInfo | null;
+    nextPhaseIndex: number;
 }
 
 export interface GetNotStartedCardsRequest {

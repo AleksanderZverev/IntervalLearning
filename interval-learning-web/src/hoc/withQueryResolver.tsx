@@ -153,6 +153,7 @@ export interface WithMutationResolverProps<
         isLoading: boolean;
         isSuccess: boolean;
         data: GetMutationResult<T> | undefined;
+        reset: () => void;
     };
 }
 
@@ -168,7 +169,7 @@ export const withMutationResolver =
     ) =>
     (props: MutationResolverProps & Omit<TComponentProps, keyof WithMutationResolverProps<typeof useMutation>>) => {
         const [mutate, mutationArgs] = useMutation();
-        const { data, isLoading, isError, isSuccess, originalArgs } = mutationArgs;
+        const { data, isLoading, isError, isSuccess, originalArgs, reset } = mutationArgs;
 
         const onMutate = (args: TMutationArg) => mutate(args).unwrap();
 
@@ -212,6 +213,7 @@ export const withMutationResolver =
                         isLoading: isLoading,
                         isSuccess: isSuccess,
                         data: data,
+                        reset: reset,
                     }}
                     {...otherProps}
                 />

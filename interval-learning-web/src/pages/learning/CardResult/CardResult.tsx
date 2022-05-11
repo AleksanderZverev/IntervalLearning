@@ -12,6 +12,8 @@ interface CardResultProps {
 
 export const CardResult: FC<CardResultProps> = ({ nextRepeatDate, wordsLearned, onEndButtonClick }) => {
     const date = dayjs(nextRepeatDate);
+    const now = dayjs();
+    const diffMinutes = date.diff(now, 'minutes');
 
     return (
         <Paper className={styles.container}>
@@ -22,9 +24,11 @@ export const CardResult: FC<CardResultProps> = ({ nextRepeatDate, wordsLearned, 
             </div>
             <div>
                 Следующее повторение:{' '}
-                {nextRepeatDate
-                    ? `${date.format('L')} (через ${DateHelper.getDifferenceString(dayjs(), date)})`
-                    : 'Неизвестно'}
+                {!nextRepeatDate
+                    ? 'Неизвестно'
+                    : diffMinutes < 10
+                    ? 'Сегодня'
+                    : `${date.format('L')} (через ${DateHelper.getDifferenceString(now, date)})`}
             </div>
 
             <div className={styles.buttonsContainer}>

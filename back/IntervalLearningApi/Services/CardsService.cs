@@ -274,8 +274,7 @@ public class CardsService
         return (new NextRepeatInfo(closestRepeatDate, closestPhaseInfo, closestPhaseIndex), null);
     }
 
-    public async Task<(bool ok, string? reason, DateTime? closestRepeatDate)> Remember(
-        long userId,
+    public async Task<(NextRepeatInfo? closestRepeatInfo, string? reason)> Remember(long userId,
         short collectionId,
         long scheduleUserId,
         short scheduleId,
@@ -289,7 +288,7 @@ public class CardsService
 
         if (collection == null)
         {
-            return (false, "card's collection not found", null);
+            return (null, "card's collection not found");
         }
 
         var queueItems = await db.Queue
@@ -302,7 +301,7 @@ public class CardsService
             .ToListAsync();
 
         if (queueItems.Count == 0 || queueItems.Count != cardIds.Count)
-            return (false, "Incorrect request", null);
+            return (null, "Incorrect request");
 
         var schedule = db.RepeatsSchedules
             .Include(s => s.Phases)
@@ -310,10 +309,14 @@ public class CardsService
 
         if (schedule == null)
         {
-            return (false, "Schedule not found", null);
+            return (null, "Schedule not found");
         }
         
         var closestRepeatDate = DateTime.MaxValue;
+        var closestPhaseIndex = -1;
+        PhaseEntity closestPhaseInfo = null;
+
+        var forbidDate = DateTime.UtcNow.Date.AddDays(1);
 
         foreach (var rememberItem in rememberItems)
         {
@@ -322,13 +325,16 @@ public class CardsService
 
             var queueItem = queueItems.Single(q => q.ParentCardId == cardId);
 
-            if (queueItem.Date.Date >= DateTime.UtcNow.Date && env.IsProduction())
+            if (queueItem.Date.Date >= forbidDate && env.IsProduction())
             {
                 logger.LogInformation("Unable to remember. Not time!");
-                return (false, "unable to repeat", null);
+                return (null, "unable to repeat");
             }
 
-            var currentPhase = schedule.Phases.OrderBy(p => p.Id).Skip(queueItem.PhaseIndex).First();
+            var currentPhase = schedule.Phases
+                .OrderBy(p => p.Id)
+                .Skip(queueItem.PhaseIndex)
+                .First();
 
             var remember = new RememberEntity(
                 schedule.ParentUserId,
@@ -361,7 +367,11 @@ public class CardsService
             var nextRepeatDate = now.AddSeconds(nextPhase.SecondsFromLastPhase);
 
             if (nextRepeatDate < closestRepeatDate)
+            {
                 closestRepeatDate = nextRepeatDate;
+                closestPhaseInfo = nextPhase;
+                closestPhaseIndex = nextPhaseIndex;
+            }
 
             var newQueueItem = new CardRepeatQueueEntity(
                 schedule.ParentUserId,
@@ -374,18 +384,21 @@ public class CardsService
 
             db.Entry(queueItem).State = EntityState.Deleted;
             db.Entry(newQueueItem).State = EntityState.Added;
-            db.Entry(collection).State = EntityState.Modified;
+            //db.Entry(collection).State = EntityState.Modified;
         }
 
 
         try
         {
             db.SaveChanges();
-            return (true, null, closestRepeatDate == DateTime.MaxValue ? null : closestRepeatDate);
+            return (new NextRepeatInfo(
+                closestRepeatDate == DateTime.MaxValue ? null : closestRepeatDate,
+                closestPhaseInfo,
+                closestPhaseIndex), null);
         }
         catch
         {
-            return (false, "unknown error", null);
+            return (null, "unknown error");
         }
     }
 

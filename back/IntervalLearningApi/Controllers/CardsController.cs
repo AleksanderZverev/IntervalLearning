@@ -96,7 +96,7 @@ namespace IntervalLearningApi.Controllers
         {
             var userId = HttpContext.GetUserId();
 
-            var (ok, error, closestRepeatDate) = await cardsService.Remember(
+            var (closestRepeatInfo, error) = await cardsService.Remember(
                 userId,
                 collectionId,
                 request.ScheduleUserId,
@@ -105,7 +105,14 @@ namespace IntervalLearningApi.Controllers
                 ToCardServiceRememberItems(request.RememberItems)
             );
 
-            return ok ? new RememberCardResponse(closestRepeatDate) : BadRequest(error);
+            return closestRepeatInfo != null
+                ? new RememberCardResponse(
+                    closestRepeatInfo.NextRepeatDate,
+                    closestRepeatInfo.NextPhase == null
+                        ? null
+                        : RepeatsScheduleController.ToPhase(closestRepeatInfo.NextPhase),
+                    closestRepeatInfo.NextPhaseIndex)
+                : BadRequest(error);
         }
 
         private List<CardsService.RememberItem> ToCardServiceRememberItems(List<RememberItem> requestRememberItems)
@@ -131,10 +138,14 @@ namespace IntervalLearningApi.Controllers
     public class RememberCardResponse
     {
         public DateTime? NextRepeatDate { get; }
+        public Phase? NextRepeatPhase { get; }
+        public int NextPhaseIndex { get; }
 
-        public RememberCardResponse(DateTime? nextRepeatDate)
+        public RememberCardResponse(DateTime? nextRepeatDate, Phase? nextRepeatPhase, int nextPhaseIndex)
         {
             NextRepeatDate = nextRepeatDate;
+            NextRepeatPhase = nextRepeatPhase;
+            NextPhaseIndex = nextPhaseIndex;
         }
     }
 

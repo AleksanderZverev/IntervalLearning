@@ -9,7 +9,7 @@ const axiosInstance: AxiosInstance = axios.create({
 
 axiosInstance.interceptors.response.use(
     (response) => {
-        handleDates(response?.data);
+        // handleDates(response?.data);
         return response;
     },
     (error: AxiosError) => {
