@@ -15,7 +15,7 @@ body {
 #__next {
     height: 100%;
     display: grid;
-    grid-template-rows: minmax(50px, auto) 1fr;
+    grid-template-rows: minmax(51px, auto) 1fr;
 }
 
 body {

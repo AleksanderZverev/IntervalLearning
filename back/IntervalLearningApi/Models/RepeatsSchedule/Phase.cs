@@ -13,14 +13,15 @@ public class Phase
     public uint SecondsFromLastPhase { get; }
     public string? ShortDescription { get; }
     public string? Description { get; }
+    public bool IsDefaultValueSide { get; }
 
-    public Phase(
-        long parentUserId,
+    public Phase(long parentUserId,
         short parentRepeatsScheduleId,
         short id,
         uint secondsFromLastPhase,
         string? shortDescription,
-        string? description)
+        string? description, 
+        bool isDefaultValueSide)
     {
         ParentUserId = parentUserId.ToString();
         ParentRepeatsScheduleId = parentRepeatsScheduleId.ToString();
@@ -28,5 +29,6 @@ public class Phase
         SecondsFromLastPhase = secondsFromLastPhase;
         ShortDescription = shortDescription;
         Description = description;
+        IsDefaultValueSide = isDefaultValueSide;
     }
 }

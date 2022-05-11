@@ -88,6 +88,7 @@ public class CardsService
             .Where(c => c.ParentUserId == userId 
                         && c.ParentCollectionId == collectionId 
                         && !startedCardIds.Contains(c.Id))
+            .OrderBy(c => c.Id)
             .Take(schedule.CardsCountPerPhase)
             .ToListAsync();
 

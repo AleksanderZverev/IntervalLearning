@@ -87,7 +87,8 @@ namespace IntervalLearningApi.Controllers
                 phase.Id,
                 phase.SecondsFromLastPhase,
                 phase.ShortDescription,
-                phase.Description);
+                phase.Description,
+                phase.IsDefaultValueSide);
         }
     }
 }

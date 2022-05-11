@@ -91,10 +91,6 @@ export const RepeatCollectionPageContent: FC<RepeatCollectionPageContentProps> =
 
     const currentCard = repeatCards[cardIndex];
 
-    const onExit = () => {
-        navigate('/learning');
-    };
-
     const saveWeights = (clearSaves: boolean) => {
         LocalStorageHelper.saveRepeatingCardsWeights(
             schedule.userId,
@@ -342,6 +338,7 @@ export const RepeatCollectionPageContent: FC<RepeatCollectionPageContentProps> =
                                     onPrevious={onPrevious}
                                     forceShowError={showCurrentCardError}
                                     errorMessage={'Помните слово?'}
+                                    isValueSideDefault={phase.isDefaultValueSide}
                                 />
                             )}
 

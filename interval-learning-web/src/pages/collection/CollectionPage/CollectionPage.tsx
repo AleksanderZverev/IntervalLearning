@@ -92,30 +92,32 @@ export const CollectionPage: FC = () => {
                     // defaultSchedule={defaultSchedule}
                 />
             )}
-            <Table>
-                <TableHead>
-                    <TableHeaderCell>Запомнить</TableHeaderCell>
-                    <TableHeaderCell>Значение</TableHeaderCell>
-                    <TableHeaderCell>Описание</TableHeaderCell>
-                </TableHead>
-                <TableBody>
-                    {cards && cards.length > 0 ? (
-                        cards.map((c) => <CardRow key={c.id} card={c} />)
-                    ) : (
-                        <TableRow borderless>
-                            <TableCell colSpan={3} align="center">
-                                Коллекция пуста
-                            </TableCell>
-                        </TableRow>
-                    )}
-                </TableBody>
-            </Table>
-            {collection.cardsCount > cardsCountPerPage && (
-                <Pagination
-                    count={Math.ceil(collection.cardsCount / cardsCountPerPage)}
-                    onChange={(event, page) => setPage(page)}
-                />
-            )}
+            <div>
+                <Table>
+                    <TableHead>
+                        <TableHeaderCell>Запомнить</TableHeaderCell>
+                        <TableHeaderCell>Значение</TableHeaderCell>
+                        <TableHeaderCell>Описание</TableHeaderCell>
+                    </TableHead>
+                    <TableBody>
+                        {cards && cards.length > 0 ? (
+                            cards.map((c) => <CardRow key={c.id} card={c} />)
+                        ) : (
+                            <TableRow borderless>
+                                <TableCell colSpan={3} align="center">
+                                    Коллекция пуста
+                                </TableCell>
+                            </TableRow>
+                        )}
+                    </TableBody>
+                </Table>
+                {collection.cardsCount > cardsCountPerPage && (
+                    <Pagination
+                        count={Math.ceil(collection.cardsCount / cardsCountPerPage)}
+                        onChange={(event, page) => setPage(page)}
+                    />
+                )}
+            </div>
         </PageContainer>
     );
 };

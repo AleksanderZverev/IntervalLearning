@@ -19,13 +19,15 @@ export const LearningPage: FC = () => {
                         onChange={(e, v: boolean) => setIsInProcess(v)}
                         exclusive
                     >
-                        <ToggleButton value={true}>В процессе</ToggleButton>
-                        <ToggleButton value={false}>Начать</ToggleButton>
+                        <ToggleButton value={true}>Повторить</ToggleButton>
+                        <ToggleButton value={false}>Изучить</ToggleButton>
                     </ToggleButtonGroup>
                 }
             />
-            {isInProcess && <InProgressCollections />}
-            {!isInProcess && <CanStartCollections />}
+            <div>
+                {isInProcess && <InProgressCollections />}
+                {!isInProcess && <CanStartCollections />}
+            </div>
         </PageContainer>
     );
 };

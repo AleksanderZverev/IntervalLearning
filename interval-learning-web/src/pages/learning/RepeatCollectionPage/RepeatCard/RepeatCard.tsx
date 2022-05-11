@@ -31,6 +31,7 @@ interface RepeatCardProps {
     onFinish: () => void;
     isActive: boolean;
     forceShowError: boolean;
+    isValueSideDefault: boolean;
 }
 
 export const RepeatCard: FC<RepeatCardProps> = ({
@@ -44,6 +45,7 @@ export const RepeatCard: FC<RepeatCardProps> = ({
     errorMessage,
     isActive,
     onChange,
+    isValueSideDefault,
 }) => {
     const [backIsHidden, setBackIsHidden] = useState(true);
     const [isError, setIsError] = useState(false);
@@ -54,6 +56,9 @@ export const RepeatCard: FC<RepeatCardProps> = ({
         e.key === '2' && onChange(0.5);
         e.key === '3' && onChange(1);
     });
+
+    const frontText = isValueSideDefault ? card.backSideText : card.frontSideText;
+    const backText = isValueSideDefault ? card.frontSideText : card.backSideText;
 
     return (
         <Paper className={styles.container}>
@@ -86,13 +91,13 @@ export const RepeatCard: FC<RepeatCardProps> = ({
                 </IconButton>
             )}
             <Typography variant="h3" fontSize={32}>
-                {card.frontSideText}
+                {frontText}
             </Typography>
             <div
                 className={classNames(styles.backContainer, { [styles.backHidden]: backIsHidden })}
                 onClick={() => setBackIsHidden(!backIsHidden)}
             >
-                {card.backSideText}
+                {backText}
             </div>
             <div>
                 <RadioGroup
