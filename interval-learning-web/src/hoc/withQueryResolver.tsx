@@ -194,7 +194,6 @@ export const withMutationResolver =
                 <Portal>
                     {showAssertionModal && (
                         <AssertionModal
-                            open
                             onClose={() => setShowAssertionModal(false)}
                             onCancel={() => setShowAssertionModal(false)}
                             onAssert={onRetry}

@@ -1,6 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using IntervalLearningApi.Extensions;
 using IntervalLearningApi.Models.ByUser;
+using IntervalLearningApi.Models.RepeatsSchedule;
 using IntervalLearningApi.Services;
 using Microsoft.AspNetCore.Mvc;
 
@@ -79,8 +80,15 @@ namespace IntervalLearningApi.Controllers
         public ActionResult<StartCardResponse> StartCards(short collectionId, [FromBody]CardsItem item)
         {
             var userId = HttpContext.GetUserId();
-            var (closestRepeatDate, error) = cardsService.Start(userId, collectionId, item.ScheduleUserId, item.ScheduleId, item.CardIds);
-            return string.IsNullOrEmpty(error) ? new StartCardResponse(closestRepeatDate) : BadRequest(error);
+            var (closestRepeatInfo, error) = cardsService.Start(userId, collectionId, item.ScheduleUserId, item.ScheduleId, item.CardIds);
+            return closestRepeatInfo != null
+                ? new StartCardResponse(
+                    closestRepeatInfo.NextRepeatDate,
+                    closestRepeatInfo.NextPhase == null 
+                        ? null 
+                        : RepeatsScheduleController.ToPhase(closestRepeatInfo.NextPhase),
+                    closestRepeatInfo.NextPhaseIndex) 
+                : BadRequest(error);
         }
 
         [HttpPatch("remember")]
@@ -109,10 +117,14 @@ namespace IntervalLearningApi.Controllers
     public class StartCardResponse
     {
         public DateTime? NextRepeatDate { get; }
+        public Phase? NextRepeatPhase { get; }
+        public int NextPhaseIndex { get; }
 
-        public StartCardResponse(DateTime? nextRepeatDate)
+        public StartCardResponse(DateTime? nextRepeatDate, Phase? nextRepeatPhase, int nextPhaseIndex)
         {
             NextRepeatDate = nextRepeatDate;
+            NextRepeatPhase = nextRepeatPhase;
+            NextPhaseIndex = nextPhaseIndex;
         }
     }
 

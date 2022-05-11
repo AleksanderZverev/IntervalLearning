@@ -24,6 +24,8 @@ import { getScheduleId, selectScheduleById } from '../../../redux/slices/schedul
 import { LightTooltip } from '../../../controls/LightTooltip/LightTooltip';
 import { HelpOutline } from '@mui/icons-material';
 import { selectCards } from '../../../redux/slices/cardsSlice';
+import dayjs from 'dayjs';
+import { getRepeatingNavigationLink } from '../LearningPage/InProgressCollections/InProgressCollections';
 
 type WithResolvers = WithQueryResolverData<typeof useGetNotStartedCardsQuery> &
     WithMutationResolverProps<typeof useStartCardsMutation>;
@@ -50,6 +52,7 @@ export const LearnCollectionPageContent: FC<LearnCollectionPageContentProps> = (
     const cards = useTypedSelector((state) => selectCards(state, userId, collectionId));
 
     if (!collection || !schedule || !cards) {
+        console.debug(collection, schedule, cards);
         throw new Error();
     }
 
@@ -58,6 +61,8 @@ export const LearnCollectionPageContent: FC<LearnCollectionPageContentProps> = (
     const navigate = useNavigate();
     const [showAssetModal, setShowAssertModal] = useState(false);
     const [showStartModal, setShowStartModal] = useState(true);
+    const [forceShowStartModal, setForceShowStartModal] = useState(false);
+    const [showMoveToRepeatModal, setShowMoveToRepeatModal] = useState(false);
     const [activeCardIndex, setActiveCardIndex] = useState(0);
     const [cardIndex, setCardIndex] = useState(0);
 
@@ -69,13 +74,41 @@ export const LearnCollectionPageContent: FC<LearnCollectionPageContentProps> = (
 
     const currentCardId = notStartedCardIds[cardIndex];
 
-    const onSuccessFinish = () => {
+    const onSuccessFinish = (fromModal: boolean) => {
+        if (mutationData && !fromModal) {
+            const now = dayjs();
+            const date = dayjs(mutationData.nextRepeatDate);
+            const diffMinutes = date.diff(now, 'minutes');
+
+            if (diffMinutes <= 1) {
+                setShowMoveToRepeatModal(true);
+                return;
+            }
+        }
+
+        if (mutationData && mutationData.nextPhaseIndex >= 0 && fromModal) {
+            const now = dayjs();
+            navigate(
+                getRepeatingNavigationLink(
+                    userId,
+                    collectionId,
+                    scheduleUserId,
+                    scheduleId,
+                    mutationData.nextPhaseIndex,
+                    mutationData.nextRepeatDate ?? now.toISOString()
+                )
+            );
+            return;
+        }
+
         navigate('/learning');
     };
 
     const onFinish = async (fromAssertionModal: boolean) => {
         if (isMutationLoading || isSuccess) {
-            onSuccessFinish();
+            if (isSuccess) {
+                onSuccessFinish(false);
+            }
             return;
         }
 
@@ -131,12 +164,18 @@ export const LearnCollectionPageContent: FC<LearnCollectionPageContentProps> = (
                     </Button>
                 }
             />
-            <div style={{ marginTop: 10, cursor: 'pointer', color: '#b7b7b7' }}>
+            <div
+                style={{ marginTop: 10, cursor: 'pointer', color: '#b7b7b7', justifySelf: 'flex-start' }}
+                onClick={() => setForceShowStartModal(true)}
+            >
                 {schedule.description && (
                     <LightTooltip
+                        open={Boolean(schedule.shortDescription) ? undefined : false}
                         placement="bottom-start"
                         title={
-                            <div style={{ padding: 5, fontSize: 18, fontWeight: 'normal' }}>{schedule.description}</div>
+                            <div style={{ padding: 5, fontSize: 18, fontWeight: 'normal' }}>
+                                {schedule.shortDescription}
+                            </div>
                         }
                         sx={{ maxWidth: '70%' }}
                     >
@@ -147,25 +186,39 @@ export const LearnCollectionPageContent: FC<LearnCollectionPageContentProps> = (
                     </LightTooltip>
                 )}
             </div>
-            {showStartModal && schedule && schedule.description && (
+            {(showStartModal || forceShowStartModal) && schedule && schedule.description && (
                 <AssertionModal
-                    open
-                    title="Учебный план"
+                    title={`Учебный план: ${schedule.title}`}
                     message={schedule.description}
                     assertTitle="OK"
-                    onClose={() => setShowStartModal(false)}
+                    forceOpen={forceShowStartModal}
+                    onClose={() => {
+                        setShowStartModal(false);
+                        if (forceShowStartModal) {
+                            setForceShowStartModal(false);
+                        }
+                    }}
                     forbidShowingKey={`${scheduleUserId}-${scheduleId}`}
                 />
             )}
             {showAssetModal && (
                 <AssertionModal
-                    open
                     title="Не все карточки изучены"
                     message="Завершить изучение на текущей карточке?"
                     assertTitle="Да"
                     cancelTitle="Отмена"
                     onAssert={() => onFinish(true)}
                     onClose={() => setShowAssertModal(false)}
+                />
+            )}
+            {showMoveToRepeatModal && (
+                <AssertionModal
+                    title="Слова необходимо повторить"
+                    message="Перейти к повторению?"
+                    assertTitle="Да"
+                    cancelTitle="Нет"
+                    onAssert={() => onSuccessFinish(true)}
+                    onClose={() => setShowMoveToRepeatModal(false)}
                 />
             )}
             <CenterContainer>
@@ -199,7 +252,7 @@ export const LearnCollectionPageContent: FC<LearnCollectionPageContentProps> = (
                         <CardResult
                             nextRepeatDate={mutationData.nextRepeatDate}
                             wordsLearned={cardIndex + 1}
-                            onEndButtonClick={onSuccessFinish}
+                            onEndButtonClick={() => onSuccessFinish(false)}
                         />
                     )}
 

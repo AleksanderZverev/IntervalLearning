@@ -1,3 +1,4 @@
+import { PhaseInfo } from '../types/schedule';
 import { Card } from './../types/Collection';
 import { api, tagTypes } from './apiSlice';
 import { addCard, addManyCards, getCardUniqueKey } from './slices/cardsSlice';
@@ -52,6 +53,8 @@ export interface RememberItem {
 
 export interface StartCardResponse {
     nextRepeatDate: string | null;
+    nextRepeatPhase: PhaseInfo | null;
+    nextPhaseIndex: number;
 }
 
 export interface RememberCardResponse {

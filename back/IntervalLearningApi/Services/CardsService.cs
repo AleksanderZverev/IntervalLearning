@@ -140,7 +140,7 @@ public class CardsService
         return cards;
     }
 
-    public (DateTime? nextRepeatDate, string? reason) Start(long userId,
+    public (NextRepeatInfo? closestRepeatInfo, string? reason) Start(long userId,
         short collectionId,
         long scheduleUserId,
         short scheduleId, 
@@ -193,9 +193,9 @@ public class CardsService
             return (null, "unknown error");
         }
 
-        var (nextRepeatDate, queueError) = AddToQueue(userId, collectionId, startedCards, schedule);
+        var (nextRepeatInfo, queueError) = AddToQueue(userId, collectionId, startedCards, schedule);
 
-        if (!string.IsNullOrEmpty(queueError))
+        if (nextRepeatInfo == null)
         {
             db.Database.RollbackTransaction();
             return (null, queueError);
@@ -203,16 +203,18 @@ public class CardsService
 
         db.Database.CommitTransaction();
 
-        return (nextRepeatDate, null);
+        return (nextRepeatInfo, null);
     }
 
-    private (DateTime? closestRepeatDate, string? reason) AddToQueue(
+    private (NextRepeatInfo? closestRepeatInfo, string? reason) AddToQueue(
         long userId, 
         short collectionId, 
         List<CardEntity> cards,
         RepeatsScheduleEntity scheduleWithPhases)
     {
         var closestRepeatDate = DateTime.MaxValue;
+        var closestPhaseIndex = -1;
+        PhaseEntity closestPhaseInfo = null;
         var queueItems = new List<CardRepeatQueueEntity>(cards.Count);
 
         foreach (var card in cards)
@@ -233,7 +235,11 @@ public class CardsService
             var nextRepeatDate = DateTime.UtcNow.AddSeconds(nextPhase.SecondsFromLastPhase);
 
             if (nextRepeatDate <= closestRepeatDate)
+            {
                 closestRepeatDate = nextRepeatDate;
+                closestPhaseInfo = nextPhase;
+                closestPhaseIndex = nextPhaseIndex;
+            }
 
             var queueItem = new CardRepeatQueueEntity(
                 scheduleWithPhases.ParentUserId,
@@ -265,7 +271,7 @@ public class CardsService
             Debug.Fail("closestRepeatDate == DateTime.MaxValue)");
 #endif
 
-        return (closestRepeatDate, null);
+        return (new NextRepeatInfo(closestRepeatDate, closestPhaseInfo, closestPhaseIndex), null);
     }
 
     public async Task<(bool ok, string? reason, DateTime? closestRepeatDate)> Remember(
@@ -418,6 +424,20 @@ public class CardsService
         {
             CardId = cardId;
             Weight = weight;
+        }
+    }
+
+    public class NextRepeatInfo
+    {
+        public DateTime? NextRepeatDate { get; }
+        public int NextPhaseIndex { get; }
+        public PhaseEntity? NextPhase { get; }
+
+        public NextRepeatInfo(DateTime? nextRepeatDate, PhaseEntity? nextPhase, int nextPhaseIndex)
+        {
+            NextRepeatDate = nextRepeatDate;
+            NextPhase = nextPhase;
+            NextPhaseIndex = nextPhaseIndex;
         }
     }
 }

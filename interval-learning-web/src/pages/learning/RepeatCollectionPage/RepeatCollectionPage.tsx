@@ -174,7 +174,6 @@ export const RepeatCollectionPageContent: FC<RepeatCollectionPageContentProps> =
             <div>
                 {showStartModal && phase && phase.description && (
                     <AssertionModal
-                        open
                         title="Учебный план"
                         message={phase.description}
                         assertTitle="OK"
@@ -184,7 +183,6 @@ export const RepeatCollectionPageContent: FC<RepeatCollectionPageContentProps> =
                 )}
                 {showCurrentCardError && (
                     <AssertionModal
-                        open
                         title="Значение не выбрано"
                         message="Выберите значение текущей карточки"
                         assertTitle="OK"
@@ -193,7 +191,6 @@ export const RepeatCollectionPageContent: FC<RepeatCollectionPageContentProps> =
                 )}
                 {showAssertionModal && (
                     <AssertionModal
-                        open
                         title="Не все карточки повторены"
                         message="Завершить повторение на текущей карточке?"
                         assertTitle="Да"

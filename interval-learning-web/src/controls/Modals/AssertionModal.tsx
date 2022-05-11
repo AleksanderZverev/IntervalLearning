@@ -5,10 +5,10 @@ import { LocalStorageHelper } from '../../helpers/localStorageHelper';
 interface AssertionModalProps {
     title: string;
     message: string;
-    open: boolean;
     assertTitle: string;
     cancelTitle?: string;
     onClose: () => void;
+    forceOpen?: boolean;
     onAssert?: () => void;
     onCancel?: () => void;
     forbidShowingKey?: string;
@@ -19,7 +19,7 @@ export const AssertionModal: FC<AssertionModalProps> = ({
     message,
     cancelTitle,
     assertTitle,
-    open,
+    forceOpen,
     forbidShowingKey,
     ...props
 }) => {
@@ -41,7 +41,7 @@ export const AssertionModal: FC<AssertionModalProps> = ({
         props.onAssert ? props.onAssert() : props.onClose();
     };
 
-    const isClosed = forbidShowingKey ? LocalStorageHelper.hasForbidShowing(forbidShowingKey) : false;
+    const isForbidden = forbidShowingKey ? LocalStorageHelper.hasForbidShowing(forbidShowingKey) : false;
 
     const forbidShowingControl = (
         <div>
@@ -53,8 +53,10 @@ export const AssertionModal: FC<AssertionModalProps> = ({
         </div>
     );
 
+    const showForbidControl = Boolean(forbidShowingKey && !forceOpen);
+
     return (
-        <Dialog open={!isClosed && open} onClose={onClose} maxWidth={'sm'} fullWidth>
+        <Dialog open={forceOpen || !isForbidden} onClose={onClose} maxWidth={'sm'} fullWidth>
             <DialogTitle>{title}</DialogTitle>
             <DialogContent>{message}</DialogContent>
             <DialogActions>
@@ -68,16 +70,17 @@ export const AssertionModal: FC<AssertionModalProps> = ({
                         padding: 10,
                     }}
                 >
-                    {forbidShowingKey && cancelTitle && forbidShowingControl}
+                    {showForbidControl && cancelTitle && forbidShowingControl}
 
                     <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
-                        {cancelTitle ? (
+                        {cancelTitle && (
                             <Button variant="outlined" onClick={onCancel}>
                                 {cancelTitle}
                             </Button>
-                        ) : (
-                            forbidShowingControl
                         )}
+                        {showForbidControl && !cancelTitle && forbidShowingControl}
+                        {!showForbidControl && !cancelTitle && <div />}
+
                         <Button variant="contained" onClick={onAssert}>
                             {assertTitle}
                         </Button>

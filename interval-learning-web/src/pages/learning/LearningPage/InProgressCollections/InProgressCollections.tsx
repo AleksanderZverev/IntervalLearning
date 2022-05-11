@@ -10,6 +10,25 @@ import { useGetQueueCollectionsQuery } from '../../../../redux/collectionApi';
 import { CollectionRow } from './CollectionRow/CollectionRow';
 import styles from './styles.module.css';
 
+export const getRepeatingNavigationLink = (
+    collectionUserId: string,
+    collectionId: string,
+    scheduleUserId: string,
+    scheduleId: string,
+    phaseIndex: number,
+    dateString: string
+): string => {
+    const searchParams = new URLSearchParams({
+        scheduleUserId,
+        scheduleId,
+        phaseIndex: phaseIndex.toString(),
+        date: dateString,
+    });
+
+    const link = `/learning/repeat/${collectionUserId}-${collectionId}?` + searchParams.toString();
+    return link;
+};
+
 interface InProgressCollectionsProps extends WithQueryResolverData<typeof useGetQueueCollectionsQuery> {}
 
 const InProgressCollectionsContent: FC<InProgressCollectionsProps> = ({ queryData }) => {
@@ -82,12 +101,14 @@ const InProgressCollectionsContent: FC<InProgressCollectionsProps> = ({ queryDat
                                                 </TableCell>
                                             </TableRow>
                                             {p.repeatingCollections.map((c) => {
-                                                const searchParams = new URLSearchParams({
-                                                    scheduleUserId: p.scheduleUserId,
-                                                    scheduleId: p.scheduleId,
-                                                    phaseIndex: p.phaseIndex.toString(),
-                                                    date: dateString,
-                                                });
+                                                const repeatingLink = getRepeatingNavigationLink(
+                                                    c.collection.userId,
+                                                    c.collection.id,
+                                                    p.scheduleUserId,
+                                                    p.scheduleId,
+                                                    p.phaseIndex,
+                                                    dateString
+                                                );
 
                                                 const weights = LocalStorageHelper.getRepeatingCards(
                                                     p.scheduleUserId,
@@ -108,12 +129,7 @@ const InProgressCollectionsContent: FC<InProgressCollectionsProps> = ({ queryDat
                                                         cardsToRepeatCount={c.cardsToRepeatCount}
                                                         hover={allowFutureSelect || isToday || isWarn}
                                                         notFinished={hasSavings}
-                                                        onClick={() =>
-                                                            navigate(
-                                                                `/learning/repeat/${c.collection.userId}-${c.collection.id}?` +
-                                                                    searchParams.toString()
-                                                            )
-                                                        }
+                                                        onClick={() => navigate(repeatingLink)}
                                                     />
                                                 );
                                             })}

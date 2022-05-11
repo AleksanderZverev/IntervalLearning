@@ -31,7 +31,6 @@ class GlobalErrorBoundary extends React.Component<GlobalErrorBoundaryProps, Glob
             <div>
                 {this.state.isError && (
                     <AssertionModal
-                        open
                         title="Упс..."
                         message="Произошла непредвиденная ошибка"
                         assertTitle="Обновить страницу"

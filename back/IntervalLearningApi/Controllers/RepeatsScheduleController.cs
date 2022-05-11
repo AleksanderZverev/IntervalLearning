@@ -79,7 +79,7 @@ namespace IntervalLearningApi.Controllers
                 schedule.DefaultRepeatPhaseDescription);
         }
 
-        private static Phase ToPhase(PhaseEntity phase)
+        public static Phase ToPhase(PhaseEntity phase)
         {
             return new Phase(
                 phase.ParentUserId,
