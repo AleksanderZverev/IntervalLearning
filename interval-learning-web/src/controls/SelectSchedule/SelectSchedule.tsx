@@ -1,23 +1,39 @@
 import { Autocomplete } from '@mui/material';
 import { green } from '@mui/material/colors';
-import { forwardRef } from 'react';
+import { forwardRef, useMemo } from 'react';
 import { Controller } from 'react-hook-form';
 import { useSelector } from 'react-redux';
 import { selectSchedules } from '../../redux/slices/scheduleSlice';
 import { Schedule } from '../../types/schedule';
 import { FormField, FormFieldProps } from '../Form/Form';
 
+export interface ScheduleKey {
+    scheduleUserId: string | undefined;
+    scheduleId: string | undefined;
+}
+
 interface SelectScheduleProps {
     scheduleUserId: string | undefined;
     scheduleId: string | undefined;
     onChange: (newItem: Schedule | undefined) => void;
     width?: string;
+    availableSchedules?: ScheduleKey[];
 }
 
 // eslint-disable-next-line react/display-name
 export const SelectSchedule = forwardRef<HTMLDivElement, SelectScheduleProps>(
-    ({ scheduleUserId, scheduleId, onChange, width, ...props }, ref) => {
+    ({ scheduleUserId, scheduleId, onChange, width, availableSchedules, ...props }, ref) => {
         const schedules = useSelector(selectSchedules);
+
+        const options = useMemo(() => {
+            if (!availableSchedules) {
+                return [...schedules];
+            }
+
+            return schedules.filter((s) =>
+                availableSchedules.find((a) => a.scheduleUserId === s.userId && a.scheduleId === s.id)
+            );
+        }, [schedules, availableSchedules]);
 
         const value = schedules.find((s) => s.userId === scheduleUserId && s.id === scheduleId);
 
@@ -25,7 +41,7 @@ export const SelectSchedule = forwardRef<HTMLDivElement, SelectScheduleProps>(
             <Autocomplete
                 sx={{ minWidth: '150px', width }}
                 value={value ?? null}
-                options={schedules}
+                options={options}
                 getOptionLabel={(s: Schedule) => s.title}
                 renderOption={(props, option, state) => (
                     <li {...props}>
