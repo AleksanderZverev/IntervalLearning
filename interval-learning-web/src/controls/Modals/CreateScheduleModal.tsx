@@ -76,6 +76,9 @@ interface IForm {
     defaultRepeatPhaseShortDescription: string | null;
     defaultRepeatPhaseDescription: string | null;
     phases: IPhaseForm[];
+    repeatAfterStart: boolean;
+    afterStartPhaseShortDescription: string | null;
+    afterStartPhaseDescription: string | null;
 }
 
 const schema = yup
@@ -87,9 +90,12 @@ const schema = yup
         shortDescription: yup.string().max(100),
         description: yup.string().max(1000),
         defaultPhaseShortDescription: yup.string().max(100),
-        defaultPhaseDescription: yup.string().max(1000),
         defaultRepeatPhaseShortDescription: yup.string().max(100),
+        afterStartPhaseShortDescription: yup.string().max(100),
+        defaultPhaseDescription: yup.string().max(1000),
         defaultRepeatPhaseDescription: yup.string().max(1000),
+        afterStartPhaseDescription: yup.string().max(1000),
+        repeatAfterStart: yup.boolean().default(true),
     })
     .required();
 
@@ -105,6 +111,7 @@ export const CreateScheduleModal: FC<CreateScheduleModalProps> = (props) => {
         handleSubmit,
         control,
         formState: { errors },
+        watch,
     } = formMethods;
 
     const { fields, append } = useFieldArray({ control, name: 'phases' });
@@ -115,7 +122,33 @@ export const CreateScheduleModal: FC<CreateScheduleModalProps> = (props) => {
         const phases: PhaseInfo[] = [];
         let i = 0;
 
-        for (const p of data.phases) {
+        const {
+            phases: formPhases,
+            repeatAfterStart,
+            afterStartPhaseDescription,
+            afterStartPhaseShortDescription,
+            ...scheduleMapProperties
+        } = data;
+
+        const addRepeatPhase = (shortDescription: string | null, description: string | null) => {
+            const repeatingPhase: PhaseInfo = {
+                id: (i + 1).toString(),
+                secondsFromLastPhase: 1,
+                shortDescription,
+                description,
+                isDefaultValueSide: true,
+            };
+
+            phases.push(repeatingPhase);
+
+            i++;
+        };
+
+        if (repeatAfterStart) {
+            addRepeatPhase(afterStartPhaseShortDescription, afterStartPhaseDescription);
+        }
+
+        for (const p of formPhases) {
             const { addRepeatingAtThatDay, durationFromLastPhase, durationType, ...mapProperties } = p;
 
             const seconds = DurationTypeToSeconds(p.durationFromLastPhase, p.durationType);
@@ -134,20 +167,8 @@ export const CreateScheduleModal: FC<CreateScheduleModalProps> = (props) => {
                 continue;
             }
 
-            const repeatingPhase: PhaseInfo = {
-                id: (i + 1).toString(),
-                secondsFromLastPhase: 1,
-                shortDescription: p.shortDescription,
-                description: p.description,
-                isDefaultValueSide: true,
-            };
-
-            phases.push(repeatingPhase);
-
-            i++;
+            addRepeatPhase(p.shortDescription, p.description);
         }
-
-        const { phases: _, ...scheduleMapProperties } = data;
 
         const schedule: CreateScheduleItem = {
             ...scheduleMapProperties,
@@ -218,6 +239,26 @@ export const CreateScheduleModal: FC<CreateScheduleModalProps> = (props) => {
                         <FormFiledLabel label="При забывании" htmlFor="title-input">
                             <ForgottenBehaviorSelect registerName="forgottenBehavior" />
                         </FormFiledLabel>
+                        <FormControlLabel
+                            label={'Повторение после старта'}
+                            control={<Checkbox checked={watch('repeatAfterStart')} {...register(`repeatAfterStart`)} />}
+                        />
+                        {watch('repeatAfterStart') && (
+                            <>
+                                <FormField
+                                    label="Краткое описание для повторения после старта"
+                                    error={!!errors.afterStartPhaseShortDescription}
+                                    errorMessage={errors.afterStartPhaseShortDescription?.message || ' '}
+                                    {...register('afterStartPhaseShortDescription')}
+                                />
+                                <FormField
+                                    label="Описание для повторения после старта"
+                                    error={!!errors.afterStartPhaseDescription}
+                                    errorMessage={errors.afterStartPhaseDescription?.message || ' '}
+                                    {...register('afterStartPhaseDescription')}
+                                />
+                            </>
+                        )}
                         <div style={{ marginTop: 20, display: 'flex', flexDirection: 'column' }}>
                             {fields.map((f, i) => (
                                 <div key={f.id}>
