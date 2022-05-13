@@ -13,6 +13,7 @@ import { User } from '../../../src/types/user';
 import useTypedSelector from '../../../src/hooks/useTypedSelector';
 import { AppDispatch } from '../../../src/redux/store';
 import { LocalStorageHelper } from '../../../src/helpers/localStorageHelper';
+import { withMutationResolver, WithMutationResolverProps } from '../../../src/hoc/withQueryResolver';
 
 export const useAutoAuthorization = (currentUser: User | null, dispatch: AppDispatch) => {
     const isLoggedOut = checkIsLoggedOut();
@@ -36,7 +37,11 @@ const schema = yup
     })
     .required();
 
-const AuthorizePage: FC = () => {
+interface AuthorizePageContentProps extends WithMutationResolverProps<typeof useAuthenticateMutation> {}
+
+const AuthorizePageContent: FC<AuthorizePageContentProps> = ({
+    mutationProps: { mutate: authenticate, isLoading: mutationLoading, showRetryModal },
+}) => {
     const {
         register,
         handleSubmit,
@@ -52,18 +57,16 @@ const AuthorizePage: FC = () => {
         isSuccess: isRefreshSuccess,
     } = useAutoAuthorization(currentUser, dispatch);
 
-    const [authenticate, { isLoading: mutationLoading, isSuccess }] = useAuthenticateMutation();
-
     const isLoading = autoQueryLoading || mutationLoading;
 
     const onSubmit = async (data: Form) => {
         try {
-            await authenticate(data).unwrap();
+            await authenticate(data);
             const redirectUrl = LocalStorageHelper.getRedirectUrlAfterAuthorization();
             LocalStorageHelper.clearRedirectUrl();
             router.push(redirectUrl);
-        } catch (e) {
-            console.debug(e);
+        } catch {
+            showRetryModal(() => onSubmit(data));
         }
     };
 
@@ -109,5 +112,7 @@ const AuthorizePage: FC = () => {
         </CenterContainer>
     );
 };
+
+const AuthorizePage = withMutationResolver(useAuthenticateMutation, 'Не удалось авторизоваться')(AuthorizePageContent);
 
 export default AuthorizePage;
