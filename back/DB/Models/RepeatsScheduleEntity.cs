@@ -23,7 +23,7 @@ public interface IPatchRepeatsSchedule
     public string? DefaultRepeatPhaseDescription { get; }
 }
 
-public interface ICreateOrPatchRepeatsSchedule : IPatchRepeatsSchedule
+public interface ICreateRepeatsSchedule : IPatchRepeatsSchedule
 {
     public long ParentUserId { get; }
 }
@@ -53,17 +53,17 @@ public class PatchRepeatsSchedule : IPatchRepeatsSchedule
     {
         CardsCountPerPhase = cardsCountPerPhase;
         ForgottenBehavior = forgottenBehavior;
-        Title = title;
-        Description = description;
-        ShortDescription = shortDescription;
-        DefaultPhaseShortDescription = defaultPhaseShortDescription;
-        DefaultPhaseDescription = defaultPhaseDescription;
-        DefaultRepeatPhaseShortDescription = defaultRepeatPhaseShortDescription;
-        DefaultRepeatPhaseDescription = defaultRepeatPhaseDescription;
+        Title = TextMaster.RemoveWhitespaces(title, true);
+        Description = TextMaster.RemoveWhitespaces(description);
+        ShortDescription = TextMaster.RemoveWhitespaces(shortDescription);
+        DefaultPhaseShortDescription = TextMaster.RemoveWhitespaces(defaultPhaseShortDescription);
+        DefaultPhaseDescription = TextMaster.RemoveWhitespaces(defaultPhaseDescription);
+        DefaultRepeatPhaseShortDescription = TextMaster.RemoveWhitespaces(defaultRepeatPhaseShortDescription);
+        DefaultRepeatPhaseDescription = TextMaster.RemoveWhitespaces(defaultRepeatPhaseDescription);
     }
 }
 
-public class CreateScheduleItem : PatchRepeatsSchedule, ICreateOrPatchRepeatsSchedule
+public class CreateScheduleItem : PatchRepeatsSchedule, ICreateRepeatsSchedule
 {
     public long ParentUserId { get; set; }
 
@@ -82,13 +82,13 @@ public class CreateScheduleItem : PatchRepeatsSchedule, ICreateOrPatchRepeatsSch
         base(
             cardsCountPerPhase,
             forgottenBehavior,
-            TextMaster.RemoveWhitespaces(title, true),
-            TextMaster.RemoveWhitespaces(shortDescription),
-            TextMaster.RemoveWhitespaces(description),
-            TextMaster.RemoveWhitespaces(defaultPhaseShortDescription),
-            TextMaster.RemoveWhitespaces(defaultPhaseDescription),
-            TextMaster.RemoveWhitespaces(defaultRepeatPhaseShortDescription),
-            TextMaster.RemoveWhitespaces(defaultRepeatPhaseDescription))
+            title,
+            shortDescription,
+            description,
+            defaultPhaseShortDescription,
+            defaultPhaseDescription,
+            defaultRepeatPhaseShortDescription,
+            defaultRepeatPhaseDescription)
 
     {
         ParentUserId = parentUserId;
@@ -96,7 +96,7 @@ public class CreateScheduleItem : PatchRepeatsSchedule, ICreateOrPatchRepeatsSch
 }
 
 [Table("RepeatsSchedules")]
-public class RepeatsScheduleEntity : IParentUserReference, ICreateOrPatchRepeatsSchedule
+public class RepeatsScheduleEntity : IParentUserReference, ICreateRepeatsSchedule
 {
     private const int ShortDescriptionLength = 100;
 

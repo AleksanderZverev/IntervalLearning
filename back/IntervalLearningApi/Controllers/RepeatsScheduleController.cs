@@ -44,7 +44,7 @@ namespace IntervalLearningApi.Controllers
             public string Title { get; set; }
 
             [StringLength(100)]
-            public string? ShortDescription { get; }
+            public string? ShortDescription { get; set; }
 
             [StringLength(1000)]
             public string? Description { get; set; }
@@ -52,13 +52,13 @@ namespace IntervalLearningApi.Controllers
             public List<PhaseInfo> Phases { get; set; }
 
             [StringLength(100)]
-            public string? DefaultPhaseShortDescription { get; }
+            public string? DefaultPhaseShortDescription { get; set; }
             [StringLength(1000)]
-            public string? DefaultPhaseDescription { get; }
+            public string? DefaultPhaseDescription { get; set; }
             [StringLength(100)]
-            public string? DefaultRepeatPhaseShortDescription { get; }
+            public string? DefaultRepeatPhaseShortDescription { get; set; }
             [StringLength(1000)]
-            public string? DefaultRepeatPhaseDescription { get; }
+            public string? DefaultRepeatPhaseDescription { get; set; }
         }
 
         private static Schedule ToSchedule(RepeatsScheduleEntity schedule)
