@@ -196,6 +196,7 @@ public class CollectionService
         short collectionId,
         short? cardId,
         string frontText,
+        string promptText,
         string backText,
         string? description,
         List<string>? examples)
@@ -212,6 +213,7 @@ public class CollectionService
                 userId,
                 collectionId,
                 frontText,
+                promptText,
                 backText,
                 description,
                 examples),

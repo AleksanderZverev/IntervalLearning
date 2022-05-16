@@ -11,13 +11,14 @@ public interface IParentCardReference : IParentCollectionReference
 
 public interface ICreateOrPatchCard
 {
-    public string FrontSideText { get; set; }
-    public string BackSideText { get; set; }
-    public string? Description { get; set; }
-    public List<string>? Examples { get; set; }
+    public string FrontSideText { get; }
+    public string PromptText { get; }
+    public string BackSideText { get; }
+    public string? Description { get; }
+    public List<string>? Examples { get; }
 
-    public long ParentUserId { get; set; }
-    public short ParentCollectionId { get; set; }
+    public long ParentUserId { get; }
+    public short ParentCollectionId { get; }
 }
 
 
@@ -29,10 +30,15 @@ public class CardEntity : ICreateOrPatchCard, IParentCollectionReference
 
     [Required]
     [StringLength(255)]
+    [Column("RememberingText")]
     public string FrontSideText { get; set; }
+
+    [StringLength(255)]
+    public string PromptText { get; set; }
 
     [Required]
     [StringLength(255)]
+    [Column("MeaningText")]
     public string BackSideText { get; set; }
 
     [Required]

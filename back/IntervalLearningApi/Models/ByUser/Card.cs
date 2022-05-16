@@ -10,17 +10,18 @@ public class Card
     public string ParentCollectionId { get; }
     public string Id { get; }
     public string BackSideText { get; }
+    public string PromptText { get; }
     public string FrontSideText { get; }
     public DateTime CreatedDate { get; }
     public string? Description { get; }
     public List<string>? Examples { get; }
     public List<Remember>? Remembers { get; }
 
-    public Card(
-        long parentUserId,
+    public Card(long parentUserId,
         short parentCollectionId,
         short id,
         string backSideText,
+        string promptText,
         string frontSideText,
         DateTime createdDate,
         string? description,
@@ -31,6 +32,7 @@ public class Card
         ParentCollectionId = parentCollectionId.ToString();
         Id = id.ToString();
         BackSideText = backSideText;
+        PromptText = promptText;
         FrontSideText = frontSideText;
         CreatedDate = createdDate;
         Description = description;

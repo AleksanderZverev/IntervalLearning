@@ -114,6 +114,7 @@ namespace IntervalLearningApi.Controllers
                 c.ParentCollectionId,
                 c.Id,
                 c.BackSideText,
+                c.PromptText,
                 c.FrontSideText,
                 c.CreatedDate,
                 c.Description,

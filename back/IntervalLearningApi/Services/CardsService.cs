@@ -405,27 +405,33 @@ public class CardsService
 
     public class CreateOrPatchCard : ICreateOrPatchCard
     {
-        public string FrontSideText { get; set; }
-        public string BackSideText { get; set; }
-        public string? Description { get; set; }
-        public List<string>? Examples { get; set; }
-        public long ParentUserId { get; set; }
-        public short ParentCollectionId { get; set; }
+        public string FrontSideText { get; }
+        public string PromptText { get; }
+        public string BackSideText { get; }
+        public string? Description { get; }
+        public List<string>? Examples { get; }
+        public long ParentUserId { get; }
+        public short ParentCollectionId { get; }
 
         public CreateOrPatchCard(
             long parentUserId,
             short parentCollectionId,
             string frontSideText,
+            string promptText,
             string backSideText,
             string? description,
             List<string>? examples)
         {
             ParentUserId = parentUserId;
             ParentCollectionId = parentCollectionId;
+            PromptText = promptText;
             FrontSideText = TextMaster.RemoveWhitespaces(frontSideText, true);
             BackSideText = TextMaster.RemoveWhitespaces(backSideText, true);
             Description = string.IsNullOrEmpty(description) ? description : TextMaster.RemoveWhitespaces(description);
-            Examples = examples?.Select(e => TextMaster.RemoveWhitespaces(e)).Where(e => !string.IsNullOrEmpty(e)).ToList();
+            Examples = examples?
+                .Select(e => TextMaster.RemoveWhitespaces(e))
+                .Where(e => !string.IsNullOrEmpty(e))
+                .ToList();
         }
     }
 

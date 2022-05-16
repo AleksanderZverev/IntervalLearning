@@ -67,6 +67,7 @@ namespace IntervalLearningApi.Controllers
                 collectionId,
                 item.CardId,
                 item.FrontText,
+                item.PromptText ?? string.Empty,
                 item.BackText,
                 item.Description,
                 item.Examples);
@@ -176,11 +177,16 @@ namespace IntervalLearningApi.Controllers
         [Required]
         [StringLength(255)]
         public string FrontText { get; set; }
+
+        [StringLength(255)] 
+        public string? PromptText { get; set; }
+
         [Required]
         [StringLength(255)]
         public string BackText { get; set; }
         [StringLength(500)]
         public string? Description { get; set; }
+
         [MaxLength(15)]
         public List<string>? Examples { get; set; }
     }

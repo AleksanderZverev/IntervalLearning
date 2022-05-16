@@ -13,9 +13,6 @@ public class RememberEntity : IParentCardReference
     /// <summary>
     /// from 0.00 to 1.00
     /// </summary>
-    /// <remarks>
-    /// 0 if is for future
-    /// </remarks>
     [Required]
     [Range(0d, 1d)]
     public float Weight { get; set; }
