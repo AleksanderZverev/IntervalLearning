@@ -13,6 +13,7 @@ interface BaseRequestItem<T> {
 export interface CreateCardItem {
     cardId: string | undefined;
     frontText: string;
+    promptText: string | null;
     backText: string;
     description: string | null;
     examples: string[] | null;

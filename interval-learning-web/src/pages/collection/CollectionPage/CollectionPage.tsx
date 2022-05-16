@@ -96,6 +96,7 @@ export const CollectionPage: FC = () => {
                 <Table>
                     <TableHead>
                         <TableHeaderCell>Запомнить</TableHeaderCell>
+                        <TableHeaderCell>Подсказка (чтение)</TableHeaderCell>
                         <TableHeaderCell>Значение</TableHeaderCell>
                         <TableHeaderCell>Описание</TableHeaderCell>
                     </TableHead>

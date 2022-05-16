@@ -1,5 +1,5 @@
 import { FC, useState } from 'react';
-import { Button, IconButton, Paper, Portal, Typography } from '@mui/material';
+import { Button, IconButton, Paper, Portal, Stack, Typography } from '@mui/material';
 import { Card } from '../../../../types/Collection';
 import styles from './styles.module.css';
 import { Edit, KeyboardArrowRight } from '@mui/icons-material';
@@ -59,10 +59,16 @@ export const LearnCard: FC<LearnCardProps> = ({
             </IconButton>
 
             <div className={styles.headerContainer}>
-                <Typography variant="h3" fontSize={32}>
-                    {card.frontSideText}
+                <Stack direction={'column'} gap="6px" alignItems={'center'}>
+                    <Typography variant="h3" fontSize={32}>
+                        {card.frontSideText}
+                    </Typography>
+                    {card.promptText}
+                </Stack>
+
+                <Typography variant="h5" fontSize={24}>
+                    {card.backSideText}
                 </Typography>
-                <div className={styles.backContainer}>{card.backSideText}</div>
             </div>
             {card.description && (
                 <div>

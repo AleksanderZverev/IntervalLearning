@@ -9,7 +9,6 @@ import useTypedSelector from '../../hooks/useTypedSelector';
 import { CreateCardItem, useAddCardMutation } from '../../redux/cardsApi';
 import { selectCardById } from '../../redux/slices/cardsSlice';
 import { Card } from '../../types/Collection';
-import { Schedule } from '../../types/schedule';
 import { Form, FormField, FormFiledLabel, IconFormField } from '../Form/Form';
 
 interface Example {
@@ -18,6 +17,7 @@ interface Example {
 
 interface CardForm {
     frontText: string;
+    promptText: string | null;
     backText: string;
     description: string | null;
     examples: Example[];
@@ -51,6 +51,7 @@ function getDefaultValues(card: Card): CardForm {
 
     const cardForm: CardForm = {
         frontText: card.frontSideText,
+        promptText: card.promptText,
         backText: card.backSideText,
         description: card.description,
         examples,
@@ -93,6 +94,7 @@ const CreateCardModalContent: FC<CreateCardModalProps> = ({
         const item: CreateCardItem = {
             cardId: props.cardId,
             frontText: data.frontText,
+            promptText: data.promptText,
             backText: data.backText,
             description: data.description,
             examples: data.examples.filter((e) => Boolean(e.value)).map((e) => e.value),
@@ -118,6 +120,12 @@ const CreateCardModalContent: FC<CreateCardModalProps> = ({
                             errorMessage={errors.frontText?.message}
                             {...register('frontText')}
                             autoFocus
+                        />
+                        <FormField
+                            label="Подсказка (чтение)"
+                            error={!!errors.promptText}
+                            errorMessage={errors.promptText?.message}
+                            {...register('promptText')}
                         />
                         <FormField
                             label="Значение"

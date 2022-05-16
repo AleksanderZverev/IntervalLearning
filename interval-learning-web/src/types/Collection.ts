@@ -13,6 +13,7 @@ export interface Card {
     collectionId: string;
     id: string;
     backSideText: string;
+    promptText: string | null;
     frontSideText: string;
     createdDate: string;
     description: string | null;

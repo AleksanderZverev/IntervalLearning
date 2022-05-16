@@ -29,7 +29,7 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    row-gap: 10px;
+    row-gap: 12px;
     justify-content: center;
     margin-top: 6px;
 }
@@ -53,20 +53,4 @@
     position: absolute;
     right: 10px;
     top: 10px;
-}
-
-.refreshIcon {
-    position: absolute;
-    left: 10px;
-    top: 10px;
-}
-
-.backContainer {
-    cursor: pointer;
-}
-
-.backHidden {
-    background-color: #c4c4c4;
-    color: #c4c4c4;
-    user-select: none;
 }

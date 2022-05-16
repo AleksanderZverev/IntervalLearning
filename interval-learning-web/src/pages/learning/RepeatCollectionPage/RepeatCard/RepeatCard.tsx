@@ -9,12 +9,14 @@ import {
     Portal,
     Radio,
     RadioGroup,
+    Stack,
     Typography,
 } from '@mui/material';
 import classNames from 'classnames';
-import { FC, useLayoutEffect, useState } from 'react';
+import { FC, useEffect, useState } from 'react';
 import { ShowCardModal } from '../../../../controls/Modals/ShowCardModal';
 import { useEventListener } from '../../../../hooks/useEventListener';
+import { getCardUniqueKey } from '../../../../redux/slices/cardsSlice';
 import { Card } from '../../../../types/Collection';
 import { RememberList } from './RememberList/RememberList';
 import styles from './styles.module.css';
@@ -34,6 +36,13 @@ interface RepeatCardProps {
     isValueSideDefault: boolean;
 }
 
+interface CardProps {
+    backIsHidden: boolean;
+    promptIsHidden: boolean;
+}
+
+const cardIdToProps: Record<string, CardProps> = {};
+
 export const RepeatCard: FC<RepeatCardProps> = ({
     card,
     showNext,
@@ -48,6 +57,18 @@ export const RepeatCard: FC<RepeatCardProps> = ({
     isValueSideDefault,
 }) => {
     const [backIsHidden, setBackIsHidden] = useState(true);
+    const [promptIsHidden, setPromptIsHidden] = useState(true);
+
+    useEffect(() => {
+        cardIdToProps[getCardUniqueKey(card)] = { backIsHidden, promptIsHidden };
+    }, [backIsHidden, promptIsHidden]);
+
+    useEffect(() => {
+        const saveItem = cardIdToProps[getCardUniqueKey(card)];
+        setBackIsHidden(saveItem ? saveItem.backIsHidden : true);
+        setPromptIsHidden(saveItem ? saveItem.promptIsHidden : true);
+    }, [card]);
+
     const [isError, setIsError] = useState(false);
     const [showCardInfoModal, setShowCardInfoModal] = useState(false);
 
@@ -90,15 +111,29 @@ export const RepeatCard: FC<RepeatCardProps> = ({
                     <RefreshOutlined />
                 </IconButton>
             )}
-            <Typography variant="h3" fontSize={32}>
-                {frontText}
-            </Typography>
-            <div
-                className={classNames(styles.backContainer, { [styles.backHidden]: backIsHidden })}
-                onClick={() => setBackIsHidden(!backIsHidden)}
-            >
-                {backText}
-            </div>
+            <Stack direction={'column'} gap="12px" alignItems={'center'}>
+                <Stack direction={'column'} gap="6px" alignItems={'center'}>
+                    <Typography variant="h3" fontSize={32}>
+                        {frontText}
+                    </Typography>
+
+                    <div
+                        className={classNames(styles.backContainer, { [styles.backHidden]: promptIsHidden })}
+                        onClick={() => setPromptIsHidden(!promptIsHidden)}
+                    >
+                        {card.promptText}
+                    </div>
+                </Stack>
+
+                <div
+                    className={classNames(styles.backContainer, { [styles.backHidden]: backIsHidden })}
+                    onClick={() => setBackIsHidden(!backIsHidden)}
+                >
+                    <Typography variant="h5" fontSize={24}>
+                        {backText}
+                    </Typography>
+                </div>
+            </Stack>
             <div>
                 <RadioGroup
                     onKeyDownCapture={(e) => e.preventDefault()}
