@@ -68,7 +68,7 @@ public class PhaseEntity : IParentRepeatsScheduleReference
     [Required]
     public uint SecondsFromLastPhase { get; set; }
 
-    [StringLength(100)]
+    [StringLength(200)]
     public string? ShortDescription { get; set; }
     [Column("OnLearnDescription")]
     public string? Description { get; set; }

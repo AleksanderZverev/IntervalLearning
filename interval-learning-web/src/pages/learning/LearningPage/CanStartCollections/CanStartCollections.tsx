@@ -50,9 +50,8 @@ const CanStartCollectionsContent: FC<CanStartCollectionsContentProps> = ({
             <Table>
                 <TableHead>
                     <TableHeaderCell>Название</TableHeaderCell>
-                    <TableHeaderCell>Изучено</TableHeaderCell>
-                    <TableHeaderCell>Слов в этапе</TableHeaderCell>
-                    <TableHeaderCell>Тип</TableHeaderCell>
+                    <TableHeaderCell align="center">Изучено</TableHeaderCell>
+                    <TableHeaderCell align="center">Тип</TableHeaderCell>
                 </TableHead>
                 <TableBody>
                     {collections.length > 0 ? (

@@ -98,7 +98,7 @@ public class CreateScheduleItem : PatchRepeatsSchedule, ICreateRepeatsSchedule
 [Table("RepeatsSchedules")]
 public class RepeatsScheduleEntity : IParentUserReference, ICreateRepeatsSchedule
 {
-    private const int ShortDescriptionLength = 100;
+    private const int ShortDescriptionLength = 200;
 
     [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
     public short Id { get; set; }

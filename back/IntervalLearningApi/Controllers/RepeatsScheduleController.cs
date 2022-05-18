@@ -43,7 +43,7 @@ namespace IntervalLearningApi.Controllers
             [Required]
             public string Title { get; set; }
 
-            [StringLength(100)]
+            [StringLength(200)]
             public string? ShortDescription { get; set; }
 
             [StringLength(1000)]
@@ -51,11 +51,11 @@ namespace IntervalLearningApi.Controllers
             [Required]
             public List<PhaseInfo> Phases { get; set; }
 
-            [StringLength(100)]
+            [StringLength(200)]
             public string? DefaultPhaseShortDescription { get; set; }
             [StringLength(1000)]
             public string? DefaultPhaseDescription { get; set; }
-            [StringLength(100)]
+            [StringLength(200)]
             public string? DefaultRepeatPhaseShortDescription { get; set; }
             [StringLength(1000)]
             public string? DefaultRepeatPhaseDescription { get; set; }

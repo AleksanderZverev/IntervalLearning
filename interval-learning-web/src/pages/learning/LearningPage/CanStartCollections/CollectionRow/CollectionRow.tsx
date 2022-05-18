@@ -25,11 +25,10 @@ export const CollectionRow: FC<CollectionRowProps> = ({ collection, ...props }) 
     return (
         <TableRow hover onClick={onClick}>
             <TableCell>{collection.title}</TableCell>
-            <TableCell>
+            <TableCell align="center">
                 {collection.cardsCount > 0 ? `${learnedCards}/${collection.cardsCount}` : 'пустая коллекция'}
             </TableCell>
-            <TableCell>{}</TableCell>
-            <TableCell>{theme?.name}</TableCell>
+            <TableCell align="center">{theme?.name}</TableCell>
         </TableRow>
     );
 };
