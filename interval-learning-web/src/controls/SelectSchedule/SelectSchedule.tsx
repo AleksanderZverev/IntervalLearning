@@ -1,4 +1,4 @@
-import { Autocomplete } from '@mui/material';
+import { Autocomplete, Stack } from '@mui/material';
 import { green } from '@mui/material/colors';
 import { forwardRef, useMemo } from 'react';
 import { Controller } from 'react-hook-form';
@@ -18,6 +18,9 @@ interface SelectScheduleProps {
     onChange: (newItem: Schedule | undefined) => void;
     width?: string;
     availableSchedules?: ScheduleKey[];
+    defaultScheduleUserId?: string;
+    defaultScheduleId?: string;
+    showWordsPerPhase?: boolean;
 }
 
 // eslint-disable-next-line react/display-name
@@ -35,24 +38,32 @@ export const SelectSchedule = forwardRef<HTMLDivElement, SelectScheduleProps>(
             );
         }, [schedules, availableSchedules]);
 
-        const value = schedules.find((s) => s.userId === scheduleUserId && s.id === scheduleId);
+        const value =
+            scheduleUserId !== undefined && scheduleId !== undefined
+                ? schedules.find((s) => s.userId === scheduleUserId && s.id === scheduleId)
+                : props.defaultScheduleUserId !== undefined && props.defaultScheduleId !== undefined
+                ? schedules.find((s) => s.userId === props.defaultScheduleUserId && s.id === props.defaultScheduleId)
+                : undefined;
 
         return (
-            <Autocomplete
-                sx={{ minWidth: '150px', width }}
-                value={value ?? null}
-                options={options}
-                getOptionLabel={(s: Schedule) => s.title}
-                renderOption={(props, option, state) => (
-                    <li {...props}>
-                        {option.isRecommended && <span style={{ color: green[500] }}>(рек.) </span>}
-                        {option.title}
-                    </li>
-                )}
-                isOptionEqualToValue={(o, v) => o.id === v.id && o.userId === v.userId}
-                renderInput={(params) => <FormField {...params} label="" withoutErrorMessage />}
-                onChange={(event, newValue) => onChange(newValue ?? undefined)}
-            />
+            <Stack gap={'20px'} direction="row">
+                <Autocomplete
+                    sx={{ minWidth: '150px', width }}
+                    value={value ?? null}
+                    options={options}
+                    getOptionLabel={(s: Schedule) => s.title}
+                    renderOption={(props, option, state) => (
+                        <li {...props}>
+                            {option.isRecommended && <span style={{ color: green[500] }}>(рек.) </span>}
+                            {option.title}
+                        </li>
+                    )}
+                    isOptionEqualToValue={(o, v) => o.id === v.id && o.userId === v.userId}
+                    renderInput={(params) => <FormField {...params} label="" withoutErrorMessage />}
+                    onChange={(event, newValue) => onChange(newValue ?? undefined)}
+                />
+                {value && <div style={{ marginTop: 2 }}>Слов в этапе: {value.cardsCountPerPhase}</div>}
+            </Stack>
         );
     }
 );

@@ -89,8 +89,8 @@ export const CanStartCollections: FC<CanStartCollectionsProps> = ({}) => {
                     scheduleUserId={schedule?.userId}
                     scheduleId={schedule?.id}
                     onChange={(newSchedule) => setSchedule(newSchedule)}
+                    showWordsPerPhase
                 />
-                {schedule && <div style={{ marginTop: 2 }}>Слов в этапе: {schedule.cardsCountPerPhase}</div>}
             </div>
             {schedule && (
                 <ConnectedCanStartCollectionsContent

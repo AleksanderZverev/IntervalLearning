@@ -115,11 +115,12 @@ const CreateCardModalContent: FC<CreateCardModalProps> = ({
                 <FormProvider {...formMethods}>
                     <Form>
                         <FormField
-                            label="Запомнить"
+                            label="Запомнить (слово)"
                             error={!!errors.frontText}
                             errorMessage={errors.frontText?.message}
                             {...register('frontText')}
                             autoFocus
+                            required
                         />
                         <FormField
                             label="Подсказка (чтение)"
@@ -128,10 +129,11 @@ const CreateCardModalContent: FC<CreateCardModalProps> = ({
                             {...register('promptText')}
                         />
                         <FormField
-                            label="Значение"
+                            label="Значение (перевод)"
                             error={!!errors.backText}
                             errorMessage={errors.backText?.message}
                             {...register('backText')}
+                            required
                         />
                         <FormField
                             label="Описание"

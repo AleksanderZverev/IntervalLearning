@@ -63,6 +63,22 @@ const InProgressCollectionsContent: FC<InProgressCollectionsProps> = ({ queryDat
         [queryData.dateToRepeatingPhases]
     );
 
+    const [defaultScheduleUserId, defaultScheduleId] = useMemo(() => {
+        const repeatingPhasesArray = Object.values(queryData.dateToRepeatingPhases);
+        const scheduleIds = new Set<string>();
+
+        for (const repeatingPhases of repeatingPhasesArray) {
+            for (const phase of repeatingPhases) {
+                const scheduleKey = `${phase.scheduleUserId}-${phase.scheduleId}`;
+                scheduleIds.add(scheduleKey);
+            }
+        }
+
+        const schedulesIdsArray = Array.from(scheduleIds);
+
+        return schedulesIdsArray.length === 1 ? schedulesIdsArray[0].split('-') : [undefined, undefined];
+    }, [queryData.dateToRepeatingPhases]);
+
     return (
         <div style={{ display: 'grid', gridTemplateRows: 'auto 1fr' }}>
             <div style={{ display: 'flex', columnGap: 20, marginTop: 10, fontSize: '20px' }}>
@@ -73,8 +89,10 @@ const InProgressCollectionsContent: FC<InProgressCollectionsProps> = ({ queryDat
                     scheduleId={schedule?.id}
                     onChange={(newSchedule) => setSchedule(newSchedule)}
                     availableSchedules={availableScheduleKeys}
+                    defaultScheduleUserId={defaultScheduleUserId}
+                    defaultScheduleId={defaultScheduleId}
+                    showWordsPerPhase
                 />
-                {schedule && <div style={{ marginTop: 2 }}>Слов в этапе: {schedule.cardsCountPerPhase}</div>}
             </div>
             <Table>
                 <TableHead>
