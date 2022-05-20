@@ -1,6 +1,8 @@
 ﻿using DB.Models;
+using DB.Models.Dictionary;
 using IntervalLearningApi.Extensions;
 using IntervalLearningApi.Models.ByUser;
+using IntervalLearningApi.Models.Dictonary;
 using IntervalLearningApi.Services;
 using Microsoft.AspNetCore.Mvc;
 
@@ -44,6 +46,17 @@ namespace IntervalLearningApi.Controllers
             var userId = HttpContext.GetUserId();
             var collections = await collectionService.GetAllByUserId(userId);
             return collections.Select(ToCollection).ToList();
+        }
+
+        [HttpGet("words/random")]
+        public async Task<ActionResult<GetRandomWordResponse>> GetRandomWords(int themeId)
+        {
+            var userId = HttpContext.GetUserId();
+            var (words, language, error) = await collectionService.GetRandomWords(userId, themeId);
+
+            return words == null || language == null
+                ? BadRequest(error)
+                : new GetRandomWordResponse(words, language);
         }
         
         [HttpGet("repeat")]
@@ -132,6 +145,33 @@ namespace IntervalLearningApi.Controllers
                 r.Weight,
                 r.PhaseIndex,
                 r.RepeatedDate);
+        }
+
+        public static WordDto ToWord(WordEntity word)
+        {
+            return new WordDto(
+                word.Id,
+                word.Word,
+                word.Pronunciation,
+                word.LanguageId);
+        }
+
+        public static LanguageDto ToLanguage(LanguageEntity language)
+        {
+            return new LanguageDto(language.Id, language.Name);
+        }
+    }
+
+    public class GetRandomWordResponse
+    {
+        public List<WordDto> Words { get; }
+
+        public LanguageDto Language { get; }
+
+        public GetRandomWordResponse(List<WordEntity> words, LanguageEntity language)
+        {
+            Words = words.Select(CollectionsController.ToWord).ToList();
+            Language = CollectionsController.ToLanguage(language);
         }
     }
 }

@@ -1,4 +1,5 @@
 ﻿using DB.Models;
+using DB.Models.Dictionary;
 using Microsoft.EntityFrameworkCore;
 
 namespace DB
@@ -23,8 +24,15 @@ namespace DB
 
         public DbSet<UserMetadataEntity> UserMetadata { get; set; }
 
+
+        //Dictionary
+        public DbSet<WordEntity> Words { get; set; }
+        public DbSet<LanguageEntity> Languages { get; set; }
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            BuildDictionaryModels(modelBuilder);
+
             // UserEntity
 
             modelBuilder.Entity<UserEntity>()
@@ -209,6 +217,25 @@ namespace DB
                 .HasOne(r => r.ParentPhase)
                 .WithMany()
                 .HasForeignKey(r => new { r.ParentUserId, r.ParentRepeatsScheduleId, r.ParentPhaseId })
+                .OnDelete(DeleteBehavior.NoAction);
+
+            // ThemeEntity
+
+            modelBuilder.Entity<ThemeEntity>()
+                .HasOne(t => t.Language)
+                .WithMany()
+                .HasForeignKey(t => t.LanguageId)
+                .OnDelete(DeleteBehavior.NoAction);
+        }
+
+        private static void BuildDictionaryModels(ModelBuilder modelBuilder)
+        {
+            // WordEntity
+
+            modelBuilder.Entity<WordEntity>()
+                .HasOne(w => w.Language)
+                .WithMany()
+                .HasForeignKey(w => w.LanguageId)
                 .OnDelete(DeleteBehavior.NoAction);
         }
 

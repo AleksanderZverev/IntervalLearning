@@ -1,5 +1,6 @@
 ﻿using DB;
 using DB.Models;
+using DB.Models.Dictionary;
 using Infrastructure;
 using Microsoft.EntityFrameworkCore;
 
@@ -235,6 +236,34 @@ public class CollectionService
         db.Database.CommitTransaction();
 
         return (card, null);
+    }
+
+    public async Task<(List<WordEntity>? words, LanguageEntity? language, string? error)> GetRandomWords(long userId, int themeId)
+    {
+        var theme = await db.Themes.FindAsync(themeId);
+
+        if (theme?.LanguageId == null)
+        {
+            return (null, null, theme == null ? "Theme not found" : "Language not linked");
+        }
+
+        var language = await db.Languages.FindAsync(theme.LanguageId);
+
+        if (language == null)
+            return (null, null, "Language not found");
+
+        var words = await db.Words.Where(w => w.LanguageId == theme.LanguageId).ToListAsync();
+        words.Shuffle();
+        
+        var cards = await db.Cards.Where(c => c.ParentUserId == userId).ToListAsync();
+
+        var resultWords = words
+            .Where(w => !cards
+                .Exists(c => string.Equals(c.FrontSideText, w.Word, StringComparison.InvariantCultureIgnoreCase)))
+            .Take(30)
+            .ToList();
+
+        return (resultWords, language, null);
     }
 
     public class RepeatingPhase
