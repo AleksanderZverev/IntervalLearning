@@ -16,7 +16,9 @@ export const LearningPage: FC = () => {
                     <ToggleButtonGroup
                         color="primary"
                         value={isInProcess}
-                        onChange={(e, v: boolean) => setIsInProcess(v)}
+                        onChange={(e, v: boolean) => {
+                            setIsInProcess(v ?? false);
+                        }}
                         exclusive
                     >
                         <ToggleButton value={true}>Повторить</ToggleButton>
