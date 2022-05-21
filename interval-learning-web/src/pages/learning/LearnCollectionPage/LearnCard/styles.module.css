@@ -1,23 +1,12 @@
 .container {
-    width: 650px;
-    min-height: 330px;
-    height: auto;
-
-    position: relative;
+    width: 100%;
 
     display: flex;
     flex-direction: column;
     row-gap: 15px;
-    position: relative;
 
     padding: 26px;
     padding-bottom: 80px;
-}
-
-.editButton {
-    position: absolute;
-    right: 5px;
-    top: 5px;
 }
 
 .label {
@@ -47,10 +36,4 @@
 .errorMessage {
     padding: 5px 10px;
     border-radius: 3px;
-}
-
-.infoIcon {
-    position: absolute;
-    right: 10px;
-    top: 10px;
 }

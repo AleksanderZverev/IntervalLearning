@@ -3,9 +3,7 @@ import {
     Button,
     colors,
     FormControlLabel,
-    Icon,
     IconButton,
-    Paper,
     Portal,
     Radio,
     RadioGroup,
@@ -15,6 +13,7 @@ import {
 import classNames from 'classnames';
 import { FC, useEffect, useState } from 'react';
 import { ShowCardModal } from '../../../../controls/Modals/ShowCardModal';
+import { PaperCard } from '../../../../controls/PaperCard/PaperCard';
 import { useEventListener } from '../../../../hooks/useEventListener';
 import { getCardUniqueKey } from '../../../../redux/slices/cardsSlice';
 import { Card } from '../../../../types/Collection';
@@ -82,59 +81,108 @@ export const RepeatCard: FC<RepeatCardProps> = ({
     const backText = isValueSideDefault ? card.frontSideText : card.backSideText;
 
     return (
-        <Paper className={styles.container}>
-            <Portal>
-                {showCardInfoModal && (
-                    <ShowCardModal
-                        open
-                        onClose={() => setShowCardInfoModal(false)}
-                        userId={card.userId}
-                        collectionId={card.collectionId}
-                        cardId={card.id}
-                    />
-                )}
-            </Portal>
-
-            {card.remembers && card.remembers.length > 0 && <RememberList remembers={card.remembers} />}
-
-            <IconButton className={styles.infoIcon} onClick={() => setShowCardInfoModal(true)}>
-                <InfoOutlined />
-            </IconButton>
-            {isActive && (
-                <IconButton
-                    className={styles.refreshIcon}
-                    onClick={() => {
-                        setIsError(false);
-                        onChange(undefined);
-                    }}
-                >
-                    <RefreshOutlined />
+        <PaperCard
+            topRightControl={
+                <IconButton onClick={() => setShowCardInfoModal(true)}>
+                    <InfoOutlined />
                 </IconButton>
-            )}
-            <Stack direction={'column'} gap="12px" alignItems={'center'}>
-                <Stack direction={'column'} gap="6px" alignItems={'center'}>
-                    <Typography variant="h3" fontSize={32}>
-                        {frontText}
-                    </Typography>
+            }
+            topLeftControl={
+                isActive && (
+                    <IconButton
+                        onClick={() => {
+                            setIsError(false);
+                            onChange(undefined);
+                        }}
+                    >
+                        <RefreshOutlined />
+                    </IconButton>
+                )
+            }
+            leftButton={
+                showPrevious && (
+                    <Button
+                        tabIndex={1}
+                        variant="outlined"
+                        onClick={() => {
+                            onPrevious();
+                            setIsError(false);
+                        }}
+                    >
+                        Назад
+                    </Button>
+                )
+            }
+            rightButton={
+                showNext ? (
+                    <Button
+                        tabIndex={2}
+                        variant="outlined"
+                        onClick={() => {
+                            if (value === null) {
+                                setIsError(true);
+                            } else {
+                                onNext();
+                            }
+                        }}
+                    >
+                        Далее
+                    </Button>
+                ) : (
+                    <Button
+                        tabIndex={2}
+                        variant="contained"
+                        onClick={() => {
+                            if (value === null) {
+                                setIsError(true);
+                            } else {
+                                onEndButtonClick();
+                            }
+                        }}
+                    >
+                        Завершить
+                    </Button>
+                )
+            }
+        >
+            <div className={styles.container}>
+                <Portal>
+                    {showCardInfoModal && (
+                        <ShowCardModal
+                            open
+                            onClose={() => setShowCardInfoModal(false)}
+                            userId={card.userId}
+                            collectionId={card.collectionId}
+                            cardId={card.id}
+                        />
+                    )}
+                </Portal>
+
+                {card.remembers && card.remembers.length > 0 && <RememberList remembers={card.remembers} />}
+
+                <Stack direction={'column'} gap="12px" alignItems={'center'}>
+                    <Stack direction={'column'} gap="6px" alignItems={'center'}>
+                        <Typography variant="h3" fontSize={32}>
+                            {frontText}
+                        </Typography>
+
+                        <div
+                            className={classNames(styles.backContainer, { [styles.backHidden]: promptIsHidden })}
+                            onClick={() => setPromptIsHidden(!promptIsHidden)}
+                        >
+                            {card.promptText}
+                        </div>
+                    </Stack>
 
                     <div
-                        className={classNames(styles.backContainer, { [styles.backHidden]: promptIsHidden })}
-                        onClick={() => setPromptIsHidden(!promptIsHidden)}
+                        className={classNames(styles.backContainer, { [styles.backHidden]: backIsHidden })}
+                        onClick={() => setBackIsHidden(!backIsHidden)}
                     >
-                        {card.promptText}
+                        <Typography variant="h5" fontSize={24}>
+                            {backText}
+                        </Typography>
                     </div>
                 </Stack>
-
-                <div
-                    className={classNames(styles.backContainer, { [styles.backHidden]: backIsHidden })}
-                    onClick={() => setBackIsHidden(!backIsHidden)}
-                >
-                    <Typography variant="h5" fontSize={24}>
-                        {backText}
-                    </Typography>
-                </div>
-            </Stack>
-            <div>
                 <RadioGroup
                     onKeyDownCapture={(e) => e.preventDefault()}
                     tabIndex={0}
@@ -173,51 +221,6 @@ export const RepeatCard: FC<RepeatCardProps> = ({
                     {errorMessage}
                 </div>
             </div>
-            <div className={styles.buttonsContainer}>
-                {showPrevious ? (
-                    <Button
-                        tabIndex={1}
-                        variant="outlined"
-                        onClick={() => {
-                            onPrevious();
-                            setIsError(false);
-                        }}
-                    >
-                        Назад
-                    </Button>
-                ) : (
-                    <div />
-                )}
-                {showNext ? (
-                    <Button
-                        tabIndex={2}
-                        variant="outlined"
-                        onClick={() => {
-                            if (value === null) {
-                                setIsError(true);
-                            } else {
-                                onNext();
-                            }
-                        }}
-                    >
-                        Далее
-                    </Button>
-                ) : (
-                    <Button
-                        tabIndex={2}
-                        variant="contained"
-                        onClick={() => {
-                            if (value === null) {
-                                setIsError(true);
-                            } else {
-                                onEndButtonClick();
-                            }
-                        }}
-                    >
-                        Завершить
-                    </Button>
-                )}
-            </div>
-        </Paper>
+        </PaperCard>
     );
 };
