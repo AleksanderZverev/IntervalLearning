@@ -1,4 +1,5 @@
 import { Collection } from '../types/Collection';
+import { Language, Word } from '../types/Dictionary';
 import { api, tagTypes } from './apiSlice';
 import { setOneCollection, setCollections } from './slices/collectionsSlice';
 
@@ -41,6 +42,16 @@ export interface GetNotFinishedRequest {
 
 export interface GetCollectionQuery {
     collectionId: string;
+}
+
+export interface GetRandomWordsRequest {
+    refetchToggle: number;
+    collectionId: string;
+}
+
+interface GetRandomWordsResponse {
+    words: Word[];
+    language: Language;
 }
 
 const baseUrl = '/collections';
@@ -96,6 +107,13 @@ export const collectionsApi = api.injectEndpoints({
             }),
             providesTags: [tagTypes.queueCollectionsList],
         }),
+        getRandomWords: build.query<GetRandomWordsResponse, GetRandomWordsRequest>({
+            query: (req) => ({
+                url: `${baseUrl}/words/random`,
+                method: 'GET',
+                params: { collectionId: req.collectionId },
+            }),
+        }),
     }),
 });
 
@@ -105,4 +123,5 @@ export const {
     useGetCollectionQuery,
     useGetNotFinishedQuery,
     useGetQueueCollectionsQuery,
+    useGetRandomWordsQuery,
 } = collectionsApi;

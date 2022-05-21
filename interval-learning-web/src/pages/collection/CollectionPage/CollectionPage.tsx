@@ -1,8 +1,8 @@
 /* eslint-disable react-hooks/rules-of-hooks */
-import { Add } from '@mui/icons-material';
-import { Button, CircularProgress, Pagination, TableCell } from '@mui/material';
+import { Add, Casino } from '@mui/icons-material';
+import { Button, CircularProgress, Pagination, Stack, TableCell } from '@mui/material';
 import { FC, useMemo, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { Navigate, useNavigate, useParams } from 'react-router-dom';
 import { CreateCardModal } from '../../../controls/Modals/CreateCardModal';
 import { PageContainer } from '../../../controls/PageContainer/PageContainer';
 import { PageHeader } from '../../../controls/PageHeader/PageHeader';
@@ -24,6 +24,7 @@ export const CollectionPage: FC = () => {
         throw new Error();
     }
 
+    const navigate = useNavigate();
     const [page, setPage] = useState(1);
 
     const { isFetching: isCollectionFetching, isError: isCollectionError } = useGetCollectionQuery({ collectionId });
@@ -38,15 +39,21 @@ export const CollectionPage: FC = () => {
 
     const collection = useTypedSelector((state) => selectCollectionById(state, userId, collectionId));
     const storageCards = useTypedSelector((state) => selectCards(state, collection?.userId, collection?.id));
+
+    const sortedCards = useMemo(
+        () => [...storageCards].sort((f, s) => f.frontSideText.localeCompare(s.frontSideText)),
+        [storageCards]
+    );
+
     const cards = useMemo(() => {
         const skip = (page - 1) * cardsCountPerPage;
 
-        const workingCards = [...storageCards];
+        const workingCards = [...sortedCards];
         workingCards.splice(0, skip);
         workingCards.splice(cardsCountPerPage);
 
         return workingCards;
-    }, [storageCards, page]);
+    }, [sortedCards, page]);
 
     const [showCreateCardModal, setShowCreateCardModal] = useState(false);
     // const defaultSchedule = useTypedSelector(
@@ -78,9 +85,14 @@ export const CollectionPage: FC = () => {
             <PageHeader
                 title={collection.title}
                 subMenu={
-                    <Button variant="contained" endIcon={<Add />} onClick={() => setShowCreateCardModal(true)}>
-                        Слово
-                    </Button>
+                    <Stack direction={'row'} gap="10px">
+                        <Button variant="contained" endIcon={<Casino />} onClick={() => navigate('words/random')}>
+                            Случайные
+                        </Button>
+                        <Button variant="contained" endIcon={<Add />} onClick={() => setShowCreateCardModal(true)}>
+                            Слово
+                        </Button>
+                    </Stack>
                 }
             />
             {showCreateCardModal && (

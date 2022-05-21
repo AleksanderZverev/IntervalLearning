@@ -221,55 +221,55 @@ export const LearnCollectionPageContent: FC<LearnCollectionPageContentProps> = (
                     onClose={() => setShowMoveToRepeatModal(false)}
                 />
             )}
-            <CenterContainer>
-                <div
-                    style={{
-                        margin: '10px 0',
-                        display: 'flex',
-                        alignItems: 'center',
-                        columnGap: 45,
+            <div
+                style={{
+                    width: '100%',
+                    margin: '10px 0',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    columnGap: 45,
+                }}
+            >
+                <Slider
+                    value={cardIndex}
+                    min={0}
+                    max={maxCards - 1}
+                    activeValue={activeCardIndex}
+                    onValueChange={(v) => {
+                        setCardIndex(v);
+                        setActiveCardIndex(v);
                     }}
-                >
-                    <Slider
-                        value={cardIndex}
-                        min={0}
-                        max={maxCards - 1}
-                        activeValue={activeCardIndex}
-                        onValueChange={(v) => {
-                            setCardIndex(v);
-                            setActiveCardIndex(v);
-                        }}
-                        finishMode={isSuccess}
-                        getHoverTitle={(index) => {
-                            const cardId = notStartedCardIds[index];
-                            const target = cards.find((c) => c.id === cardId);
-                            return target?.frontSideText ?? index.toString();
-                        }}
-                        vertical
+                    finishMode={isSuccess}
+                    getHoverTitle={(index) => {
+                        const cardId = notStartedCardIds[index];
+                        const target = cards.find((c) => c.id === cardId);
+                        return target?.frontSideText ?? index.toString();
+                    }}
+                    vertical
+                />
+
+                {isSuccess && mutationData && (
+                    <CardResult
+                        nextRepeatDate={mutationData.nextRepeatDate}
+                        wordsLearned={cardIndex + 1}
+                        onEndButtonClick={() => onSuccessFinish(false)}
                     />
+                )}
 
-                    {isSuccess && mutationData && (
-                        <CardResult
-                            nextRepeatDate={mutationData.nextRepeatDate}
-                            wordsLearned={cardIndex + 1}
-                            onEndButtonClick={() => onSuccessFinish(false)}
-                        />
-                    )}
-
-                    {currentCardId && !isSuccess && (
-                        <LearnCard
-                            userId={userId}
-                            collectionId={collectionId}
-                            cardId={currentCardId}
-                            showNext={cardIndex < maxCards - 1}
-                            showPrevious={cardIndex !== 0}
-                            onFinish={() => onFinish(true)}
-                            onNext={onNext}
-                            onPrevious={onPrevious}
-                        />
-                    )}
-                </div>
-            </CenterContainer>
+                {currentCardId && !isSuccess && (
+                    <LearnCard
+                        userId={userId}
+                        collectionId={collectionId}
+                        cardId={currentCardId}
+                        showNext={cardIndex < maxCards - 1}
+                        showPrevious={cardIndex !== 0}
+                        onFinish={() => onFinish(true)}
+                        onNext={onNext}
+                        onPrevious={onPrevious}
+                    />
+                )}
+            </div>
         </PageContainer>
     );
 };

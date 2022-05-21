@@ -1,6 +1,15 @@
 import { yupResolver } from '@hookform/resolvers/yup';
-import { ArrowForwardIos } from '@mui/icons-material';
-import { Dialog, DialogTitle, DialogContent, DialogActions, Button } from '@mui/material';
+import { Add, ArrowForwardIos, Info } from '@mui/icons-material';
+import {
+    Dialog,
+    DialogTitle,
+    DialogContent,
+    DialogActions,
+    Button,
+    InputAdornment,
+    Link,
+    IconButton,
+} from '@mui/material';
 import { FC } from 'react';
 import { FormProvider, SubmitHandler, useFieldArray, useForm } from 'react-hook-form';
 import * as yup from 'yup';
@@ -36,15 +45,6 @@ const schema = yup
     })
     .required();
 
-interface CreateCardModalProps extends WithMutationResolverProps<typeof useAddCardMutation> {
-    collectionId: string;
-    collectionUserId: string;
-    open: boolean;
-    onClose: () => void;
-    cardId?: string;
-    // defaultSchedule?: Schedule;
-}
-
 function getDefaultValues(card: Card): CardForm {
     const examples = card.examples?.map((e) => ({ value: e })) ?? [];
     examples.push({ value: '' });
@@ -60,8 +60,21 @@ function getDefaultValues(card: Card): CardForm {
     return cardForm;
 }
 
+interface CreateCardModalProps extends WithMutationResolverProps<typeof useAddCardMutation> {
+    collectionId: string;
+    collectionUserId: string;
+    open: boolean;
+    onClose: () => void;
+    onAdded?: () => void;
+    cardId?: string;
+    defaultFrontText?: string;
+    defaultPromptText?: string;
+}
+
 const CreateCardModalContent: FC<CreateCardModalProps> = ({
     mutationProps: { mutate: addCard, showRetryModal, isLoading },
+    defaultFrontText,
+    defaultPromptText,
     ...props
 }) => {
     const card = useTypedSelector((state) =>
@@ -70,7 +83,9 @@ const CreateCardModalContent: FC<CreateCardModalProps> = ({
 
     const formMethods = useForm<CardForm>({
         resolver: yupResolver(schema),
-        defaultValues: card ? getDefaultValues(card) : { examples: [{ value: '' }] },
+        defaultValues: card
+            ? getDefaultValues(card)
+            : { frontText: defaultFrontText, promptText: defaultPromptText, examples: [{ value: '' }] },
     });
 
     const {
@@ -79,6 +94,7 @@ const CreateCardModalContent: FC<CreateCardModalProps> = ({
         control,
         getValues,
         formState: { errors },
+        watch,
     } = formMethods;
 
     const { fields, append } = useFieldArray({ control, name: 'examples' });
@@ -102,11 +118,13 @@ const CreateCardModalContent: FC<CreateCardModalProps> = ({
 
         try {
             await addCard({ collectionId: props.collectionId, userId: props.collectionUserId, request: item });
-            props.onClose();
+            props.onAdded ? props.onAdded() : props.onClose();
         } catch {
             showRetryModal(() => onCreate(data));
         }
     };
+
+    const frontTextValue = watch('frontText');
 
     return (
         <Dialog open={props.open} onClose={props.onClose} maxWidth={'sm'} fullWidth>
@@ -134,6 +152,20 @@ const CreateCardModalContent: FC<CreateCardModalProps> = ({
                             errorMessage={errors.backText?.message}
                             {...register('backText')}
                             required
+                            InputProps={{
+                                endAdornment: frontTextValue && (
+                                    <InputAdornment position="end">
+                                        <Link
+                                            href={`https://wooordhunt.ru/word/${frontTextValue}`}
+                                            color={'primary'}
+                                            target="_blank"
+                                            rel="noreferrer"
+                                        >
+                                            перевод
+                                        </Link>
+                                    </InputAdornment>
+                                ),
+                            }}
                         />
                         <FormField
                             label="Описание"
@@ -157,12 +189,16 @@ const CreateCardModalContent: FC<CreateCardModalProps> = ({
                                 );
                             })}
                         </div>
-                        <Button onClick={onAddExample}>ADD</Button>
+                        <div style={{ alignSelf: 'center' }}>
+                            <IconButton onClick={onAddExample}>
+                                <Add />
+                            </IconButton>
+                        </div>
                     </Form>
                 </FormProvider>
             </DialogContent>
-            <DialogActions>
-                <Button onClick={handleSubmit(onCreate)} disabled={isLoading}>
+            <DialogActions style={{ padding: '20px', paddingTop: 0 }}>
+                <Button variant="contained" onClick={handleSubmit(onCreate)} disabled={isLoading}>
                     {props.cardId ? 'Сохранить' : 'Создать'}
                 </Button>
             </DialogActions>
