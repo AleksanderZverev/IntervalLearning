@@ -238,9 +238,16 @@ public class CollectionService
         return (card, null);
     }
 
-    public async Task<(List<WordEntity>? words, LanguageEntity? language, string? error)> GetRandomWords(long userId, int themeId)
+    public async Task<(List<WordEntity>? words, LanguageEntity? language, string? error)> GetRandomWords(long userId, short collectionId)
     {
-        var theme = await db.Themes.FindAsync(themeId);
+        var collection = await db.Collections.FindAsync(userId, collectionId);
+
+        if (collection == null)
+        {
+            return (null, null, "Collection not found");
+        }
+
+        var theme = await db.Themes.FindAsync(collection.ThemeId);
 
         if (theme?.LanguageId == null)
         {
@@ -254,8 +261,15 @@ public class CollectionService
 
         var words = await db.Words.Where(w => w.LanguageId == theme.LanguageId).ToListAsync();
         words.Shuffle();
-        
-        var cards = await db.Cards.Where(c => c.ParentUserId == userId).ToListAsync();
+
+        var collectionIds = await db.Collections
+            .Where(c => c.ParentUserId == userId && c.ThemeId == theme.Id)
+            .Select(c => c.Id)
+            .ToListAsync();
+
+        var cards = await db.Cards
+            .Where(c => c.ParentUserId == userId && collectionIds.Contains(c.ParentCollectionId))
+            .ToListAsync();
 
         var resultWords = words
             .Where(w => !cards

@@ -2,12 +2,12 @@
 
 public class LanguageDto
 {
-    public short Id { get; }
+    public string Id { get; }
     public string Name { get; }
 
     public LanguageDto(short id, string name)
     {
-        Id = id;
+        Id = id.ToString();
         Name = name;
     }
 }

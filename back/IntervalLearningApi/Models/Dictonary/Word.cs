@@ -2,14 +2,14 @@
 {
     public class WordDto
     {
-        public int Id { get; }
+        public string Id { get; }
         public string Word { get; }
         public string Pronunciation { get; }
         public short LanguageId { get; }
 
         public WordDto(int id, string word, string pronunciation, short languageId)
         {
-            Id = id;
+            Id = id.ToString();
             Word = word;
             Pronunciation = pronunciation;
             LanguageId = languageId;

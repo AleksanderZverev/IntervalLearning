@@ -49,10 +49,10 @@ namespace IntervalLearningApi.Controllers
         }
 
         [HttpGet("words/random")]
-        public async Task<ActionResult<GetRandomWordResponse>> GetRandomWords(int themeId)
+        public async Task<ActionResult<GetRandomWordResponse>> GetRandomWords([FromQuery]short collectionId)
         {
             var userId = HttpContext.GetUserId();
-            var (words, language, error) = await collectionService.GetRandomWords(userId, themeId);
+            var (words, language, error) = await collectionService.GetRandomWords(userId, collectionId);
 
             return words == null || language == null
                 ? BadRequest(error)
