@@ -19,5 +19,5 @@ public class WordEntity
 
 
     public short LanguageId { get; set; }
-    public LanguageEntity Language { get; set; }
+    public LanguageEntity? Language { get; set; }
 }

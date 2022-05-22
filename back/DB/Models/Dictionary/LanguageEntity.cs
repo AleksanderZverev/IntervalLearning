@@ -13,4 +13,12 @@ public class LanguageEntity
     [Required]
     [StringLength(50)]
     public string Name { get; set; }
+
+    [Required]
+    [StringLength(50)]
+    public string NativeLanguageName { get; set; }
+
+    [StringLength(50)]
+    public string? TranslationLinkTitle { get; set; }
+    public string? TranslationLink { get; set; }
 }

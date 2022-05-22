@@ -238,7 +238,9 @@ public class CollectionService
         return (card, null);
     }
 
-    public async Task<(List<WordEntity>? words, LanguageEntity? language, string? error)> GetRandomWords(long userId, short collectionId)
+    public async Task<(List<WordEntity>? words, LanguageEntity? language, string? error)> GetRandomWords(
+        long userId, 
+        short collectionId)
     {
         var collection = await db.Collections.FindAsync(userId, collectionId);
 

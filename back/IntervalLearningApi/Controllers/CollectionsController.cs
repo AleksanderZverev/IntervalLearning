@@ -2,7 +2,7 @@
 using DB.Models.Dictionary;
 using IntervalLearningApi.Extensions;
 using IntervalLearningApi.Models.ByUser;
-using IntervalLearningApi.Models.Dictonary;
+using IntervalLearningApi.Models.Dictionary;
 using IntervalLearningApi.Services;
 using Microsoft.AspNetCore.Mvc;
 
@@ -158,7 +158,17 @@ namespace IntervalLearningApi.Controllers
 
         public static LanguageDto ToLanguage(LanguageEntity language)
         {
-            return new LanguageDto(language.Id, language.Name);
+            return new LanguageDto(
+                language.Id,
+                language.Name,
+                language.NativeLanguageName,
+                language.TranslationLinkTitle,
+                language.TranslationLink);
+        }
+
+        public static TranslationDto ToTranslation(TranslationEntity arg)
+        {
+            return new TranslationDto(arg.LanguageId, arg.Id, arg.Translation);
         }
     }
 
@@ -168,7 +178,9 @@ namespace IntervalLearningApi.Controllers
 
         public LanguageDto Language { get; }
 
-        public GetRandomWordResponse(List<WordEntity> words, LanguageEntity language)
+        public GetRandomWordResponse(
+            List<WordEntity> words, 
+            LanguageEntity language)
         {
             Words = words.Select(CollectionsController.ToWord).ToList();
             Language = CollectionsController.ToLanguage(language);

@@ -1,6 +1,7 @@
 ﻿using DB;
 using IntervalLearningApi.Services;
 using IntervalLearningApi.Services.Authentication;
+using IntervalLearningApi.Services.Dictionary;
 using IntervalLearningApi.Services.Jwt;
 
 namespace IntervalLearningApi.Extensions;
@@ -18,6 +19,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<RepeatsScheduleService>();
         services.AddScoped<ThemeService>();
         services.AddScoped<UserMetadataService>();
+        services.AddScoped<DictionaryService>();
         services.AddScoped(typeof(Repository<>));
     }
 }

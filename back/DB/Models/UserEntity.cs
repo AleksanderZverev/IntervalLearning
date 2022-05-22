@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.Text.Json.Serialization;
+using DB.Models.Dictionary;
 
 namespace DB.Models;
 
@@ -41,6 +42,9 @@ public class UserMetadataEntity : IParentUserReference
 {
     public long ParentUserId { get; set; }
     public UserEntity? ParentUser { get; set; }
+
+    public short SuggestTranslationLanguageId { get; set; }
+    public LanguageEntity? SuggestTranslationLanguage { get; set; }
 
     public short NotStartedCollections { get; set; }
     public short StartedCollections { get; set; }
