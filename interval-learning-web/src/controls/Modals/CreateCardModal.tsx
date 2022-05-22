@@ -9,15 +9,18 @@ import {
     InputAdornment,
     Link,
     IconButton,
+    Autocomplete,
 } from '@mui/material';
 import { FC } from 'react';
-import { FormProvider, SubmitHandler, useFieldArray, useForm } from 'react-hook-form';
+import { Controller, FormProvider, SubmitHandler, useFieldArray, useForm } from 'react-hook-form';
 import * as yup from 'yup';
 import { withMutationResolver, WithMutationResolverProps } from '../../hoc/withQueryResolver';
 import useTypedSelector from '../../hooks/useTypedSelector';
+import { useLazyGetWordTranslationsQuery } from '../../redux/api/dictionaryApi';
 import { CreateCardItem, useAddCardMutation } from '../../redux/cardsApi';
 import { selectCardById } from '../../redux/slices/cardsSlice';
 import { Card } from '../../types/Collection';
+import { AsyncAutocomplete } from '../AsyncAutocomplete/AsyncAutocomplete';
 import { Form, FormField, FormFiledLabel, IconFormField } from '../Form/Form';
 
 interface Example {
@@ -69,12 +72,14 @@ interface CreateCardModalProps extends WithMutationResolverProps<typeof useAddCa
     cardId?: string;
     defaultFrontText?: string;
     defaultPromptText?: string;
+    defaultBackText?: string;
 }
 
 const CreateCardModalContent: FC<CreateCardModalProps> = ({
     mutationProps: { mutate: addCard, showRetryModal, isLoading },
     defaultFrontText,
     defaultPromptText,
+    defaultBackText,
     ...props
 }) => {
     const card = useTypedSelector((state) =>
@@ -85,7 +90,12 @@ const CreateCardModalContent: FC<CreateCardModalProps> = ({
         resolver: yupResolver(schema),
         defaultValues: card
             ? getDefaultValues(card)
-            : { frontText: defaultFrontText, promptText: defaultPromptText, examples: [{ value: '' }] },
+            : {
+                  frontText: defaultFrontText,
+                  promptText: defaultPromptText,
+                  backText: defaultBackText,
+                  examples: [{ value: '' }],
+              },
     });
 
     const {
@@ -98,6 +108,8 @@ const CreateCardModalContent: FC<CreateCardModalProps> = ({
     } = formMethods;
 
     const { fields, append } = useFieldArray({ control, name: 'examples' });
+
+    const [getTranslation, {}] = useLazyGetWordTranslationsQuery();
 
     const onAddExample = () => {
         const currentState = getValues();
@@ -139,21 +151,8 @@ const CreateCardModalContent: FC<CreateCardModalProps> = ({
                             {...register('frontText')}
                             autoFocus
                             required
-                        />
-                        <FormField
-                            label="Подсказка (чтение)"
-                            error={!!errors.promptText}
-                            errorMessage={errors.promptText?.message}
-                            {...register('promptText')}
-                        />
-                        <FormField
-                            label="Значение (перевод)"
-                            error={!!errors.backText}
-                            errorMessage={errors.backText?.message}
-                            {...register('backText')}
-                            required
                             InputProps={{
-                                endAdornment: frontTextValue && (
+                                endAdornment: (
                                     <InputAdornment position="end">
                                         <Link
                                             href={`https://wooordhunt.ru/word/${frontTextValue}`}
@@ -161,11 +160,46 @@ const CreateCardModalContent: FC<CreateCardModalProps> = ({
                                             target="_blank"
                                             rel="noreferrer"
                                         >
-                                            перевод
+                                            wooordhunt
                                         </Link>
                                     </InputAdornment>
                                 ),
                             }}
+                        />
+                        <FormField
+                            label="Подсказка (чтение)"
+                            error={!!errors.promptText}
+                            errorMessage={errors.promptText?.message}
+                            {...register('promptText')}
+                        />
+                        <Controller
+                            name="backText"
+                            render={({ field: { value, ...field } }) => (
+                                <AsyncAutocomplete
+                                    label="Значение (перевод)"
+                                    error={!!errors.backText}
+                                    errorMessage={errors.backText?.message}
+                                    required
+                                    onChange={(e: string) => {
+                                        field.onChange(e);
+                                    }}
+                                    value={value ?? ''}
+                                    onFocus={async () => {
+                                        try {
+                                            const translations = await getTranslation(
+                                                { word: frontTextValue },
+                                                true
+                                            ).unwrap();
+                                            return translations.map((t) => ({
+                                                label: t.translation,
+                                                id: t.id,
+                                            }));
+                                        } catch {
+                                            return [];
+                                        }
+                                    }}
+                                />
+                            )}
                         />
                         <FormField
                             label="Описание"

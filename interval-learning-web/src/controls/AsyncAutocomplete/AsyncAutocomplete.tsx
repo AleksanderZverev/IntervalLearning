@@ -5,13 +5,12 @@ import CircularProgress from '@mui/material/CircularProgress';
 
 interface Option {
     label: string;
-    item: any;
+    id: string;
 }
 
 interface AsyncAutocompleteProps {
-    onChange: (input: string) => void;
-    value: any;
-    valueToLabel: (value: any) => string;
+    onChange: (newValue: string) => void;
+    value: string;
     query?: () => Promise<Option[]>;
     onFocus?: () => Promise<Option[]>;
 
@@ -24,36 +23,33 @@ interface AsyncAutocompleteProps {
 export const AsyncAutocomplete: FC<AsyncAutocompleteProps> = ({
     query,
     value,
-    valueToLabel,
     label,
     error,
     errorMessage,
     required,
-    ...props
+    ...otherProps
 }) => {
-    console.log('AsyncAutocomplete: value = ', value);
-
     const [open, setOpen] = useState(false);
     const [options, setOptions] = useState<Option[]>([]);
     const [loading, setLoading] = useState(false);
 
     const onFocus = async () => {
-        if (!props.onFocus) {
+        if (!otherProps.onFocus) {
             return;
         }
 
         setLoading(true);
-        const options = await props.onFocus();
+        const options = await otherProps.onFocus();
         setOptions(options);
         setLoading(false);
     };
 
     const onChange = async (input: string) => {
+        otherProps.onChange(input);
+
         if (!query) {
             return;
         }
-
-        setOptions([]);
 
         if (!input) {
             return;
@@ -67,6 +63,7 @@ export const AsyncAutocomplete: FC<AsyncAutocompleteProps> = ({
 
     return (
         <Autocomplete
+            freeSolo
             open={Boolean(open && options.length > 0)}
             onOpen={() => {
                 setOpen(true);
@@ -75,12 +72,13 @@ export const AsyncAutocomplete: FC<AsyncAutocompleteProps> = ({
                 setOpen(false);
             }}
             onFocus={onFocus}
-            getOptionLabel={(option) => option.label ?? option}
             value={value}
             autoComplete={false}
             options={options}
             loading={loading}
-            filterOptions={(x) => x}
+            onInputChange={(e, v, r) => {
+                onChange(v);
+            }}
             renderInput={(params) => (
                 <TextField
                     {...params}
@@ -91,8 +89,6 @@ export const AsyncAutocomplete: FC<AsyncAutocompleteProps> = ({
                     helperText={errorMessage ?? ' '}
                     fullWidth
                     required={required}
-                    onChange={(e) => onChange(e.target.value)}
-                    onBlur={(e) => props.onChange(e.target.value)}
                     InputProps={{
                         ...params.InputProps,
                         endAdornment: (

@@ -95,7 +95,7 @@ const RandomWordsPageContent: FC<RandomWordsPageContentProps> = ({
                             collectionUserId={userId}
                             collectionId={collectionId}
                             defaultFrontText={currentWord.word}
-                            defaultPromptText={currentWord.pronunciation}
+                            defaultPromptText={currentWord.pronunciation ?? undefined}
                         />
                     )}
                     <PaperCard
