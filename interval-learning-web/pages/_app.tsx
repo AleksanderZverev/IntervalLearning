@@ -27,6 +27,7 @@ import localizedFormat from 'dayjs/plugin/localizedFormat';
 import 'dayjs/locale/ru';
 import { NextComponentType } from 'next';
 import GlobalErrorBoundary from '../src/GlobalErrorBoundary';
+import { dictionaryApi } from '../src/redux/api/dictionaryApi';
 
 dayjs.extend(duration);
 dayjs.extend(relativeTime);
@@ -47,6 +48,7 @@ interface MyAppProps extends AppProps {
 }
 
 const fetchStartData = async (dispatch: AppDispatch) => {
+    dispatch(dictionaryApi.endpoints.getLanguages.initiate());
     dispatch(themesApi.endpoints.getThemes.initiate());
     dispatch(schedulesApi.endpoints.getSchedules.initiate());
 };

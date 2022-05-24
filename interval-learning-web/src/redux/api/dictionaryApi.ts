@@ -1,8 +1,15 @@
-import { Translation } from '../../types/Dictionary';
+import { Language, Translation } from '../../types/Dictionary';
 import { api } from '../apiSlice';
+import { addLanguages } from '../slices/languagesSlice';
 
 interface GetWordTranslationsRequest {
     word: string;
+}
+
+export interface AddTranslationsRequest {
+    languageId: string;
+    translationLanguageId: string;
+    text: string;
 }
 
 const baseUrl = 'dictionary';
@@ -16,7 +23,24 @@ export const dictionaryApi = api.injectEndpoints({
                 params: { word },
             }),
         }),
+        getLanguages: build.query<Language[], void>({
+            query: () => ({
+                url: `${baseUrl}/languages`,
+                method: 'GET',
+                onSuccess: async (dispatch, data) => {
+                    const languages = data as Language[];
+                    dispatch(addLanguages(languages));
+                },
+            }),
+        }),
+        addTranslations: build.mutation<string, AddTranslationsRequest>({
+            query: (req) => ({
+                url: `${baseUrl}/translations`,
+                method: 'POST',
+                data: req,
+            }),
+        }),
     }),
 });
 
-export const { useLazyGetWordTranslationsQuery } = dictionaryApi;
+export const { useLazyGetWordTranslationsQuery, useGetLanguagesQuery, useAddTranslationsMutation } = dictionaryApi;
