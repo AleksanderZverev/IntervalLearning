@@ -28,6 +28,7 @@ namespace DB
         //Dictionary
         public DbSet<WordEntity> Words { get; set; }
         public DbSet<LanguageEntity> Languages { get; set; }
+        public DbSet<TranslationEntity> Translations { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -49,6 +50,23 @@ namespace DB
                 .HasOne(p => p.ParentUser)
                 .WithOne(u => u.PasswordHash)
                 .HasForeignKey<UserPasswordsEntity>(p => p.ParentUserId)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            // UserMetadataEntity
+
+            modelBuilder.Entity<UserMetadataEntity>()
+                .HasKey(c => c.ParentUserId);
+
+            modelBuilder.Entity<UserMetadataEntity>()
+                .HasOne(m => m.ParentUser)
+                .WithOne()
+                .HasForeignKey<UserMetadataEntity>(m => m.ParentUserId)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            modelBuilder.Entity<UserMetadataEntity>()
+                .HasOne(m => m.SuggestTranslationLanguage)
+                .WithMany()
+                .HasForeignKey(m => m.SuggestTranslationLanguageId)
                 .OnDelete(DeleteBehavior.NoAction);
 
             // RefreshTokenEntity
@@ -183,17 +201,6 @@ namespace DB
                 .HasForeignKey(q => new {q.ParentRepeatsScheduleUserId, q.ParentRepeatsScheduleId})
                 .OnDelete(DeleteBehavior.NoAction);
 
-            // UserMetadataEntity
-
-            modelBuilder.Entity<UserMetadataEntity>()
-                .HasKey(c => c.ParentUserId);
-
-            modelBuilder.Entity<UserMetadataEntity>()
-                .HasOne(m => m.ParentUser)
-                .WithOne()
-                .HasForeignKey<UserMetadataEntity>(m => m.ParentUserId)
-                .OnDelete(DeleteBehavior.NoAction);
-
             // PhaseRememberEntity 
 
             modelBuilder.Entity<PhaseRememberEntity>()
@@ -230,12 +237,38 @@ namespace DB
 
         private static void BuildDictionaryModels(ModelBuilder modelBuilder)
         {
+            modelBuilder.Entity<LanguageEntity>()
+                .HasData(
+                    new LanguageEntity() {Id = 1, Name = "English", NativeLanguageName = "English"}, 
+                    new LanguageEntity() {Id = 2, Name = "Russian", NativeLanguageName = "Русский"},
+                    new LanguageEntity() {Id = 3, Name = "Japanese", NativeLanguageName = "日本語"});
+
             // WordEntity
 
             modelBuilder.Entity<WordEntity>()
                 .HasOne(w => w.Language)
                 .WithMany()
                 .HasForeignKey(w => w.LanguageId)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            modelBuilder.Entity<WordEntity>()
+                .HasIndex(w => w.Word);
+
+            // TranslationEntity
+
+            modelBuilder.Entity<TranslationEntity>()
+                .HasKey(t => new {t.WordId, t.LanguageId, t.Id});
+
+            modelBuilder.Entity<TranslationEntity>()
+                .HasOne(t => t.Word)
+                .WithMany()
+                .HasForeignKey(t => t.WordId)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            modelBuilder.Entity<TranslationEntity>()
+                .HasOne(t => t.Language)
+                .WithMany()
+                .HasForeignKey(t => t.LanguageId)
                 .OnDelete(DeleteBehavior.NoAction);
         }
 
