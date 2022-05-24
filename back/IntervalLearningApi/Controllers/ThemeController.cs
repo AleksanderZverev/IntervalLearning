@@ -18,26 +18,28 @@ namespace IntervalLearningApi.Controllers
         [HttpGet]
         public List<Theme> GetAll()
         {
-            return themeService.GetAll().Select(t => new Theme(t.Id, t.Name)).ToList();
+            return themeService.GetAll().Select(t => new Theme(t.Id, t.Name, t.LanguageId)).ToList();
         }
 
-        [HttpPost]
-        public IActionResult CreateTheme([FromBody] CreateThemeItem themeItem)
-        {
-            var (ok, error) = themeService.Create(themeItem.Name);
-            return ok ? Ok() : BadRequest(error);
-        }
+        //[HttpPost]
+        //public IActionResult CreateTheme([FromBody] CreateThemeItem themeItem)
+        //{
+        //    var (ok, error) = themeService.Create(themeItem.Name);
+        //    return ok ? Ok() : BadRequest(error);
+        //}
     }
 
     public class Theme
     {
         public short Id { get; }
         public string Name { get; }
+        public string? LanguageId { get; }
 
-        public Theme(short id, string name)
+        public Theme(short id, string name, short? languageId)
         {
             Id = id;
             Name = name;
+            LanguageId = languageId?.ToString();
         }
     }
 

@@ -14,11 +14,20 @@ import {
 import { FC } from 'react';
 import { Controller, FormProvider, SubmitHandler, useFieldArray, useForm } from 'react-hook-form';
 import * as yup from 'yup';
-import { withMutationResolver, WithMutationResolverProps } from '../../hoc/withQueryResolver';
+import {
+    withMutationResolver,
+    WithMutationResolverProps,
+    withQueryResolver,
+    WithQueryResolverData,
+} from '../../hoc/withQueryResolver';
 import useTypedSelector from '../../hooks/useTypedSelector';
 import { useLazyGetWordTranslationsQuery } from '../../redux/api/dictionaryApi';
 import { CreateCardItem, useAddCardMutation } from '../../redux/cardsApi';
+import { useGetCollectionQuery } from '../../redux/collectionApi';
 import { selectCardById } from '../../redux/slices/cardsSlice';
+import { selectCollectionById } from '../../redux/slices/collectionsSlice';
+import { selectLanguageById } from '../../redux/slices/languagesSlice';
+import { selectTheme } from '../../redux/slices/themeSlice';
 import { Card } from '../../types/Collection';
 import { AsyncAutocomplete } from '../AsyncAutocomplete/AsyncAutocomplete';
 import { Form, FormField, FormFiledLabel, IconFormField } from '../Form/Form';
@@ -82,6 +91,16 @@ const CreateCardModalContent: FC<CreateCardModalProps> = ({
     defaultBackText,
     ...props
 }) => {
+    const collection = useTypedSelector((state) =>
+        selectCollectionById(state, props.collectionUserId, props.collectionId)
+    );
+
+    const theme = useTypedSelector((state) => (collection ? selectTheme(state, collection.themeId) : undefined));
+
+    const language = useTypedSelector((state) =>
+        theme?.languageId ? selectLanguageById(state, theme.languageId) : undefined
+    );
+
     const card = useTypedSelector((state) =>
         selectCardById(state, props.collectionUserId, props.collectionId, props.cardId)
     );
@@ -152,15 +171,15 @@ const CreateCardModalContent: FC<CreateCardModalProps> = ({
                             autoFocus
                             required
                             InputProps={{
-                                endAdornment: (
+                                endAdornment: language && language.translationLink && language.translationLinkTitle && (
                                     <InputAdornment position="end">
                                         <Link
-                                            href={`https://wooordhunt.ru/word/${frontTextValue}`}
+                                            href={language.translationLink.replace('[word]', frontTextValue)}
                                             color={'primary'}
                                             target="_blank"
                                             rel="noreferrer"
                                         >
-                                            wooordhunt
+                                            {language.translationLinkTitle}
                                         </Link>
                                     </InputAdornment>
                                 ),
@@ -187,7 +206,7 @@ const CreateCardModalContent: FC<CreateCardModalProps> = ({
                                     onFocus={async () => {
                                         try {
                                             const translations = await getTranslation(
-                                                { word: frontTextValue },
+                                                { word: frontTextValue.trim() },
                                                 true
                                             ).unwrap();
                                             return translations.map((t) => ({

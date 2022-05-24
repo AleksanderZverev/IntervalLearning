@@ -1,26 +1,31 @@
 /* eslint-disable react/display-name */
-import { MenuItem, Select, SelectProps } from '@mui/material';
+import { MenuItem, Select, SelectProps, Stack } from '@mui/material';
 import { FC, forwardRef } from 'react';
 import useTypedSelector from '../../../hooks/useTypedSelector';
 import { selectLanguages } from '../../../redux/slices/languagesSlice';
-import { Language } from '../../../types/Dictionary';
 
-interface LanguageSelectProps extends SelectProps {}
+interface LanguageSelectProps extends SelectProps {
+    error?: boolean;
+    errorMessage?: string;
+}
 
-export const LanguageSelect = forwardRef<typeof Select, SelectProps>(({ ...selectProps }, ref) => {
-    var languages = useTypedSelector(selectLanguages);
+export const LanguageSelect = forwardRef<typeof Select, LanguageSelectProps>(
+    ({ error, errorMessage, ...selectProps }, ref) => {
+        var languages = useTypedSelector(selectLanguages);
 
-    if (languages === undefined || languages.length === 0) {
-        throw new Error();
+        return (
+            <Stack direction={'column'} rowGap={'5px'}>
+                <Select error={error} ref={ref} size="small" fullWidth {...selectProps}>
+                    {languages?.map((l) => (
+                        <MenuItem key={l.id} value={l.id}>
+                            {l.name}
+                        </MenuItem>
+                    ))}
+                </Select>
+                <div style={{ color: 'red', height: '20px', fontSize: '14px', paddingLeft: '10px' }}>
+                    {errorMessage}
+                </div>
+            </Stack>
+        );
     }
-
-    return (
-        <Select ref={ref} size="small" fullWidth {...selectProps}>
-            {languages.map((l) => (
-                <MenuItem key={l.id} value={l.id}>
-                    {l.name}
-                </MenuItem>
-            ))}
-        </Select>
-    );
-});
+);
