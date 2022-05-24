@@ -64,7 +64,7 @@ const AuthorizePageContent: FC<AuthorizePageContentProps> = ({
             await authenticate(data);
             const redirectUrl = LocalStorageHelper.getRedirectUrlAfterAuthorization();
             LocalStorageHelper.clearRedirectUrl();
-            router.push(redirectUrl);
+            window.location.href = redirectUrl.endsWith('accounts/register') ? '/' : redirectUrl;
         } catch {
             showRetryModal(() => onSubmit(data));
         }

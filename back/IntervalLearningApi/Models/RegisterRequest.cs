@@ -13,5 +13,8 @@ public class RegisterRequest
     [Required]
     public string FirstName { get; set; }
 
+    [Required]
+    public short SuggestLanguageId { get; set; }
+
     public string? LastName { get; set; }
 }

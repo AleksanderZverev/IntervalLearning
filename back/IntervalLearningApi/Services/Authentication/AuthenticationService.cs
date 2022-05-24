@@ -50,13 +50,12 @@ public class AuthenticationService : IAuthenticationService
         
         try
         {
-            //TODO: TEST
             db.Database.BeginTransaction();
 
             db.Users.Add(user);
             db.SaveChanges();
 
-            var metadata = new UserMetadataEntity(user.Id);
+            var metadata = new UserMetadataEntity(user.Id, request.SuggestLanguageId);
             db.Entry(metadata).State = EntityState.Added;
 
             db.SaveChanges();

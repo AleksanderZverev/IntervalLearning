@@ -15,5 +15,6 @@ export interface RegisterRequest {
     email: string;
     password: string;
     firstName: string;
+    suggestLanguageId: string;
     lastName: string | null;
 }

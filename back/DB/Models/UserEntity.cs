@@ -54,8 +54,9 @@ public class UserMetadataEntity : IParentUserReference
     public short StartedCards { get; set; }
     public short FinishedCards { get; set; }
 
-    public UserMetadataEntity(long parentUserId)
+    public UserMetadataEntity(long parentUserId, short suggestTranslationLanguageId)
     {
         ParentUserId = parentUserId;
+        SuggestTranslationLanguageId = suggestTranslationLanguageId;
     }
 }

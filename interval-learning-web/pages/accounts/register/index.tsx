@@ -10,20 +10,23 @@ import { Check, HourglassBottomRounded } from '@mui/icons-material';
 import { green } from '@mui/material/colors';
 import { useRouter } from 'next/router';
 import { CenterContainer } from '../../../src/controls/CenterContainer/CenterContainer';
+import { LanguageSelect } from '../../../src/controls/dictionary/LanguageSelect/LanguageSelect';
 
 interface IForm {
     email: string;
     givenName: string;
     familyName: string | null;
+    suggestLanguageId: string;
     password: string;
     confirmPassword: string;
 }
 
 const schema = yup
     .object({
-        givenName: yup.string().max(50).required(),
-        familyName: yup.string().max(50),
-        email: yup.string().email().required(),
+        givenName: yup.string().max(50, 'Слишком длинная строка').required('Укажите имя'),
+        familyName: yup.string().max(50, 'Слишком длинная строка'),
+        email: yup.string().email('Неверный формат').required('Укажите email'),
+        suggestLanguageId: yup.string().min(1, 'Выберите язык').required('Выберите язык'),
         password: yup
             .string()
             .required('Пароль обязателен')
@@ -52,9 +55,12 @@ const RegisterPage: FC = () => {
             lastName: data.familyName,
             email: data.email,
             password: data.password,
+            suggestLanguageId: data.suggestLanguageId,
         };
 
-        registerAccount(registerRequest).then((v) => 'data' in v && window.setTimeout(() => router.push('/'), 500));
+        registerAccount(registerRequest).then(
+            (v) => 'data' in v && window.setTimeout(() => (window.location.href = '/'), 500)
+        );
     };
 
     const renderRegisterPage = () => (
@@ -65,7 +71,7 @@ const RegisterPage: FC = () => {
                 </Typography>
             </div>
             <div className={styles.formField}>
-                <FormLabel htmlFor="given-name-input">Name</FormLabel>
+                <FormLabel htmlFor="given-name-input">Имя</FormLabel>
                 <TextField
                     size="small"
                     id="given-name-input"
@@ -77,7 +83,7 @@ const RegisterPage: FC = () => {
                 />
             </div>
             <div className={styles.formField}>
-                <FormLabel htmlFor="family-name-input">Surname</FormLabel>
+                <FormLabel htmlFor="family-name-input">Фамилия</FormLabel>
                 <TextField
                     size="small"
                     id="family-name-input"
@@ -99,6 +105,15 @@ const RegisterPage: FC = () => {
                     autoComplete="email"
                     helperText={errors.email?.message || ' '}
                     {...register('email')}
+                />
+            </div>
+            <div className={styles.formField}>
+                <FormLabel>Родной язык</FormLabel>
+                <LanguageSelect
+                    sx={{ width: '210px' }}
+                    {...register('suggestLanguageId')}
+                    error={!!errors.suggestLanguageId}
+                    errorMessage={errors.suggestLanguageId?.message}
                 />
             </div>
             <div className={styles.formField}>
@@ -135,7 +150,7 @@ const RegisterPage: FC = () => {
 
     return (
         <CenterContainer>
-            <Paper sx={{ width: 415, height: 445 }}>
+            <Paper sx={{ width: 415, height: 510 }}>
                 {isLoading || isSuccess ? (
                     <div
                         style={{

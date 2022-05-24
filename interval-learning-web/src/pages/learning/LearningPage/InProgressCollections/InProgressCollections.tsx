@@ -81,19 +81,21 @@ const InProgressCollectionsContent: FC<InProgressCollectionsProps> = ({ queryDat
 
     return (
         <div style={{ display: 'grid', gridTemplateRows: 'auto 1fr' }}>
-            <div style={{ display: 'flex', columnGap: 20, marginTop: 10, fontSize: '20px' }}>
-                <label style={{ marginTop: 2 }}>Сортировать по учебному плану:</label>
-                <SelectSchedule
-                    width="250px"
-                    scheduleUserId={schedule?.userId}
-                    scheduleId={schedule?.id}
-                    onChange={(newSchedule) => setSchedule(newSchedule)}
-                    availableSchedules={availableScheduleKeys}
-                    defaultScheduleUserId={defaultScheduleUserId}
-                    defaultScheduleId={defaultScheduleId}
-                    showWordsPerPhase
-                />
-            </div>
+            {availableScheduleKeys.length > 0 && (
+                <div style={{ display: 'flex', columnGap: 20, marginTop: 10, fontSize: '20px' }}>
+                    <label style={{ marginTop: 2 }}>Сортировать по учебному плану:</label>
+                    <SelectSchedule
+                        width="250px"
+                        scheduleUserId={schedule?.userId}
+                        scheduleId={schedule?.id}
+                        onChange={(newSchedule) => setSchedule(newSchedule)}
+                        availableSchedules={availableScheduleKeys}
+                        defaultScheduleUserId={defaultScheduleUserId}
+                        defaultScheduleId={defaultScheduleId}
+                        showWordsPerPhase
+                    />
+                </div>
+            )}
             <Table>
                 <TableHead>
                     <TableHeaderCell></TableHeaderCell>
