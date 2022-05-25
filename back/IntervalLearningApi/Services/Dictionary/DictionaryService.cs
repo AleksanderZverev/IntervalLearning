@@ -80,6 +80,20 @@ namespace IntervalLearningApi.Services.Dictionary
 
                 var word = allWords.FirstOrDefault(w => string.Equals(w.Word, wordText, StringComparison.InvariantCultureIgnoreCase));
 
+                if (word != null && string.IsNullOrEmpty(word.Pronunciation))
+                {
+                    word.Pronunciation = pronunciation;
+
+                    try
+                    {
+                        db.SaveChanges();
+                    }
+                    catch
+                    {
+                        errors.Add(line + " - on update pronunciation");
+                    }
+                }
+
                 if (word == null)
                 { 
                     word = new WordEntity
