@@ -113,6 +113,7 @@ export const collectionsApi = api.injectEndpoints({
                 method: 'GET',
                 params: { collectionId: req.collectionId },
             }),
+            keepUnusedDataFor: 0,
         }),
     }),
 });
