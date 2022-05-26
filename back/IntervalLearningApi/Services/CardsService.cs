@@ -107,7 +107,8 @@ public class CardsService
                         && c.ParentCollectionId == collectionId
                         && c.ParentRepeatsScheduleUserId == scheduleUserId
                         && c.ParentRepeatsScheduleId == scheduleId
-                        && c.PhaseIndex == phaseIndex)
+                        && c.PhaseIndex == phaseIndex
+                        && c.Date.Date <= DateTime.UtcNow.Date)
             .ToListAsync();
 
         if (queueItems.Count == 0)
