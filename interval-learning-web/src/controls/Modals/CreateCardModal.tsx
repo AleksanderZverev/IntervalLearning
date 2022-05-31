@@ -50,8 +50,8 @@ const exampleSchema = yup.object({
 
 const schema = yup
     .object({
-        frontText: yup.string().required().max(255),
-        backText: yup.string().required().max(255),
+        frontText: yup.string().required('Обязательное поле').max(255),
+        backText: yup.string().required('Обязательное поле').max(255),
         description: yup.string().max(500),
         examples: yup.array().of(exampleSchema),
     })
@@ -122,6 +122,8 @@ const CreateCardModalContent: FC<CreateCardModalProps> = ({
         handleSubmit,
         control,
         getValues,
+        setError,
+        clearErrors,
         formState: { errors },
         watch,
     } = formMethods;
@@ -155,8 +157,6 @@ const CreateCardModalContent: FC<CreateCardModalProps> = ({
         }
     };
 
-    const frontTextValue = watch('frontText');
-
     return (
         <Dialog open={props.open} onClose={props.onClose} maxWidth={'sm'} fullWidth>
             <DialogTitle>{props.cardId ? 'Изменение карточки' : 'Создание карточки'}</DialogTitle>
@@ -170,14 +170,38 @@ const CreateCardModalContent: FC<CreateCardModalProps> = ({
                             {...register('frontText')}
                             autoFocus
                             required
+                            onChange={() => {
+                                if (errors.frontText && errors.frontText.type === 'moveToTranslation') {
+                                    clearErrors('frontText');
+                                }
+                            }}
                             InputProps={{
                                 endAdornment: language && language.translationLink && language.translationLinkTitle && (
                                     <InputAdornment position="end">
                                         <Link
-                                            href={language.translationLink.replace('[word]', frontTextValue)}
+                                            href={language.translationLink.replace('[word]', watch('frontText'))}
                                             color={'primary'}
                                             target="_blank"
                                             rel="noreferrer"
+                                            onClick={(e) => {
+                                                e.preventDefault();
+
+                                                const frontTextValue = watch('frontText');
+
+                                                if (frontTextValue && language.translationLink) {
+                                                    window.open(
+                                                        language.translationLink.replace('[word]', frontTextValue),
+                                                        '_blank',
+                                                        'noreferrer'
+                                                    );
+                                                    return;
+                                                }
+
+                                                setError('frontText', {
+                                                    message: 'Для перехода введите значение',
+                                                    type: 'moveToTranslation',
+                                                });
+                                            }}
                                         >
                                             {language.translationLinkTitle}
                                         </Link>
@@ -206,7 +230,7 @@ const CreateCardModalContent: FC<CreateCardModalProps> = ({
                                     onFocus={async () => {
                                         try {
                                             const translations = await getTranslation(
-                                                { word: frontTextValue.trim() },
+                                                { word: watch('frontText').trim() },
                                                 true
                                             ).unwrap();
                                             return translations.map((t) => ({
