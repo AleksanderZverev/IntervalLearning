@@ -76,6 +76,7 @@ const RegisterPage: FC = () => {
                     size="small"
                     id="given-name-input"
                     disabled={isLoading}
+                    autoComplete="given-name"
                     type="text"
                     error={!!errors.givenName}
                     helperText={errors.givenName?.message || ' '}
@@ -88,6 +89,7 @@ const RegisterPage: FC = () => {
                     size="small"
                     id="family-name-input"
                     disabled={isLoading}
+                    autoComplete="family-name"
                     type="text"
                     error={!!errors.familyName}
                     helperText={errors.familyName?.message || ' '}
@@ -142,8 +144,8 @@ const RegisterPage: FC = () => {
                     {...register('confirmPassword')}
                 />
             </div>
-            <Button className={styles.submitButton} type="submit">
-                Submit
+            <Button variant="outlined" className={styles.submitButton} type="submit">
+                Зарегистрироваться
             </Button>
         </form>
     );

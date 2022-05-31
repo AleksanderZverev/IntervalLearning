@@ -1,5 +1,5 @@
 import { FC } from 'react';
-import { Button, TextField, Typography, Paper, FormLabel } from '@mui/material';
+import { Button, TextField, Typography, Paper, FormLabel, Stack } from '@mui/material';
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
@@ -14,6 +14,7 @@ import useTypedSelector from '../../../src/hooks/useTypedSelector';
 import { AppDispatch } from '../../../src/redux/store';
 import { LocalStorageHelper } from '../../../src/helpers/localStorageHelper';
 import { withMutationResolver, WithMutationResolverProps } from '../../../src/hoc/withQueryResolver';
+import { Loader } from '../../../src/controls/Loader/Loader';
 
 export const useAutoAuthorization = (currentUser: User | null, dispatch: AppDispatch) => {
     const isLoggedOut = checkIsLoggedOut();
@@ -40,11 +41,12 @@ const schema = yup
 interface AuthorizePageContentProps extends WithMutationResolverProps<typeof useAuthenticateMutation> {}
 
 const AuthorizePageContent: FC<AuthorizePageContentProps> = ({
-    mutationProps: { mutate: authenticate, isLoading: mutationLoading, showRetryModal },
+    mutationProps: { mutate: authenticate, isLoading: mutationLoading },
 }) => {
     const {
         register,
         handleSubmit,
+        setError,
         formState: { errors },
     } = useForm<Form>({ resolver: yupResolver(schema) });
     const dispatch = useTypedDispatch();
@@ -57,7 +59,7 @@ const AuthorizePageContent: FC<AuthorizePageContentProps> = ({
         isSuccess: isRefreshSuccess,
     } = useAutoAuthorization(currentUser, dispatch);
 
-    const isLoading = autoQueryLoading || mutationLoading;
+    const isLoading = Boolean(autoQueryLoading || mutationLoading);
 
     const onSubmit = async (data: Form) => {
         try {
@@ -66,9 +68,20 @@ const AuthorizePageContent: FC<AuthorizePageContentProps> = ({
             LocalStorageHelper.clearRedirectUrl();
             window.location.href = redirectUrl.endsWith('accounts/register') ? '/' : redirectUrl;
         } catch {
-            showRetryModal(() => onSubmit(data));
+            setError('email', { message: 'Неверная почта или пароль' });
+            setError('password', { message: 'Неверная почта или пароль' });
         }
     };
+
+    if (isLoading) {
+        return (
+            <CenterContainer>
+                <Paper sx={{ width: 415, height: 260 }}>
+                    <Loader title="Авторизация" />
+                </Paper>
+            </CenterContainer>
+        );
+    }
 
     return (
         <CenterContainer>
@@ -84,8 +97,9 @@ const AuthorizePageContent: FC<AuthorizePageContentProps> = ({
                         <TextField
                             size="small"
                             id="email-input"
-                            disabled={isLoading}
-                            type="text"
+                            autoComplete="email"
+                            placeholder="some@gmail.com"
+                            type="email"
                             error={!!errors.email}
                             helperText={errors.email?.message || ' '}
                             {...register('email')}
@@ -96,17 +110,21 @@ const AuthorizePageContent: FC<AuthorizePageContentProps> = ({
                         <TextField
                             size="small"
                             id="password-name-input"
-                            autoComplete="current-password"
-                            disabled={isLoading}
+                            autoComplete="off"
                             type="password"
                             error={!!errors.password}
                             helperText={errors.password?.message || ' '}
                             {...register('password')}
                         />
                     </div>
-                    <Button className={styles.submitButton} type="submit">
-                        Submit
-                    </Button>
+                    <Stack direction={'row'} justifyContent={'space-between'}>
+                        <Button variant="outlined" onClick={() => router.push('/accounts/register')}>
+                            Регистрация
+                        </Button>
+                        <Button variant="contained" className={styles.submitButton} type="submit">
+                            Войти
+                        </Button>
+                    </Stack>
                 </form>
             </Paper>
         </CenterContainer>

@@ -72,11 +72,8 @@ const WebHeader: FC<WebHeaderProps> = ({ isServerSide }) => {
                     </>
                 ) : (
                     <>
-                        <Button variant="contained" onClick={() => router.push('/accounts/register')}>
-                            Sign Up
-                        </Button>
                         <Button variant="contained" onClick={() => router.push('/accounts/authorize')}>
-                            Sign In
+                            Вход
                         </Button>
                     </>
                 )}
