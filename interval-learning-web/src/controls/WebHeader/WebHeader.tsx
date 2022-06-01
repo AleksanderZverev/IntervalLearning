@@ -1,14 +1,16 @@
-import { Button, Divider, IconButton } from '@mui/material';
+import { Button, Divider, IconButton, ListItemIcon, ListItemText, Menu, MenuItem, Stack } from '@mui/material';
 import Link from 'next/link';
 import MuiLink from '../../Link';
-import React, { FC, useMemo } from 'react';
+import React, { FC, useMemo, useState } from 'react';
 import { useRouter } from 'next/router';
 import useTypedSelector from '../../hooks/useTypedSelector';
 import { signOutUser } from '../../redux/currentUserSlice';
 import { useTypedDispatch } from '../../hooks/useTypedDispatch';
 import styles from './WebHeader.module.css';
 import { useNavigate } from 'react-router-dom';
-import { Logout } from '@mui/icons-material';
+import { EventNote, Logout } from '@mui/icons-material';
+import { StringAvatar } from '../StringAvatar/StringAvatar';
+import { UserHelper } from '../../helpers/UserHelper';
 
 interface WebHeaderProps {
     isServerSide: boolean;
@@ -24,6 +26,8 @@ const WebHeader: FC<WebHeaderProps> = ({ isServerSide }) => {
     const router = useRouter();
     const navigate = useNavigate();
     const dispatch = useTypedDispatch();
+    const [showMenu, setShowMenu] = useState(false);
+    const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
 
     const signOut = () => {
         if (currentUser === null) {
@@ -64,12 +68,14 @@ const WebHeader: FC<WebHeaderProps> = ({ isServerSide }) => {
             </div>
             <div className={styles.rightHeaderContainer}>
                 {currentUser !== null ? (
-                    <>
-                        <span>{userNameTitle}</span>
-                        <IconButton onClick={signOut}>
-                            <Logout />
-                        </IconButton>
-                    </>
+                    <IconButton
+                        onClick={(e) => {
+                            setShowMenu(true);
+                            setAnchorEl(e.currentTarget);
+                        }}
+                    >
+                        <StringAvatar size={30} fontSize={18} name={UserHelper.getFullName(currentUser)} />
+                    </IconButton>
                 ) : (
                     <>
                         <Button variant="contained" onClick={() => router.push('/accounts/authorize')}>
@@ -78,6 +84,21 @@ const WebHeader: FC<WebHeaderProps> = ({ isServerSide }) => {
                     </>
                 )}
             </div>
+            <Menu anchorEl={anchorEl} open={showMenu} onClose={() => setShowMenu(false)}>
+                <MenuItem>
+                    <ListItemIcon>
+                        <EventNote />
+                    </ListItemIcon>
+                    <ListItemText>Мои учебные планы</ListItemText>
+                </MenuItem>
+                <Divider />
+                <MenuItem onClick={signOut}>
+                    <ListItemIcon>
+                        <Logout />
+                    </ListItemIcon>
+                    <ListItemText>Выйти</ListItemText>
+                </MenuItem>
+            </Menu>
         </header>
     );
 };
