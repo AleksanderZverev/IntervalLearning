@@ -1,3 +1,5 @@
+import { EnvironmentHelper } from '../helpers/EnvironmentHelper';
+
 export interface Schedule {
     userId: string;
     id: string;
@@ -40,4 +42,24 @@ export enum ForgottenBehavior {
     StayOnCurrentStep = 2,
     MoveToPreviousStep = 3,
     StartFromFirstStep = 4,
+}
+
+export function getForgottenBehaviorTitle(behavior: ForgottenBehavior): string {
+    switch (behavior) {
+        case ForgottenBehavior.MoveToNextStep:
+            return 'Перейти на следующий этап';
+        case ForgottenBehavior.MoveToPreviousStep:
+            return 'Перейти на предыдущий этап';
+        case ForgottenBehavior.StartFromFirstStep:
+            return 'Перейти на первый этап';
+        case ForgottenBehavior.StayOnCurrentStep:
+            return 'Остаться на текущем этапе';
+        default: {
+            if (EnvironmentHelper.IsDevelopment()) {
+                throw new Error('Unknown forgotten behavior');
+            } else {
+                return 'Неизвестный тип';
+            }
+        }
+    }
 }

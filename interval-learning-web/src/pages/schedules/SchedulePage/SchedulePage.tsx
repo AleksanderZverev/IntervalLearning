@@ -1,13 +1,13 @@
 import { Button } from '@mui/material';
 import { FC, useState } from 'react';
-import { CreateScheduleModal } from '../../src/controls/Modals/CreateScheduleModal';
-import { PageContainer } from '../../src/controls/PageContainer/PageContainer';
-import { withQueryResolver } from '../../src/hoc/withQueryResolver';
-import useTypedSelector from '../../src/hooks/useTypedSelector';
-import { useGetSchedulesQuery } from '../../src/redux/schedulesSlice';
-import { selectSchedules } from '../../src/redux/slices/scheduleSlice';
+import { CreateScheduleModal } from '../../../controls/Modals/CreateScheduleModal';
+import { PageContainer } from '../../../controls/PageContainer/PageContainer';
+import { withQueryResolver } from '../../../hoc/withQueryResolver';
+import useTypedSelector from '../../../hooks/useTypedSelector';
+import { useGetSchedulesQuery } from '../../../redux/schedulesSlice';
+import { selectSchedules } from '../../../redux/slices/scheduleSlice';
 
-const SchedulePage: FC = () => {
+const SchedulePageContent: FC = () => {
     const [showCreateScheduleModal, setShowCreateScheduleModal] = useState(false);
     const schedules = useTypedSelector(selectSchedules);
 
@@ -26,6 +26,6 @@ const SchedulePage: FC = () => {
     );
 };
 
-const withLoader = withQueryResolver(useGetSchedulesQuery)(SchedulePage);
+const withLoader = withQueryResolver(useGetSchedulesQuery)(SchedulePageContent);
 
-export default withLoader;
+export const SchedulePage = withLoader;

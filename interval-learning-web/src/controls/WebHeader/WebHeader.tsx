@@ -38,6 +38,11 @@ const WebHeader: FC<WebHeaderProps> = ({ isServerSide }) => {
         router.push('/');
     };
 
+    const onMenuClick = (action: () => void) => () => {
+        action();
+        setShowMenu(false);
+    };
+
     return (
         <header className={styles.header}>
             <div className={styles.leftHeaderContainer}>
@@ -85,7 +90,12 @@ const WebHeader: FC<WebHeaderProps> = ({ isServerSide }) => {
                 )}
             </div>
             <Menu anchorEl={anchorEl} open={showMenu} onClose={() => setShowMenu(false)}>
-                <MenuItem>
+                <MenuItem
+                    onClick={onMenuClick(() => {
+                        router.push('/schedules');
+                        !isServerSide && navigate('/schedules');
+                    })}
+                >
                     <ListItemIcon>
                         <EventNote />
                     </ListItemIcon>
