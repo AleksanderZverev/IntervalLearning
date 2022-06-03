@@ -1,24 +1,54 @@
-import { Typography } from '@mui/material';
-import { FC, ReactNode } from 'react';
+import { Edit } from '@mui/icons-material';
+import { IconButton, InputAdornment, TextField, Typography } from '@mui/material';
+import { FC, ReactNode, useState } from 'react';
 import styles from './styles.module.css';
 
 interface PageHeaderProps {
     title: string;
     subTitle?: string;
+    editable?: boolean;
+    onChange?: (newTitle: string) => void;
     subMenu?: ReactNode;
 }
 
-export const PageHeader: FC<PageHeaderProps> = ({ title, subTitle, subMenu }) => {
+export const PageHeader: FC<PageHeaderProps> = ({ title, subTitle, subMenu, editable, onChange }) => {
+    const [editMode, setEditMode] = useState(false);
+
+    const setEdit = (value: boolean) => {
+        if (!editable) {
+            return;
+        }
+        setEditMode(value);
+    };
+
     return (
         <div className={styles.container}>
             <div className={styles.innerContainer}>
-                <Typography variant="h1" fontSize={36}>
-                    {title}
-                </Typography>
-                {subMenu}
+                {editMode ? (
+                    <TextField
+                        value={title}
+                        onChange={(e) => onChange && onChange(e.target.value)}
+                        onBlur={() => setEdit(false)}
+                        onKeyPress={(e) => e.key === 'Enter' && setEdit(false)}
+                        variant={'standard'}
+                        fullWidth
+                        inputProps={{ style: { fontSize: 36, fontWeight: 'lighter', padding: 0 } }}
+                        autoFocus
+                    />
+                ) : (
+                    <Typography variant="h1" fontSize={36}>
+                        <span onDoubleClick={() => setEdit(true)}>{title}</span>
+                        {editable && (
+                            <IconButton style={{ marginLeft: '6px' }} onClick={() => setEdit(true)}>
+                                <Edit />
+                            </IconButton>
+                        )}
+                    </Typography>
+                )}
+                {!editMode && subMenu}
             </div>
             {subTitle && <div className={styles.subTitle}>{subTitle}</div>}
-            <div className={styles.endLine} />
+            {!editMode && <div className={styles.endLine} />}
         </div>
     );
 };
