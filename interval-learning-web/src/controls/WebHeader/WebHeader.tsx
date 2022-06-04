@@ -19,10 +19,6 @@ interface WebHeaderProps {
 const WebHeader: FC<WebHeaderProps> = ({ isServerSide }) => {
     const currentUser = useTypedSelector((state) => state.currentUser.currentUser);
 
-    const userNameTitle = useMemo(
-        () => (currentUser !== null ? (currentUser.firstName + ' ' + currentUser.lastName).trim() : ''),
-        [currentUser]
-    );
     const router = useRouter();
     const navigate = useNavigate();
     const dispatch = useTypedDispatch();
@@ -36,6 +32,7 @@ const WebHeader: FC<WebHeaderProps> = ({ isServerSide }) => {
 
         dispatch(signOutUser());
         router.push('/');
+        navigate('/');
     };
 
     const onMenuClick = (action: () => void) => () => {
@@ -102,7 +99,7 @@ const WebHeader: FC<WebHeaderProps> = ({ isServerSide }) => {
                     <ListItemText>Мои учебные планы</ListItemText>
                 </MenuItem>
                 <Divider />
-                <MenuItem onClick={signOut}>
+                <MenuItem onClick={onMenuClick(signOut)}>
                     <ListItemIcon>
                         <Logout />
                     </ListItemIcon>
