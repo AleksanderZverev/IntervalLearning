@@ -11,8 +11,8 @@ import { cardsSlice } from './slices/cardsSlice';
 import { queueLearnSlice } from './slices/queueLearnSlice';
 import { languagesSlice } from './slices/languagesSlice';
 
-const makeStore = () =>
-    configureStore({
+const makeStore = () => {
+    const store = configureStore({
         reducer: {
             [api.reducerPath]: api.reducer,
             [accountSlice.reducerPath]: accountSlice.reducer,
@@ -28,6 +28,9 @@ const makeStore = () =>
         middleware: (getDefaultMiddleware) =>
             getDefaultMiddleware({ serializableCheck: false }).concat(api.middleware, accountSlice.middleware),
     });
+
+    return store;
+};
 
 // optional, but required for refetchOnFocus/refetchOnReconnect behaviors
 // see `setupListeners` docs - takes an optional callback as the 2nd arg for customization

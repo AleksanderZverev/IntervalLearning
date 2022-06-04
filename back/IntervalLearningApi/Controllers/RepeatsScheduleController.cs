@@ -26,12 +26,53 @@ namespace IntervalLearningApi.Controllers
             return repeatsScheduleService.GetAll(userId).Select(ToSchedule).ToList();
         }
 
+        [HttpGet("my/{scheduleId}")]
+        public ActionResult<Schedule> GetSchedule(short scheduleId)
+        {
+            var userId = HttpContext.GetUserId();
+            var schedule = repeatsScheduleService.Find(userId, scheduleId);
+            return schedule == null ? BadRequest() : ToSchedule(schedule);
+        }
+
+        [HttpPatch("{scheduleId}")]
+        public async Task<ActionResult<Schedule>> EditSchedule(short scheduleId, [FromBody] UpdateScheduleRequest request)
+        {
+            var userId = HttpContext.GetUserId();
+            var (schedule, error) = await repeatsScheduleService.PatchSchedule(userId, scheduleId, request);
+            return schedule != null ? ToSchedule(schedule) : BadRequest(error);
+        }
+
         [HttpPost]
         public async Task<ActionResult<Schedule>> CreateSchedule([FromBody] CreateScheduleRequest request)
         {
             var userId = HttpContext.GetUserId();
             var (schedule, error) = await repeatsScheduleService.Create(userId, request);
             return schedule != null ? ToSchedule(schedule) : BadRequest(error);
+        }
+
+        public class UpdateScheduleRequest
+        {
+            [Required]
+            public short CardsCountPerPhase { get; set; }
+            [Required]
+            public string Title { get; set; }
+
+            [StringLength(200)]
+            public string? ShortDescription { get; set; }
+
+            [StringLength(1000)]
+            public string? Description { get; set; }
+
+            public List<UpdatePhaseInfo>? Phases { get; set; }
+
+            [StringLength(200)]
+            public string? DefaultPhaseShortDescription { get; set; }
+            [StringLength(1000)]
+            public string? DefaultPhaseDescription { get; set; }
+            [StringLength(200)]
+            public string? DefaultRepeatPhaseShortDescription { get; set; }
+            [StringLength(1000)]
+            public string? DefaultRepeatPhaseDescription { get; set; }
         }
 
         public class CreateScheduleRequest

@@ -7,15 +7,31 @@ export const getScheduleId = (userId: string, scheduleId: string | number) => `$
 const adapter = createEntityAdapter<Schedule>({ selectId: (s) => getScheduleId(s.userId, s.id) });
 const initialState = adapter.getInitialState();
 
+function prepareSchedule(schedule: Schedule): Schedule {
+    const newSchedule = { ...schedule };
+    newSchedule.phases = [...schedule.phases].sort((f, s) => f.id.localeCompare(s.id));
+    return newSchedule;
+}
+
 export const scheduleSlice = createSlice({
     name: 'schedules',
     initialState,
     reducers: {
-        setSchedule: (state, action: PayloadAction<Schedule>) => {
-            adapter.setOne(state, action.payload);
+        setSchedule: {
+            reducer: (state, action: PayloadAction<Schedule>) => {
+                adapter.setOne(state, action.payload);
+            },
+            prepare: (schedule: Schedule) => {
+                return { payload: prepareSchedule(schedule) };
+            },
         },
-        setSchedules: (state, action: PayloadAction<Schedule[]>) => {
-            adapter.setMany(state, action.payload);
+        setSchedules: {
+            reducer: (state, action: PayloadAction<Schedule[]>) => {
+                adapter.setMany(state, action.payload);
+            },
+            prepare: (schedules: Schedule[]) => {
+                return { payload: schedules.map(prepareSchedule) };
+            },
         },
     },
 });

@@ -16,7 +16,6 @@ public interface IPatchRepeatsSchedule
     public string? ShortDescription { get; }
     public string? Description { get; }
     public short CardsCountPerPhase { get; }
-    public ForgottenBehavior ForgottenBehavior { get; }
     public string? DefaultPhaseShortDescription { get; }
     public string? DefaultPhaseDescription { get; }
     public string? DefaultRepeatPhaseShortDescription { get; }
@@ -26,6 +25,7 @@ public interface IPatchRepeatsSchedule
 public interface ICreateRepeatsSchedule : IPatchRepeatsSchedule
 {
     public long ParentUserId { get; }
+    public ForgottenBehavior ForgottenBehavior { get; }
 }
 
 public class PatchRepeatsSchedule : IPatchRepeatsSchedule
@@ -34,7 +34,6 @@ public class PatchRepeatsSchedule : IPatchRepeatsSchedule
     public string? ShortDescription { get;  }
     public string? Description { get;  }
     public short CardsCountPerPhase { get;  }
-    public ForgottenBehavior ForgottenBehavior { get;  }
     public string? DefaultPhaseShortDescription { get;  }
     public string? DefaultPhaseDescription { get;  }
     public string? DefaultRepeatPhaseShortDescription { get;  }
@@ -42,7 +41,6 @@ public class PatchRepeatsSchedule : IPatchRepeatsSchedule
 
     public PatchRepeatsSchedule(
         short cardsCountPerPhase,
-        ForgottenBehavior forgottenBehavior,
         string title,
         string? shortDescription,
         string? description,
@@ -52,7 +50,6 @@ public class PatchRepeatsSchedule : IPatchRepeatsSchedule
         string? defaultRepeatPhaseDescription)
     {
         CardsCountPerPhase = cardsCountPerPhase;
-        ForgottenBehavior = forgottenBehavior;
         Title = TextMaster.RemoveWhitespaces(title, true);
         Description = TextMaster.RemoveWhitespaces(description);
         ShortDescription = TextMaster.RemoveWhitespaces(shortDescription);
@@ -66,6 +63,7 @@ public class PatchRepeatsSchedule : IPatchRepeatsSchedule
 public class CreateScheduleItem : PatchRepeatsSchedule, ICreateRepeatsSchedule
 {
     public long ParentUserId { get; set; }
+    public ForgottenBehavior ForgottenBehavior { get; }
 
     public CreateScheduleItem(
         long parentUserId,
@@ -81,7 +79,6 @@ public class CreateScheduleItem : PatchRepeatsSchedule, ICreateRepeatsSchedule
         :
         base(
             cardsCountPerPhase,
-            forgottenBehavior,
             title,
             shortDescription,
             description,
@@ -92,6 +89,7 @@ public class CreateScheduleItem : PatchRepeatsSchedule, ICreateRepeatsSchedule
 
     {
         ParentUserId = parentUserId;
+        ForgottenBehavior = forgottenBehavior;
     }
 }
 

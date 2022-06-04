@@ -29,13 +29,78 @@ public class RepeatsScheduleService
             .AsSplitQuery()
             .ToList();
 
+    public async Task<(RepeatsScheduleEntity? schedule, string? error)> PatchSchedule(long userId, short scheduleId,
+        RepeatsScheduleController.UpdateScheduleRequest request)
+    {
+        var originSchedule = Find(userId, scheduleId);
+
+        if (originSchedule == null)
+            return (null, "not found");
+            
+        await db.Database.BeginTransactionAsync();
+
+        var schedule = db.UpdateByProperties<RepeatsScheduleEntity>(new PatchRepeatsSchedule(
+            request.CardsCountPerPhase,
+            request.Title,
+            request.ShortDescription,
+            request.Description,
+            request.DefaultPhaseShortDescription,
+            request.DefaultPhaseDescription,
+            request.DefaultRepeatPhaseShortDescription,
+            request.DefaultRepeatPhaseDescription
+        ), userId, scheduleId);
+
+        try
+        {
+            await db.SaveChangesAsync();
+        }
+        catch
+        {
+            await db.Database.RollbackTransactionAsync();
+            return (null, "Unable to edit schedule");
+        }
+
+        if (request.Phases == null || request.Phases.Count == 0)
+        {
+            await db.SaveChangesAsync();
+            await db.Database.CommitTransactionAsync();
+            return (schedule, null);
+        }
+
+        foreach (var updateItem in request.Phases)
+        {
+            var phaseEntity = originSchedule.Phases.SingleOrDefault(p => p.Id == updateItem.Id);
+
+            if (phaseEntity == null)
+            {
+                await db.Database.RollbackTransactionAsync();
+                return (null, "Phase not found");
+            }
+
+            db.Entry(phaseEntity).CurrentValues.SetValues(updateItem);
+        }
+
+        try
+        {
+            await db.SaveChangesAsync();
+            await db.Database.CommitTransactionAsync();
+            return (schedule, null);
+        }
+        catch
+        {
+            await db.Database.RollbackTransactionAsync();
+            return (null, "Unable to create phases");
+        }
+
+    }
+
     public async Task<(RepeatsScheduleEntity? schedule, string? error)> Create(
         long userId, 
         RepeatsScheduleController.CreateScheduleRequest request)
     {
-        db.Database.BeginTransaction();
+        await db.Database.BeginTransactionAsync();
 
-        var schedule = await scheduleRep.Create(new CreateScheduleItem(
+        var schedule = db.CreateByProperties<RepeatsScheduleEntity>(new CreateScheduleItem(
             userId,
             request.CardsCountPerPhase,
             (ForgottenBehavior)request.ForgottenBehavior,
@@ -54,48 +119,61 @@ public class RepeatsScheduleService
         }
         catch
         {
-            db.Database.RollbackTransaction();
+            await db.Database.RollbackTransactionAsync();
             return (null, "Unable to create schedule");
         }
 
         var phaseEntities = request.Phases
-            .Select(p => phasesRep.Create(
+            .Select(phase => db.CreateByProperties<PhaseEntity>(
                 new CreatePhaseItem(
                     userId,
-                    p.Id,
+                    phase.Id,
                     schedule.Id,
-                    p.SecondsFromLastPhase,
-                    p.ShortDescription,
-                    p.Description,
-                    p.IsDefaultValueSide)))
+                    phase.SecondsFromLastPhase,
+                    phase.ShortDescription,
+                    phase.Description,
+                    phase.IsDefaultValueSide)))
             .ToList();
 
         try
         {
             await db.SaveChangesAsync();
-            db.Database.CommitTransaction();
+            await db.Database.CommitTransactionAsync();
             return (schedule, null);
         }
         catch
         {
-            db.Database.RollbackTransaction();
+            await db.Database.RollbackTransactionAsync();
             return (null, "Unable to create phases");
         }
     }
+
+    public RepeatsScheduleEntity? Find(long userId, short scheduleId)
+    {
+        return db.RepeatsSchedules
+            .Include(s => s.Phases)
+            .AsSplitQuery()
+            .SingleOrDefault(s => s.ParentUserId == userId && s.Id == scheduleId);
+    }
 }
 
-public class PhaseInfo
+
+public class UpdatePhaseInfo
 {
     [Required]
-    public byte Id { get; set; }
+    public short Id { get; set; }
 
-    [Required]
-    public uint SecondsFromLastPhase { get; set; }
-    [StringLength(100)]
+    [StringLength(PhaseEntity.ShortDescriptionLength)]
     public string? ShortDescription { get; set; }
 
     [StringLength(1000)]
     public string? Description { get; set; }
 
     public bool IsDefaultValueSide { get; set; }
+}
+
+public class PhaseInfo : UpdatePhaseInfo
+{
+    [Required]
+    public uint SecondsFromLastPhase { get; set; }
 }

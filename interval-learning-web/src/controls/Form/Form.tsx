@@ -1,3 +1,4 @@
+/* eslint-disable react/display-name */
 import { ArrowForward, ArrowForwardIos, ArrowRight, SvgIconComponent } from '@mui/icons-material';
 import { FormLabel, TextField, TextFieldProps, Typography } from '@mui/material';
 import { FC, FormEventHandler, PropsWithChildren, forwardRef } from 'react';
@@ -15,10 +16,10 @@ export const Form: FC<PropsWithChildren<FormProps>> = (props) => {
     );
 };
 
-type FormFieldOtherProps = Omit<TextFieldProps, 'helperText' | 'error' | 'fullWidth' | 'label' | 'variant'>;
+type FormFieldOtherProps = Omit<TextFieldProps, 'helperText' | 'error' | 'fullWidth' | 'label'>;
 
 export interface FormFieldProps extends FormFieldOtherProps {
-    label: string;
+    label?: string;
     error?: boolean;
     errorMessage?: string;
     withoutErrorMessage?: boolean;
@@ -26,23 +27,53 @@ export interface FormFieldProps extends FormFieldOtherProps {
 
 interface FormFieldLabelProps {
     label: string;
+    labelWidth?: string | number;
     htmlFor?: string;
     justifyContent?: string;
 }
 
 export const FormFiledLabel: FC<PropsWithChildren<FormFieldLabelProps>> = ({
     justifyContent = 'space-between',
+    labelWidth,
     ...props
 }) => {
     return (
         <div className={styles.formField} style={{ justifyContent }}>
-            <FormLabel htmlFor={props.htmlFor}>{props.label}</FormLabel>
-            {props.children}
+            <FormLabel htmlFor={props.htmlFor} sx={{ width: labelWidth }}>
+                {props.label}
+            </FormLabel>
+            <div style={{ width: '100%' }}>{props.children}</div>
         </div>
     );
 };
 
-// eslint-disable-next-line react/display-name
+export const TextAreaFormField = forwardRef<HTMLDivElement, FormFieldProps>(
+    ({ label, error, errorMessage, withoutErrorMessage, ...otherProps }, ref) => {
+        return (
+            <TextField
+                ref={ref}
+                autoComplete="off"
+                sx={{
+                    '& label': {
+                        color: '#B7B7B7',
+                        fontSize: 16,
+                    },
+                    '& input': {
+                        fontSize: 20,
+                    },
+                }}
+                label={label}
+                error={error}
+                helperText={errorMessage ?? (withoutErrorMessage ? undefined : ' ')}
+                fullWidth
+                multiline
+                variant="outlined"
+                {...otherProps}
+            />
+        );
+    }
+);
+
 export const FormField = forwardRef<HTMLDivElement, FormFieldProps>(
     ({ label, error, errorMessage, withoutErrorMessage, ...otherProps }, ref) => {
         return (

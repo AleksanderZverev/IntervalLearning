@@ -5,6 +5,34 @@ import { setSchedule, setSchedules } from './slices/scheduleSlice';
 
 const basePath = '/schedules';
 
+interface GetScheduleRequest {
+    scheduleId: string;
+}
+
+export interface UpdateScheduleRequest {
+    scheduleId: string;
+    data: UpdateScheduleData;
+}
+
+export interface UpdateScheduleData {
+    cardsCountPerPhase: number;
+    title: string;
+    shortDescription: string | null;
+    description: string | null;
+    phases: UpdatePhaseInfo[] | null;
+    defaultPhaseShortDescription: string | null;
+    defaultPhaseDescription: string | null;
+    defaultRepeatPhaseShortDescription: string | null;
+    defaultRepeatPhaseDescription: string | null;
+}
+
+export interface UpdatePhaseInfo {
+    id: string;
+    shortDescription: string | null;
+    description: string | null;
+    isDefaultValueSide: boolean;
+}
+
 export const schedulesApi = api.injectEndpoints({
     endpoints: (build) => ({
         getSchedules: build.query<Schedule[], void>({
@@ -16,6 +44,31 @@ export const schedulesApi = api.injectEndpoints({
                     dispatch(setSchedules(schedules));
                 },
             }),
+        }),
+        getSchedule: build.query<Schedule, GetScheduleRequest>({
+            query: (req) => ({
+                url: `${basePath}/my/${req.scheduleId}`,
+                method: 'GET',
+                onSuccess: async (dispatch, data) => {
+                    const schedule = data as Schedule;
+                    dispatch(setSchedule(schedule));
+                },
+            }),
+        }),
+        updateSchedule: build.mutation<Schedule, UpdateScheduleRequest>({
+            query: (item) => ({
+                url: `${basePath}/${item.scheduleId}`,
+                method: 'PATCH',
+                data: item.data,
+            }),
+            async onQueryStarted(arg, { queryFulfilled, dispatch }) {
+                try {
+                    const data = await queryFulfilled;
+                    dispatch(setSchedule(data.data));
+                } catch (e) {
+                    console.error(e);
+                }
+            },
         }),
         createSchedule: build.mutation<Schedule, CreateScheduleItem>({
             query: (item) => ({ url: basePath, method: 'POST', data: item }),
@@ -29,4 +82,5 @@ export const schedulesApi = api.injectEndpoints({
     }),
 });
 
-export const { useGetSchedulesQuery, useCreateScheduleMutation } = schedulesApi;
+export const { useGetSchedulesQuery, useCreateScheduleMutation, useGetScheduleQuery, useUpdateScheduleMutation } =
+    schedulesApi;

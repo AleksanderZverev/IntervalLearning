@@ -12,18 +12,15 @@ public interface IParentPhaseReference : IParentRepeatsScheduleReference
 
 public class PatchPhaseItem
 {
-    public uint SecondsFromLastPhase { get; set; }
     public string? ShortDescription { get; set; }
     public string? Description { get; set; }
     public bool IsDefaultValueSide { get; set; }
 
     public PatchPhaseItem(
-        uint secondsFromLastPhase,
         string? shortDescription,
         string? description,
         bool isDefaultValueSide)
     {
-        SecondsFromLastPhase = secondsFromLastPhase;
         Description = TextMaster.RemoveWhitespaces(description);
         IsDefaultValueSide = isDefaultValueSide;
         ShortDescription = TextMaster.RemoveWhitespaces(shortDescription);
@@ -35,6 +32,7 @@ public class CreatePhaseItem : PatchPhaseItem
     public long ParentUserId { get; set; }
     public short ParentRepeatsScheduleId { get; set; }
     public short Id { get; set; }
+    public uint SecondsFromLastPhase { get; set; }
 
     public CreatePhaseItem(
         long parentUserId,
@@ -46,7 +44,6 @@ public class CreatePhaseItem : PatchPhaseItem
         bool isDefaultValueSide)
         :
         base(
-            secondsFromLastPhase,
             shortDescription,
             description,
             isDefaultValueSide)
@@ -54,6 +51,7 @@ public class CreatePhaseItem : PatchPhaseItem
         ParentUserId = parentUserId;
         Id = id;
         ParentRepeatsScheduleId = parentRepeatsScheduleId;
+        SecondsFromLastPhase = secondsFromLastPhase;
     }
 }
 
@@ -62,13 +60,15 @@ public class CreatePhaseItem : PatchPhaseItem
 [Table("SchedulePhases")]
 public class PhaseEntity : IParentRepeatsScheduleReference
 {
+    public const int ShortDescriptionLength = 200;
+
     [DatabaseGenerated(DatabaseGeneratedOption.None)]
     public short Id { get; set; }
 
     [Required]
     public uint SecondsFromLastPhase { get; set; }
 
-    [StringLength(200)]
+    [StringLength(ShortDescriptionLength)]
     public string? ShortDescription { get; set; }
     [Column("OnLearnDescription")]
     public string? Description { get; set; }
