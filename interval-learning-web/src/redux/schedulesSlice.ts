@@ -65,9 +65,7 @@ export const schedulesApi = api.injectEndpoints({
                 try {
                     const data = await queryFulfilled;
                     dispatch(setSchedule(data.data));
-                } catch (e) {
-                    console.error(e);
-                }
+                } catch {}
             },
         }),
         createSchedule: build.mutation<Schedule, CreateScheduleItem>({

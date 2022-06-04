@@ -1,7 +1,7 @@
 import { Add, Edit } from '@mui/icons-material';
 import { Button, IconButton } from '@mui/material';
 import dayjs from 'dayjs';
-import { FC } from 'react';
+import { FC, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ShowScheduleModal } from '../../../controls/Modals/ShowScheduleModal';
 import { PageContainer } from '../../../controls/PageContainer/PageContainer';
@@ -9,7 +9,10 @@ import { PageContent } from '../../../controls/PageContent/PageContent';
 import { PageHeader } from '../../../controls/PageHeader/PageHeader';
 import { Table, TableBody, TableCell, TableHead, TableHeaderCell, TableRow } from '../../../controls/Table/Table';
 import { withQueryResolver, WithQueryResolverData } from '../../../hoc/withQueryResolver';
+import { useRequiredTypedSelector } from '../../../hooks/useTypedSelector';
+import { selectCurrentUser } from '../../../redux/currentUserSlice';
 import { useGetSchedulesQuery } from '../../../redux/schedulesSlice';
+import { selectSchedules } from '../../../redux/slices/scheduleSlice';
 import { Schedule } from '../../../types/schedule';
 
 export function getIntervals(schedule: Schedule): string {
@@ -29,7 +32,14 @@ export function getIntervals(schedule: Schedule): string {
 
 interface ScheduleListPageContentProps extends WithQueryResolverData<typeof useGetSchedulesQuery> {}
 
-const ScheduleListPageContent: FC<ScheduleListPageContentProps> = ({ queryData: schedules }) => {
+const ScheduleListPageContent: FC<ScheduleListPageContentProps> = ({}) => {
+    const currentUser = useRequiredTypedSelector(selectCurrentUser);
+    const allSchedules = useRequiredTypedSelector(selectSchedules);
+    const schedules = useMemo(
+        () => allSchedules.filter((s) => s.userId === currentUser.id),
+        [allSchedules, currentUser]
+    );
+
     const navigate = useNavigate();
     const params = new URLSearchParams(location.search);
     const scheduleId = params.get('scheduleId');

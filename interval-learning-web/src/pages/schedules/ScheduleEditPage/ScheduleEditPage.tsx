@@ -334,7 +334,6 @@ const ScheduleEditPageContent: FC<ScheduleEditPageContentProps> = ({
                                                 control={
                                                     <Checkbox
                                                         defaultChecked={f.isDefaultValueSide}
-                                                        // checked={f.isDefaultValueSide}
                                                         {...register(`phases.${i}.isDefaultValueSide`)}
                                                     />
                                                 }

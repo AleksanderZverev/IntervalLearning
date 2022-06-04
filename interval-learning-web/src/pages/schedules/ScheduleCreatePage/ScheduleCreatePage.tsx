@@ -14,7 +14,7 @@ import { FC } from 'react';
 import { FormProvider, SubmitHandler, useFieldArray, useForm } from 'react-hook-form';
 import * as yup from 'yup';
 import { useCreateScheduleMutation } from '../../../redux/schedulesSlice';
-import { CreateScheduleItem, ForgottenBehavior, PhaseInfo, Schedule } from '../../../types/schedule';
+import { CreateScheduleItem, ForgottenBehavior, PhaseInfo } from '../../../types/schedule';
 import { ForgottenBehaviorSelect } from '../../../controls/ForgottenBehaviorSelect/ForgottenBehaviorSelect';
 import { Form, FormField, FormFiledLabel, TextAreaFormField } from '../../../controls/Form/Form';
 import { withMutationResolver, WithMutationResolverProps } from '../../../hoc/withQueryResolver';
@@ -22,7 +22,6 @@ import { PageContainer } from '../../../controls/PageContainer/PageContainer';
 import { PageHeader } from '../../../controls/PageHeader/PageHeader';
 import { PageContent } from '../../../controls/PageContent/PageContent';
 import { useNavigate } from 'react-router-dom';
-import dayjs from 'dayjs';
 import { Add, Delete } from '@mui/icons-material';
 
 enum DurationType {
@@ -92,7 +91,6 @@ const schema = yup
         cardsCountPerPhase: yup.number().min(0).max(9999).required(),
         title: yup.string().min(1).max(255).required(),
         forgottenBehavior: yup.number().required().default(1),
-        phases: yup.array().of(phaseSchema).required(),
         shortDescription: yup.string().max(100),
         description: yup.string().max(1000),
         defaultPhaseShortDescription: yup.string().max(100),
@@ -102,6 +100,7 @@ const schema = yup
         defaultRepeatPhaseDescription: yup.string().max(1000),
         afterStartPhaseDescription: yup.string().max(1000),
         repeatAfterStart: yup.boolean().default(true),
+        phases: yup.array().of(phaseSchema).required().default([phaseSchema.getDefault()]),
     })
     .required();
 
@@ -116,6 +115,7 @@ const ScheduleCreatePageContent: FC<ScheduleCreatePageContentProps> = ({
         resolver: yupResolver(schema),
         defaultValues: schema.getDefault(),
     });
+
     const {
         register,
         handleSubmit,
@@ -296,7 +296,6 @@ const ScheduleCreatePageContent: FC<ScheduleCreatePageContentProps> = ({
                                         labelWidth={labelWidth}
                                     >
                                         <TextAreaFormField
-                                            // label="Описание для повторения после старта"
                                             error={!!errors.afterStartPhaseDescription}
                                             errorMessage={errors.afterStartPhaseDescription?.message || ' '}
                                             {...register('afterStartPhaseDescription')}
@@ -318,7 +317,7 @@ const ScheduleCreatePageContent: FC<ScheduleCreatePageContentProps> = ({
                                         <Typography variant="h6">Этап {i + 1}</Typography>
                                         <div style={{ display: 'flex', alignItems: 'center', columnGap: 10 }}>
                                             <FormField
-                                                label="Прошло с прошлого этапа"
+                                                label="Промежуток времени с прошлого этапа"
                                                 type="number"
                                                 error={!!errors.phases?.at(i)?.durationFromLastPhase}
                                                 errorMessage={
@@ -338,32 +337,40 @@ const ScheduleCreatePageContent: FC<ScheduleCreatePageContentProps> = ({
                                                 <MenuItem value={DurationType.Days}>Дн</MenuItem>
                                             </Select>
                                         </div>
-                                        <FormField
+                                        <FormFiledLabel
                                             label={'Переопределить краткое описание'}
-                                            error={!!errors.phases?.at(i)?.shortDescription}
-                                            errorMessage={errors.phases?.at(i)?.shortDescription?.message || ' '}
-                                            {...register(`phases.${i}.shortDescription`)}
-                                        />
-                                        <FormField
-                                            label={'Переопределить описание'}
-                                            error={!!errors.phases?.at(i)?.description}
-                                            errorMessage={errors.phases?.at(i)?.description?.message || ' '}
-                                            {...register(`phases.${i}.description`)}
-                                        />
+                                            labelWidth={labelWidth}
+                                        >
+                                            <TextAreaFormField
+                                                placeholder={watch('defaultPhaseShortDescription') ?? ''}
+                                                error={!!errors.phases?.at(i)?.shortDescription}
+                                                errorMessage={errors.phases?.at(i)?.shortDescription?.message || ' '}
+                                                {...register(`phases.${i}.shortDescription`)}
+                                            />
+                                        </FormFiledLabel>
+                                        <FormFiledLabel label={'Переопределить описание'} labelWidth={labelWidth}>
+                                            <TextAreaFormField
+                                                placeholder={watch('defaultPhaseDescription') ?? ''}
+                                                error={!!errors.phases?.at(i)?.description}
+                                                errorMessage={errors.phases?.at(i)?.description?.message || ' '}
+                                                {...register(`phases.${i}.description`)}
+                                                minRows={2}
+                                            />
+                                        </FormFiledLabel>
                                         <FormControlLabel
                                             label="Повторение после изучения"
                                             control={
                                                 <Checkbox
-                                                    checked={f.addRepeatingAtThatDay}
+                                                    defaultChecked={f.addRepeatingAtThatDay}
                                                     {...register(`phases.${i}.addRepeatingAtThatDay`)}
                                                 />
                                             }
                                         />
                                         <FormControlLabel
-                                            label="Показывать только значение"
+                                            label="Показывать сначала значение (перевод)"
                                             control={
                                                 <Checkbox
-                                                    checked={f.isDefaultValueSide}
+                                                    defaultChecked={f.isDefaultValueSide}
                                                     {...register(`phases.${i}.isDefaultValueSide`)}
                                                 />
                                             }
