@@ -426,11 +426,11 @@ public class CardsService
             ParentUserId = parentUserId;
             ParentCollectionId = parentCollectionId;
             PromptText = promptText;
-            FrontSideText = TextMaster.RemoveWhitespaces(frontSideText, true);
-            BackSideText = TextMaster.RemoveWhitespaces(backSideText, true);
-            Description = string.IsNullOrEmpty(description) ? description : TextMaster.RemoveWhitespaces(description);
+            FrontSideText = TextMaster.RemoveWhiteSpaces(frontSideText, true);
+            BackSideText = TextMaster.RemoveWhiteSpaces(backSideText, true);
+            Description = string.IsNullOrEmpty(description) ? description : TextMaster.RemoveWhiteSpaces(description);
             Examples = examples?
-                .Select(e => TextMaster.RemoveWhitespaces(e))
+                .Select(e => TextMaster.RemoveWhiteSpaces(e))
                 .Where(e => !string.IsNullOrEmpty(e))
                 .ToList();
         }

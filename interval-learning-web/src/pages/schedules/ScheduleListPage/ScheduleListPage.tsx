@@ -1,6 +1,8 @@
+import { Add, Edit } from '@mui/icons-material';
+import { Button, IconButton } from '@mui/material';
 import dayjs from 'dayjs';
 import { FC } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { ShowScheduleModal } from '../../../controls/Modals/ShowScheduleModal';
 import { PageContainer } from '../../../controls/PageContainer/PageContainer';
 import { PageContent } from '../../../controls/PageContent/PageContent';
@@ -35,7 +37,14 @@ const ScheduleListPageContent: FC<ScheduleListPageContentProps> = ({ queryData: 
 
     return (
         <PageContainer>
-            <PageHeader title="Мои учебные планы" />
+            <PageHeader
+                title="Мои учебные планы"
+                subMenu={
+                    <Button variant="contained" onClick={() => navigate('new')} endIcon={<Add />}>
+                        Создать
+                    </Button>
+                }
+            />
             <PageContent>
                 {schedule && <ShowScheduleModal open onClose={() => navigate('')} schedule={schedule} />}
                 <Table>
@@ -48,6 +57,16 @@ const ScheduleListPageContent: FC<ScheduleListPageContentProps> = ({ queryData: 
                             <TableRow key={s.id} hover onClick={() => navigate(`?scheduleId=${s.id}`)}>
                                 <TableCell>{s.title}</TableCell>
                                 <TableCell>{getIntervals(s)}</TableCell>
+                                <TableCell width={50}>
+                                    <IconButton
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            navigate(`${s.id}/edit`);
+                                        }}
+                                    >
+                                        <Edit fontSize="small" />
+                                    </IconButton>
+                                </TableCell>
                             </TableRow>
                         ))}
                     </TableBody>

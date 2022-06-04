@@ -161,7 +161,7 @@ public class CollectionService
             short themeId)
         {
             ParentUserId = parentUserId;
-            Title = TextMaster.RemoveWhitespaces(title, true);
+            Title = TextMaster.RemoveWhiteSpaces(title, true);
             IsDefaultBackSide = isDefaultBackSide;
             ThemeId = themeId;
         }

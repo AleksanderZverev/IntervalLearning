@@ -50,13 +50,13 @@ public class PatchRepeatsSchedule : IPatchRepeatsSchedule
         string? defaultRepeatPhaseDescription)
     {
         CardsCountPerPhase = cardsCountPerPhase;
-        Title = TextMaster.RemoveWhitespaces(title, true);
-        Description = TextMaster.RemoveWhitespaces(description);
-        ShortDescription = TextMaster.RemoveWhitespaces(shortDescription);
-        DefaultPhaseShortDescription = TextMaster.RemoveWhitespaces(defaultPhaseShortDescription);
-        DefaultPhaseDescription = TextMaster.RemoveWhitespaces(defaultPhaseDescription);
-        DefaultRepeatPhaseShortDescription = TextMaster.RemoveWhitespaces(defaultRepeatPhaseShortDescription);
-        DefaultRepeatPhaseDescription = TextMaster.RemoveWhitespaces(defaultRepeatPhaseDescription);
+        Title = TextMaster.RemoveWhiteSpaces(title, true);
+        ShortDescription = TextMaster.RemoveWhiteSpaces(shortDescription);
+        Description = TextMaster.RemoveWhiteSpacesExceptNewLines(description);
+        DefaultPhaseShortDescription = TextMaster.RemoveWhiteSpaces(defaultPhaseShortDescription);
+        DefaultPhaseDescription = TextMaster.RemoveWhiteSpacesExceptNewLines(defaultPhaseDescription);
+        DefaultRepeatPhaseShortDescription = TextMaster.RemoveWhiteSpaces(defaultRepeatPhaseShortDescription);
+        DefaultRepeatPhaseDescription = TextMaster.RemoveWhiteSpacesExceptNewLines(defaultRepeatPhaseDescription);
     }
 }
 
