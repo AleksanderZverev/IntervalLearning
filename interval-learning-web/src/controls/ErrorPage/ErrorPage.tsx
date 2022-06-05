@@ -4,7 +4,7 @@ import { FC } from 'react';
 import { CenterContainer } from '../CenterContainer/CenterContainer';
 
 interface ErrorPageProps {
-    errorMessage: string;
+    errorMessage?: string;
     onReload?: () => void;
 }
 
@@ -27,7 +27,7 @@ export const ErrorPage: FC<ErrorPageProps> = ({ errorMessage, onReload }) => {
                         </Typography>
                         <SentimentVeryDissatisfied />
                     </Stack>
-                    <div style={{ fontSize: 20 }}>{errorMessage}</div>
+                    <div style={{ fontSize: 20 }}>{errorMessage ?? 'Критическая ошибка'}</div>
                     <Stack direction={'row'} justifyContent="space-between">
                         <Button variant="outlined" onClick={() => window?.history?.go(-1)}>
                             Вернуться

@@ -26,6 +26,7 @@ import { HelpOutline } from '@mui/icons-material';
 import { selectCards } from '../../../redux/slices/cardsSlice';
 import dayjs from 'dayjs';
 import { getRepeatingNavigationLink } from '../LearningPage/InProgressCollections/InProgressCollections';
+import { useGetMyScheduleQuery, useGetScheduleQuery } from '../../../redux/schedulesSlice';
 
 type WithResolvers = WithQueryResolverData<typeof useGetNotStartedCardsQuery> &
     WithMutationResolverProps<typeof useStartCardsMutation>;
@@ -275,11 +276,13 @@ export const LearnCollectionPageContent: FC<LearnCollectionPageContentProps> = (
 };
 
 const ConnectedLearnCollectionPage = withQueryResolver(useGetNotStartedCardsQuery)(LearnCollectionPageContent);
-const ConnectedOtherResolver = withOtherQueryResolver(useGetCollectionQuery)(ConnectedLearnCollectionPage);
+const ConnectedCollectionResolver = withOtherQueryResolver(useGetCollectionQuery)(ConnectedLearnCollectionPage);
+const ConnectedScheduleResolver = withOtherQueryResolver(useGetScheduleQuery)(ConnectedCollectionResolver);
+
 const ConnectedMutationResolver = withMutationResolver(
     useStartCardsMutation,
     'Не удалось завершить изучение коллекции'
-)(ConnectedOtherResolver);
+)(ConnectedScheduleResolver);
 
 interface CardResult {
     nextRepeatDate: string | null;
@@ -293,16 +296,34 @@ export const LearnCollection: FC = () => {
     const params = new URLSearchParams(location.search);
     const scheduleUserId = params.get('scheduleUserId');
     const scheduleId = params.get('scheduleId');
+    const cardsCountString = params.get('cardsCount');
 
-    if (!collectionId || !userId || !scheduleUserId || !scheduleId) {
+    if (!collectionId || !userId || !scheduleUserId || !scheduleId || !cardsCountString) {
         throw new Error();
     }
 
+    let cardsCount = parseInt(cardsCountString);
     const [disableLoading, setDisableLoading] = useState(false);
+
+    if (isNaN(cardsCount) || cardsCount > 1000 || cardsCount < 1) {
+        cardsCount = 30;
+        params.set('cardsCount', cardsCount.toString());
+
+        if (typeof window !== 'undefined') {
+            const newUrl = location.pathname + '?' + params.toString();
+            window.history.replaceState(null, '', newUrl);
+        }
+    }
 
     return (
         <ConnectedMutationResolver
-            queryArg={{ userId, collectionId, request: { scheduleUserId, scheduleId } }}
+            queryArg={{
+                userId,
+                scheduleUserId,
+                scheduleId,
+                collectionId,
+                request: { scheduleUserId, scheduleId, count: cardsCount },
+            }}
             disableLoading={disableLoading}
             scheduleUserId={scheduleUserId}
             scheduleId={scheduleId}

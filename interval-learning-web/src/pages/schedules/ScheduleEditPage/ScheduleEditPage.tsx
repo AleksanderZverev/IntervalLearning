@@ -7,7 +7,7 @@ import { UpdatePhaseInfo, UpdateScheduleRequest, useUpdateScheduleMutation } fro
 import { PhaseInfo, Schedule } from '../../../types/schedule';
 import { Form, FormField, FormFiledLabel, TextAreaFormField } from '../../../controls/Form/Form';
 import { withMutationResolver, WithMutationResolverProps, withQueryResolver } from '../../../hoc/withQueryResolver';
-import { useGetScheduleQuery } from '../../../redux/schedulesSlice';
+import { useGetMyScheduleQuery } from '../../../redux/schedulesSlice';
 import { PageContainer } from '../../../controls/PageContainer/PageContainer';
 import { PageHeader } from '../../../controls/PageHeader/PageHeader';
 import { PageContent } from '../../../controls/PageContent/PageContent';
@@ -360,7 +360,7 @@ const WithEditMutation = withMutationResolver(
     'Не удалось обновить учебный план'
 )(ScheduleEditPageContent);
 
-const WithScheduleLoading = withQueryResolver(useGetScheduleQuery)(WithEditMutation);
+const WithScheduleLoading = withQueryResolver(useGetMyScheduleQuery)(WithEditMutation);
 
 const LoadResolver: FC = () => {
     const { scheduleId } = useParams();
@@ -369,7 +369,7 @@ const LoadResolver: FC = () => {
         throw new Error();
     }
 
-    return <WithScheduleLoading queryArg={{ scheduleId }} />;
+    return <WithScheduleLoading queryArg={{ myScheduleId: scheduleId }} />;
 };
 
 export const ScheduleEditPage = LoadResolver;

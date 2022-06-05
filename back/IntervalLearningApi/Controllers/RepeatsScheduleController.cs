@@ -26,12 +26,19 @@ namespace IntervalLearningApi.Controllers
             return repeatsScheduleService.GetAll(userId).Select(ToSchedule).ToList();
         }
 
+        [HttpGet("{userId}/{scheduleId}")]
+        public ActionResult<Schedule> GetSchedule(long userId, short scheduleId)
+        {
+            var schedule = repeatsScheduleService.Find(userId, scheduleId);
+            return schedule == null ? NotFound() : ToSchedule(schedule);
+        }
+
         [HttpGet("my/{scheduleId}")]
         public ActionResult<Schedule> GetSchedule(short scheduleId)
         {
             var userId = HttpContext.GetUserId();
             var schedule = repeatsScheduleService.Find(userId, scheduleId);
-            return schedule == null ? BadRequest() : ToSchedule(schedule);
+            return schedule == null ? NotFound() : ToSchedule(schedule);
         }
 
         [HttpPatch("{scheduleId}")]

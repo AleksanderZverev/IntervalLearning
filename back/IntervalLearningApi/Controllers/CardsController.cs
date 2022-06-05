@@ -45,10 +45,11 @@ namespace IntervalLearningApi.Controllers
         public async Task<ActionResult<List<Card>>> GetNotStartedCards(
             short collectionId,
             long scheduleUserId,
-            short scheduleId)
+            short scheduleId,
+            [Range(1, 1000)]int count)
         {
             var userId = HttpContext.GetUserId();
-            var (cards, error) = await cardsService.GetNotStartedCards(scheduleUserId, scheduleId, userId, collectionId);
+            var (cards, error) = await cardsService.GetNotStartedCards(scheduleUserId, scheduleId, userId, collectionId, count);
             return cards == null ? BadRequest(error) : cards.Select(CollectionsController.ToCard).ToList();
         }
 

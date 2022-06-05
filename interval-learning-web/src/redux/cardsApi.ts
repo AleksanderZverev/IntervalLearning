@@ -67,6 +67,7 @@ export interface RememberCardResponse {
 export interface GetNotStartedCardsRequest {
     scheduleUserId: string;
     scheduleId: string;
+    count: number;
 }
 
 export const cardsApi = api.injectEndpoints({

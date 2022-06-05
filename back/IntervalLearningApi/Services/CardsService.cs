@@ -63,11 +63,11 @@ public class CardsService
         }
     }
 
-    public async Task<(List<CardEntity>? cards, string? error)> GetNotStartedCards(
-        long scheduleUserId,
-        short scheduleId, 
-        long userId, 
-        short collectionId)
+    public async Task<(List<CardEntity>? cards, string? error)> GetNotStartedCards(long scheduleUserId,
+        short scheduleId,
+        long userId,
+        short collectionId, 
+        int count)
     {
         var schedule = db.RepeatsSchedules.Find(scheduleUserId, scheduleId);
 
@@ -89,7 +89,7 @@ public class CardsService
                         && c.ParentCollectionId == collectionId 
                         && !startedCardIds.Contains(c.Id))
             .OrderBy(c => c.Id)
-            .Take(schedule.CardsCountPerPhase)
+            .Take(count)
             .ToListAsync();
 
         return (canStartCards, null);

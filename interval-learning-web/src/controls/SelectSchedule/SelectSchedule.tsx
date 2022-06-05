@@ -25,7 +25,7 @@ interface SelectScheduleProps {
 
 // eslint-disable-next-line react/display-name
 export const SelectSchedule = forwardRef<HTMLDivElement, SelectScheduleProps>(
-    ({ scheduleUserId, scheduleId, onChange, width, availableSchedules, ...props }, ref) => {
+    ({ scheduleUserId, scheduleId, onChange, width, availableSchedules, showWordsPerPhase, ...props }, ref) => {
         const schedules = useSelector(selectSchedules);
 
         const options = useMemo(() => {
@@ -62,7 +62,9 @@ export const SelectSchedule = forwardRef<HTMLDivElement, SelectScheduleProps>(
                     renderInput={(params) => <FormField {...params} label="" withoutErrorMessage />}
                     onChange={(event, newValue) => onChange(newValue ?? undefined)}
                 />
-                {value && <div style={{ marginTop: 2 }}>Слов в этапе: {value.cardsCountPerPhase}</div>}
+                {showWordsPerPhase && value && (
+                    <div style={{ marginTop: 2 }}>Слов в этапе: {value.cardsCountPerPhase}</div>
+                )}
             </Stack>
         );
     }

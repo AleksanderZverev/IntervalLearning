@@ -1,6 +1,7 @@
-import { Pagination } from '@mui/material';
+import { FormControlLabel, Pagination, TextField } from '@mui/material';
 import { FC, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { NumericInput } from '../../../../controls/NumericInput/NumericInput';
 import { SelectSchedule } from '../../../../controls/SelectSchedule/SelectSchedule';
 import { Table, TableBody, TableCell, TableHead, TableHeaderCell, TableRow } from '../../../../controls/Table/Table';
 import { withQueryResolver, WithQueryResolverData } from '../../../../hoc/withQueryResolver';
@@ -15,12 +16,14 @@ interface CanStartCollectionsContentProps extends WithQueryResolverData<typeof u
     page: number;
     count: number;
     setPage: (page: number) => void;
+    cardsCount: number;
 }
 
 const CanStartCollectionsContent: FC<CanStartCollectionsContentProps> = ({
     scheduleUserId,
     scheduleId,
     page,
+    cardsCount,
     count: collectionsCount,
     setPage,
     queryData: { totalCollections, canStartCollections },
@@ -31,7 +34,7 @@ const CanStartCollectionsContent: FC<CanStartCollectionsContentProps> = ({
 
     const onClick = (collection: Collection) => {
         navigate(
-            `/learning/learn/${collection.userId}-${collection.id}?scheduleUserId=${scheduleUserId}&scheduleId=${scheduleId}`
+            `/learning/learn/${collection.userId}-${collection.id}?scheduleUserId=${scheduleUserId}&scheduleId=${scheduleId}&cardsCount=${cardsCount}`
         );
     };
 
@@ -79,18 +82,44 @@ export const CanStartCollections: FC<CanStartCollectionsProps> = ({}) => {
 
     const count = window ? Math.ceil((window.innerHeight - 50) / 80) : 10;
     const [schedule, setSchedule] = useState<Schedule>();
+    const [wordsQuantity, setWordsQuantity] = useState<number | undefined>();
 
     return (
         <div style={{ display: 'grid', gridTemplateRows: 'auto 1fr' }}>
-            <div style={{ display: 'flex', columnGap: 20, marginTop: 10, fontSize: '20px' }}>
-                <label style={{ marginTop: 2 }}>Выберите учебный план:</label>
-                <SelectSchedule
-                    width="250px"
-                    scheduleUserId={schedule?.userId}
-                    scheduleId={schedule?.id}
-                    onChange={(newSchedule) => setSchedule(newSchedule)}
-                    showWordsPerPhase
-                />
+            <div
+                style={{
+                    display: 'flex',
+                    columnGap: 20,
+                    rowGap: 10,
+                    marginTop: 10,
+                    fontSize: '20px',
+                    flexWrap: 'wrap',
+                    alignItems: 'center',
+                }}
+            >
+                <div style={{ display: 'flex', columnGap: 20, alignItems: 'center' }}>
+                    <label style={{ marginTop: 2 }}>Учебный план:</label>
+                    <SelectSchedule
+                        width="250px"
+                        scheduleUserId={schedule?.userId}
+                        scheduleId={schedule?.id}
+                        onChange={(newSchedule) => {
+                            setSchedule(newSchedule);
+                            if (newSchedule) {
+                                setWordsQuantity(newSchedule.cardsCountPerPhase);
+                            }
+                        }}
+                    />
+                </div>
+                <div style={{ display: 'flex', columnGap: 20, alignItems: 'center' }}>
+                    <label style={{ marginTop: 2 }}>Слов:</label>
+                    <NumericInput
+                        value={wordsQuantity}
+                        onChange={(e) => setWordsQuantity(e.target.value ? parseInt(e.target.value) : undefined)}
+                        sx={{ width: '100px' }}
+                        variant="standard"
+                    />
+                </div>
             </div>
             {schedule && (
                 <ConnectedCanStartCollectionsContent
@@ -100,6 +129,7 @@ export const CanStartCollections: FC<CanStartCollectionsProps> = ({}) => {
                         scheduleUserId: schedule.userId,
                         scheduleId: schedule.id,
                     }}
+                    cardsCount={wordsQuantity}
                     setPage={setPage}
                 />
             )}

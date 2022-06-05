@@ -1,11 +1,16 @@
 import { CreateScheduleItem } from './../types/schedule';
 import { Schedule } from '../types/schedule';
 import { api } from './apiSlice';
-import { setSchedule, setSchedules } from './slices/scheduleSlice';
+import { setSchedule, setSchedules, getScheduleId } from './slices/scheduleSlice';
 
 const basePath = '/schedules';
 
+interface GetMyScheduleRequest {
+    myScheduleId: string;
+}
+
 interface GetScheduleRequest {
+    scheduleUserId: string;
     scheduleId: string;
 }
 
@@ -45,9 +50,19 @@ export const schedulesApi = api.injectEndpoints({
                 },
             }),
         }),
+        getMySchedule: build.query<Schedule, GetMyScheduleRequest>({
+            query: (req) => ({
+                url: `${basePath}/my/${req.myScheduleId}`,
+                method: 'GET',
+                onSuccess: async (dispatch, data) => {
+                    const schedule = data as Schedule;
+                    dispatch(setSchedule(schedule));
+                },
+            }),
+        }),
         getSchedule: build.query<Schedule, GetScheduleRequest>({
             query: (req) => ({
-                url: `${basePath}/my/${req.scheduleId}`,
+                url: `${basePath}/${req.scheduleUserId}/${req.scheduleId}`,
                 method: 'GET',
                 onSuccess: async (dispatch, data) => {
                     const schedule = data as Schedule;
@@ -80,5 +95,10 @@ export const schedulesApi = api.injectEndpoints({
     }),
 });
 
-export const { useGetSchedulesQuery, useCreateScheduleMutation, useGetScheduleQuery, useUpdateScheduleMutation } =
-    schedulesApi;
+export const {
+    useGetSchedulesQuery,
+    useCreateScheduleMutation,
+    useGetMyScheduleQuery,
+    useGetScheduleQuery,
+    useUpdateScheduleMutation,
+} = schedulesApi;
