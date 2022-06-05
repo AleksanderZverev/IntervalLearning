@@ -12,6 +12,25 @@ interface RepeatingCards {
 }
 
 export class LocalStorageHelper {
+    static save<TItem extends object>(key: string, object: TItem) {
+        if (LocalStorageHelper.isStorageDefined()) {
+            localStorage.setItem(key, JSON.stringify(object));
+        }
+    }
+
+    static get<TItem extends object>(key: string, defaultValue: TItem) {
+        let item: TItem | null = null;
+
+        if (LocalStorageHelper.isStorageDefined()) {
+            const json = localStorage.getItem(key);
+            if (json) {
+                item = JSON.parse(json);
+            }
+        }
+
+        return item ?? defaultValue;
+    }
+
     static saveRedirectUrlAfterAuthorization = () => {
         if (LocalStorageHelper.isStorageDefined()) {
             console.log(window.location);

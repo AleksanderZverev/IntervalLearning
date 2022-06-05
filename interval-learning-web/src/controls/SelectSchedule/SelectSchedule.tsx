@@ -46,7 +46,7 @@ export const SelectSchedule = forwardRef<HTMLDivElement, SelectScheduleProps>(
                 : undefined;
 
         return (
-            <Stack gap={'20px'} direction="row">
+            <Stack gap={'20px'} direction="row" alignItems={'baseline'}>
                 <Autocomplete
                     sx={{ minWidth: '150px', width }}
                     value={value ?? null}

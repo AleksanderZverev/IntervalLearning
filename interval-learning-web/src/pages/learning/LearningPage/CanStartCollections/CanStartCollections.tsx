@@ -1,9 +1,11 @@
-import { FormControlLabel, Pagination, TextField } from '@mui/material';
+import { Refresh } from '@mui/icons-material';
+import { FormControlLabel, IconButton, InputAdornment, Pagination, TextField, Tooltip } from '@mui/material';
 import { FC, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { NumericInput } from '../../../../controls/NumericInput/NumericInput';
 import { SelectSchedule } from '../../../../controls/SelectSchedule/SelectSchedule';
 import { Table, TableBody, TableCell, TableHead, TableHeaderCell, TableRow } from '../../../../controls/Table/Table';
+import { LocalStorageHelper } from '../../../../helpers/localStorageHelper';
 import { withQueryResolver, WithQueryResolverData } from '../../../../hoc/withQueryResolver';
 import { useGetNotFinishedQuery } from '../../../../redux/collectionApi';
 import { Collection } from '../../../../types/Collection';
@@ -75,6 +77,10 @@ const CanStartCollectionsContent: FC<CanStartCollectionsContentProps> = ({
 
 const ConnectedCanStartCollectionsContent = withQueryResolver(useGetNotFinishedQuery)(CanStartCollectionsContent);
 
+type SaveItem = Record<string, number | undefined>;
+const saveITemKey = 'CanStartCollectionsSavedScheduleValesItem';
+const scheduleKey = (schedule: Schedule) => `${schedule.userId}-${schedule.id}`;
+
 interface CanStartCollectionsProps {}
 
 export const CanStartCollections: FC<CanStartCollectionsProps> = ({}) => {
@@ -83,6 +89,26 @@ export const CanStartCollections: FC<CanStartCollectionsProps> = ({}) => {
     const count = window ? Math.ceil((window.innerHeight - 50) / 80) : 10;
     const [schedule, setSchedule] = useState<Schedule>();
     const [wordsQuantity, setWordsQuantity] = useState<number | undefined>();
+
+    const saveWordsCount = (newCount: number | undefined) => {
+        if (!schedule) {
+            return;
+        }
+
+        const scheduleIdToCount = LocalStorageHelper.get<SaveItem>(saveITemKey, {});
+
+        if (!newCount || newCount === schedule.cardsCountPerPhase) {
+            delete scheduleIdToCount[scheduleKey(schedule)];
+        } else {
+            scheduleIdToCount[scheduleKey(schedule)] = newCount;
+        }
+        LocalStorageHelper.save<SaveItem>(saveITemKey, scheduleIdToCount);
+    };
+
+    const onWordCountChange = (newCount: string | undefined) => {
+        setWordsQuantity(newCount ? parseInt(newCount) : undefined);
+        saveWordsCount(newCount === undefined ? newCount : parseInt(newCount));
+    };
 
     return (
         <div style={{ display: 'grid', gridTemplateRows: 'auto 1fr' }}>
@@ -94,11 +120,11 @@ export const CanStartCollections: FC<CanStartCollectionsProps> = ({}) => {
                     marginTop: 10,
                     fontSize: '20px',
                     flexWrap: 'wrap',
-                    alignItems: 'center',
+                    alignItems: 'baseline',
                 }}
             >
-                <div style={{ display: 'flex', columnGap: 20, alignItems: 'center' }}>
-                    <label style={{ marginTop: 2 }}>Учебный план:</label>
+                <div style={{ display: 'flex', columnGap: 10 }}>
+                    <label>Учебный план:</label>
                     <SelectSchedule
                         width="250px"
                         scheduleUserId={schedule?.userId}
@@ -106,22 +132,39 @@ export const CanStartCollections: FC<CanStartCollectionsProps> = ({}) => {
                         onChange={(newSchedule) => {
                             setSchedule(newSchedule);
                             if (newSchedule) {
-                                setWordsQuantity(newSchedule.cardsCountPerPhase);
+                                const savedDefaultValue = LocalStorageHelper.get<SaveItem>(saveITemKey, {})[
+                                    scheduleKey(newSchedule)
+                                ];
+                                setWordsQuantity(savedDefaultValue ?? newSchedule.cardsCountPerPhase);
+                            } else {
+                                setWordsQuantity(undefined);
                             }
                         }}
                     />
                 </div>
-                <div style={{ display: 'flex', columnGap: 20, alignItems: 'center' }}>
-                    <label style={{ marginTop: 2 }}>Слов:</label>
+                <div style={{ display: 'flex', columnGap: 10 }}>
+                    <label>Слов:</label>
                     <NumericInput
-                        value={wordsQuantity}
-                        onChange={(e) => setWordsQuantity(e.target.value ? parseInt(e.target.value) : undefined)}
+                        value={wordsQuantity ?? ''}
+                        disabled={!Boolean(schedule)}
+                        onChange={(e) => onWordCountChange(e.target.value)}
                         sx={{ width: '100px' }}
                         variant="standard"
+                        InputProps={{
+                            endAdornment: schedule && wordsQuantity !== schedule.cardsCountPerPhase && (
+                                <InputAdornment position="end">
+                                    <IconButton
+                                        onClick={() => onWordCountChange(schedule.cardsCountPerPhase.toString())}
+                                    >
+                                        <Refresh color="primary" />
+                                    </IconButton>
+                                </InputAdornment>
+                            ),
+                        }}
                     />
                 </div>
             </div>
-            {schedule && (
+            {schedule && wordsQuantity && (
                 <ConnectedCanStartCollectionsContent
                     queryArg={{
                         page,
