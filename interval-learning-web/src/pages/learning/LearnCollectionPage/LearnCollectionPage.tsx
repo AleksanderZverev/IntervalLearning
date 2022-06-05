@@ -1,4 +1,4 @@
-import { FC, useState } from 'react';
+import { FC, useMemo, useState } from 'react';
 import useTypedSelector from '../../../hooks/useTypedSelector';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { selectCollectionById } from '../../../redux/slices/collectionsSlice';
@@ -13,20 +13,20 @@ import { CardsItem, useGetNotStartedCardsQuery, useStartCardsMutation } from '..
 import { PageContainer } from '../../../controls/PageContainer/PageContainer';
 import { PageHeader } from '../../../controls/PageHeader/PageHeader';
 import { selectTheme } from '../../../redux/slices/themeSlice';
-import { CenterContainer } from '../../../controls/CenterContainer/CenterContainer';
 import { Slider } from '../../../controls/Slider/Slider';
-import { Button, Stack } from '@mui/material';
+import { Button, IconButton, Stack, Tooltip } from '@mui/material';
 import { LearnCard } from './LearnCard/LearnCard';
 import { useGetCollectionQuery } from '../../../redux/collectionApi';
 import { AssertionModal } from '../../../controls/Modals/AssertionModal';
 import { CardResult } from '../CardResult/CardResult';
 import { getScheduleId, selectScheduleById } from '../../../redux/slices/scheduleSlice';
 import { LightTooltip } from '../../../controls/LightTooltip/LightTooltip';
-import { HelpOutline } from '@mui/icons-material';
+import { Casino, HelpOutline } from '@mui/icons-material';
 import { selectCards } from '../../../redux/slices/cardsSlice';
 import dayjs from 'dayjs';
 import { getRepeatingNavigationLink } from '../LearningPage/InProgressCollections/InProgressCollections';
-import { useGetMyScheduleQuery, useGetScheduleQuery } from '../../../redux/schedulesSlice';
+import { useGetScheduleQuery } from '../../../redux/schedulesSlice';
+import { ArrayHelper } from '../../../helpers/ArrayHelper';
 
 type WithResolvers = WithQueryResolverData<typeof useGetNotStartedCardsQuery> &
     WithMutationResolverProps<typeof useStartCardsMutation>;
@@ -45,7 +45,7 @@ export const LearnCollectionPageContent: FC<LearnCollectionPageContentProps> = (
     scheduleId,
     scheduleUserId,
     setDisableLoading,
-    queryData: notStartedCardIds,
+    queryData: notStartedCardIdsOrdered,
     mutationProps: { mutate: startCards, showRetryModal, isLoading: isMutationLoading, isSuccess, data: mutationData },
 }) => {
     const collection = useTypedSelector((state) => selectCollectionById(state, userId, collectionId));
@@ -66,6 +66,24 @@ export const LearnCollectionPageContent: FC<LearnCollectionPageContentProps> = (
     const [showMoveToRepeatModal, setShowMoveToRepeatModal] = useState(false);
     const [activeCardIndex, setActiveCardIndex] = useState(0);
     const [cardIndex, setCardIndex] = useState(0);
+    const [shuffled, setShuffled] = useState(false);
+
+    const notStartedCardIds = useMemo(() => {
+        if (notStartedCardIdsOrdered.length === 0) {
+            return [];
+        }
+
+        const cardsIds = [...notStartedCardIdsOrdered];
+
+        if (!shuffled) {
+            return cardsIds;
+        }
+
+        const learnedCardsIds = cardsIds.slice(0, activeCardIndex + 1);
+        const cardsIdsToShuffle = cardsIds.slice(activeCardIndex + 1);
+        ArrayHelper.shuffleArray(cardsIdsToShuffle);
+        return [...learnedCardsIds, ...cardsIdsToShuffle];
+    }, [shuffled, notStartedCardIdsOrdered]);
 
     if (notStartedCardIds.length === 0) {
         return <div>No cards</div>;
@@ -166,10 +184,16 @@ export const LearnCollectionPageContent: FC<LearnCollectionPageContentProps> = (
                 }
             />
             <div
-                style={{ marginTop: 10, cursor: 'pointer', color: '#b7b7b7', justifySelf: 'flex-start' }}
-                onClick={() => setForceShowStartModal(true)}
+                style={{
+                    marginTop: 10,
+                    cursor: 'pointer',
+                    color: '#b7b7b7',
+                    alignSelf: 'start',
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                }}
             >
-                {schedule.description && (
+                {schedule.description ? (
                     <LightTooltip
                         open={Boolean(schedule.shortDescription) ? undefined : false}
                         placement="bottom-start"
@@ -180,13 +204,27 @@ export const LearnCollectionPageContent: FC<LearnCollectionPageContentProps> = (
                         }
                         sx={{ maxWidth: '70%' }}
                     >
-                        <Stack direction={'row'} alignItems={'center'} columnGap={'5px'}>
-                            <HelpOutline />
-                            <span>Что делать?</span>
-                        </Stack>
+                        <div onClick={() => setForceShowStartModal(true)}>
+                            <Stack direction={'row'} alignItems={'center'} columnGap={'5px'}>
+                                <HelpOutline />
+                                <span>Что делать?</span>
+                            </Stack>
+                        </div>
                     </LightTooltip>
+                ) : (
+                    <div />
+                )}
+                {shuffled ? (
+                    <div />
+                ) : (
+                    <Tooltip title="Перемешать оставшиеся">
+                        <IconButton onClick={() => !shuffled && setShuffled(true)}>
+                            <Casino />
+                        </IconButton>
+                    </Tooltip>
                 )}
             </div>
+
             {(showStartModal || forceShowStartModal) && schedule && schedule.description && (
                 <AssertionModal
                     title={`Учебный план: ${schedule.title}`}
