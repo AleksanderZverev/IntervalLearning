@@ -9,6 +9,7 @@ import { CenterContainer } from '../controls/CenterContainer/CenterContainer';
 import { ModalLoader } from '../ModalLoader/ModalLoader';
 import { AssertionModal } from '../controls/Modals/AssertionModal';
 import { Loader } from '../controls/Loader/Loader';
+import { ErrorPage } from '../controls/ErrorPage/ErrorPage';
 
 type GetInnerType<S> = S extends UseMutation<infer T> ? T : never;
 
@@ -93,22 +94,7 @@ export const withQueryResolver =
 
         if (isError || !data) {
             console.log(isError, isSuccess, data);
-            return (
-                <CenterContainer>
-                    <Paper style={{ padding: '20px 20px 50px 20px', position: 'relative' }}>
-                        <div style={{ marginBottom: 20, paddingLeft: 6, fontSize: 20 }}>
-                            Не удалось загрузить данные
-                        </div>
-                        <Button
-                            variant="outlined"
-                            style={{ position: 'absolute', right: 20, bottom: 20 }}
-                            onClick={tryRefetch}
-                        >
-                            Перезагрузить
-                        </Button>
-                    </Paper>
-                </CenterContainer>
-            );
+            return <ErrorPage errorMessage="Не удалось загрузить данные" onReload={tryRefetch} />;
         }
 
         //TODO: don't know how to fix
