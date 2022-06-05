@@ -36,6 +36,7 @@ export const Slider: FC<SliderProps> = ({
     vertical,
     finishMode,
 }) => {
+    const maxWidthProperty = vertical ? 'maxHeight' : 'maxWidth';
     const widthProperty = vertical ? 'height' : 'width';
     const heightProperty = vertical ? 'width' : 'height';
     const topProperty = vertical ? 'left' : 'top';
@@ -85,7 +86,7 @@ export const Slider: FC<SliderProps> = ({
                 padding: vertical ? '0 14px' : '14px 0',
                 [widthProperty]: '100%',
                 [heightProperty]: '4px',
-                [widthProperty]: 650,
+                [maxWidthProperty]: '650px',
             }}
         >
             <span

@@ -34,7 +34,6 @@ export const CollectionRow: FC<CollectionRowProps> = ({ collection }) => {
                 style={{ position: 'relative' }}
             >
                 <TableCell>{collection.title}</TableCell>
-                <TableCell align="center">-</TableCell>
                 <TableCell align="center">{collection.cardsCount}</TableCell>
                 <TableCell align="center">{date.format('L')}</TableCell>
                 <TableCell width={50}>

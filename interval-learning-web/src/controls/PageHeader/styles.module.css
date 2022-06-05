@@ -5,7 +5,11 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
+
+    row-gap: 10px;
     column-gap: 10px;
+
+    flex-wrap: wrap;
 }
 
 .subTitle {

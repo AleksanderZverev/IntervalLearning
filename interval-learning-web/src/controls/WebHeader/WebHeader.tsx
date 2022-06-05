@@ -11,6 +11,7 @@ import { useNavigate } from 'react-router-dom';
 import { EventNote, Logout } from '@mui/icons-material';
 import { StringAvatar } from '../StringAvatar/StringAvatar';
 import { UserHelper } from '../../helpers/UserHelper';
+import classNames from 'classnames';
 
 interface WebHeaderProps {
     isServerSide: boolean;
@@ -43,9 +44,14 @@ const WebHeader: FC<WebHeaderProps> = ({ isServerSide }) => {
     return (
         <header className={styles.header}>
             <div className={styles.leftHeaderContainer}>
-                <Link href="/">
-                    <a className={styles.logo}>Interval Learning</a>
-                </Link>
+                <div>
+                    <Link href="/">
+                        <a className={classNames(styles.logo, styles.fullLogo)}>Interval Learning</a>
+                    </Link>
+                    <Link href="/">
+                        <a className={classNames(styles.logo, styles.shortLogo)}>IL</a>
+                    </Link>
+                </div>
                 <Divider orientation="vertical" flexItem />
                 <MuiLink
                     className={styles.link}

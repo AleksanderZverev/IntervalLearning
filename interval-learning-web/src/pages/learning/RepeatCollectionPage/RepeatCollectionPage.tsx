@@ -312,9 +312,10 @@ export const RepeatCollectionPageContent: FC<RepeatCollectionPageContentProps> =
                     ) : (
                         <div
                             style={{
-                                width: 650,
+                                width: '100%',
                                 display: 'flex',
                                 flexDirection: 'column',
+                                alignItems: 'center',
                                 rowGap: 35,
                             }}
                         >

@@ -1,5 +1,6 @@
 import { FC, PropsWithChildren } from 'react';
 import { Container } from '@mui/material';
+import styles from './styles.module.css';
 
 interface PageContainerProps {
     transparent?: boolean;
@@ -8,12 +9,13 @@ interface PageContainerProps {
 export const PageContainer: FC<PropsWithChildren<PageContainerProps>> = ({ transparent, children }) => {
     return (
         <Container
+            className={styles.container}
             maxWidth="lg"
             sx={{
                 marginTop: '10px',
                 backgroundColor: transparent ? undefined : 'white',
             }}
-            style={{ padding: '20px 50px', display: 'grid', gridTemplateRows: 'auto 1fr' }}
+            style={{ display: 'grid', gridTemplateRows: 'auto 1fr' }}
         >
             {children}
         </Container>

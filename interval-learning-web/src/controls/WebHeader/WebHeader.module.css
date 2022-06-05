@@ -34,6 +34,18 @@
     cursor: pointer;
 }
 
+@media (max-width: 699px) {
+    .fullLogo {
+        display: none;
+    }
+}
+
+@media (min-width: 700px) {
+    .shortLogo {
+        display: none;
+    }
+}
+
 .rightHeaderContainer {
     display: flex;
     column-gap: 10px;

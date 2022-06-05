@@ -187,6 +187,7 @@ export const RepeatCard: FC<RepeatCardProps> = ({
                     onKeyDownCapture={(e) => e.preventDefault()}
                     tabIndex={0}
                     row
+                    sx={{ padding: '20px' }}
                     onChange={(e, v) => {
                         if (isError) {
                             setIsError(false);
