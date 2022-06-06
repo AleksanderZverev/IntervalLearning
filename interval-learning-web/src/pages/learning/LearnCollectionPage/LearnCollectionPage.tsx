@@ -27,6 +27,7 @@ import dayjs from 'dayjs';
 import { getRepeatingNavigationLink } from '../LearningPage/InProgressCollections/InProgressCollections';
 import { useGetScheduleQuery } from '../../../redux/schedulesSlice';
 import { ArrayHelper } from '../../../helpers/ArrayHelper';
+import { PageContent } from '../../../controls/PageContent/PageContent';
 
 type WithResolvers = WithQueryResolverData<typeof useGetNotStartedCardsQuery> &
     WithMutationResolverProps<typeof useStartCardsMutation>;
@@ -183,132 +184,135 @@ export const LearnCollectionPageContent: FC<LearnCollectionPageContentProps> = (
                     </Button>
                 }
             />
-            <div
-                style={{
-                    marginTop: 10,
-                    cursor: 'pointer',
-                    color: '#b7b7b7',
-                    alignSelf: 'start',
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                }}
-            >
-                {schedule.description ? (
-                    <LightTooltip
-                        open={Boolean(schedule.shortDescription) ? undefined : false}
-                        placement="bottom-start"
-                        title={
-                            <div style={{ padding: 5, fontSize: 18, fontWeight: 'normal' }}>
-                                {schedule.shortDescription}
+            <PageContent>
+                <div
+                    style={{
+                        marginTop: 10,
+                        cursor: 'pointer',
+                        color: '#b7b7b7',
+                        alignSelf: 'start',
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                    }}
+                >
+                    {schedule.description ? (
+                        <LightTooltip
+                            open={Boolean(schedule.shortDescription) ? undefined : false}
+                            placement="bottom-start"
+                            title={
+                                <div style={{ padding: 5, fontSize: 18, fontWeight: 'normal' }}>
+                                    {schedule.shortDescription}
+                                </div>
+                            }
+                            sx={{ maxWidth: '70%' }}
+                        >
+                            <div onClick={() => setForceShowStartModal(true)}>
+                                <Stack direction={'row'} alignItems={'center'} columnGap={'5px'}>
+                                    <HelpOutline />
+                                    <span>Что делать?</span>
+                                </Stack>
                             </div>
-                        }
-                        sx={{ maxWidth: '70%' }}
-                    >
-                        <div onClick={() => setForceShowStartModal(true)}>
-                            <Stack direction={'row'} alignItems={'center'} columnGap={'5px'}>
-                                <HelpOutline />
-                                <span>Что делать?</span>
-                            </Stack>
-                        </div>
-                    </LightTooltip>
-                ) : (
-                    <div />
-                )}
-                {shuffled ? (
-                    <div />
-                ) : (
-                    <Tooltip title="Перемешать оставшиеся">
-                        <IconButton onClick={() => !shuffled && setShuffled(true)}>
-                            <Casino />
-                        </IconButton>
-                    </Tooltip>
-                )}
-            </div>
+                        </LightTooltip>
+                    ) : (
+                        <div />
+                    )}
+                    {shuffled ? (
+                        <div />
+                    ) : (
+                        <Tooltip title="Перемешать оставшиеся">
+                            <IconButton onClick={() => !shuffled && setShuffled(true)}>
+                                <Casino />
+                            </IconButton>
+                        </Tooltip>
+                    )}
+                </div>
 
-            {(showStartModal || forceShowStartModal) && schedule && schedule.description && (
-                <AssertionModal
-                    title={`Учебный план: ${schedule.title}`}
-                    message={schedule.description}
-                    assertTitle="OK"
-                    forceOpen={forceShowStartModal}
-                    onClose={() => {
-                        setShowStartModal(false);
-                        if (forceShowStartModal) {
-                            setForceShowStartModal(false);
-                        }
-                    }}
-                    forbidShowingKey={`${scheduleUserId}-${scheduleId}`}
-                />
-            )}
-            {showAssetModal && (
-                <AssertionModal
-                    title="Не все карточки изучены"
-                    message="Завершить изучение на текущей карточке?"
-                    assertTitle="Да"
-                    cancelTitle="Отмена"
-                    onAssert={() => onFinish(true)}
-                    onClose={() => setShowAssertModal(false)}
-                />
-            )}
-            {showMoveToRepeatModal && (
-                <AssertionModal
-                    title="Слова необходимо повторить"
-                    message="Перейти к повторению?"
-                    assertTitle="Да"
-                    cancelTitle="Нет"
-                    onAssert={() => onSuccessFinish(true)}
-                    onClose={() => setShowMoveToRepeatModal(false)}
-                />
-            )}
-            <div
-                style={{
-                    width: '100%',
-                    margin: '10px 0',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    columnGap: 45,
-                }}
-            >
-                <Slider
-                    value={cardIndex}
-                    min={0}
-                    max={maxCards - 1}
-                    activeValue={activeCardIndex}
-                    onValueChange={(v) => {
-                        setCardIndex(v);
-                        setActiveCardIndex(v);
-                    }}
-                    finishMode={isSuccess}
-                    getHoverTitle={(index) => {
-                        const cardId = notStartedCardIds[index];
-                        const target = cards.find((c) => c.id === cardId);
-                        return target?.frontSideText ?? index.toString();
-                    }}
-                    vertical
-                />
-
-                {isSuccess && mutationData && (
-                    <CardResult
-                        nextRepeatDate={mutationData.nextRepeatDate}
-                        wordsLearned={cardIndex + 1}
-                        onEndButtonClick={() => onSuccessFinish(false)}
+                {(showStartModal || forceShowStartModal) && schedule && schedule.description && (
+                    <AssertionModal
+                        title={`Учебный план: ${schedule.title}`}
+                        message={schedule.description}
+                        assertTitle="OK"
+                        forceOpen={forceShowStartModal}
+                        onClose={() => {
+                            setShowStartModal(false);
+                            if (forceShowStartModal) {
+                                setForceShowStartModal(false);
+                            }
+                        }}
+                        forbidShowingKey={`${scheduleUserId}-${scheduleId}`}
                     />
                 )}
-
-                {currentCardId && !isSuccess && (
-                    <LearnCard
-                        userId={userId}
-                        collectionId={collectionId}
-                        cardId={currentCardId}
-                        showNext={cardIndex < maxCards - 1}
-                        showPrevious={cardIndex !== 0}
-                        onFinish={() => onFinish(true)}
-                        onNext={onNext}
-                        onPrevious={onPrevious}
+                {showAssetModal && (
+                    <AssertionModal
+                        title="Не все карточки изучены"
+                        message="Завершить изучение на текущей карточке?"
+                        assertTitle="Да"
+                        cancelTitle="Отмена"
+                        onAssert={() => onFinish(true)}
+                        onClose={() => setShowAssertModal(false)}
                     />
                 )}
-            </div>
+                {showMoveToRepeatModal && (
+                    <AssertionModal
+                        title="Слова необходимо повторить"
+                        message="Перейти к повторению?"
+                        assertTitle="Да"
+                        cancelTitle="Нет"
+                        onAssert={() => onSuccessFinish(true)}
+                        onClose={() => setShowMoveToRepeatModal(false)}
+                    />
+                )}
+                <div
+                    style={{
+                        height: '100%',
+                        width: '100%',
+                        margin: '10px 0',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        columnGap: 45,
+                    }}
+                >
+                    <Slider
+                        value={cardIndex}
+                        min={0}
+                        max={maxCards - 1}
+                        activeValue={activeCardIndex}
+                        onValueChange={(v) => {
+                            setCardIndex(v);
+                            setActiveCardIndex(v);
+                        }}
+                        finishMode={isSuccess}
+                        getHoverTitle={(index) => {
+                            const cardId = notStartedCardIds[index];
+                            const target = cards.find((c) => c.id === cardId);
+                            return target?.frontSideText ?? index.toString();
+                        }}
+                        vertical
+                    />
+
+                    {isSuccess && mutationData && (
+                        <CardResult
+                            nextRepeatDate={mutationData.nextRepeatDate}
+                            wordsLearned={cardIndex + 1}
+                            onEndButtonClick={() => onSuccessFinish(false)}
+                        />
+                    )}
+
+                    {currentCardId && !isSuccess && (
+                        <LearnCard
+                            userId={userId}
+                            collectionId={collectionId}
+                            cardId={currentCardId}
+                            showNext={cardIndex < maxCards - 1}
+                            showPrevious={cardIndex !== 0}
+                            onFinish={() => onFinish(true)}
+                            onNext={onNext}
+                            onPrevious={onPrevious}
+                        />
+                    )}
+                </div>
+            </PageContent>
         </PageContainer>
     );
 };

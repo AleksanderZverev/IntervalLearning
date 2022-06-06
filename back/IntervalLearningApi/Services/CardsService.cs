@@ -360,6 +360,8 @@ public class CardsService
 
             db.Entry(phaseRemember).State = EntityState.Added;
 
+            db.Entry(queueItem).State = EntityState.Deleted;
+
             var nextPhaseIndex = remember.PhaseIndex + 1;
             var nextPhase = schedule.Phases.Skip(nextPhaseIndex).FirstOrDefault();
 
@@ -384,9 +386,7 @@ public class CardsService
                 (short)nextPhaseIndex,
                 nextRepeatDate);
 
-            db.Entry(queueItem).State = EntityState.Deleted;
             db.Entry(newQueueItem).State = EntityState.Added;
-            //db.Entry(collection).State = EntityState.Modified;
         }
 
 
