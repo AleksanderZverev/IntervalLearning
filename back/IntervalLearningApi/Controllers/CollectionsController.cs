@@ -3,6 +3,7 @@ using DB.Models.Dictionary;
 using IntervalLearningApi.Extensions;
 using IntervalLearningApi.Models.ByUser;
 using IntervalLearningApi.Models.Dictionary;
+using IntervalLearningApi.Models.Store;
 using IntervalLearningApi.Services;
 using Microsoft.AspNetCore.Mvc;
 
@@ -102,6 +103,14 @@ namespace IntervalLearningApi.Controllers
             var userId = HttpContext.GetUserId();
             var collection = await collectionService.Find(userId, collectionId).ConfigureAwait(false);
             return collection != null ? Ok(ToCollection(collection)) : NotFound();
+        }
+
+        [HttpPost("{collectionId}/public")]
+        public async Task<ActionResult<PublicCollection>> MakePublic(short collectionId)
+        {
+            var userId = HttpContext.GetUserId();
+            var (collection, error) = await collectionService.MakePublic(userId, collectionId).ConfigureAwait(false);
+            return collection != null ? PublicCollectionsController.ToPublicCollection(collection) : BadRequest(error);
         }
 
         public static List<Collection> ToCollection(IEnumerable<CollectionEntity> collections)

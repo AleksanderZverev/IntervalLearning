@@ -1,7 +1,9 @@
 ﻿using DB;
 using DB.Models;
 using DB.Models.Dictionary;
+using DB.Models.Store;
 using Infrastructure;
+using IntervalLearningApi.Services.Store;
 using Microsoft.EntityFrameworkCore;
 
 namespace IntervalLearningApi.Services;
@@ -11,12 +13,21 @@ public class CollectionService
     private readonly ApplicationContext db;
     private readonly CardsService cardsService;
     private readonly UserMetadataService metadataService;
+    private readonly PublicCollectionService publicCollectionService;
+    private readonly PublicCardsService publicCardsService;
 
-    public CollectionService(ApplicationContext db, CardsService cardsService, UserMetadataService metadataService)
+    public CollectionService(
+        ApplicationContext db,
+        CardsService cardsService,
+        UserMetadataService metadataService,
+        PublicCollectionService publicCollectionService,
+        PublicCardsService publicCardsService)
     {
         this.db = db;
         this.cardsService = cardsService;
         this.metadataService = metadataService;
+        this.publicCollectionService = publicCollectionService;
+        this.publicCardsService = publicCardsService;
     }
 
     public Task<CollectionEntity?> Find(long userId, short collectionId)
@@ -280,6 +291,133 @@ public class CollectionService
             .ToList();
 
         return (resultWords, language, null);
+    }
+
+    public async Task<(PublicCollectionEntity? collection, string? error)> MakePublic(long userId, short collectionId)
+    {
+        var collection = await db.Collections.FindAsync(userId, collectionId);
+
+        if (collection == null)
+            return (null, "Not found");
+
+        await db.Database.BeginTransactionAsync();
+
+        var (publicCollection, createPublicCollectionError) = publicCollectionService.Create(new CreatePublicCollection(
+            userId,
+            collection.Title,
+            string.Empty,
+            collection.ThemeId));
+
+        if (publicCollection == null)
+        {
+            await db.Database.RollbackTransactionAsync();
+            return (null, createPublicCollectionError);
+        }
+
+        var cards = await cardsService.GetAllCards(userId, collectionId);
+
+        foreach (var card in cards)
+        {
+            var (publicCard, createCardError) = publicCollectionService.AddCard(new CreatePublicCard(
+                    userId,
+                    publicCollection.Id,
+                    card.FrontSideText,
+                    card.PromptText,
+                    card.BackSideText,
+                    card.Description,
+                    card.Examples),
+                userId,
+                publicCollection.Id);
+
+            if (publicCard == null)
+            {
+                await db.Database.RollbackTransactionAsync();
+                return (null, createCardError);
+            }
+        }
+
+        var isOk = db.SoftSaveChanges();
+
+        if (!isOk)
+        {
+            await db.Database.RollbackTransactionAsync();
+            return (null, "Unknown error");
+        }
+
+        await db.Database.CommitTransactionAsync();
+        return (publicCollection, null);
+    }
+
+    public async Task<(CollectionEntity? collection, string? error)> AddCardsToMyCollection(
+        long publicCollectionUserId,
+        short publicCollectionId,
+        long myUserId,
+        short myCollectionId, 
+        bool checkUnique)
+    {
+        var publicCollection = await publicCollectionService.Find(publicCollectionUserId, publicCollectionId);
+
+        if (publicCollection == null)
+        {
+            return (null, "public collection not found");
+        }
+
+        var myCollection = await Find(myUserId, myCollectionId);
+
+        if (myCollection == null)
+        {
+            return (null, "my collection not found");
+        }
+
+        if (publicCollection.ThemeId != myCollection.ThemeId)
+        {
+            return (null, "themes of collections are different");
+        }
+
+        var publicCards = await publicCardsService.GetAllCards(publicCollectionUserId, publicCollectionId);
+
+        if (publicCards.Count == 0)
+            return (myCollection, null);
+
+        var myCards = checkUnique ? await cardsService.GetAllCards(myUserId, myCollectionId) : new List<CardEntity>();
+        var myCardsSet = new HashSet<string>(myCards.Select(c => c.FrontSideText));
+
+        await db.Database.BeginTransactionAsync();
+
+        foreach (var publicCard in publicCards)
+        {
+            if (checkUnique && myCardsSet.Contains(publicCard.RememberingText))
+            {
+                continue;
+            }
+
+            var (card, addCardError) = CreateOrEditCard(
+                myUserId,
+                myCollectionId,
+                null,
+                publicCard.RememberingText,
+                publicCard.PromptText,
+                publicCard.MeaningText,
+                publicCard.Description,
+                publicCard.Examples);
+
+            if (card == null)
+            {
+                await db.Database.RollbackTransactionAsync();
+                return (null, "error to add card. " + addCardError);
+            }
+        }
+
+        var isOk = db.SoftSaveChanges();
+
+        if (!isOk)
+        {
+            await db.Database.RollbackTransactionAsync();
+            return (null, "unknown error");
+        }
+
+        await db.Database.CommitTransactionAsync();
+        return (myCollection, null);
     }
 
     public class RepeatingPhase

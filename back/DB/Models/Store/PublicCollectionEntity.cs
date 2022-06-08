@@ -1,10 +1,23 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using Infrastructure;
 
 namespace DB.Models.Store;
 
+public interface IEditModel
+{
+    public string Title { get; }
+    public short ThemeId { get; }
+    public string ShortDescription { get; }
+}
+
+public interface ICreateModel : IEditModel
+{
+    public long OwnerUserId { get; }
+}
+
 [Table("PublicCollections")]
-public class PublicCollectionEntity
+public class PublicCollectionEntity : ICreateModel
 {
     [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
     public short Id { get; set; }
@@ -32,4 +45,37 @@ public class PublicCollectionEntity
     public uint LikesCount { get; set; }
     public uint DislikesCount { get; set; }
     public List<PublicCollectionSubscriber> Subscribers { get; set; } = new();
+}
+
+public class PatchPublicCollection : IEditModel
+{
+    public string Title { get; }
+    public short ThemeId { get; }
+    public string ShortDescription { get; }
+
+
+    public PatchPublicCollection(string title, string shortDescription, short themeId)
+    {
+        Title = TextMaster.RemoveWhiteSpaces(title);
+        ShortDescription = TextMaster.RemoveWhiteSpaces(shortDescription);
+        ThemeId = themeId;
+    }
+}
+
+public class CreatePublicCollection : PatchPublicCollection, ICreateModel
+{
+    public long OwnerUserId { get; }
+
+    public CreatePublicCollection(
+        long ownerUserId,
+        string title,
+        string shortDescription,
+        short themeId)
+        : base(
+            title,
+            shortDescription,
+            themeId)
+    {
+        OwnerUserId = ownerUserId;
+    }
 }

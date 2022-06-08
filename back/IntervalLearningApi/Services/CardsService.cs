@@ -24,6 +24,13 @@ public class CardsService
         this.metadataService = metadataService;
     }
 
+    public Task<List<CardEntity>> GetAllCards(long userId, short collectionId)
+    {
+        return db.Cards
+            .Where(c => c.ParentUserId == userId && c.ParentCollectionId == collectionId)
+            .ToListAsync();
+    }
+
     public Task<List<CardEntity>> GetCards(long userId, short collectionId, int page, int count)
     {
         var toSkip = (page - 1) * count;
