@@ -9,9 +9,9 @@ interface LoaderProps {
 
 export const Loader: FC<LoaderProps> = ({ title, textColor }) => {
     return (
-        <Stack direction={'column'}>
+        <Stack direction={'column'} alignItems="center">
             <CircularProgress size={70} sx={{ color: blue[500] }} />
-            <label style={{ color: textColor || 'white' }}>{title || 'Загрузка'}</label>
+            <label style={{ color: textColor || 'white', fontSize: 18 }}>{title || 'Загрузка'}</label>
         </Stack>
     );
 };

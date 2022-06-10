@@ -12,7 +12,7 @@ public class TranslationEntity
     public short LanguageId { get; set; }
     public LanguageEntity? Language { get; set; }
 
-    [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+    [DatabaseGenerated(DatabaseGeneratedOption.None)]
     public short Id { get; set; }
 
     [Required]

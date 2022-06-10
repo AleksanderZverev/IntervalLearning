@@ -16,6 +16,7 @@ import * as yup from 'yup';
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { Form, FormFiledLabel } from '../../src/controls/Form/Form';
+import { ModalLoader } from '../../src/ModalLoader/ModalLoader';
 
 interface IForm {
     text: string;
@@ -31,39 +32,78 @@ const schema = yup
     })
     .required();
 
-interface DictionaryPageProps extends WithMutationResolverProps<typeof useAddTranslationsMutation> {}
+interface DictionaryPageProps {}
 
-const DictionaryPage: FC<DictionaryPageProps> = ({ mutationProps: { mutate: addTranslations, showRetryModal } }) => {
+const DictionaryPage: FC<DictionaryPageProps> = ({}) => {
     const [error, setError] = useState('');
+    const [loadingTitle, setLoadingTitle] = useState('Загрузка');
+    const [addTranslations, {}] = useAddTranslationsMutation();
+    const [isLoading, setIsLoading] = useState(false);
+
     const formMethods = useForm<IForm>({ resolver: yupResolver(schema), defaultValues: schema.getDefault() });
+
     const {
         register,
         handleSubmit,
         formState: { errors },
+        setValue,
     } = formMethods;
 
     const onLoad = async (data: IForm) => {
-        console.log(data);
+        const textSplit = data.text.split('\n');
 
-        const request: AddTranslationsRequest = {
-            languageId: data.languageId,
-            translationLanguageId: data.translateLanguageId,
-            text: data.text,
-        };
+        let count = 0;
+        let maxLines = 100;
+        let totalCount = 0;
+        let lines: string[] = [];
+        const allErrors: string[] = [];
 
-        try {
-            const errors = await addTranslations(request);
+        setIsLoading(true);
 
-            if (errors) {
-                setError(errors);
+        setLoadingTitle('Загружено ' + totalCount + ' из ' + textSplit.length);
+
+        for (const line of textSplit) {
+            if (count >= maxLines) {
+                totalCount += count;
+                count = 0;
+
+                const text = lines.join('\n');
+
+                const request: AddTranslationsRequest = {
+                    languageId: data.languageId,
+                    translationLanguageId: data.translateLanguageId,
+                    text: text,
+                };
+
+                try {
+                    const errors = await addTranslations(request).unwrap();
+
+                    if (errors) {
+                        allErrors.push(errors);
+                    }
+                } catch (e) {
+                    console.error(e);
+                }
+
+                setLoadingTitle('Загружено ' + totalCount + ' из ' + textSplit.length);
+                lines = [];
             }
-        } catch {
-            showRetryModal(() => onLoad(data));
+
+            lines.push(line);
+            count++;
         }
+
+        if (allErrors.length > 0) {
+            setError(allErrors.join('\n'));
+        }
+
+        setValue('text', '');
+        setIsLoading(false);
     };
     return (
         <PageContainer>
             <PageHeader title="Словарь" />
+            <ModalLoader loading={isLoading} title={loadingTitle} />
             <div>
                 <Button onClick={handleSubmit(onLoad)} variant="contained">
                     Add
@@ -87,6 +127,5 @@ const DictionaryPage: FC<DictionaryPageProps> = ({ mutationProps: { mutate: addT
 };
 
 const WithLanguages = withQueryResolver(useGetLanguagesQuery)(DictionaryPage);
-const ConnectedMutation = withMutationResolver(useAddTranslationsMutation, 'Error')(WithLanguages);
 
-export default ConnectedMutation;
+export default WithLanguages;

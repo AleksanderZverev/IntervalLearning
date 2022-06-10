@@ -139,12 +139,30 @@ namespace IntervalLearningApi.Services.Dictionary
 
                     if (sameTranslation != null)
                     {
-                        translationErrors.Add(translationText);
+                        translationErrors.Add("[already exists] " + translationText);
+                        continue;
+                    }
+
+                    short id;
+                    var maxTries = 100;
+                    var count = 0;
+                    var containsSameId = false;
+                    do
+                    {
+                        id = RandomMaster.GenerateShort();
+                        containsSameId = translations.FirstOrDefault(t => t.Id == id) != null;
+                        count++;
+                    } while (count < maxTries && containsSameId);
+
+                    if (containsSameId)
+                    {
+                        translationErrors.Add("[unable to generate id] " + translationText);
                         continue;
                     }
 
                     var translation = new TranslationEntity()
                     {
+                        Id = id,
                         LanguageId = translationLanguageId,
                         Translation = lowerTranslation,
                         WordId = word.Id,
@@ -152,20 +170,17 @@ namespace IntervalLearningApi.Services.Dictionary
 
                     db.Entry(translation).State = EntityState.Added;
 
-                    try
-                    {
-                        db.SaveChanges();
+                    var isAdded = db.SoftSaveChanges();
+
+                    if (isAdded)
                         translations.Add(translation);
-                    }
-                    catch
-                    {
-                        translationErrors.Add(translationText + " - [error on add]");
-                    }
+                    else
+                        translationErrors.Add("[error on add] " + translationText);
                 }
 
                 if (translationErrors.Count > 0)
                 {
-                    errors.Add(line + " - translationsErrors: " + string.Join(", ", translationErrors));
+                    errors.Add(line + "\n\t" + string.Join("\n\t", translationErrors));
                 }
             }
 
