@@ -73,6 +73,16 @@ const WebHeader: FC<WebHeaderProps> = ({ isServerSide }) => {
                 >
                     Изучение
                 </MuiLink>
+                <MuiLink
+                    className={styles.link}
+                    activeClassName={styles.activeLink}
+                    href="/store"
+                    underline="none"
+                    fontSize={23}
+                    onClick={() => !isServerSide && navigate('/store')}
+                >
+                    Поиск
+                </MuiLink>
             </div>
             <div className={styles.rightHeaderContainer}>
                 {currentUser !== null ? (

@@ -32,6 +32,10 @@ a {
     box-sizing: border-box;
 }
 
+ul {
+    list-style: none;
+}
+
 /* MAKE NUMERIC INPUT WITHOUT ARROWS AND SCROLL */
 input[type='number']::-webkit-outer-spin-button,
 input[type='number']::-webkit-inner-spin-button {

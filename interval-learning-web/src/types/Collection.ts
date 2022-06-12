@@ -1,3 +1,5 @@
+import { UserInfo } from './user';
+
 export interface Collection {
     userId: string;
     id: string;
@@ -8,6 +10,13 @@ export interface Collection {
     notStartedCards: number;
     isPublic: boolean;
     publication?: CollectionPublication;
+}
+
+export interface StoreCollection extends Collection {
+    ownerUser: UserInfo;
+    isLiked: boolean;
+    isDisliked: boolean;
+    isAdded: boolean;
 }
 
 export interface CollectionPublication {

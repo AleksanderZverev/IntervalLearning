@@ -1,5 +1,5 @@
-import { Edit, Public, SvgIconComponent } from '@mui/icons-material';
-import { Icon, IconButton, InputAdornment, TextField, Typography } from '@mui/material';
+import { Edit } from '@mui/icons-material';
+import { IconButton, TextField, Typography } from '@mui/material';
 import { FC, ReactNode, useState } from 'react';
 import styles from './styles.module.css';
 

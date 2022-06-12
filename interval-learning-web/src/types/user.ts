@@ -5,3 +5,10 @@ export interface User {
     email: string;
     jwtToken: string;
 }
+
+export interface UserInfo {
+    id: string;
+    firstName: string;
+    lastName: string;
+    email: string;
+}

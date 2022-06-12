@@ -1,4 +1,4 @@
-import { Collection } from '../types/Collection';
+import { Collection, StoreCollection } from '../types/Collection';
 import { Language, Word } from '../types/Dictionary';
 import { api, tagTypes } from './apiSlice';
 import { setOneCollection, setCollections } from './slices/collectionsSlice';
@@ -51,6 +51,13 @@ export interface MakePublicRequest {
 export interface GetRandomWordsRequest {
     refetchToggle: number;
     collectionId: string;
+}
+
+export interface SearchPublicCollectionRequest {
+    themeId: number;
+    searchName: string;
+    page: number;
+    count: number;
 }
 
 interface GetRandomWordsResponse {
@@ -145,6 +152,13 @@ export const collectionsApi = api.injectEndpoints({
                 },
             }),
         }),
+        searchPublicCollection: build.query<StoreCollection[], SearchPublicCollectionRequest>({
+            query: (req) => ({
+                url: `${baseUrl}/search`,
+                method: 'GET',
+                params: req,
+            }),
+        }),
     }),
 });
 
@@ -157,4 +171,5 @@ export const {
     useGetRandomWordsQuery,
     useMakeCollectionPublicMutation,
     useAddCardsToMyCollectionMutation,
+    useSearchPublicCollectionQuery,
 } = collectionsApi;

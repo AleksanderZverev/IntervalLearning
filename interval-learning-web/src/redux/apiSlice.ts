@@ -3,7 +3,7 @@ import { axiosBaseQuery } from './axiosBaseQuery';
 
 export const tagTypes = {
     collection: 'Collection',
-    theme: 'Theme',
+    themes: 'Themes',
     card: 'Card',
     notStartedCardsList: 'NotStartedCardsList',
     queueCollectionsList: 'QueueCollectionsList',

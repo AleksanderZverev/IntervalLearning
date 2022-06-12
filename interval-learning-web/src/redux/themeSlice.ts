@@ -5,20 +5,15 @@ import { setThemes } from './slices/themeSlice';
 export const themesApi = api.injectEndpoints({
     endpoints: (build) => ({
         getThemes: build.query<Theme[], void>({
-            query: () => ({ method: 'GET', url: 'themes' }),
-            async onQueryStarted(arg, { queryFulfilled, dispatch }) {
-                try {
-                    const themes = await queryFulfilled;
-                    dispatch(setThemes(themes.data));
-                } catch {}
-            },
-            providesTags: (result, error, arg) => {
-                const tags = result
-                    ? Object.keys(result).map((themeId) => ({ type: tagTypes.theme, id: themeId }))
-                    : [];
-                tags.push({ type: tagTypes.theme, id: 'LIST' });
-                return tags;
-            },
+            query: () => ({
+                method: 'GET',
+                url: 'themes',
+                onSuccess: async (dispatch, data) => {
+                    const themes = data as Theme[];
+                    dispatch(setThemes(themes));
+                },
+            }),
+            providesTags: [tagTypes.themes],
         }),
     }),
 });

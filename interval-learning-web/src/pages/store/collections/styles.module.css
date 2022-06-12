@@ -1,0 +1,39 @@
+.collection {
+    border-bottom: 1px solid #d4d4d4;
+    padding: 10px 0;
+}
+
+.spaceContainer {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+}
+
+.statistic {
+    display: flex;
+    column-gap: 12px;
+    color: #b7b7b7;
+    align-items: baseline;
+}
+
+.statistic .item {
+    display: flex;
+    align-items: center;
+    column-gap: 4px;
+}
+
+.collectionTitle {
+    font-size: 20px;
+}
+
+.collectionAuthor {
+    color: #b7b7b7;
+}
+
+.like {
+    color: #05c953;
+}
+
+.dislike {
+    color: #dc5d5d;
+}
