@@ -5,8 +5,7 @@ namespace IntervalLearningApi.Models.ByUser;
 
 public class Collection
 {
-    [JsonProperty("userId")]
-    public string ParentUserId { get; }
+    [JsonProperty("userId")] public string ParentUserId { get; }
     public string Id { get; }
     public string Title { get; }
     public DateTime CreatedAt { get; }
@@ -14,6 +13,8 @@ public class Collection
 
     public short CardsCount { get; }
     public short NotStartedCards { get; set; }
+    public bool IsPublic { get; }
+    public CollectionPublication? Publication { get; }
 
     public Collection(
         long parentUserId,
@@ -22,7 +23,9 @@ public class Collection
         DateTime createdAt,
         short themeId,
         short cardsCount,
-        short notStartedCards)
+        short notStartedCards,
+        bool isPublic,
+        CollectionPublication? publication)
     {
         ParentUserId = parentUserId.ToString();
         Id = id.ToString();
@@ -31,6 +34,24 @@ public class Collection
         ThemeId = themeId;
         CardsCount = cardsCount;
         NotStartedCards = notStartedCards;
+        IsPublic = isPublic;
+        Publication = publication;
+    }
+}
+
+public class CollectionPublication
+{
+    public DateOnly PublishDate { get; }
+    public uint SubscribersCount { get; }
+    public uint LikesCount { get; }
+    public uint DislikesCount { get; }
+
+    public CollectionPublication(DateOnly publishDate, uint subscribersCount, uint likesCount, uint dislikesCount)
+    {
+        PublishDate = publishDate;
+        SubscribersCount = subscribersCount;
+        LikesCount = likesCount;
+        DislikesCount = dislikesCount;
     }
 }
 

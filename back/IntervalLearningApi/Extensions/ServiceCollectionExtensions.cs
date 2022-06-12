@@ -3,7 +3,6 @@ using IntervalLearningApi.Services;
 using IntervalLearningApi.Services.Authentication;
 using IntervalLearningApi.Services.Dictionary;
 using IntervalLearningApi.Services.Jwt;
-using IntervalLearningApi.Services.Store;
 
 namespace IntervalLearningApi.Extensions;
 
@@ -22,8 +21,5 @@ public static class ServiceCollectionExtensions
         services.AddScoped<UserMetadataService>();
         services.AddScoped<DictionaryService>();
         services.AddScoped(typeof(Repository<>));
-
-        services.AddScoped<PublicCollectionService>();
-        services.AddScoped<PublicCardsService>();
     }
 }

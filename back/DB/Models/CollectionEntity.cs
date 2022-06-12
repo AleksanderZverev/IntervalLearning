@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using DB.Models.Store;
 
 namespace DB.Models;
 
@@ -45,4 +46,8 @@ public class CollectionEntity : IParentUserReference, ICreateOrEditModel
 
     public long ParentUserId { get; set; }
     public virtual UserEntity? ParentUser { get; set; }
+
+    public bool IsPublic { get; set; }
+
+    public CollectionPublicationEntity? CollectionPublicationEntity { get; set; }
 }

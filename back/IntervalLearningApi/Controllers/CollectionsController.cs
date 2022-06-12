@@ -1,10 +1,11 @@
 ﻿using DB.Models;
 using DB.Models.Dictionary;
+using DB.Models.Store;
 using IntervalLearningApi.Extensions;
 using IntervalLearningApi.Models.ByUser;
 using IntervalLearningApi.Models.Dictionary;
-using IntervalLearningApi.Models.Store;
 using IntervalLearningApi.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace IntervalLearningApi.Controllers
@@ -39,6 +40,14 @@ namespace IntervalLearningApi.Controllers
             return collection != null
                 ? ToCollection(collection)
                 : BadRequest(error);
+        }
+
+        [AllowAnonymous]
+        [HttpGet("/public/{userId:long}-{collectionId}")]
+        public async Task<ActionResult<Collection>> GetPublicCollection(long userId, short collectionId)
+        {
+            var collection = await collectionService.FindPublicCollection(userId, collectionId);
+            return collection == null ? NotFound() : ToCollection(collection);
         }
 
         [HttpGet]
@@ -106,12 +115,30 @@ namespace IntervalLearningApi.Controllers
         }
 
         [HttpPost("{collectionId}/public")]
-        public async Task<ActionResult<PublicCollection>> MakePublic(short collectionId)
+        public async Task<ActionResult<Collection>> MakePublic(short collectionId)
         {
             var userId = HttpContext.GetUserId();
             var (collection, error) = await collectionService.MakePublic(userId, collectionId).ConfigureAwait(false);
-            return collection != null ? PublicCollectionsController.ToPublicCollection(collection) : BadRequest(error);
+            return collection != null ? ToCollection(collection) : BadRequest(error);
         }
+
+        [HttpPost("{collectionUserId}-{collectionId}/add/my-{myCollectionId}")]
+        public async Task<ActionResult<Collection>> AddCardsToMyCollection(
+            long collectionUserId,
+            short collectionId,
+            short myCollectionId,
+            [FromQuery]bool checkUnique)
+        {
+            var userId = HttpContext.GetUserId();
+            var (collection, error) = await collectionService.AddCardsToMyCollection(
+                collectionUserId,
+                collectionId,
+                userId,
+                myCollectionId,
+                checkUnique);
+            return collection != null ? ToCollection(collection) : BadRequest(error);
+        }
+
 
         public static List<Collection> ToCollection(IEnumerable<CollectionEntity> collections)
             => collections.Select(ToCollection).ToList();
@@ -125,8 +152,19 @@ namespace IntervalLearningApi.Controllers
                 c.CreatedDate,
                 c.ThemeId,
                 c.CardsCount,
-                c.NotStartedCardsCount
+                c.NotStartedCardsCount,
+                c.IsPublic,
+                c.CollectionPublicationEntity == null ? null : ToCollectionPublication(c.CollectionPublicationEntity)
             );
+        }
+
+        private static CollectionPublication ToCollectionPublication(CollectionPublicationEntity publication)
+        {
+            return new CollectionPublication(
+                publication.PublishDate,
+                publication.SubscribersCount,
+                publication.LikesCount,
+                publication.DislikesCount);
         }
 
         public static Card ToCard(CardEntity c)

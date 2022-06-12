@@ -1,9 +1,9 @@
-﻿using DB;
+﻿using System.Diagnostics;
+using DB;
 using DB.Models;
 using DB.Models.Dictionary;
 using DB.Models.Store;
 using Infrastructure;
-using IntervalLearningApi.Services.Store;
 using Microsoft.EntityFrameworkCore;
 
 namespace IntervalLearningApi.Services;
@@ -13,21 +13,15 @@ public class CollectionService
     private readonly ApplicationContext db;
     private readonly CardsService cardsService;
     private readonly UserMetadataService metadataService;
-    private readonly PublicCollectionService publicCollectionService;
-    private readonly PublicCardsService publicCardsService;
 
     public CollectionService(
         ApplicationContext db,
         CardsService cardsService,
-        UserMetadataService metadataService,
-        PublicCollectionService publicCollectionService,
-        PublicCardsService publicCardsService)
+        UserMetadataService metadataService)
     {
         this.db = db;
         this.cardsService = cardsService;
         this.metadataService = metadataService;
-        this.publicCollectionService = publicCollectionService;
-        this.publicCardsService = publicCardsService;
     }
 
     public Task<CollectionEntity?> Find(long userId, short collectionId)
@@ -39,6 +33,7 @@ public class CollectionService
     {
         var collections = db.Collections
             .Where(c => c.ParentUserId == userId)
+            .Include(c => c.CollectionPublicationEntity)
             .ToListAsync();
 
         return collections;
@@ -293,7 +288,7 @@ public class CollectionService
         return (resultWords, language, null);
     }
 
-    public async Task<(PublicCollectionEntity? collection, string? error)> MakePublic(long userId, short collectionId)
+    public async Task<(CollectionEntity? collection, string? error)> MakePublic(long userId, short collectionId)
     {
         var collection = await db.Collections.FindAsync(userId, collectionId);
 
@@ -302,39 +297,18 @@ public class CollectionService
 
         await db.Database.BeginTransactionAsync();
 
-        var (publicCollection, createPublicCollectionError) = publicCollectionService.Create(new CreatePublicCollection(
-            userId,
-            collection.Title,
-            string.Empty,
-            collection.ThemeId));
+        var publication = db.CollectionPublications.Find(userId, collectionId)
+            ?? db.CreateByProperties<CollectionPublicationEntity>(new CreateCollectionPublication(userId, collectionId));
 
-        if (publicCollection == null)
+        var isPublished = db.SoftSaveChanges();
+
+        if (!isPublished)
         {
             await db.Database.RollbackTransactionAsync();
-            return (null, createPublicCollectionError);
+            return (null, "unable to create publication");
         }
 
-        var cards = await cardsService.GetAllCards(userId, collectionId);
-
-        foreach (var card in cards)
-        {
-            var (publicCard, createCardError) = publicCollectionService.AddCard(new CreatePublicCard(
-                    userId,
-                    publicCollection.Id,
-                    card.FrontSideText,
-                    card.PromptText,
-                    card.BackSideText,
-                    card.Description,
-                    card.Examples),
-                userId,
-                publicCollection.Id);
-
-            if (publicCard == null)
-            {
-                await db.Database.RollbackTransactionAsync();
-                return (null, createCardError);
-            }
-        }
+        collection.IsPublic = true;
 
         var isOk = db.SoftSaveChanges();
 
@@ -345,7 +319,7 @@ public class CollectionService
         }
 
         await db.Database.CommitTransactionAsync();
-        return (publicCollection, null);
+        return (collection, null);
     }
 
     public async Task<(CollectionEntity? collection, string? error)> AddCardsToMyCollection(
@@ -355,9 +329,9 @@ public class CollectionService
         short myCollectionId, 
         bool checkUnique)
     {
-        var publicCollection = await publicCollectionService.Find(publicCollectionUserId, publicCollectionId);
+        var publicCollection = await Find(publicCollectionUserId, publicCollectionId);
 
-        if (publicCollection == null)
+        if (publicCollection is not {IsPublic: true})
         {
             return (null, "public collection not found");
         }
@@ -374,7 +348,7 @@ public class CollectionService
             return (null, "themes of collections are different");
         }
 
-        var publicCards = await publicCardsService.GetAllCards(publicCollectionUserId, publicCollectionId);
+        var publicCards = await cardsService.GetAllCards(publicCollectionUserId, publicCollectionId);
 
         if (publicCards.Count == 0)
             return (myCollection, null);
@@ -386,7 +360,7 @@ public class CollectionService
 
         foreach (var publicCard in publicCards)
         {
-            if (checkUnique && myCardsSet.Contains(publicCard.RememberingText))
+            if (checkUnique && myCardsSet.Contains(publicCard.FrontSideText))
             {
                 continue;
             }
@@ -395,9 +369,9 @@ public class CollectionService
                 myUserId,
                 myCollectionId,
                 null,
-                publicCard.RememberingText,
+                publicCard.FrontSideText,
                 publicCard.PromptText,
-                publicCard.MeaningText,
+                publicCard.BackSideText,
                 publicCard.Description,
                 publicCard.Examples);
 
@@ -414,6 +388,36 @@ public class CollectionService
         {
             await db.Database.RollbackTransactionAsync();
             return (null, "unknown error");
+        }
+
+        var publication = db.CollectionPublications.Find(publicCollectionUserId, publicCollectionId);
+
+        if (publication == null)
+        {
+            Debug.Fail("publication == null");
+            return (null, "system error");
+        }
+
+        publication.SubscribersCount++;
+
+        var subscriber = db.PublicCollectionSubscribers.Find(publicCollectionUserId, publicCollectionId, myUserId);
+
+        if (subscriber == null)
+        {
+            subscriber = db.CreateByProperties<PublicCollectionSubscriber>(new CreatePublicCollectionSubscriber(
+                publicCollectionUserId,
+                publicCollectionId,
+                myUserId));
+        }
+
+        subscriber.IsAdded = true;
+
+        var isSubscriberCreated = db.SoftSaveChanges();
+
+        if (!isSubscriberCreated)
+        {
+            await db.Database.RollbackTransactionAsync();
+            return (null, "subscription error");
         }
 
         await db.Database.CommitTransactionAsync();
@@ -455,5 +459,16 @@ public class CollectionService
         {
             Collection = collection;
         }
+    }
+
+    public async Task<CollectionEntity?> FindPublicCollection(long userId, short collectionId)
+    {
+        var collection = await db.Collections
+            .Include(c => c.CollectionPublicationEntity)
+            .SingleOrDefaultAsync(c => c.ParentUserId == userId && c.Id == collectionId);
+
+        return collection is not {IsPublic: true} 
+            ? null 
+            : collection;
     }
 }
