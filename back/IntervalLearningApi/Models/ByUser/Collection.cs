@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using DB.Models;
 using Newtonsoft.Json;
 
 namespace IntervalLearningApi.Models.ByUser;
@@ -38,6 +39,62 @@ public class Collection
         Publication = publication;
     }
 }
+
+public class StoreCollection : Collection
+{
+    public UserInfo OwnerUser { get; }
+    public bool IsLiked { get; }
+    public bool IsDisliked { get; }
+    public bool IsAdded { get; }
+
+    public StoreCollection(
+        UserInfo owner,
+        long userId,
+        short id,
+        string title,
+        DateTime createdAt,
+        short themeId,
+        short cardsCount,
+        short notStartedCards,
+        bool isPublic,
+        CollectionPublication? publication, 
+        bool isLiked,
+        bool isDisliked, 
+        bool isAdded)
+        : base(
+            userId,
+            id,
+            title,
+            createdAt,
+            themeId,
+            cardsCount,
+            notStartedCards,
+            isPublic,
+            publication)
+    {
+        OwnerUser = owner;
+        IsLiked = isLiked;
+        IsDisliked = isDisliked;
+        IsAdded = isAdded;
+    }
+}
+
+public class UserInfo
+{
+    public string Id { get; }
+    public string FirstName { get; }
+    public string LastName { get; }
+    public string Email { get; }
+
+    public UserInfo(long id, string firstName, string lastName, string email)
+    {
+        Id = id.ToString();
+        FirstName = firstName;
+        LastName = lastName;
+        Email = email;
+    }
+}
+
 
 public class CollectionPublication
 {

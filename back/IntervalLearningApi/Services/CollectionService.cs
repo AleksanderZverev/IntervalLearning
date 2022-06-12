@@ -424,6 +424,48 @@ public class CollectionService
         return (myCollection, null);
     }
 
+    public async Task<List<(CollectionEntity collection, PublicCollectionSubscriber? subscriber)>> SearchPublicCollections(
+        long myUserId,
+        short themeId, 
+        string searchName, 
+        int page, 
+        int count)
+    {
+        var theme = await db.Themes.FindAsync(themeId);
+
+        if (theme == null)
+        {
+            return new List<(CollectionEntity, PublicCollectionSubscriber?)>();
+        }
+
+        var lowerSearchName = searchName.ToLowerInvariant();
+
+        var toSkip = (page - 1) * count;
+
+        var foundCollections = await db.Collections
+            .Where(c => c.ThemeId == themeId && c.IsPublic && c.Title.ToLower().StartsWith(lowerSearchName))
+            .Include(c => c.CollectionPublicationEntity)
+            .Include(c => c.ParentUser)
+            .AsSplitQuery()
+            .ToListAsync();
+
+        var targetCollections = foundCollections
+            //.Where(c => c.IsPublic)
+            .Skip(toSkip)
+            .Take(count)
+            .ToList();
+
+        var result = targetCollections
+            .Select(c =>
+            {
+                var subscription = db.PublicCollectionSubscribers.Find(c.ParentUserId, c.Id, myUserId);
+                return (c, subscription);
+            })
+            .ToList();
+
+        return result;
+    }
+
     public class RepeatingPhase
     {
         public long ScheduleUserId { get; }

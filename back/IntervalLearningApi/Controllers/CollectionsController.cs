@@ -41,6 +41,14 @@ namespace IntervalLearningApi.Controllers
                 ? ToCollection(collection)
                 : BadRequest(error);
         }
+        
+        [HttpGet("search")]
+        public async Task<ActionResult<List<StoreCollection>>> SearchPublicCollection(short themeId, string? searchName = null, int page = 1, int count = 10)
+        {
+            var userId = HttpContext.GetUserId();
+            var collections = await collectionService.SearchPublicCollections(userId, themeId, searchName ?? "", page, count);
+            return collections.Select((t) => ToStoreCollection(t.collection, t.subscriber)).ToList();
+        }
 
         [AllowAnonymous]
         [HttpGet("/public/{userId:long}-{collectionId}")]
@@ -68,7 +76,7 @@ namespace IntervalLearningApi.Controllers
                 ? BadRequest(error)
                 : new GetRandomWordResponse(words, language);
         }
-        
+
         [HttpGet("repeat")]
         public async Task<ActionResult<RepeatingCollectionResponse>> GetRepeatCollections()
         {
@@ -156,6 +164,36 @@ namespace IntervalLearningApi.Controllers
                 c.IsPublic,
                 c.CollectionPublicationEntity == null ? null : ToCollectionPublication(c.CollectionPublicationEntity)
             );
+        }
+
+        public static StoreCollection ToStoreCollection(CollectionEntity c, PublicCollectionSubscriber? subscriber)
+        {
+            return new StoreCollection(
+                c.ParentUser == null ? throw new InvalidOperationException() : ToUserInfo(c.ParentUser),
+                c.ParentUserId,
+                c.Id,
+                c.Title,
+                c.CreatedDate,
+                c.ThemeId,
+                c.CardsCount,
+                c.NotStartedCardsCount,
+                c.IsPublic,
+                c.CollectionPublicationEntity == null
+                    ? throw new InvalidOperationException()
+                    : ToCollectionPublication(c.CollectionPublicationEntity),
+                subscriber?.IsLiked ?? false,
+                subscriber?.IsDisliked ?? false,
+                subscriber?.IsAdded ?? false
+            );
+        }
+
+        public static UserInfo ToUserInfo(UserEntity userEntity)
+        {
+            return new UserInfo(
+                userEntity.Id,
+                userEntity.FirstName,
+                userEntity.LastName,
+                userEntity.Email);
         }
 
         private static CollectionPublication ToCollectionPublication(CollectionPublicationEntity publication)
