@@ -25,10 +25,9 @@ namespace DB
 
         public DbSet<UserMetadataEntity> UserMetadata { get; set; }
 
-        //Store
+        //Publications
 
-        public DbSet<PublicCollectionEntity> PublicCollections { get; set; }
-        public DbSet<PublicCardEntity> PublicCards { get; set; }
+        public DbSet<CollectionPublicationEntity> CollectionPublications { get; set; }
         public DbSet<PublicCollectionSubscriber> PublicCollectionSubscribers { get; set; }
 
         //Dictionary
@@ -104,6 +103,12 @@ namespace DB
                 .WithMany()
                 .HasForeignKey(c => c.ThemeId)
                 .OnDelete(DeleteBehavior.NoAction);
+
+            modelBuilder.Entity<CollectionEntity>()
+                .HasOne(c => c.CollectionPublicationEntity)
+                .WithOne(p => p.ParentCollection)
+                .HasForeignKey<CollectionPublicationEntity>(c => new {c.ParentUserId, c.ParentCollectionId})
+                .OnDelete(DeleteBehavior.Cascade);
 
             // CardEntity
 
@@ -245,55 +250,38 @@ namespace DB
 
         private void BuildStoreModels(ModelBuilder modelBuilder)
         {
-            // PublicCollectionEntity
+            // CollectionPublicationEntity
 
-            modelBuilder.Entity<PublicCollectionEntity>()
-                .HasKey(c => new {c.OwnerUserId, c.Id});
+            modelBuilder.Entity<CollectionPublicationEntity>()
+                .HasKey(c => new {c.ParentUserId, c.ParentCollectionId});
 
-            modelBuilder.Entity<PublicCollectionEntity>()
-                .HasOne(c => c.OwnerUser)
+            modelBuilder.Entity<CollectionPublicationEntity>()
+                .HasOne(c => c.ParentUser)
                 .WithMany()
-                .HasForeignKey(c => c.OwnerUserId)
+                .HasForeignKey(c => c.ParentUserId)
                 .OnDelete(DeleteBehavior.NoAction);
 
-            modelBuilder.Entity<PublicCollectionEntity>()
-                .HasOne(c => c.Theme)
-                .WithMany()
-                .HasForeignKey(c => c.ThemeId)
-                .OnDelete(DeleteBehavior.NoAction);
-
-            modelBuilder.Entity<PublicCollectionEntity>()
-                .HasMany(c => c.Cards)
-                .WithOne(c => c.PublicCollection)
-                .HasForeignKey(c => new {c.OwnerUserId, c.PublicCollectionId})
-                .OnDelete(DeleteBehavior.Cascade);
-
-            modelBuilder.Entity<PublicCollectionEntity>()
+            modelBuilder.Entity<CollectionPublicationEntity>()
                 .HasMany(c => c.Subscribers)
-                .WithOne(s => s.PublicCollection)
-                .HasForeignKey(s => new {s.CollectionOwnerId, s.PublicCollectionId})
+                .WithOne(s => s.CollectionPublication)
+                .HasForeignKey(s => new {s.ParentUserId, s.ParentCollectionId})
                 .OnDelete(DeleteBehavior.Cascade);
 
-            // PublicCardEntity
+        // PublicCollectionSubscriber
 
-            modelBuilder.Entity<PublicCardEntity>()
-                .HasKey(c => new {c.OwnerUserId, c.PublicCollectionId, c.Id});
+        modelBuilder.Entity<PublicCollectionSubscriber>()
+                .HasKey(s => new {s.ParentUserId, s.ParentCollectionId, s.SubscriberUserId});
 
-            modelBuilder.Entity<PublicCardEntity>()
-                .HasOne(c => c.OwnerUser)
+            modelBuilder.Entity<PublicCollectionSubscriber>()
+                .HasOne(s => s.ParentUser)
                 .WithMany()
-                .HasForeignKey(c => c.OwnerUserId)
+                .HasForeignKey(s => s.ParentUserId)
                 .OnDelete(DeleteBehavior.NoAction);
 
-            // PublicCollectionSubscriber
-
             modelBuilder.Entity<PublicCollectionSubscriber>()
-                .HasKey(s => new {s.CollectionOwnerId, s.PublicCollectionId, s.SubscriberUserId});
-
-            modelBuilder.Entity<PublicCollectionSubscriber>()
-                .HasOne(s => s.CollectionOwner)
+                .HasOne(c => c.ParentCollection)
                 .WithMany()
-                .HasForeignKey(s => s.CollectionOwnerId)
+                .HasForeignKey(c => new { c.ParentUserId, c.ParentCollectionId })
                 .OnDelete(DeleteBehavior.NoAction);
 
             modelBuilder.Entity<PublicCollectionSubscriber>()
