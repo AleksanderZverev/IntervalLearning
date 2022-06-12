@@ -1,4 +1,4 @@
-import { Button, Dialog, DialogActions, DialogContent, DialogTitle } from '@mui/material';
+import { Button, Dialog, DialogActions, DialogContent, DialogTitle, Stack } from '@mui/material';
 import { FC } from 'react';
 import { Theme } from '../../types/global';
 import { SelectTheme } from '../SelectTheme/SelectTheme';
@@ -6,7 +6,12 @@ import * as yup from 'yup';
 import { FormProvider, SubmitHandler, useForm, FieldError } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { Form, FormField } from '../Form/Form';
-import { CreateCollectionItem, useCreateCollectionMutation } from '../../redux/collectionApi';
+import {
+    CreateCollectionItem,
+    MakePublicRequest,
+    useCreateCollectionMutation,
+    useMakeCollectionPublicMutation,
+} from '../../redux/collectionApi';
 import useTypedSelector from '../../hooks/useTypedSelector';
 import { selectCollectionById } from '../../redux/slices/collectionsSlice';
 import { Collection } from '../../types/Collection';
@@ -48,11 +53,15 @@ const CreateCollectionModalContent: FC<CreateCollectionModalProps> = ({
     const collection = useTypedSelector((state) =>
         selectCollectionById(state, props.userId ?? '', props.collectionId ?? '')
     );
+
     const theme = useTypedSelector((state) => selectTheme(state, collection?.themeId ?? ''));
 
     if (collection && !theme) {
         throw new Error();
     }
+
+    const [makePublic, { isSuccess: isMadePublic, isError: makingPublicError, isLoading: isMakingPublic }] =
+        useMakeCollectionPublicMutation();
 
     const formMethods = useForm<IForm>({
         resolver: yupResolver(schema),
@@ -79,6 +88,18 @@ const CreateCollectionModalContent: FC<CreateCollectionModalProps> = ({
         }
     };
 
+    const onMakePublic = async () => {
+        if (!props.collectionId || isMadePublic) {
+            return;
+        }
+
+        const request: MakePublicRequest = {
+            collectionId: props.collectionId,
+        };
+
+        await makePublic(request);
+    };
+
     return (
         <Dialog open={props.open} onClose={props.onClose} maxWidth={'xs'} sx={{ minWidth: 400 }} fullWidth>
             <DialogTitle sx={{ fontSize: 32 }}>
@@ -103,8 +124,27 @@ const CreateCollectionModalContent: FC<CreateCollectionModalProps> = ({
                 </FormProvider>
             </DialogContent>
             <DialogActions>
-                <div style={{ margin: 15 }}>
-                    <Button variant="outlined" onClick={handleSubmit(onCreate)}>
+                <div
+                    style={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        margin: 15,
+                        marginTop: 0,
+                        width: '100%',
+                    }}
+                >
+                    {collection && !collection.isPublic ? (
+                        <Button variant="outlined" onClick={onMakePublic} disabled={isMakingPublic}>
+                            Опубликовать
+                        </Button>
+                    ) : (collection && collection.isPublic) || isMadePublic ? (
+                        <Button variant="outlined" color={'success'}>
+                            Опубликована
+                        </Button>
+                    ) : (
+                        <div />
+                    )}
+                    <Button variant="contained" onClick={handleSubmit(onCreate)}>
                         {props.collectionId ? 'Сохранить' : 'Создать'}
                     </Button>
                 </div>

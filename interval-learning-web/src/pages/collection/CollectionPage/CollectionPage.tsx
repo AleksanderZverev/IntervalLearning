@@ -1,5 +1,5 @@
 /* eslint-disable react-hooks/rules-of-hooks */
-import { Add, Casino } from '@mui/icons-material';
+import { Add, Casino, Public } from '@mui/icons-material';
 import { Button, CircularProgress, Pagination, Stack, TableCell } from '@mui/material';
 import { FC, useMemo, useState } from 'react';
 import { Navigate, useNavigate, useParams } from 'react-router-dom';
@@ -84,6 +84,7 @@ export const CollectionPage: FC = () => {
         <PageContainer>
             <PageHeader
                 title={collection.title}
+                titleIcon={collection.isPublic && <Public color="primary" />}
                 subMenu={
                     <Stack direction={'row'} gap="10px">
                         <Button variant="contained" endIcon={<Casino />} onClick={() => navigate('words/random')}>

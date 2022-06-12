@@ -44,6 +44,10 @@ export interface GetCollectionQuery {
     collectionId: string;
 }
 
+export interface MakePublicRequest {
+    collectionId: string;
+}
+
 export interface GetRandomWordsRequest {
     refetchToggle: number;
     collectionId: string;
@@ -52,6 +56,13 @@ export interface GetRandomWordsRequest {
 interface GetRandomWordsResponse {
     words: Word[];
     language: Language;
+}
+
+export interface AddCardsToMyCollectionRequest {
+    collectionUserId: string;
+    collectionId: string;
+    myCollectionId: string;
+    checkUnique: boolean;
 }
 
 const baseUrl = '/collections';
@@ -115,6 +126,25 @@ export const collectionsApi = api.injectEndpoints({
             }),
             keepUnusedDataFor: 0,
         }),
+        makeCollectionPublic: build.mutation<Collection, MakePublicRequest>({
+            query: (req) => ({
+                url: `${baseUrl}/${req.collectionId}/public`,
+                method: 'POST',
+                onSuccess: async (dispatch, data) => {
+                    dispatch(setOneCollection(data as Collection));
+                },
+            }),
+        }),
+        addCardsToMyCollection: build.mutation<Collection, AddCardsToMyCollectionRequest>({
+            query: (req) => ({
+                url: `${baseUrl}/${req.collectionUserId}-${req.collectionId}/add/my-${req.myCollectionId}`,
+                method: 'POST',
+                params: { checkUnique: req.checkUnique },
+                onSuccess: async (dispatch, data) => {
+                    dispatch(setOneCollection(data as Collection));
+                },
+            }),
+        }),
     }),
 });
 
@@ -125,4 +155,6 @@ export const {
     useGetNotFinishedQuery,
     useGetQueueCollectionsQuery,
     useGetRandomWordsQuery,
+    useMakeCollectionPublicMutation,
+    useAddCardsToMyCollectionMutation,
 } = collectionsApi;

@@ -3,9 +3,18 @@ export interface Collection {
     id: string;
     title: string;
     createdAt: string;
-    themeId: string;
+    themeId: number;
     cardsCount: number;
     notStartedCards: number;
+    isPublic: boolean;
+    publication?: CollectionPublication;
+}
+
+export interface CollectionPublication {
+    publishDate: string;
+    subscribersCount: number;
+    likesCount: number;
+    dislikesCount: number;
 }
 
 export interface Card {

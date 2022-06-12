@@ -1,17 +1,18 @@
-import { Edit } from '@mui/icons-material';
-import { IconButton, InputAdornment, TextField, Typography } from '@mui/material';
+import { Edit, Public, SvgIconComponent } from '@mui/icons-material';
+import { Icon, IconButton, InputAdornment, TextField, Typography } from '@mui/material';
 import { FC, ReactNode, useState } from 'react';
 import styles from './styles.module.css';
 
 interface PageHeaderProps {
     title: string;
+    titleIcon?: ReactNode;
     subTitle?: string;
     editable?: boolean;
     onChange?: (newTitle: string) => void;
     subMenu?: ReactNode;
 }
 
-export const PageHeader: FC<PageHeaderProps> = ({ title, subTitle, subMenu, editable, onChange }) => {
+export const PageHeader: FC<PageHeaderProps> = ({ title, subTitle, subMenu, editable, titleIcon, onChange }) => {
     const [editMode, setEditMode] = useState(false);
 
     const setEdit = (value: boolean) => {
@@ -36,14 +37,17 @@ export const PageHeader: FC<PageHeaderProps> = ({ title, subTitle, subMenu, edit
                         autoFocus
                     />
                 ) : (
-                    <Typography variant="h1" fontSize={36}>
-                        <span onDoubleClick={() => setEdit(true)}>{title}</span>
+                    <div style={{ display: 'flex', alignItems: 'center', columnGap: 5 }}>
+                        <Typography variant="h1" fontSize={36}>
+                            <span onDoubleClick={() => setEdit(true)}>{title}</span>
+                        </Typography>
+                        {titleIcon}
                         {editable && (
                             <IconButton style={{ marginLeft: '6px' }} onClick={() => setEdit(true)}>
                                 <Edit />
                             </IconButton>
                         )}
-                    </Typography>
+                    </div>
                 )}
                 {!editMode && subMenu}
             </div>

@@ -1,4 +1,4 @@
-import { Edit } from '@mui/icons-material';
+import { Edit, Public } from '@mui/icons-material';
 import { IconButton, Portal } from '@mui/material';
 import dayjs from 'dayjs';
 import { FC, useState } from 'react';
@@ -33,7 +33,12 @@ export const CollectionRow: FC<CollectionRowProps> = ({ collection }) => {
                 onClick={() => navigate(`${collection.userId}-${collection.id}`)}
                 style={{ position: 'relative' }}
             >
-                <TableCell>{collection.title}</TableCell>
+                <TableCell>
+                    <div style={{ display: 'flex', alignItems: 'center', columnGap: 5 }}>
+                        {collection.title}
+                        {collection.isPublic && <Public color="primary" fontSize="small" />}
+                    </div>
+                </TableCell>
                 <TableCell align="center">{collection.cardsCount}</TableCell>
                 <TableCell align="center">{date.format('L')}</TableCell>
                 <TableCell width={50}>
