@@ -1,9 +1,11 @@
 import { Add, Done, People, ThumbDown, ThumbUp } from '@mui/icons-material';
-import { CircularProgress, IconButton, TextField } from '@mui/material';
+import { CircularProgress, IconButton, Portal, TextField } from '@mui/material';
 import classNames from 'classnames';
 import { FC, useRef, useState } from 'react';
+import { AddCollectionModal } from '../../../controls/Modals/AddCollectionModal';
 import { UserHelper } from '../../../helpers/UserHelper';
 import { useSearchPublicCollectionQuery } from '../../../redux/collectionApi';
+import { StoreCollection } from '../../../types/Collection';
 import styles from './styles.module.css';
 
 interface CollectionsSearchProps {
@@ -12,17 +14,29 @@ interface CollectionsSearchProps {
 
 export const CollectionsSearch: FC<CollectionsSearchProps> = ({ themeId }) => {
     const [searchName, setSearchName] = useState('');
-
+    const [showAddModal, setShowAddModal] = useState(false);
+    const [addCollection, setAddCollections] = useState<StoreCollection | null>(null);
     const timer = useRef<{ id: number | null }>({ id: null });
 
     const {
         data: foundCollections,
         isFetching,
         isError,
+        refetch,
     } = useSearchPublicCollectionQuery({ searchName, page: 1, count: 30, themeId });
 
     return (
         <div style={{ marginLeft: 10, marginTop: 10 }}>
+            <Portal>
+                {showAddModal && addCollection && (
+                    <AddCollectionModal
+                        open
+                        onClose={() => setShowAddModal(false)}
+                        onAdded={() => refetch()}
+                        collection={addCollection}
+                    />
+                )}
+            </Portal>
             <TextField
                 fullWidth
                 placeholder="Введите название"
@@ -49,7 +63,12 @@ export const CollectionsSearch: FC<CollectionsSearchProps> = ({ themeId }) => {
                                 {c.isAdded ? (
                                     <Done />
                                 ) : (
-                                    <IconButton>
+                                    <IconButton
+                                        onClick={() => {
+                                            setShowAddModal(true);
+                                            setAddCollections(c);
+                                        }}
+                                    >
                                         <Add />
                                     </IconButton>
                                 )}

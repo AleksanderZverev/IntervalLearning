@@ -66,10 +66,13 @@ interface GetRandomWordsResponse {
 }
 
 export interface AddCardsToMyCollectionRequest {
-    collectionUserId: string;
-    collectionId: string;
-    myCollectionId: string;
-    checkUnique: boolean;
+    publicCollectionUserId: string;
+    publicCollectionId: string;
+    data: {
+        checkUnique: boolean;
+        myCollectionId: string | null | undefined;
+        newCollectionName: string | null | undefined;
+    };
 }
 
 const baseUrl = '/collections';
@@ -144,9 +147,9 @@ export const collectionsApi = api.injectEndpoints({
         }),
         addCardsToMyCollection: build.mutation<Collection, AddCardsToMyCollectionRequest>({
             query: (req) => ({
-                url: `${baseUrl}/${req.collectionUserId}-${req.collectionId}/add/my-${req.myCollectionId}`,
+                url: `${baseUrl}/${req.publicCollectionUserId}-${req.publicCollectionId}/add`,
                 method: 'POST',
-                params: { checkUnique: req.checkUnique },
+                data: req.data,
                 onSuccess: async (dispatch, data) => {
                     dispatch(setOneCollection(data as Collection));
                 },
@@ -158,6 +161,7 @@ export const collectionsApi = api.injectEndpoints({
                 method: 'GET',
                 params: req,
             }),
+            keepUnusedDataFor: 0,
         }),
     }),
 });

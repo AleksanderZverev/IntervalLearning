@@ -130,20 +130,20 @@ namespace IntervalLearningApi.Controllers
             return collection != null ? ToCollection(collection) : BadRequest(error);
         }
 
-        [HttpPost("{collectionUserId}-{collectionId}/add/my-{myCollectionId}")]
+        [HttpPost("{collectionUserId}-{collectionId}/add")]
         public async Task<ActionResult<Collection>> AddCardsToMyCollection(
             long collectionUserId,
             short collectionId,
-            short myCollectionId,
-            [FromQuery]bool checkUnique)
+            [FromBody] AddCollectionsRequest request)
         {
             var userId = HttpContext.GetUserId();
             var (collection, error) = await collectionService.AddCardsToMyCollection(
                 collectionUserId,
                 collectionId,
                 userId,
-                myCollectionId,
-                checkUnique);
+                request.MyCollectionId,
+                request.NewCollectionName,
+                request.CheckUnique);
             return collection != null ? ToCollection(collection) : BadRequest(error);
         }
 
@@ -270,5 +270,12 @@ namespace IntervalLearningApi.Controllers
             Words = words.Select(CollectionsController.ToWord).ToList();
             Language = CollectionsController.ToLanguage(language);
         }
+    }
+
+    public class AddCollectionsRequest
+    {
+        public bool CheckUnique { get; set; }
+        public short? MyCollectionId { get; set; }
+        public string? NewCollectionName { get; set; }
     }
 }

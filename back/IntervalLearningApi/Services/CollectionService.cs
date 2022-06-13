@@ -206,14 +206,16 @@ public class CollectionService
         string promptText,
         string backText,
         string? description,
-        List<string>? examples)
+        List<string>? examples,
+        bool disableTransaction = false)
     {
         var collection = db.Collections.Find(userId, collectionId);
 
         if (collection == null)
             return (null, "Collection not found");
 
-        db.Database.BeginTransaction();
+        if (!disableTransaction)
+            db.Database.BeginTransaction();
 
         var (card, error, isCreated) = cardsService.CreateOrEdit(
             new CardsService.CreateOrPatchCard(
@@ -228,7 +230,8 @@ public class CollectionService
 
         if (error != null)
         {
-            db.Database.RollbackTransaction();
+            if (!disableTransaction)
+                db.Database.RollbackTransaction();
             return (card, error);
         }
 
@@ -239,7 +242,8 @@ public class CollectionService
 
         db.SaveChanges();
 
-        db.Database.CommitTransaction();
+        if (!disableTransaction)
+            db.Database.CommitTransaction();
 
         return (card, null);
     }
@@ -326,9 +330,15 @@ public class CollectionService
         long publicCollectionUserId,
         short publicCollectionId,
         long myUserId,
-        short myCollectionId, 
+        short? myCollectionId, 
+        string? newCollectionName,
         bool checkUnique)
     {
+        await using var transaction = await db.Database.BeginTransactionAsync();
+
+        if (myCollectionId == null && string.IsNullOrEmpty(newCollectionName))
+            return (null, "Bad request");
+
         var publicCollection = await Find(publicCollectionUserId, publicCollectionId);
 
         if (publicCollection is not {IsPublic: true})
@@ -336,7 +346,23 @@ public class CollectionService
             return (null, "public collection not found");
         }
 
-        var myCollection = await Find(myUserId, myCollectionId);
+        var myCollection = myCollectionId != null
+            ? await Find(myUserId, myCollectionId.Value)
+            : db.CreateByProperties<CollectionEntity>(new CreateOrPatchCollection(
+                myUserId,
+                newCollectionName,
+                false,
+                publicCollection.ThemeId));
+
+        if (myCollectionId == null && myCollection != null)
+        {
+            var isCreatedNew = db.SoftSaveChanges();
+
+            if (!isCreatedNew)
+            {
+                return (null, "unable to create collection");
+            }
+        }
 
         if (myCollection == null)
         {
@@ -351,12 +377,12 @@ public class CollectionService
         var publicCards = await cardsService.GetAllCards(publicCollectionUserId, publicCollectionId);
 
         if (publicCards.Count == 0)
+        {
             return (myCollection, null);
+        }
 
-        var myCards = checkUnique ? await cardsService.GetAllCards(myUserId, myCollectionId) : new List<CardEntity>();
+        var myCards = checkUnique ? await cardsService.GetAllCards(myUserId, myCollection.Id) : new List<CardEntity>();
         var myCardsSet = new HashSet<string>(myCards.Select(c => c.FrontSideText));
-
-        await db.Database.BeginTransactionAsync();
 
         foreach (var publicCard in publicCards)
         {
@@ -367,17 +393,17 @@ public class CollectionService
 
             var (card, addCardError) = CreateOrEditCard(
                 myUserId,
-                myCollectionId,
+                myCollection.Id,
                 null,
                 publicCard.FrontSideText,
                 publicCard.PromptText,
                 publicCard.BackSideText,
                 publicCard.Description,
-                publicCard.Examples);
+                publicCard.Examples,
+                true);
 
             if (card == null)
             {
-                await db.Database.RollbackTransactionAsync();
                 return (null, "error to add card. " + addCardError);
             }
         }
@@ -386,7 +412,6 @@ public class CollectionService
 
         if (!isOk)
         {
-            await db.Database.RollbackTransactionAsync();
             return (null, "unknown error");
         }
 
@@ -398,8 +423,6 @@ public class CollectionService
             return (null, "system error");
         }
 
-        publication.SubscribersCount++;
-
         var subscriber = db.PublicCollectionSubscribers.Find(publicCollectionUserId, publicCollectionId, myUserId);
 
         if (subscriber == null)
@@ -408,6 +431,8 @@ public class CollectionService
                 publicCollectionUserId,
                 publicCollectionId,
                 myUserId));
+
+            publication.SubscribersCount++;
         }
 
         subscriber.IsAdded = true;
@@ -416,11 +441,10 @@ public class CollectionService
 
         if (!isSubscriberCreated)
         {
-            await db.Database.RollbackTransactionAsync();
             return (null, "subscription error");
         }
 
-        await db.Database.CommitTransactionAsync();
+        await transaction.CommitAsync();
         return (myCollection, null);
     }
 
