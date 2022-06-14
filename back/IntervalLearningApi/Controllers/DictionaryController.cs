@@ -1,4 +1,5 @@
-﻿using IntervalLearningApi.Extensions;
+﻿using DB.Models.Dictionary;
+using IntervalLearningApi.Extensions;
 using IntervalLearningApi.Models.Dictionary;
 using IntervalLearningApi.Services.Dictionary;
 using Microsoft.AspNetCore.Authorization;
@@ -18,6 +19,36 @@ namespace IntervalLearningApi.Controllers
         {
             this.dictionaryService = dictionaryService;
         }
+
+        [HttpGet("words/search")]
+        public async Task<ActionResult<List<WordDto>>> SearchWords(
+            [FromQuery] string? word = null,
+            [FromQuery] string? pronunciation = null
+            )
+        {
+            var wordEmpty = string.IsNullOrEmpty(word);
+            var pronunciationEmpty = string.IsNullOrEmpty(pronunciation);
+
+            if (wordEmpty && pronunciationEmpty)
+            {
+                return BadRequest();
+            }
+
+            List<WordEntity>? foundWords = null;
+
+            if (pronunciationEmpty)
+            {
+                foundWords = await dictionaryService.FindWord(word);
+            }
+
+            if (wordEmpty)
+            {
+                foundWords = await dictionaryService.FindWordByPronunciation(pronunciation);
+            }
+
+            return foundWords?.Select(CollectionsController.ToWord).ToList() ?? new List<WordDto>();
+        }
+
 
         [HttpGet("languages")]
         [AllowAnonymous]

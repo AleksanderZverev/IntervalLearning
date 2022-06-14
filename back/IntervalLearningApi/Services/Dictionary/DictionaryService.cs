@@ -193,5 +193,17 @@ namespace IntervalLearningApi.Services.Dictionary
         {
             return await db.Languages.ToListAsync();
         }
+
+        public async Task<List<WordEntity>> FindWord(string word)
+        {
+            var lowerWord = word.ToLowerInvariant();
+            return await db.Words.Where(w => w.Word.StartsWith(lowerWord)).Take(30).ToListAsync();
+        }
+
+        public async Task<List<WordEntity>> FindWordByPronunciation(string pronunciation)
+        {
+            var lowerPronounce = pronunciation.ToLowerInvariant();
+            return await db.Words.Where(w => w.Pronunciation != null && w.Pronunciation.StartsWith(lowerPronounce)).Take(30).ToListAsync();
+        }
     }
 }
