@@ -1,5 +1,5 @@
 import { Add, Done, People, ThumbDown, ThumbUp } from '@mui/icons-material';
-import { CircularProgress, IconButton, Portal, TextField } from '@mui/material';
+import { Button, CircularProgress, IconButton, Portal, Stack, TextField } from '@mui/material';
 import classNames from 'classnames';
 import { FC, useRef, useState } from 'react';
 import { AddCollectionModal } from '../../../controls/Modals/AddCollectionModal';
@@ -54,7 +54,7 @@ export const CollectionsSearch: FC<CollectionsSearchProps> = ({ themeId }) => {
                     endAdornment: isFetching ? <CircularProgress color="inherit" size={20} /> : undefined,
                 }}
             />
-            {!isError && (
+            {!isError && foundCollections && foundCollections.length > 0 ? (
                 <ul>
                     {foundCollections?.map((c) => (
                         <li key={`${c.userId}-${c.id}`} className={styles.collection}>
@@ -97,6 +97,15 @@ export const CollectionsSearch: FC<CollectionsSearchProps> = ({ themeId }) => {
                         </li>
                     ))}
                 </ul>
+            ) : !isError ? (
+                <div className={styles.searchInfo} style={{ width: '100%', textAlign: 'center' }}>
+                    Коллекции не найдены
+                </div>
+            ) : (
+                <Stack alignItems="center">
+                    <div className={styles.searchInfo}>Не удалось загрузить данные</div>
+                    <Button onClick={refetch}>Перезагрузить</Button>
+                </Stack>
             )}
         </div>
     );
