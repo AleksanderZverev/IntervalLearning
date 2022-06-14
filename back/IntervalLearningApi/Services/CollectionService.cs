@@ -26,7 +26,9 @@ public class CollectionService
 
     public Task<CollectionEntity?> Find(long userId, short collectionId)
     {
-        return db.Collections.FindAsync(userId, collectionId).AsTask();
+        return db.Collections
+            .Include(c => c.CollectionPublicationEntity)
+            .SingleOrDefaultAsync(c => c.ParentUserId == userId && c.Id == collectionId);
     }
 
     public Task<List<CollectionEntity>> GetAllByUserId(long userId)
@@ -339,7 +341,7 @@ public class CollectionService
         if (myCollectionId == null && string.IsNullOrEmpty(newCollectionName))
             return (null, "Bad request");
 
-        var publicCollection = await Find(publicCollectionUserId, publicCollectionId);
+        var publicCollection = await db.Collections.FindAsync(publicCollectionUserId, publicCollectionId);
 
         if (publicCollection is not {IsPublic: true})
         {
@@ -347,7 +349,7 @@ public class CollectionService
         }
 
         var myCollection = myCollectionId != null
-            ? await Find(myUserId, myCollectionId.Value)
+            ? await db.Collections.FindAsync(myUserId, myCollectionId.Value)
             : db.CreateByProperties<CollectionEntity>(new CreateOrPatchCollection(
                 myUserId,
                 newCollectionName,

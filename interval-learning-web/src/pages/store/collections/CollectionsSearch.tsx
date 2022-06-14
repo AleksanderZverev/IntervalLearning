@@ -61,7 +61,7 @@ export const CollectionsSearch: FC<CollectionsSearchProps> = ({ themeId }) => {
                             <div className={styles.spaceContainer}>
                                 <div className={styles.collectionTitle}>{c.title}</div>
                                 {c.isAdded ? (
-                                    <Done />
+                                    <Done color="success" />
                                 ) : (
                                     <IconButton
                                         onClick={() => {

@@ -1,4 +1,4 @@
-import { Edit, Public } from '@mui/icons-material';
+import { Edit, People, Public } from '@mui/icons-material';
 import { IconButton, Portal } from '@mui/material';
 import dayjs from 'dayjs';
 import { FC, useState } from 'react';
@@ -38,6 +38,14 @@ export const CollectionRow: FC<CollectionRowProps> = ({ collection }) => {
                         {collection.title}
                         {collection.isPublic && <Public color="primary" fontSize="small" />}
                     </div>
+                </TableCell>
+                <TableCell>
+                    {collection.isPublic && (
+                        <div style={{ display: 'flex', alignItems: 'center', columnGap: 5 }}>
+                            <People fontSize="small" />
+                            {collection.publication?.subscribersCount}
+                        </div>
+                    )}
                 </TableCell>
                 <TableCell align="center">{collection.cardsCount}</TableCell>
                 <TableCell align="center">{date.format('L')}</TableCell>

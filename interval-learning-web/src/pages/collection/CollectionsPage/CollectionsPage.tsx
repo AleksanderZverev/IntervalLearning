@@ -39,6 +39,7 @@ const CollectionsPageContent: FC = () => {
                 <Table>
                     <TableHead>
                         <TableHeaderCell>Название</TableHeaderCell>
+                        <TableHeaderCell></TableHeaderCell>
                         <TableHeaderCell align="center">Слов</TableHeaderCell>
                         <TableHeaderCell align="center">Создана</TableHeaderCell>
                     </TableHead>
