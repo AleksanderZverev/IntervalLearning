@@ -1,5 +1,5 @@
 import { yupResolver } from '@hookform/resolvers/yup';
-import { Add, ArrowForwardIos, Info } from '@mui/icons-material';
+import { Add, ArrowForwardIos } from '@mui/icons-material';
 import {
     Dialog,
     DialogTitle,
@@ -9,21 +9,14 @@ import {
     InputAdornment,
     Link,
     IconButton,
-    Autocomplete,
 } from '@mui/material';
 import { FC } from 'react';
 import { Controller, FormProvider, SubmitHandler, useFieldArray, useForm } from 'react-hook-form';
 import * as yup from 'yup';
-import {
-    withMutationResolver,
-    WithMutationResolverProps,
-    withQueryResolver,
-    WithQueryResolverData,
-} from '../../hoc/withQueryResolver';
+import { withMutationResolver, WithMutationResolverProps } from '../../hoc/withQueryResolver';
 import useTypedSelector from '../../hooks/useTypedSelector';
-import { useLazyGetWordTranslationsQuery } from '../../redux/api/dictionaryApi';
+import { useLazyGetWordTranslationsQuery, useLazySearchWordsQuery } from '../../redux/api/dictionaryApi';
 import { CreateCardItem, useAddCardMutation } from '../../redux/cardsApi';
-import { useGetCollectionQuery } from '../../redux/collectionApi';
 import { selectCardById } from '../../redux/slices/cardsSlice';
 import { selectCollectionById } from '../../redux/slices/collectionsSlice';
 import { selectLanguageById } from '../../redux/slices/languagesSlice';
@@ -131,6 +124,7 @@ const CreateCardModalContent: FC<CreateCardModalProps> = ({
     const { fields, append } = useFieldArray({ control, name: 'examples' });
 
     const [getTranslation, {}] = useLazyGetWordTranslationsQuery();
+    const [searchWords, {}] = useLazySearchWordsQuery();
 
     const onAddExample = () => {
         const currentState = getValues();
@@ -163,57 +157,137 @@ const CreateCardModalContent: FC<CreateCardModalProps> = ({
             <DialogContent>
                 <FormProvider {...formMethods}>
                     <Form>
-                        <FormField
-                            label="Запомнить (слово)"
-                            error={!!errors.frontText}
-                            errorMessage={errors.frontText?.message}
-                            {...register('frontText')}
-                            autoFocus
-                            required
-                            onChange={() => {
-                                if (errors.frontText && errors.frontText.type === 'moveToTranslation') {
-                                    clearErrors('frontText');
-                                }
-                            }}
-                            InputProps={{
-                                endAdornment: language && language.translationLink && language.translationLinkTitle && (
-                                    <InputAdornment position="end">
-                                        <Link
-                                            href={language.translationLink.replace('[word]', watch('frontText'))}
-                                            color={'primary'}
-                                            target="_blank"
-                                            rel="noreferrer"
-                                            onClick={(e) => {
-                                                e.preventDefault();
+                        <Controller
+                            name="frontText"
+                            render={({ field: { value, ...field } }) => (
+                                <AsyncAutocomplete
+                                    label="Запомнить (слово)"
+                                    error={!!errors.frontText}
+                                    errorMessage={errors.frontText?.message}
+                                    required
+                                    value={value ?? ''}
+                                    onChange={(e) => {
+                                        if (errors.frontText && errors.frontText.type === 'moveToTranslation') {
+                                            clearErrors('frontText');
+                                        }
 
-                                                const frontTextValue = watch('frontText');
+                                        field.onChange(e);
+                                    }}
+                                    onFocus={async () => {
+                                        const promptTextValue = watch('promptText')?.trim();
 
-                                                if (frontTextValue && language.translationLink) {
-                                                    window.open(
-                                                        language.translationLink.replace('[word]', frontTextValue),
-                                                        '_blank',
-                                                        'noreferrer'
-                                                    );
-                                                    return;
-                                                }
+                                        if (!promptTextValue) {
+                                            return [];
+                                        }
 
-                                                setError('frontText', {
-                                                    message: 'Для перехода введите значение',
-                                                    type: 'moveToTranslation',
-                                                });
-                                            }}
-                                        >
-                                            {language.translationLinkTitle}
-                                        </Link>
-                                    </InputAdornment>
-                                ),
-                            }}
+                                        try {
+                                            const words = await searchWords(
+                                                { word: null, pronunciation: promptTextValue },
+                                                true
+                                            ).unwrap();
+
+                                            if (words.length === 1 && words[0].word === watch('frontText')?.trim()) {
+                                                return [];
+                                            }
+
+                                            return words
+                                                .filter((w) => Boolean(w.pronunciation))
+                                                .map((w) => ({
+                                                    label: w.word ?? '',
+                                                    id: w.id,
+                                                }));
+                                        } catch {
+                                            return [];
+                                        }
+                                    }}
+                                    textFieldProps={{
+                                        autoFocus: !Boolean(defaultFrontText),
+                                        InputProps: {
+                                            endAdornment: language &&
+                                                language.translationLink &&
+                                                language.translationLinkTitle && (
+                                                    <InputAdornment position="end">
+                                                        <Link
+                                                            href={language.translationLink.replace(
+                                                                '[word]',
+                                                                watch('frontText')
+                                                            )}
+                                                            color={'primary'}
+                                                            target="_blank"
+                                                            rel="noreferrer"
+                                                            onClick={(e) => {
+                                                                e.preventDefault();
+
+                                                                const frontTextValue = watch('frontText');
+
+                                                                if (frontTextValue && language.translationLink) {
+                                                                    window.open(
+                                                                        language.translationLink.replace(
+                                                                            '[word]',
+                                                                            frontTextValue
+                                                                        ),
+                                                                        '_blank',
+                                                                        'noreferrer'
+                                                                    );
+                                                                    return;
+                                                                }
+
+                                                                setError('frontText', {
+                                                                    message: 'Для перехода введите значение',
+                                                                    type: 'moveToTranslation',
+                                                                });
+                                                            }}
+                                                        >
+                                                            {language.translationLinkTitle}
+                                                        </Link>
+                                                    </InputAdornment>
+                                                ),
+                                        },
+                                    }}
+                                />
+                            )}
                         />
-                        <FormField
-                            label="Подсказка (чтение)"
-                            error={!!errors.promptText}
-                            errorMessage={errors.promptText?.message}
-                            {...register('promptText')}
+                        <Controller
+                            name="promptText"
+                            render={({ field: { value, ...field } }) => (
+                                <AsyncAutocomplete
+                                    label="Подсказка (чтение)"
+                                    error={!!errors.promptText}
+                                    errorMessage={errors.promptText?.message}
+                                    onChange={field.onChange}
+                                    value={value ?? ''}
+                                    onFocus={async () => {
+                                        const frontTextValue = watch('frontText')?.trim();
+
+                                        if (!frontTextValue) {
+                                            return [];
+                                        }
+
+                                        try {
+                                            const words = await searchWords(
+                                                { word: frontTextValue, pronunciation: null },
+                                                true
+                                            ).unwrap();
+
+                                            if (
+                                                words.length === 1 &&
+                                                words[0].pronunciation === watch('promptText')?.trim()
+                                            ) {
+                                                return [];
+                                            }
+
+                                            return words
+                                                .filter((w) => Boolean(w.pronunciation))
+                                                .map((w) => ({
+                                                    label: w.pronunciation ?? '',
+                                                    id: w.id,
+                                                }));
+                                        } catch {
+                                            return [];
+                                        }
+                                    }}
+                                />
+                            )}
                         />
                         <Controller
                             name="backText"
@@ -228,9 +302,15 @@ const CreateCardModalContent: FC<CreateCardModalProps> = ({
                                     }}
                                     value={value ?? ''}
                                     onFocus={async () => {
+                                        const frontTextValue = watch('frontText')?.trim();
+
+                                        if (!frontTextValue) {
+                                            return [];
+                                        }
+
                                         try {
                                             const translations = await getTranslation(
-                                                { word: watch('frontText').trim() },
+                                                { word: frontTextValue },
                                                 true
                                             ).unwrap();
                                             return translations.map((t) => ({

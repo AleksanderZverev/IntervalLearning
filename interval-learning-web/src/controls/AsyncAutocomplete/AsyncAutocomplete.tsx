@@ -1,7 +1,5 @@
 import { FC, useState, useEffect, Fragment } from 'react';
-import TextField from '@mui/material/TextField';
-import Autocomplete from '@mui/material/Autocomplete';
-import CircularProgress from '@mui/material/CircularProgress';
+import { TextField, Autocomplete, CircularProgress, TextFieldProps } from '@mui/material';
 
 interface Option {
     label: string;
@@ -18,6 +16,7 @@ interface AsyncAutocompleteProps {
     error?: boolean;
     errorMessage?: string;
     required?: boolean;
+    textFieldProps?: TextFieldProps;
 }
 
 export const AsyncAutocomplete: FC<AsyncAutocompleteProps> = ({
@@ -27,6 +26,7 @@ export const AsyncAutocomplete: FC<AsyncAutocompleteProps> = ({
     error,
     errorMessage,
     required,
+    textFieldProps,
     ...otherProps
 }) => {
     const [open, setOpen] = useState(false);
@@ -82,6 +82,7 @@ export const AsyncAutocomplete: FC<AsyncAutocompleteProps> = ({
             renderInput={(params) => (
                 <TextField
                     {...params}
+                    {...textFieldProps}
                     variant="standard"
                     autoComplete="off"
                     label={label}

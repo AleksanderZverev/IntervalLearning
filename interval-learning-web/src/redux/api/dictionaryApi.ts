@@ -1,4 +1,4 @@
-import { Language, Translation } from '../../types/Dictionary';
+import { Language, Translation, Word } from '../../types/Dictionary';
 import { api } from '../apiSlice';
 import { addLanguages } from '../slices/languagesSlice';
 
@@ -10,6 +10,11 @@ export interface AddTranslationsRequest {
     languageId: string;
     translationLanguageId: string;
     text: string;
+}
+
+export interface SearchWordsRequest {
+    word: string | null;
+    pronunciation: string | null;
 }
 
 const baseUrl = 'dictionary';
@@ -40,7 +45,19 @@ export const dictionaryApi = api.injectEndpoints({
                 data: req,
             }),
         }),
+        searchWords: build.query<Word[], SearchWordsRequest>({
+            query: (req) => ({
+                url: `${baseUrl}/words/search`,
+                method: 'GET',
+                params: req,
+            }),
+        }),
     }),
 });
 
-export const { useLazyGetWordTranslationsQuery, useGetLanguagesQuery, useAddTranslationsMutation } = dictionaryApi;
+export const {
+    useLazyGetWordTranslationsQuery,
+    useGetLanguagesQuery,
+    useAddTranslationsMutation,
+    useLazySearchWordsQuery,
+} = dictionaryApi;

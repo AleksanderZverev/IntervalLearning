@@ -118,7 +118,7 @@ export const CollectionPage: FC = () => {
                             cards.map((c) => <CardRow key={c.id} card={c} />)
                         ) : (
                             <TableRow borderless>
-                                <TableCell colSpan={3} align="center">
+                                <TableCell colSpan={99} align="center">
                                     Коллекция пуста
                                 </TableCell>
                             </TableRow>
