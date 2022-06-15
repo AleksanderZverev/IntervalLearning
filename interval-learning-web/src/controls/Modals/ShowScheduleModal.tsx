@@ -101,7 +101,11 @@ export const ShowScheduleModal: FC<ShowScheduleModalProps> = ({ schedule, open, 
                                     <div key={p.id}>
                                         <Stack direction={'row'} alignItems="center" columnGap={'5px'}>
                                             <Divider orientation="vertical" />
-                                            <Typography variant="h6">{duration.humanize()}</Typography>
+                                            <Typography variant="h6">
+                                                {i == 0 && duration.asSeconds() < 10
+                                                    ? 'Повторение после старта'
+                                                    : duration.humanize()}
+                                            </Typography>
                                             {p.hasRepeatPhase && (
                                                 <Tooltip title={'Повторять после изучения'} placement="top-start">
                                                     <Loop color="primary" />

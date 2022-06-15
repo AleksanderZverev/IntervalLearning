@@ -34,10 +34,11 @@ namespace IntervalLearningApi.Controllers
             short collectionId,
             [FromQuery] long scheduleUserId,
             [FromQuery] short scheduleId,
-            [FromQuery] short phaseIndex)
+            [FromQuery] short phaseIndex,
+            [FromQuery] DateTime date)
         {
             var userId = HttpContext.GetUserId();
-            var cards = await cardsService.GetCardsQueue(userId, collectionId, scheduleUserId, scheduleId, phaseIndex);
+            var cards = await cardsService.GetCardsQueue(userId, collectionId, scheduleUserId, scheduleId, phaseIndex, date);
             return cards.Select(CollectionsController.ToCard).ToList();
         }
 

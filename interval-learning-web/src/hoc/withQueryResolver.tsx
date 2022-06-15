@@ -108,24 +108,37 @@ export const withOtherQueryResolver =
     <TComponentProps, TOtherQueryArg>(
         Component: React.FunctionComponent<PrivateResolverProps & ResolverProps<TOtherQueryArg> & TComponentProps>
     ) =>
-    (props: { queryArg: TQueryArg & TOtherQueryArg } & TComponentProps) => {
-        const { queryArg, ...otherProps } = props;
+    (props: { queryArg: TQueryArg & TOtherQueryArg } & TComponentProps & PrivateResolverProps) => {
+        const {
+            queryArg,
+            containsError: otherError,
+            containsFetching: otherFetching,
+            onRefetch: onOtherRefetch,
+            ...otherProps
+        } = props;
         const { data, isError, isFetching, isSuccess, error, refetch } = useQuery(queryArg);
 
         const onRefetch = () => {
-            if (!isSuccess) {
+            if (isError) {
                 refetch();
                 console.debug('refetch 2');
             }
+
+            if (otherError) {
+                onOtherRefetch && onOtherRefetch();
+                console.debug('refetch other');
+            }
         };
 
+        const HackComponent = Component as any;
+
         return (
-            <Component
-                // queryArg={queryArg}
-                containsFetching={isFetching}
-                containsError={isError || !isSuccess}
+            <HackComponent
+                queryArg={queryArg}
+                containsFetching={isFetching || otherFetching}
+                containsError={isError || otherError}
                 onRefetch={onRefetch}
-                {...props}
+                {...otherProps}
             />
         );
     };

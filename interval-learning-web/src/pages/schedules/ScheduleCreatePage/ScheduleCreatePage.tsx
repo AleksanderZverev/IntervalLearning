@@ -90,7 +90,7 @@ const schema = yup
     .object({
         cardsCountPerPhase: yup.number().min(0).max(9999).required(),
         title: yup.string().min(1).max(255).required(),
-        forgottenBehavior: yup.number().required().default(1),
+        forgottenBehavior: yup.number().required().default(ForgottenBehavior.MoveToNextStep),
         shortDescription: yup.string().max(100),
         description: yup.string().max(1000),
         defaultPhaseShortDescription: yup.string().max(100),
@@ -104,6 +104,8 @@ const schema = yup
     })
     .required();
 
+const defaultValues = schema.getDefault();
+
 interface ScheduleCreatePageContentProps extends WithMutationResolverProps<typeof useCreateScheduleMutation> {}
 
 const ScheduleCreatePageContent: FC<ScheduleCreatePageContentProps> = ({
@@ -113,7 +115,7 @@ const ScheduleCreatePageContent: FC<ScheduleCreatePageContentProps> = ({
 
     const formMethods = useForm<IForm>({
         resolver: yupResolver(schema),
-        defaultValues: schema.getDefault(),
+        defaultValues: defaultValues,
     });
 
     const {
@@ -206,14 +208,14 @@ const ScheduleCreatePageContent: FC<ScheduleCreatePageContentProps> = ({
                 <div style={{ margin: '16px 0' }}>
                     <FormProvider {...formMethods}>
                         <Form onSubmit={handleSubmit(onSubmit)}>
-                            <FormFiledLabel label="Название" labelWidth={labelWidth}>
+                            <FormFiledLabel label="Название *" labelWidth={labelWidth}>
                                 <FormField
                                     error={!!errors.title}
                                     errorMessage={errors.title?.message || ' '}
                                     {...register('title')}
                                 />
                             </FormFiledLabel>
-                            <FormFiledLabel label="Рекомендуемое кол-во карт" labelWidth={labelWidth}>
+                            <FormFiledLabel label="Рекомендуемое кол-во карт *" labelWidth={labelWidth}>
                                 <FormField
                                     error={!!errors.cardsCountPerPhase}
                                     errorMessage={errors.cardsCountPerPhase?.message || ' '}
@@ -221,12 +223,15 @@ const ScheduleCreatePageContent: FC<ScheduleCreatePageContentProps> = ({
                                 />
                             </FormFiledLabel>
                             <FormFiledLabel
-                                label="При забывании"
+                                label="При забывании *"
                                 htmlFor="title-input"
                                 justifyContent="flex-start"
                                 labelWidth={labelWidth}
                             >
-                                <ForgottenBehaviorSelect registerName="forgottenBehavior" />
+                                <ForgottenBehaviorSelect
+                                    registerName="forgottenBehavior"
+                                    defaultValue={defaultValues.forgottenBehavior}
+                                />
                             </FormFiledLabel>
                             <FormFiledLabel label="Краткое описание при старте" labelWidth={labelWidth}>
                                 <TextAreaFormField
@@ -317,7 +322,7 @@ const ScheduleCreatePageContent: FC<ScheduleCreatePageContentProps> = ({
                                         <Typography variant="h6">Этап {i + 1}</Typography>
                                         <div style={{ display: 'flex', alignItems: 'center', columnGap: 10 }}>
                                             <FormField
-                                                label="Промежуток времени с прошлого этапа"
+                                                label="Промежуток времени с прошлого этапа *"
                                                 type="number"
                                                 error={!!errors.phases?.at(i)?.durationFromLastPhase}
                                                 errorMessage={

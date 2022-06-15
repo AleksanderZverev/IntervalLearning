@@ -14,7 +14,7 @@ import { PageContent } from '../../../controls/PageContent/PageContent';
 import { useNavigate, useParams } from 'react-router-dom';
 import dayjs from 'dayjs';
 import { Loop, Save } from '@mui/icons-material';
-import useTypedSelector from '../../../hooks/useTypedSelector';
+import useTypedSelector, { useRequiredTypedSelector } from '../../../hooks/useTypedSelector';
 import { getScheduleId, selectScheduleById } from '../../../redux/slices/scheduleSlice';
 import { selectCurrentUser } from '../../../redux/currentUserSlice';
 
@@ -120,10 +120,10 @@ const ScheduleEditPageContent: FC<ScheduleEditPageContentProps> = ({
     scheduleId,
     mutationProps: { mutate: updateSchedule, showRetryModal, isLoading },
 }) => {
-    const currentUser = useTypedSelector(selectCurrentUser);
-    if (!currentUser) throw new Error();
-    const schedule = useTypedSelector((state) => selectScheduleById(state, getScheduleId(currentUser?.id, scheduleId)));
-    if (!schedule) throw new Error();
+    const currentUser = useRequiredTypedSelector(selectCurrentUser);
+    const schedule = useRequiredTypedSelector((state) =>
+        selectScheduleById(state, getScheduleId(currentUser?.id, scheduleId))
+    );
 
     const navigate = useNavigate();
 
@@ -369,7 +369,7 @@ const LoadResolver: FC = () => {
         throw new Error();
     }
 
-    return <WithScheduleLoading queryArg={{ myScheduleId: scheduleId }} />;
+    return <WithScheduleLoading scheduleId={scheduleId} queryArg={{ myScheduleId: scheduleId }} />;
 };
 
 export const ScheduleEditPage = LoadResolver;

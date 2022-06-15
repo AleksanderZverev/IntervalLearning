@@ -38,6 +38,7 @@ interface GetRepeatCardsRequest {
     scheduleUserId: string;
     scheduleId: string;
     phaseIndex: number;
+    date: string;
 }
 
 export interface RememberRequest {

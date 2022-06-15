@@ -11,13 +11,7 @@ export const ForgottenBehaviorSelect: FC<ForgottenBehaviorSelectProps> = ({ regi
     const { register } = useFormContext();
 
     return (
-        <Select
-            {...props}
-            sx={{ width: 275 }}
-            size="small"
-            value={ForgottenBehavior.MoveToNextStep}
-            {...register(registerName)}
-        >
+        <Select {...props} sx={{ width: 275 }} size="small" {...register(registerName)}>
             <MenuItem value={ForgottenBehavior.MoveToNextStep}>Перейти на следующий этап</MenuItem>
             <MenuItem value={ForgottenBehavior.MoveToPreviousStep}>Перейти на предыдущий этап</MenuItem>
             <MenuItem value={ForgottenBehavior.StartFromFirstStep}>Перейти на первый этап</MenuItem>

@@ -56,7 +56,11 @@ sudo chown $USER:$USER pgdata
 sudo rm -r ./pgdata
 
 ---
-make superuser:
+Disk space: df -h --total
+
+
+
+
 ---
 
 

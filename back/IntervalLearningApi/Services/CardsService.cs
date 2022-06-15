@@ -11,17 +11,14 @@ public class CardsService
     private readonly ILogger<CardsService> logger;
     private readonly IWebHostEnvironment env;
     private readonly ApplicationContext db;
-    private readonly UserMetadataService metadataService;
 
     public CardsService(ILogger<CardsService> logger,
         IWebHostEnvironment env,
-        ApplicationContext db,
-        UserMetadataService metadataService)
+        ApplicationContext db)
     {
         this.logger = logger;
         this.env = env;
         this.db = db;
-        this.metadataService = metadataService;
     }
 
     public Task<List<CardEntity>> GetAllCards(long userId, short collectionId)
@@ -76,7 +73,7 @@ public class CardsService
         short collectionId, 
         int count)
     {
-        var schedule = db.RepeatsSchedules.Find(scheduleUserId, scheduleId);
+        var schedule = await db.RepeatsSchedules.FindAsync(scheduleUserId, scheduleId);
 
         if (schedule == null)
         {
@@ -102,20 +99,23 @@ public class CardsService
         return (canStartCards, null);
     }
 
-    public async Task<List<CardEntity>> GetCardsQueue(
-        long userId, 
+    public async Task<List<CardEntity>> GetCardsQueue(long userId,
         short collectionId,
         long scheduleUserId,
         short scheduleId,
-        short phaseIndex)
+        short phaseIndex, 
+        DateTime dateTime)
     {
+        if (env.IsProduction() && dateTime.Date > DateTime.UtcNow.Date)
+            return new List<CardEntity>();
+
         var queueItems = await db.Queue
             .Where(c => c.ParentUserId == userId 
                         && c.ParentCollectionId == collectionId
                         && c.ParentRepeatsScheduleUserId == scheduleUserId
                         && c.ParentRepeatsScheduleId == scheduleId
                         && c.PhaseIndex == phaseIndex
-                        && c.Date.Date <= DateTime.UtcNow.Date)
+                        && c.Date.Date == dateTime.Date)
             .ToListAsync();
 
         if (queueItems.Count == 0)
@@ -223,7 +223,7 @@ public class CardsService
     {
         var closestRepeatDate = DateTime.MaxValue;
         var closestPhaseIndex = -1;
-        PhaseEntity closestPhaseInfo = null;
+        PhaseEntity? closestPhaseInfo = null;
         var queueItems = new List<CardRepeatQueueEntity>(cards.Count);
 
         foreach (var card in cards)
@@ -323,7 +323,7 @@ public class CardsService
         
         var closestRepeatDate = DateTime.MaxValue;
         var closestPhaseIndex = -1;
-        PhaseEntity closestPhaseInfo = null;
+        PhaseEntity? closestPhaseInfo = null;
 
         var forbidDate = DateTime.UtcNow.Date.AddDays(1);
 
@@ -366,10 +366,9 @@ public class CardsService
                 weight);
 
             db.Entry(phaseRemember).State = EntityState.Added;
-
             db.Entry(queueItem).State = EntityState.Deleted;
 
-            var nextPhaseIndex = remember.PhaseIndex + 1;
+            var nextPhaseIndex = GetNextPhaseIndex(schedule, remember);
             var nextPhase = schedule.Phases.Skip(nextPhaseIndex).FirstOrDefault();
 
             if (nextPhase == null)
@@ -396,19 +395,34 @@ public class CardsService
             db.Entry(newQueueItem).State = EntityState.Added;
         }
 
+        var isOk = db.SoftSaveChanges();
 
-        try
-        {
-            db.SaveChanges();
-            return (new NextRepeatInfo(
-                closestRepeatDate == DateTime.MaxValue ? null : closestRepeatDate,
-                closestPhaseInfo,
-                closestPhaseIndex), null);
-        }
-        catch
-        {
+        if (!isOk)
             return (null, "unknown error");
+        
+        return (new NextRepeatInfo(
+            closestRepeatDate == DateTime.MaxValue ? null : closestRepeatDate,
+            closestPhaseInfo,
+            closestPhaseIndex), null);
+    }
+
+    private static int GetNextPhaseIndex(RepeatsScheduleEntity schedule, RememberEntity remember)
+    {
+        var currentPhaseIndex = remember.PhaseIndex;
+
+        if (remember.Weight >= 0.49f)
+        {
+            return currentPhaseIndex + 1;
         }
+
+        return schedule.ForgottenBehavior switch
+        {
+            ForgottenBehavior.MoveToNextStep => currentPhaseIndex + 1,
+            ForgottenBehavior.MoveToPreviousStep => currentPhaseIndex == 0 ? 0 : currentPhaseIndex - 1,
+            ForgottenBehavior.StayOnCurrentStep => currentPhaseIndex,
+            ForgottenBehavior.StartFromFirstStep => 0,
+            _ => throw new InvalidOperationException("Unknown forgotten behaviour " + schedule.ForgottenBehavior)
+        };
     }
 
     public class CreateOrPatchCard : ICreateOrPatchCard
@@ -435,7 +449,7 @@ public class CardsService
             PromptText = promptText;
             FrontSideText = TextMaster.RemoveWhiteSpaces(frontSideText, true);
             BackSideText = TextMaster.RemoveWhiteSpaces(backSideText, true);
-            Description = string.IsNullOrEmpty(description) ? description : TextMaster.RemoveWhiteSpaces(description);
+            Description = TextMaster.RemoveWhiteSpaces(description);
             Examples = examples?
                 .Select(e => TextMaster.RemoveWhiteSpaces(e))
                 .Where(e => !string.IsNullOrEmpty(e))

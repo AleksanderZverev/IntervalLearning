@@ -1,4 +1,5 @@
-import { Button, Stack, Typography } from '@mui/material';
+import { KeyboardReturn } from '@mui/icons-material';
+import { Button, IconButton, Stack, Typography } from '@mui/material';
 import { FC, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { CenterContainer } from '../../../controls/CenterContainer/CenterContainer';
@@ -58,6 +59,13 @@ const RandomWordsPageContent: FC<RandomWordsPageContentProps> = ({
         forceRefetch();
     };
 
+    const onBack = () => {
+        if (currentWordIndex - 1 < 0) {
+            return;
+        }
+        setCurrentWordIndex(currentWordIndex - 1);
+    };
+
     useEventListener('keypress', (e) => {
         e.key === ' ' && onNext();
         e.key === 'Enter' && onAdd();
@@ -99,6 +107,11 @@ const RandomWordsPageContent: FC<RandomWordsPageContentProps> = ({
                         />
                     )}
                     <PaperCard
+                        topLeftControl={
+                            <IconButton onClick={onBack}>
+                                <KeyboardReturn />
+                            </IconButton>
+                        }
                         leftButton={
                             <HintButton
                                 hint="enter"

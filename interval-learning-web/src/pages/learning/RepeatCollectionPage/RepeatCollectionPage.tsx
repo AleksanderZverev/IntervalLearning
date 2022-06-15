@@ -27,6 +27,8 @@ import { LightTooltip } from '../../../controls/LightTooltip/LightTooltip';
 import { HelpOutline } from '@mui/icons-material';
 import dayjs from 'dayjs';
 import { getRepeatingNavigationLink } from '../LearningPage/InProgressCollections/InProgressCollections';
+import { ErrorPage } from '../../../controls/ErrorPage/ErrorPage';
+import { useGetScheduleQuery } from '../../../redux/schedulesSlice';
 
 type WithResolvers = WithQueryResolverData<typeof useGetRepeatCardsQuery> &
     WithMutationResolverProps<typeof usePatchRememberCardsMutation>;
@@ -365,10 +367,12 @@ export const RepeatCollectionPageContent: FC<RepeatCollectionPageContentProps> =
 
 const ConnectedRepeatCollectionPage = withQueryResolver(useGetRepeatCardsQuery)(RepeatCollectionPageContent);
 const CollectionQueryResolver = withOtherQueryResolver(useGetCollectionQuery)(ConnectedRepeatCollectionPage);
+const WithSchedule = withOtherQueryResolver(useGetScheduleQuery)(CollectionQueryResolver);
+
 const ConnectedMutationResolver = withMutationResolver(
     usePatchRememberCardsMutation,
     'Не удалось завершить повторение'
-)(CollectionQueryResolver);
+)(WithSchedule);
 
 export const RepeatCollection: FC = () => {
     const { userId, collectionId } = useParams();
@@ -390,20 +394,25 @@ export const RepeatCollection: FC = () => {
         !scheduleUserId ||
         !scheduleId ||
         !date ||
+        !dayjs(date).isValid() ||
         phaseIndexString === undefined ||
         phaseIndexString == null ||
         parseInt(phaseIndexString) < 0
     ) {
-        return <div>Incorrect link</div>;
+        return <ErrorPage errorMessage="Неверная ссылка" />;
     }
 
     const phaseIndex = parseInt(phaseIndexString);
 
-    console.log(skipLoading);
-
     return (
         <ConnectedMutationResolver
-            queryArg={{ userId, collectionId, request: { scheduleUserId, scheduleId, phaseIndex } }}
+            queryArg={{
+                userId,
+                collectionId,
+                scheduleUserId,
+                scheduleId,
+                request: { scheduleUserId, scheduleId, phaseIndex, date },
+            }}
             disableLoading={skipLoading}
             scheduleUserId={scheduleUserId}
             scheduleId={scheduleId}
