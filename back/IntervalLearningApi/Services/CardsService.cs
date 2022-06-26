@@ -2,6 +2,7 @@
 using DB;
 using DB.Models;
 using Infrastructure;
+using IntervalLearningApi.Models.RepeatsSchedule;
 using Microsoft.EntityFrameworkCore;
 
 namespace IntervalLearningApi.Services;
@@ -291,7 +292,7 @@ public class CardsService
         List<RememberItem> rememberItems)
     {
         var now = DateTime.UtcNow;
-        var cardIds = rememberItems.Select(c => c.CardId).ToList();
+        var cardIds = rememberItems.ConvertAll(c => c.CardId);
 
         var collection = await db.Collections.FindAsync(userId, collectionId);
 
@@ -325,6 +326,7 @@ public class CardsService
         var closestPhaseIndex = -1;
         PhaseEntity? closestPhaseInfo = null;
 
+        await using var transaction = await db.Database.BeginTransactionAsync();
         var forbidDate = DateTime.UtcNow.Date.AddDays(1);
 
         foreach (var rememberItem in rememberItems)
@@ -340,11 +342,6 @@ public class CardsService
                 return (null, "unable to repeat");
             }
 
-            var currentPhase = schedule.Phases
-                .OrderBy(p => p.Id)
-                .Skip(queueItem.PhaseIndex)
-                .First();
-
             var remember = new RememberEntity(
                 schedule.ParentUserId,
                 schedule.Id,
@@ -358,6 +355,11 @@ public class CardsService
 
             db.Entry(remember).State = EntityState.Added;
 
+            var currentPhase = schedule.Phases
+                .OrderBy(p => p.Id)
+                .Skip(queueItem.PhaseIndex)
+                .First();
+
             var phaseRemember = new PhaseRememberEntity(
                 schedule.ParentUserId,
                 schedule.Id,
@@ -368,8 +370,7 @@ public class CardsService
             db.Entry(phaseRemember).State = EntityState.Added;
             db.Entry(queueItem).State = EntityState.Deleted;
 
-            var nextPhaseIndex = GetNextPhaseIndex(schedule, remember);
-            var nextPhase = schedule.Phases.Skip(nextPhaseIndex).FirstOrDefault();
+            var (nextPhaseIndex, nextPhase) = GetNextPhaseIndex(schedule, remember);
 
             if (nextPhase == null)
                 continue;
@@ -399,29 +400,98 @@ public class CardsService
 
         if (!isOk)
             return (null, "unknown error");
-        
+
+        await transaction.CommitAsync();
+
         return (new NextRepeatInfo(
             closestRepeatDate == DateTime.MaxValue ? null : closestRepeatDate,
             closestPhaseInfo,
             closestPhaseIndex), null);
     }
 
-    private static int GetNextPhaseIndex(RepeatsScheduleEntity schedule, RememberEntity remember)
+    private (int nextPhaseIndex, PhaseEntity? nextPhase) GetNextPhaseIndex(RepeatsScheduleEntity schedule, RememberEntity remember)
     {
+        var orderedPhases = schedule.Phases.OrderBy(p => p.Id).ToList();
+
         var currentPhaseIndex = remember.PhaseIndex;
+        var nextPhaseIndex = currentPhaseIndex + 1;
+
+        var nextPhase = nextPhaseIndex < orderedPhases.Count 
+            ? orderedPhases[currentPhaseIndex + 1] 
+            : null;
+
+        if (nextPhase == null)
+            return (-1, null);
+
+        var nextPhaseIsRepeatPhase = nextPhase.SecondsFromLastPhase < 10;
+
+        if (nextPhaseIsRepeatPhase)
+        {
+            if (remember.Weight >= 0.49f)
+            {
+                nextPhaseIndex++;
+                nextPhase = nextPhaseIndex < orderedPhases.Count ? orderedPhases[nextPhaseIndex] : null;
+            }
+
+            return (nextPhaseIndex, nextPhase);
+        }
+
+        var currentPhase = orderedPhases[currentPhaseIndex];
+        var isCurrentPhaseRepeatPhase = currentPhase.SecondsFromLastPhase < 10;
+
+        if (isCurrentPhaseRepeatPhase && currentPhaseIndex > 0)
+        {
+            var previousRemembers = db.Remembers
+                .Where(r => r.ParentUserId == remember.ParentUserId
+                            && r.ParentCollectionId == remember.ParentCollectionId
+                            && r.ParentCardId == remember.ParentCardId
+                            && r.ParentRepeatsScheduleUserId == remember.ParentRepeatsScheduleUserId
+                            && r.ParentRepeatsScheduleId == remember.ParentRepeatsScheduleId
+                            && r.PhaseIndex == remember.PhaseIndex - 1)
+                .ToList();
+
+            var previousRemember = previousRemembers.MaxBy(r => r.Id);
+
+            if (previousRemember != null)
+            {
+                currentPhaseIndex = previousRemember.PhaseIndex;
+                currentPhase = orderedPhases[currentPhaseIndex];
+                remember = previousRemember;
+            }
+        }
 
         if (remember.Weight >= 0.49f)
         {
-            return currentPhaseIndex + 1;
+            return (nextPhaseIndex, nextPhase);
         }
 
-        return schedule.ForgottenBehavior switch
+        switch (schedule.ForgottenBehavior)
         {
-            ForgottenBehavior.MoveToNextStep => currentPhaseIndex + 1,
-            ForgottenBehavior.MoveToPreviousStep => currentPhaseIndex == 0 ? 0 : currentPhaseIndex - 1,
-            ForgottenBehavior.StayOnCurrentStep => currentPhaseIndex,
-            ForgottenBehavior.StartFromFirstStep => 0,
-            _ => throw new InvalidOperationException("Unknown forgotten behaviour " + schedule.ForgottenBehavior)
+            case ForgottenBehavior.MoveToNextStep:
+                return (nextPhaseIndex, nextPhase);
+            case ForgottenBehavior.StayOnCurrentStep:
+                return (currentPhaseIndex, currentPhase);
+            case ForgottenBehavior.StartFromFirstStep:
+                return (0, orderedPhases[0]);
+            case ForgottenBehavior.MoveToPreviousStep:
+            {
+                if (currentPhaseIndex == 0)
+                    return (0, orderedPhases[0]);
+
+                var previousPhaseIndex = currentPhaseIndex - 1;
+                var previousPhase = orderedPhases[previousPhaseIndex];
+
+                var isPreviousPhaseRepeatPhase = previousPhase.SecondsFromLastPhase < 10;
+
+                if (isPreviousPhaseRepeatPhase && previousPhaseIndex > 0)
+                {
+                    previousPhase = orderedPhases[previousPhaseIndex - 1];
+                    previousPhaseIndex -= 1;
+                }
+                
+                return (previousPhaseIndex, previousPhase);
+            }
+            default: throw new InvalidOperationException("Unknown forgotten behaviour " + schedule.ForgottenBehavior);
         };
     }
 

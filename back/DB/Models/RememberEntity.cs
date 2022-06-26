@@ -55,5 +55,5 @@ public class RememberEntity : IParentCardReference
 
     public long ParentRepeatsScheduleUserId { get; set; }
     public short ParentRepeatsScheduleId { get; set; }
-    public RepeatsScheduleEntity ParentRepeatsSchedule { get; set; }
+    public RepeatsScheduleEntity? ParentRepeatsSchedule { get; set; }
 }
