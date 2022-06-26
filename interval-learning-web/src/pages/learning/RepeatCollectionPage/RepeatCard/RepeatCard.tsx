@@ -11,7 +11,7 @@ import {
     Typography,
 } from '@mui/material';
 import classNames from 'classnames';
-import { FC, useEffect, useState } from 'react';
+import { FC, useEffect, useRef, useState } from 'react';
 import { ShowCardModal } from '../../../../controls/Modals/ShowCardModal';
 import { PaperCard } from '../../../../controls/PaperCard/PaperCard';
 import { useEventListener } from '../../../../hooks/useEventListener';
@@ -40,8 +40,6 @@ interface CardProps {
     promptIsHidden: boolean;
 }
 
-const cardIdToProps: Record<string, CardProps> = {};
-
 export const RepeatCard: FC<RepeatCardProps> = ({
     card,
     showNext,
@@ -57,6 +55,7 @@ export const RepeatCard: FC<RepeatCardProps> = ({
 }) => {
     const [backIsHidden, setBackIsHidden] = useState(true);
     const [promptIsHidden, setPromptIsHidden] = useState(true);
+    const { current: cardIdToProps } = useRef<Record<string, CardProps>>({});
 
     useEffect(() => {
         cardIdToProps[getCardUniqueKey(card)] = { backIsHidden, promptIsHidden };
