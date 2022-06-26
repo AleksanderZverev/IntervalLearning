@@ -14,6 +14,7 @@ services:
       - "5432:5432"
 
   backend:
+    restart: on-failure
     depends_on: 
       - postgres
     image: cr.yandex/crphggso9r6t8kclldqf/intervallearningapi:test
