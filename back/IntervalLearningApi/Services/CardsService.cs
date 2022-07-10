@@ -35,6 +35,7 @@ public class CardsService
 
         return db.Cards
             .Where(c => c.ParentUserId == userId && c.ParentCollectionId == collectionId)
+            .OrderByDescending(c => c.CreatedDate)
             .Skip(toSkip)
             .Take(count)
             .ToListAsync();

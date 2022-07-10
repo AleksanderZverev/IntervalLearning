@@ -1,6 +1,7 @@
 /* eslint-disable react-hooks/rules-of-hooks */
 import { Add, Casino, Public } from '@mui/icons-material';
 import { Button, CircularProgress, Pagination, Stack, TableCell } from '@mui/material';
+import dayjs from 'dayjs';
 import { FC, useMemo, useState } from 'react';
 import { Navigate, useNavigate, useParams } from 'react-router-dom';
 import { CreateCardModal } from '../../../controls/Modals/CreateCardModal';
@@ -41,7 +42,7 @@ export const CollectionPage: FC = () => {
     const storageCards = useTypedSelector((state) => selectCards(state, collection?.userId, collection?.id));
 
     const sortedCards = useMemo(
-        () => [...storageCards].sort((f, s) => f.frontSideText.localeCompare(s.frontSideText)),
+        () => [...storageCards].sort((f, s) => dayjs(s.createdDate).diff(dayjs(f.createdDate))),
         [storageCards]
     );
 
@@ -127,6 +128,7 @@ export const CollectionPage: FC = () => {
                 </Table>
                 {collection.cardsCount > cardsCountPerPage && (
                     <Pagination
+                        page={page}
                         count={Math.ceil(collection.cardsCount / cardsCountPerPage)}
                         onChange={(event, page) => setPage(page)}
                     />
