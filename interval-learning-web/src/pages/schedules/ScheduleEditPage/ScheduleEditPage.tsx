@@ -17,6 +17,7 @@ import { Loop, Save } from '@mui/icons-material';
 import useTypedSelector, { useRequiredTypedSelector } from '../../../hooks/useTypedSelector';
 import { getScheduleId, selectScheduleById } from '../../../redux/slices/scheduleSlice';
 import { selectCurrentUser } from '../../../redux/currentUserSlice';
+import { useDocumentTitle } from '../../../hooks/useCollectionTitle';
 
 interface IPhaseForm {
     id: string;
@@ -124,6 +125,8 @@ const ScheduleEditPageContent: FC<ScheduleEditPageContentProps> = ({
     const schedule = useRequiredTypedSelector((state) =>
         selectScheduleById(state, getScheduleId(currentUser?.id, scheduleId))
     );
+
+    useDocumentTitle(schedule.title, '📝');
 
     const navigate = useNavigate();
 

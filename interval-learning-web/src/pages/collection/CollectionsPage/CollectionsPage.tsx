@@ -1,5 +1,6 @@
 import { Folder } from '@mui/icons-material';
 import { Button } from '@mui/material';
+import Head from 'next/head';
 import { FC, useState } from 'react';
 import { CreateCollectionModal } from '../../../controls/Modals/CreateCollectionModal';
 import { PageContainer } from '../../../controls/PageContainer/PageContainer';
@@ -11,6 +12,8 @@ import { useGetCollectionsQuery } from '../../../redux/collectionApi';
 import { selectCollections } from '../../../redux/slices/collectionsSlice';
 import { CollectionRow } from './CollectionRow';
 
+const pageTitle = 'Мои коллекции';
+
 const CollectionsPageContent: FC = () => {
     const [showCreateCollectionModal, setShowCreateCollectionModal] = useState(false);
     const collections = useTypedSelector(selectCollections);
@@ -18,7 +21,7 @@ const CollectionsPageContent: FC = () => {
     return (
         <PageContainer>
             <PageHeader
-                title="Мои коллекции"
+                title={pageTitle}
                 subMenu={
                     <Button
                         onClick={() => setShowCreateCollectionModal(true)}
@@ -57,5 +60,12 @@ const CollectionsPageContent: FC = () => {
 const ConnectedCollection = withQueryResolver(useGetCollectionsQuery)(CollectionsPageContent);
 
 export const CollectionsPage: FC = () => {
-    return <ConnectedCollection queryArg={undefined} />;
+    return (
+        <>
+            <Head>
+                <title>{pageTitle}</title>
+            </Head>
+            <ConnectedCollection queryArg={undefined} />
+        </>
+    );
 };

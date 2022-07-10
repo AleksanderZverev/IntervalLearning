@@ -27,8 +27,6 @@ interface PhaseItem extends PhaseInfo {
 }
 
 export const ShowScheduleModal: FC<ShowScheduleModalProps> = ({ schedule, open, onClose }) => {
-    console.log('show: ', schedule);
-
     const sortedPhases = useMemo(
         () => [...schedule.phases].sort((f, s) => parseInt(f.id) - parseInt(s.id)),
         [schedule]

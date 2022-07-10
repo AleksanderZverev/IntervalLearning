@@ -1,5 +1,5 @@
 import { KeyboardReturn } from '@mui/icons-material';
-import { Button, IconButton, Stack, Typography } from '@mui/material';
+import { IconButton, Stack, Typography } from '@mui/material';
 import { FC, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { CenterContainer } from '../../../controls/CenterContainer/CenterContainer';

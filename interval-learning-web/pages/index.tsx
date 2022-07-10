@@ -8,7 +8,6 @@ const Home: NextPage = () => {
             <Head>
                 <title>Interval Learning</title>
                 <meta name="description" content="Learn words and repeat at intervals" />
-                <link rel="icon" href="/favicon.svg" />
             </Head>
 
             <main className={styles.main}>

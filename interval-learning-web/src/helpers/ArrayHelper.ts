@@ -18,7 +18,7 @@ export class ArrayHelper {
             }
 
             const equals = this.arraysEqual(oldArray, array);
-            console.log('eq: ', equals);
+
             if (!equals) {
                 break;
             }

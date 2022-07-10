@@ -23,6 +23,7 @@ import { PageHeader } from '../../../controls/PageHeader/PageHeader';
 import { PageContent } from '../../../controls/PageContent/PageContent';
 import { useNavigate } from 'react-router-dom';
 import { Add, Delete } from '@mui/icons-material';
+import { useDocumentTitle } from '../../../hooks/useCollectionTitle';
 
 enum DurationType {
     Seconds = 1,
@@ -111,6 +112,8 @@ interface ScheduleCreatePageContentProps extends WithMutationResolverProps<typeo
 const ScheduleCreatePageContent: FC<ScheduleCreatePageContentProps> = ({
     mutationProps: { mutate: createSchedule, isLoading, showRetryModal },
 }) => {
+    useDocumentTitle('Создание учебного плана', '📝');
+
     const navigate = useNavigate();
 
     const formMethods = useForm<IForm>({

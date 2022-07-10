@@ -28,6 +28,7 @@ import { getRepeatingNavigationLink } from '../LearningPage/InProgressCollection
 import { useGetScheduleQuery } from '../../../redux/schedulesSlice';
 import { ArrayHelper } from '../../../helpers/ArrayHelper';
 import { PageContent } from '../../../controls/PageContent/PageContent';
+import { useDocumentTitle } from '../../../hooks/useCollectionTitle';
 
 type WithResolvers = WithQueryResolverData<typeof useGetNotStartedCardsQuery> &
     WithMutationResolverProps<typeof useStartCardsMutation>;
@@ -57,6 +58,8 @@ export const LearnCollectionPageContent: FC<LearnCollectionPageContentProps> = (
         console.debug(collection, schedule, cards);
         throw new Error();
     }
+
+    useDocumentTitle(collection.title, '✍️');
 
     const theme = useTypedSelector((state) => selectTheme(state, collection.themeId));
 

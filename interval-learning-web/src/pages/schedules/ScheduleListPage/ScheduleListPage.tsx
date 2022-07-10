@@ -1,6 +1,7 @@
 import { Add, Edit } from '@mui/icons-material';
 import { Button, IconButton } from '@mui/material';
 import dayjs from 'dayjs';
+import Head from 'next/head';
 import { FC, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ShowScheduleModal } from '../../../controls/Modals/ShowScheduleModal';
@@ -89,5 +90,12 @@ const ScheduleListPageContent: FC<ScheduleListPageContentProps> = ({}) => {
 const WithGetSchedulesQuery = withQueryResolver(useGetSchedulesQuery)(ScheduleListPageContent);
 
 export const ScheduleListPage: FC = () => {
-    return <WithGetSchedulesQuery queryArg={undefined} />;
+    return (
+        <>
+            <Head>
+                <title>Учебные планы</title>
+            </Head>
+            <WithGetSchedulesQuery queryArg={undefined} />
+        </>
+    );
 };

@@ -29,6 +29,8 @@ import dayjs from 'dayjs';
 import { getRepeatingNavigationLink } from '../LearningPage/InProgressCollections/InProgressCollections';
 import { ErrorPage } from '../../../controls/ErrorPage/ErrorPage';
 import { useGetScheduleQuery } from '../../../redux/schedulesSlice';
+import Head from 'next/head';
+import { useDocumentTitle } from '../../../hooks/useCollectionTitle';
 
 type WithResolvers = WithQueryResolverData<typeof useGetRepeatCardsQuery> &
     WithMutationResolverProps<typeof usePatchRememberCardsMutation>;
@@ -68,6 +70,8 @@ export const RepeatCollectionPageContent: FC<RepeatCollectionPageContentProps> =
         throw new Error();
     }
 
+    useDocumentTitle(collection.title, '🧠');
+
     const navigate = useNavigate();
     const theme = useTypedSelector((state) => selectTheme(state, collection.themeId));
     const repeatCards = useTypedSelector((state) => selectCardsByIds(state, userId, collectionId, cardIds));
@@ -105,13 +109,10 @@ export const RepeatCollectionPageContent: FC<RepeatCollectionPageContentProps> =
     };
 
     const onSuccessFinish = (fromModal: boolean) => {
-        console.log('mutdata', mutationData);
         if (mutationData && !fromModal) {
             const now = dayjs();
             const date = dayjs(mutationData.nextRepeatDate);
             const diffMinutes = date.diff(now, 'minutes');
-
-            console.log(now, date, 'diff', diffMinutes);
 
             if (diffMinutes <= 1) {
                 setShowMoveToRepeatModal(true);
@@ -208,8 +209,6 @@ export const RepeatCollectionPageContent: FC<RepeatCollectionPageContentProps> =
         (phase.secondsFromLastPhase < 10
             ? schedule.defaultRepeatPhaseShortDescription
             : schedule.defaultPhaseShortDescription);
-
-    console.log(schedule, phase);
 
     return (
         <PageContainer transparent>

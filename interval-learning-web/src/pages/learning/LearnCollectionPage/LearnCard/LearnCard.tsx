@@ -1,6 +1,5 @@
 import { FC, useState } from 'react';
 import { Button, IconButton, Paper, Portal, Stack, Typography } from '@mui/material';
-import { Card } from '../../../../types/Collection';
 import styles from './styles.module.css';
 import { Edit, KeyboardArrowRight } from '@mui/icons-material';
 import { CreateCardModal } from '../../../../controls/Modals/CreateCardModal';

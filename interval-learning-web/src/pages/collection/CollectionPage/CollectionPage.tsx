@@ -3,17 +3,18 @@ import { Add, Casino, Public } from '@mui/icons-material';
 import { Button, CircularProgress, Pagination, Stack, TableCell } from '@mui/material';
 import dayjs from 'dayjs';
 import { FC, useMemo, useState } from 'react';
-import { Navigate, useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { CreateCardModal } from '../../../controls/Modals/CreateCardModal';
 import { PageContainer } from '../../../controls/PageContainer/PageContainer';
 import { PageHeader } from '../../../controls/PageHeader/PageHeader';
 import { Table, TableBody, TableHead, TableHeaderCell, TableRow } from '../../../controls/Table/Table';
-import useTypedSelector from '../../../hooks/useTypedSelector';
+import { useDocumentTitle } from '../../../hooks/useCollectionTitle';
+import useTypedSelector, { useRequiredTypedSelector } from '../../../hooks/useTypedSelector';
 import { useGetCardsQuery } from '../../../redux/cardsApi';
 import { useGetCollectionQuery } from '../../../redux/collectionApi';
 import { selectCards } from '../../../redux/slices/cardsSlice';
 import { selectCollectionById } from '../../../redux/slices/collectionsSlice';
-import { getScheduleId, selectScheduleById } from '../../../redux/slices/scheduleSlice';
+import { selectTheme } from '../../../redux/slices/themeSlice';
 import { CardRow } from './CardRow';
 
 const cardsCountPerPage = 50;
@@ -38,8 +39,11 @@ export const CollectionPage: FC = () => {
     const isFetching = isCollectionFetching || isCardsFetching;
     const isError = isCollectionError || isCardsError;
 
-    const collection = useTypedSelector((state) => selectCollectionById(state, userId, collectionId));
+    const collection = useRequiredTypedSelector((state) => selectCollectionById(state, userId, collectionId));
+    const theme = useRequiredTypedSelector((state) => selectTheme(state, collection.themeId));
     const storageCards = useTypedSelector((state) => selectCards(state, collection?.userId, collection?.id));
+
+    useDocumentTitle(collection?.title, '📘');
 
     const sortedCards = useMemo(
         () => [...storageCards].sort((f, s) => dayjs(s.createdDate).diff(dayjs(f.createdDate))),
@@ -86,6 +90,7 @@ export const CollectionPage: FC = () => {
             <PageHeader
                 title={collection.title}
                 titleIcon={collection.isPublic && <Public color="primary" />}
+                subTitle={theme.name + ', ' + collection.cardsCount + ' карточек'}
                 subMenu={
                     <Stack direction={'row'} gap="10px">
                         <Button variant="contained" endIcon={<Casino />} onClick={() => navigate('words/random')}>
