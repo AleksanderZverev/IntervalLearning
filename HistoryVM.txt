@@ -47,6 +47,9 @@ docker pull cr.yandex/crphggso9r6t8kclldqf/nginx:test
 
 docker-compose -f docker-compose.yml -f docker-compose.production.yml up -d
 
+Чтобы обновить только новые образы: 
+docker-compose -f docker-compose.yml -f docker-compose.production.yml up -d --build
+
 ---
 (Если надо снести базу данных) DB to delete folder:
 ---
