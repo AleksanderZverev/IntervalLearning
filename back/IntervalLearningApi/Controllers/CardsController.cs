@@ -79,6 +79,14 @@ namespace IntervalLearningApi.Controllers
                 : BadRequest(error);
         }
 
+        [HttpDelete]
+        public async Task<ActionResult<Card>> DeleteCard(short collectionId, [FromQuery] short cardId)
+        {
+            var userId = HttpContext.GetUserId();
+            var (cardEntity, error) = await collectionService.DeleteCard(userId, collectionId, cardId);
+            return cardEntity != null ? Ok(CollectionsController.ToCard(cardEntity)) : BadRequest(error);
+        }
+
         [HttpPost("start")]
         public ActionResult<StartCardResponse> StartCards(short collectionId, [FromBody]CardsItem item)
         {

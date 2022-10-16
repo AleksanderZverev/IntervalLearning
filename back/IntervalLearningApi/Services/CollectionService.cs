@@ -249,6 +249,40 @@ public class CollectionService
 
         return (card, null);
     }
+    
+    public async Task<(CardEntity? card, string? error)> DeleteCard(
+        long userId,
+        short collectionId,
+        short cardId,
+        bool disableTransaction = false)
+    {
+        var collection = await db.Collections.FindAsync(userId, collectionId);
+
+        if (collection == null)
+            return (null, "Collection not found");
+
+        if (!disableTransaction)
+            await db.Database.BeginTransactionAsync();
+
+        var (card, error) = await cardsService.Delete(userId, collectionId, cardId);
+
+        if (error != null)
+        {
+            if (!disableTransaction)
+                await db.Database.RollbackTransactionAsync();
+            return (card, error);
+        }
+
+        if (card != null)
+            collection.CardsCount--;
+
+        await db.SaveChangesAsync();
+
+        if (!disableTransaction)
+            await db.Database.CommitTransactionAsync();
+
+        return (card, null);
+    }
 
     public async Task<(List<WordEntity>? words, LanguageEntity? language, string? error)> GetRandomWords(
         long userId, 

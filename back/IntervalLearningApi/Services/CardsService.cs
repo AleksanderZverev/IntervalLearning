@@ -68,6 +68,25 @@ public class CardsService
             return (null, "Unknown error", false);
         }
     }
+    
+    public async Task<(CardEntity? card, string? error)> Delete(long userId, short collectionId, short cardId)
+    {
+        var card = await db.Cards.FindAsync(userId, collectionId, cardId);
+
+        if (card == null)
+            return (null, "Card not found");
+
+        var deletedCard = db.Cards.Remove(card);
+        try
+        {
+            await db.SaveChangesAsync();
+            return (deletedCard.Entity, null);
+        }
+        catch
+        {
+            return (null, "Unknown error");
+        }
+    }
 
     public async Task<(List<CardEntity>? cards, string? error)> GetNotStartedCards(long scheduleUserId,
         short scheduleId,
