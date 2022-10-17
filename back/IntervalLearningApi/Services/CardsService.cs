@@ -88,6 +88,28 @@ public class CardsService
         }
     }
 
+    public async Task<List<CardEntity>> Search(long userId, short collectionId, string searchValue)
+    {
+        var cards = await db.Cards
+            .Where(c => c.ParentUserId == userId && c.ParentCollectionId == collectionId && c.FrontSideText == searchValue)
+            .OrderByDescending(c => c.CreatedDate)
+            .ToListAsync();
+        if (cards.Count != 0)
+            return cards;
+
+        cards = await db.Cards
+            .Where(c => c.ParentUserId == userId && c.ParentCollectionId == collectionId && c.PromptText == searchValue)
+            .OrderByDescending(c => c.CreatedDate)
+            .ToListAsync();
+        if (cards.Count != 0)
+            return cards;
+
+        return await db.Cards
+            .Where(c => c.ParentUserId == userId && c.ParentCollectionId == collectionId && c.BackSideText == searchValue)
+            .OrderByDescending(c => c.CreatedDate)
+            .ToListAsync();
+    }
+
     public async Task<(List<CardEntity>? cards, string? error)> GetNotStartedCards(long scheduleUserId,
         short scheduleId,
         long userId,

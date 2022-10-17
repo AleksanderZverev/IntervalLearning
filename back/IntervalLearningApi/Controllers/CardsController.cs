@@ -95,6 +95,14 @@ namespace IntervalLearningApi.Controllers
             return cardEntity != null ? Ok(CollectionsController.ToCard(cardEntity)) : BadRequest(error);
         }
 
+        [HttpGet("search")]
+        public async Task<ActionResult<List<Card>>> SearchCard(short collectionId, [FromQuery] string searchValue)
+        {
+            var userId = HttpContext.GetUserId();
+            var cardEntities = await cardsService.Search(userId, collectionId, searchValue);
+            return Ok(cardEntities.Select(CollectionsController.ToCard).ToList());
+        }
+
         [HttpPost("start")]
         public ActionResult<StartCardResponse> StartCards(short collectionId, [FromBody]CardsItem item)
         {
