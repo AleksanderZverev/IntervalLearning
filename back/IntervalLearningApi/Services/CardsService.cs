@@ -84,7 +84,7 @@ public class CardsService
         }
         catch
         {
-            return (null, "Unknown error");
+            return (null, "Unable to save changes to database");
         }
     }
 

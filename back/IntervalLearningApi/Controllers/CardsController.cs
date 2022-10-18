@@ -79,8 +79,8 @@ namespace IntervalLearningApi.Controllers
                 : BadRequest(error);
         }
 
-        [HttpDelete]
-        public async Task<ActionResult<Card>> DeleteCard(short collectionId, [FromQuery] short cardId)
+        [HttpDelete("{cardId}")]
+        public async Task<ActionResult<Card>> DeleteCard(short collectionId, short cardId)
         {
             var userId = HttpContext.GetUserId();
             var (cardEntity, error) = await collectionService.DeleteCard(userId, collectionId, cardId);
@@ -88,10 +88,10 @@ namespace IntervalLearningApi.Controllers
         }
 
         [HttpPost("move")]
-        public async Task<ActionResult<Card>> MoveCard(short collectionId, [FromQuery] short destinationCollectionId, [FromQuery] short cardId)
+        public async Task<ActionResult<Card>> MoveCard(short collectionId, [FromBody] MoveRequest request)
         {
             var userId = HttpContext.GetUserId();
-            var (cardEntity, error) = await collectionService.MoveCard(userId, collectionId, destinationCollectionId, cardId);
+            var (cardEntity, error) = await collectionService.MoveCard(userId, collectionId, request.DestinationCollectionId, request.CardId);
             return cardEntity != null ? Ok(CollectionsController.ToCard(cardEntity)) : BadRequest(error);
         }
 
@@ -189,6 +189,12 @@ namespace IntervalLearningApi.Controllers
         public long ScheduleUserId { get; set; }
         public short ScheduleId { get; set; }
         public short PhaseIndex { get; set; }
+    }
+
+    public class MoveRequest
+    {
+        public short DestinationCollectionId { get; set; }
+        public short CardId { get; set; }
     }
 
     public class RememberItem
