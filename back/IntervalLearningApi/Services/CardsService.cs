@@ -1,8 +1,8 @@
 ﻿using System.Diagnostics;
+using System.Linq.Expressions;
 using DB;
 using DB.Models;
 using Infrastructure;
-using IntervalLearningApi.Models.RepeatsSchedule;
 using Microsoft.EntityFrameworkCore;
 
 namespace IntervalLearningApi.Services;
@@ -90,22 +90,25 @@ public class CardsService
 
     public async Task<List<CardEntity>> Search(long userId, short collectionId, string searchValue)
     {
-        var cards = await db.Cards
-            .Where(c => c.ParentUserId == userId && c.ParentCollectionId == collectionId && c.FrontSideText == searchValue)
-            .OrderByDescending(c => c.CreatedDate)
-            .ToListAsync();
-        if (cards.Count != 0)
-            return cards;
+        foreach (var getValue in new Expression<Func<CardEntity, bool>>[]
+                 {
+                     c => c.ParentUserId == userId && c.ParentCollectionId == collectionId && c.FrontSideText == searchValue,
+                     c => c.ParentUserId == userId && c.ParentCollectionId == collectionId && c.PromptText == searchValue,
+                     c => c.ParentUserId == userId && c.ParentCollectionId == collectionId && c.BackSideText == searchValue
+                 })
+        {
+            var cards = await GetCards(getValue);
+            if (cards.Count != 0)
+                return cards;
+        }
 
-        cards = await db.Cards
-            .Where(c => c.ParentUserId == userId && c.ParentCollectionId == collectionId && c.PromptText == searchValue)
-            .OrderByDescending(c => c.CreatedDate)
-            .ToListAsync();
-        if (cards.Count != 0)
-            return cards;
+        return new List<CardEntity>();
+    }
 
+    private async Task<List<CardEntity>> GetCards(Expression<Func<CardEntity, bool>> condition)
+    {
         return await db.Cards
-            .Where(c => c.ParentUserId == userId && c.ParentCollectionId == collectionId && c.BackSideText == searchValue)
+            .Where(condition)
             .OrderByDescending(c => c.CreatedDate)
             .ToListAsync();
     }
