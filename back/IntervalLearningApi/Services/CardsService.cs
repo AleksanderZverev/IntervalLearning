@@ -3,6 +3,7 @@ using System.Linq.Expressions;
 using DB;
 using DB.Models;
 using Infrastructure;
+using IntervalLearningApi.Models;
 using Microsoft.EntityFrameworkCore;
 
 namespace IntervalLearningApi.Services;
@@ -88,21 +89,24 @@ public class CardsService
         }
     }
 
-    public async Task<List<CardEntity>> Search(long userId, short collectionId, string searchValue)
+    public async Task<List<CardEntity>> Search(long userId, short collectionId, string searchValue, SearchFieldType fieldType = SearchFieldType.FrontText)
     {
-        foreach (var getValue in new Expression<Func<CardEntity, bool>>[]
-                 {
-                     c => c.ParentUserId == userId && c.ParentCollectionId == collectionId && c.FrontSideText == searchValue,
-                     c => c.ParentUserId == userId && c.ParentCollectionId == collectionId && c.PromptText == searchValue,
-                     c => c.ParentUserId == userId && c.ParentCollectionId == collectionId && c.BackSideText == searchValue
-                 })
+        return fieldType switch
         {
-            var cards = await GetCards(getValue);
-            if (cards.Count != 0)
-                return cards;
-        }
-
-        return new List<CardEntity>();
+            SearchFieldType.FrontText => await GetCards(c =>
+                c.ParentUserId == userId
+                && c.ParentCollectionId == collectionId
+                && c.FrontSideText.ToLower().StartsWith(searchValue)),
+            SearchFieldType.PromptText => await GetCards(c =>
+                c.ParentUserId == userId
+                && c.ParentCollectionId == collectionId
+                && c.PromptText.ToLower().StartsWith(searchValue)),
+            SearchFieldType.BackText => await GetCards(c =>
+                c.ParentUserId == userId
+                && c.ParentCollectionId == collectionId
+                && c.BackSideText.ToLower().StartsWith(searchValue)),
+            _ => throw new ArgumentOutOfRangeException(nameof(fieldType), fieldType, null)
+        };
     }
 
     private async Task<List<CardEntity>> GetCards(Expression<Func<CardEntity, bool>> condition)

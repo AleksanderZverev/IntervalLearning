@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using IntervalLearningApi.Extensions;
+using IntervalLearningApi.Models;
 using IntervalLearningApi.Models.ByUser;
 using IntervalLearningApi.Models.RepeatsSchedule;
 using IntervalLearningApi.Services;
@@ -96,10 +97,10 @@ namespace IntervalLearningApi.Controllers
         }
 
         [HttpGet("search")]
-        public async Task<ActionResult<List<Card>>> SearchCard(short collectionId, [FromQuery] string searchValue)
+        public async Task<ActionResult<List<Card>>> SearchCard(short collectionId, [FromQuery] string searchValue, [FromQuery] SearchFieldType fieldType)
         {
             var userId = HttpContext.GetUserId();
-            var cardEntities = await cardsService.Search(userId, collectionId, searchValue);
+            var cardEntities = await cardsService.Search(userId, collectionId, searchValue.ToLower(), fieldType);
             return Ok(cardEntities.Select(CollectionsController.ToCard).ToList());
         }
 
