@@ -85,7 +85,7 @@ namespace IntervalLearningApi.Controllers
         {
             var userId = HttpContext.GetUserId();
             var (cardEntity, error) = await collectionService.DeleteCard(userId, collectionId, cardId);
-            return cardEntity != null ? Ok(CollectionsController.ToCard(cardEntity)) : BadRequest(error);
+            return cardEntity != null ? CollectionsController.ToCard(cardEntity) : BadRequest(error);
         }
 
         [HttpPost("move")]
@@ -93,7 +93,7 @@ namespace IntervalLearningApi.Controllers
         {
             var userId = HttpContext.GetUserId();
             var (cardEntity, error) = await collectionService.MoveCard(userId, collectionId, request.DestinationCollectionId, request.CardId);
-            return cardEntity != null ? Ok(CollectionsController.ToCard(cardEntity)) : BadRequest(error);
+            return cardEntity != null ? CollectionsController.ToCard(cardEntity) : BadRequest(error);
         }
 
         [HttpGet("search")]
@@ -101,7 +101,7 @@ namespace IntervalLearningApi.Controllers
         {
             var userId = HttpContext.GetUserId();
             var cardEntities = await cardsService.Search(userId, collectionId, searchValue.ToLower(), fieldType);
-            return Ok(cardEntities.Select(CollectionsController.ToCard).ToList());
+            return cardEntities.Select(CollectionsController.ToCard).ToList();
         }
 
         [HttpPost("start")]
