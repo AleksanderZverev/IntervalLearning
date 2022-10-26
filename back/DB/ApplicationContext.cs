@@ -119,13 +119,13 @@ namespace DB
                 .HasOne(c => c.ParentUser)
                 .WithMany()
                 .HasForeignKey(c => c.ParentUserId)
-                .OnDelete(DeleteBehavior.Cascade);
+                .OnDelete(DeleteBehavior.NoAction);
 
             modelBuilder.Entity<CardEntity>()
                 .HasOne(c => c.ParentCollection)
                 .WithMany(c => c.Cards)
                 .HasForeignKey(c => new {c.ParentUserId, c.ParentCollectionId})
-                .OnDelete(DeleteBehavior.Cascade);
+                .OnDelete(DeleteBehavior.NoAction);
 
             // RememberEntity
 
@@ -153,7 +153,7 @@ namespace DB
                 .HasOne(r => r.ParentCard)
                 .WithMany(r => r.Remembers)
                 .HasForeignKey(c => new { c.ParentUserId, c.ParentCollectionId, c.ParentCardId })
-                .OnDelete(DeleteBehavior.NoAction);
+                .OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.Entity<RememberEntity>()
                 .HasOne(c => c.ParentRepeatsSchedule)
@@ -206,7 +206,7 @@ namespace DB
                 .HasOne(q => q.ParentCard)
                 .WithMany()
                 .HasForeignKey(q => new { q.ParentUserId, q.ParentCollectionId, q.ParentCardId })
-                .OnDelete(DeleteBehavior.NoAction);
+                .OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.Entity<CardRepeatQueueEntity>()
                 .HasOne(q => q.ParentRepeatsSchedule)
