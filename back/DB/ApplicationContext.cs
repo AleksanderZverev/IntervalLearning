@@ -119,13 +119,13 @@ namespace DB
                 .HasOne(c => c.ParentUser)
                 .WithMany()
                 .HasForeignKey(c => c.ParentUserId)
-                .OnDelete(DeleteBehavior.NoAction);
+                .OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.Entity<CardEntity>()
                 .HasOne(c => c.ParentCollection)
                 .WithMany(c => c.Cards)
                 .HasForeignKey(c => new {c.ParentUserId, c.ParentCollectionId})
-                .OnDelete(DeleteBehavior.NoAction);
+                .OnDelete(DeleteBehavior.Cascade);
 
             // RememberEntity
 
