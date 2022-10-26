@@ -1,15 +1,20 @@
-import { Edit, KeyboardArrowDown, KeyboardArrowRight, KeyboardArrowUp } from '@mui/icons-material';
+import {Delete, Edit, KeyboardArrowDown, KeyboardArrowRight, KeyboardArrowUp} from '@mui/icons-material';
 import { Collapse, IconButton, Portal, Stack } from '@mui/material';
 import { FC, useState } from 'react';
 import { CreateCardModal } from '../../../controls/Modals/CreateCardModal';
 import { TableCell, TableRow } from '../../../controls/Table/Table';
 import { Card } from '../../../types/Collection';
+import {withMutationResolver, WithMutationResolverProps} from "../../../hoc/withQueryResolver";
+import {useAddCardMutation, useDeleteCardMutation} from "../../../redux/cardsApi";
 
-interface CardRowProps {
+interface CardRowProps extends WithMutationResolverProps<typeof useDeleteCardMutation> {
     card: Card;
 }
 
-export const CardRow: FC<CardRowProps> = ({ card }) => {
+const CardRowComponent: FC<CardRowProps> = ({
+                                                mutationProps: {mutate: deleteCard},
+                                                card
+                                            }) => {
     const [showDetails, setShowDetails] = useState(false);
     const [showEditCardModal, setShowEditCardModal] = useState(false);
 
@@ -41,13 +46,21 @@ export const CardRow: FC<CardRowProps> = ({ card }) => {
                 <TableCell sx={{ position: 'relative', paddingRight: 5 }}>
                     <div> {card.description}</div>
                     <IconButton
-                        sx={{ position: 'absolute', right: 0, top: 10 }}
+                        sx={{ position: 'absolute', right: 40, top: 10 }}
                         onClick={(e) => {
                             e.stopPropagation();
                             setShowEditCardModal(true);
                         }}
                     >
                         <Edit fontSize="small" />
+                    </IconButton>
+                    <IconButton
+                        sx={{ position: 'absolute', right: 0, top: 10 }}
+                        onClick={async (e) => {
+                            e.stopPropagation();
+                            await deleteCard({collectionId: card.collectionId, userId: card.userId, request: card});
+                        }}>
+                        <Delete fontSize="small" color={"error"}/>
                     </IconButton>
                 </TableCell>
             </TableRow>
@@ -72,3 +85,5 @@ export const CardRow: FC<CardRowProps> = ({ card }) => {
         </>
     );
 };
+
+export const CardRow = withMutationResolver(useDeleteCardMutation, "Не удалось удалить карточку")(CardRowComponent);

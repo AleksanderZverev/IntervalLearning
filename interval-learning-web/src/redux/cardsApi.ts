@@ -1,8 +1,8 @@
-import { PhaseInfo } from '../types/schedule';
-import { Card } from './../types/Collection';
-import { api, tagTypes } from './apiSlice';
-import { addCard, addManyCards, getCardUniqueKey } from './slices/cardsSlice';
-import { addStartedCards, cardAddedToCollection } from './slices/collectionsSlice';
+import {PhaseInfo} from '../types/schedule';
+import {Card} from './../types/Collection';
+import {api, tagTypes} from './apiSlice';
+import {addCard, addManyCards, deleteCard, getCardUniqueKey} from './slices/cardsSlice';
+import {addStartedCards, cardAddedToCollection} from './slices/collectionsSlice';
 
 interface BaseRequestItem<T> {
     userId: string;
@@ -165,6 +165,19 @@ export const cardsApi = api.injectEndpoints({
             }),
             invalidatesTags: [tagTypes.repeatCardsList, tagTypes.queueCollectionsList],
         }),
+        deleteCard: build.mutation<Card, BaseRequestItem<Card>>({
+            query: ({collectionId, request: {id}}) => ({
+                url: `/collections/${collectionId}/cards/${id}`,
+                method: 'DELETE',
+                onSuccess: async (dispatch, data) => {
+                    const cards = data as Card;
+                    dispatch(deleteCard(cards));
+                }
+            }),
+            invalidatesTags: [tagTypes.card, tagTypes.notStartedCardsList,
+                tagTypes.notFinishedCollectionsList, tagTypes.repeatCardsList,
+                tagTypes.queueCollectionsList, tagTypes.collection],
+        })
     }),
 });
 
@@ -175,4 +188,5 @@ export const {
     useStartCardsMutation,
     useGetRepeatCardsQuery,
     usePatchRememberCardsMutation,
+    useDeleteCardMutation
 } = cardsApi;

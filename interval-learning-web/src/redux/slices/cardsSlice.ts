@@ -1,6 +1,6 @@
-import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { Card } from '../../types/Collection';
-import { RootState } from '../store';
+import {createSlice, PayloadAction} from '@reduxjs/toolkit';
+import {Card} from '../../types/Collection';
+import {RootState} from '../store';
 
 export const getCardKey = (userId: string, collectionId: string) => `${userId}-${collectionId}`;
 
@@ -12,7 +12,7 @@ interface State {
     userToCollectionToCard: { [userId: string]: { [collectionId: string]: { [cardId: string]: Card } } };
 }
 
-const initialState: State = { userToCollectionToCard: {} };
+const initialState: State = {userToCollectionToCard: {}};
 
 const setCard = (state: State, card: Card) => {
     const root = state.userToCollectionToCard;
@@ -43,6 +43,21 @@ export const cardsSlice = createSlice({
                 setCard(state, card);
             }
         },
+        deleteCard: (state, action: PayloadAction<Card>) => {
+            const root = state.userToCollectionToCard;
+            const card = action.payload;
+            if (!(card.userId in root)) {
+                return;
+            }
+
+            const collectionsIndex = root[card.userId];
+            if (!(card.collectionId in collectionsIndex)) {
+                return;
+            }
+
+            const collection = collectionsIndex[card.collectionId];
+            delete collection[card.id];
+        }
     },
 });
 
@@ -81,4 +96,4 @@ export const selectCardById = (
     return cardsIndex[cardId];
 };
 
-export const { addCard, addManyCards } = cardsSlice.actions;
+export const {addCard, addManyCards, deleteCard} = cardsSlice.actions;
