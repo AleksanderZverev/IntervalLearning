@@ -584,6 +584,34 @@ public class CollectionService
 
         return result;
     }
+    
+    public async Task<List<CollectionEntity>> SearchPrivateCollections(
+        long userId,
+        short themeId, 
+        string searchName, 
+        int page, 
+        int count)
+    {
+        var theme = await db.Themes.FindAsync(themeId);
+
+        if (theme == null)
+            return new List<CollectionEntity>();
+
+        var lowerSearchName = searchName.ToLowerInvariant();
+
+        var toSkip = (page - 1) * count;
+
+        return await db.Collections
+            .Where(c => 
+                c.ParentUserId == userId
+                && c.ThemeId == themeId
+                && !c.IsPublic
+                && c.Title.ToLower().StartsWith(lowerSearchName))
+            .Skip(toSkip)
+            .Take(count)
+            .OrderBy(x => x.Title)
+            .ToListAsync();
+    }
 
     public class RepeatingPhase
     {
