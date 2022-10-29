@@ -71,6 +71,11 @@ export interface GetNotStartedCardsRequest {
     count: number;
 }
 
+export interface MoveCardRequest{
+    destinationCollectionId: string;
+    cardId: string;
+}
+
 export const cardsApi = api.injectEndpoints({
     endpoints: (build) => ({
         getCards: build.query<Card[], BaseRequestItem<GetCardItem>>({
@@ -170,13 +175,31 @@ export const cardsApi = api.injectEndpoints({
                 url: `/collections/${collectionId}/cards/${id}`,
                 method: 'DELETE',
                 onSuccess: async (dispatch, data) => {
-                    const cards = data as Card;
-                    dispatch(deleteCard(cards));
+                    const card = data as Card;
+                    dispatch(deleteCard({cardId: card.id, userId: card.userId, collectionId: card.collectionId}));
                 }
             }),
             invalidatesTags: [tagTypes.card, tagTypes.notStartedCardsList,
                 tagTypes.notFinishedCollectionsList, tagTypes.repeatCardsList,
                 tagTypes.queueCollectionsList, tagTypes.collection],
+        }),
+        moveCard: build.mutation<Card, BaseRequestItem<MoveCardRequest>>({
+            query: ({collectionId, request}) => ({
+                url: `/collections/${collectionId}/cards/move`,
+                method: 'POST',
+                data: request
+            }),
+            async onQueryStarted(arg, { queryFulfilled, dispatch }) {
+                try {
+                    const response = await queryFulfilled;
+                    dispatch(deleteCard({cardId: arg.request.cardId, userId: arg.userId, collectionId: arg.collectionId}));
+                    dispatch(addCard(response.data))
+                } catch {}
+            },
+            invalidatesTags: [tagTypes.notStartedCardsList,
+                tagTypes.notFinishedCollectionsList, tagTypes.repeatCardsList,
+                tagTypes.queueCollectionsList,
+                tagTypes.collection],
         })
     }),
 });
@@ -188,5 +211,6 @@ export const {
     useStartCardsMutation,
     useGetRepeatCardsQuery,
     usePatchRememberCardsMutation,
-    useDeleteCardMutation
+    useDeleteCardMutation,
+    useMoveCardMutation
 } = cardsApi;

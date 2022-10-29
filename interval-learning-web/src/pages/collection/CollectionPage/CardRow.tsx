@@ -1,11 +1,21 @@
-import {Delete, Edit, KeyboardArrowDown, KeyboardArrowRight, KeyboardArrowUp} from '@mui/icons-material';
+import {
+    ArrowForward,
+    Delete, East,
+    Edit,
+    KeyboardArrowDown,
+    KeyboardArrowRight,
+    KeyboardArrowUp,
+    MoreVertSharp,
+    MoveDownSharp
+} from '@mui/icons-material';
 import { Collapse, IconButton, Portal, Stack } from '@mui/material';
 import { FC, useState } from 'react';
 import { CreateCardModal } from '../../../controls/Modals/CreateCardModal';
 import { TableCell, TableRow } from '../../../controls/Table/Table';
 import { Card } from '../../../types/Collection';
 import {withMutationResolver, WithMutationResolverProps} from "../../../hoc/withQueryResolver";
-import {useAddCardMutation, useDeleteCardMutation} from "../../../redux/cardsApi";
+import {useDeleteCardMutation} from "../../../redux/cardsApi";
+import {MoveCardModal} from "../../../controls/Modals/MoveCardModal";
 
 interface CardRowProps extends WithMutationResolverProps<typeof useDeleteCardMutation> {
     card: Card;
@@ -17,6 +27,7 @@ const CardRowComponent: FC<CardRowProps> = ({
                                             }) => {
     const [showDetails, setShowDetails] = useState(false);
     const [showEditCardModal, setShowEditCardModal] = useState(false);
+    const [showMoveCardModal, setShowMoveCardModal] = useState(false);
 
     const hasExamples = card.examples && card.examples.length > 0;
 
@@ -38,6 +49,12 @@ const CardRowComponent: FC<CardRowProps> = ({
                         onClose={() => setShowEditCardModal(false)}
                     />
                 )}
+                {showMoveCardModal && (
+                    <MoveCardModal
+                    isOpen={showMoveCardModal}
+                    card={card}
+                    onClose={() => setShowMoveCardModal(false)}/>
+                )}
             </Portal>
             <TableRow borderless hover={Boolean(hasExamples)} onClick={() => onShowDetails()}>
                 <TableCell>{card.frontSideText}</TableCell>
@@ -45,23 +62,27 @@ const CardRowComponent: FC<CardRowProps> = ({
                 <TableCell>{card.backSideText}</TableCell>
                 <TableCell sx={{ position: 'relative', paddingRight: 5 }}>
                     <div> {card.description}</div>
-                    <IconButton
-                        sx={{ position: 'absolute', right: 40, top: 10 }}
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            setShowEditCardModal(true);
-                        }}
-                    >
-                        <Edit fontSize="small" />
-                    </IconButton>
-                    <IconButton
-                        sx={{ position: 'absolute', right: 0, top: 10 }}
-                        onClick={async (e) => {
-                            e.stopPropagation();
-                            await deleteCard({collectionId: card.collectionId, userId: card.userId, request: card});
-                        }}>
-                        <Delete fontSize="small" color={"error"}/>
-                    </IconButton>
+                    <Stack direction={"row"} sx={{position: 'absolute', right: 0, top: 10}} >
+                        <IconButton
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                setShowEditCardModal(true);
+                            }}
+                        >
+                            <Edit fontSize="small"/>
+                        </IconButton>
+                        <IconButton
+                            onClick={() => setShowMoveCardModal(true)}>
+                            <ArrowForward fontSize={"small"}/>
+                        </IconButton>
+                        <IconButton
+                            onClick={async (e) => {
+                                e.stopPropagation();
+                                await deleteCard({collectionId: card.collectionId, userId: card.userId, request: card});
+                            }}>
+                            <Delete fontSize="small" color={"error"}/>
+                        </IconButton>
+                    </Stack>
                 </TableCell>
             </TableRow>
             <TableRow>

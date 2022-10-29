@@ -1,6 +1,8 @@
 import {createSlice, PayloadAction} from '@reduxjs/toolkit';
 import {Card} from '../../types/Collection';
 import {RootState} from '../store';
+import {getCollectionKey} from "./collectionsSlice";
+import {adapter} from "next/dist/server/web/adapter";
 
 export const getCardKey = (userId: string, collectionId: string) => `${userId}-${collectionId}`;
 
@@ -43,20 +45,20 @@ export const cardsSlice = createSlice({
                 setCard(state, card);
             }
         },
-        deleteCard: (state, action: PayloadAction<Card>) => {
+        deleteCard: (state, action: PayloadAction<{userId: string, collectionId: string, cardId: string}>) => {
             const root = state.userToCollectionToCard;
-            const card = action.payload;
-            if (!(card.userId in root)) {
+            const {userId, collectionId, cardId} = action.payload;
+            if (!(userId in root)) {
                 return;
             }
 
-            const collectionsIndex = root[card.userId];
-            if (!(card.collectionId in collectionsIndex)) {
+            const collectionsIndex = root[userId];
+            if (!(collectionId in collectionsIndex)) {
                 return;
             }
 
-            const collection = collectionsIndex[card.collectionId];
-            delete collection[card.id];
+            const collection = collectionsIndex[collectionId];
+            delete collection[cardId];
         }
     },
 });
