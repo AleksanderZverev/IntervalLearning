@@ -89,31 +89,41 @@ public class CardsService
         }
     }
 
-    public async Task<List<CardEntity>> Search(long userId, short collectionId, string searchValue, SearchFieldType fieldType = SearchFieldType.FrontText)
+    public async Task<List<CardEntity>> Search(
+        long userId,
+        short collectionId,
+        string searchValue,
+        SearchFieldType fieldType,
+        int page,
+        int count)
     {
+        var skip = (page - 1) * count;
+
         return fieldType switch
         {
             SearchFieldType.FrontText => await GetCards(c =>
                 c.ParentUserId == userId
                 && c.ParentCollectionId == collectionId
-                && c.FrontSideText.ToLower().StartsWith(searchValue)),
+                && c.FrontSideText.ToLower().StartsWith(searchValue), skip, count),
             SearchFieldType.PromptText => await GetCards(c =>
                 c.ParentUserId == userId
                 && c.ParentCollectionId == collectionId
-                && c.PromptText.ToLower().StartsWith(searchValue)),
+                && c.PromptText.ToLower().StartsWith(searchValue), skip, count),
             SearchFieldType.BackText => await GetCards(c =>
                 c.ParentUserId == userId
                 && c.ParentCollectionId == collectionId
-                && c.BackSideText.ToLower().StartsWith(searchValue)),
+                && c.BackSideText.ToLower().StartsWith(searchValue), skip, count),
             _ => throw new ArgumentOutOfRangeException(nameof(fieldType), fieldType, null)
         };
     }
 
-    private async Task<List<CardEntity>> GetCards(Expression<Func<CardEntity, bool>> condition)
+    private async Task<List<CardEntity>> GetCards(Expression<Func<CardEntity, bool>> condition, int skip, int take)
     {
         return await db.Cards
             .Where(condition)
             .OrderByDescending(c => c.CreatedDate)
+            .Skip(skip)
+            .Take(take)
             .ToListAsync();
     }
 
