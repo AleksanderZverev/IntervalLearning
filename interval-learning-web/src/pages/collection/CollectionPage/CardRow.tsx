@@ -1,12 +1,6 @@
 import {
     ArrowForward,
-    Delete, East,
-    Edit,
-    KeyboardArrowDown,
-    KeyboardArrowRight,
-    KeyboardArrowUp,
-    MoreVertSharp,
-    MoveDownSharp
+    Delete, Edit, KeyboardArrowRight
 } from '@mui/icons-material';
 import { Collapse, IconButton, Portal, Stack } from '@mui/material';
 import { FC, useState } from 'react';
@@ -60,9 +54,9 @@ const CardRowComponent: FC<CardRowProps> = ({
                 <TableCell>{card.frontSideText}</TableCell>
                 <TableCell>{card.promptText}</TableCell>
                 <TableCell>{card.backSideText}</TableCell>
+                <TableCell>{card.description}</TableCell>
                 <TableCell sx={{ position: 'relative', paddingRight: 5 }}>
-                    <div> {card.description}</div>
-                    <Stack direction={"row"} sx={{position: 'absolute', right: 0, top: 10}} >
+                    <Stack direction={"row"} sx={{ position: 'absolute', right: 20, top: 10 }}>
                         <IconButton
                             onClick={(e) => {
                                 e.stopPropagation();
@@ -78,7 +72,11 @@ const CardRowComponent: FC<CardRowProps> = ({
                         <IconButton
                             onClick={async (e) => {
                                 e.stopPropagation();
-                                await deleteCard({collectionId: card.collectionId, userId: card.userId, request: card});
+                                await deleteCard({
+                                    collectionId: card.collectionId,
+                                    userId: card.userId,
+                                    request: card
+                                });
                             }}>
                             <Delete fontSize="small" color={"error"}/>
                         </IconButton>

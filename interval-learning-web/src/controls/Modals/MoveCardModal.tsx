@@ -1,11 +1,11 @@
-import {FC, MouseEventHandler, useMemo, useState} from "react";
-import {Autocomplete, Button, Dialog, DialogActions, DialogContent, DialogTitle, TextField} from "@mui/material";
+import { FC, useState } from "react";
+import { Autocomplete, Button, Dialog, DialogActions, DialogContent, DialogTitle } from "@mui/material";
 import useTypedSelector from "../../hooks/useTypedSelector";
-import {selectCollections} from "../../redux/slices/collectionsSlice";
-import {FormField} from "../Form/Form";
-import {Card, Collection} from "../../types/Collection";
-import {useMoveCardMutation} from "../../redux/cardsApi";
-import {withMutationResolver, WithMutationResolverProps} from "../../hoc/withQueryResolver";
+import { selectCollections } from "../../redux/slices/collectionsSlice";
+import { FormField } from "../Form/Form";
+import { Card, Collection } from "../../types/Collection";
+import { useMoveCardMutation } from "../../redux/cardsApi";
+import { withMutationResolver, WithMutationResolverProps } from "../../hoc/withQueryResolver";
 
 interface MoveCardModalProps extends WithMutationResolverProps<typeof useMoveCardMutation> {
     isOpen: boolean;
@@ -15,7 +15,7 @@ interface MoveCardModalProps extends WithMutationResolverProps<typeof useMoveCar
 
 const MoveCardModalComponent: FC<MoveCardModalProps> = (
     {
-        mutationProps: {mutate: moveCard, showRetryModal, isLoading},
+        mutationProps: { mutate: moveCard, showRetryModal, isLoading },
         ...props
     }) => {
     const availableCollections = useTypedSelector(selectCollections)
@@ -38,7 +38,7 @@ const MoveCardModalComponent: FC<MoveCardModalProps> = (
 
     return (
         <Dialog open={props.isOpen} fullWidth maxWidth={"sm"} onClose={props.onClose}>
-            <DialogTitle>{"Переместить карточку в"}</DialogTitle>
+            <DialogTitle>{"Перемещение карточки"}</DialogTitle>
             <DialogContent>
                 <Autocomplete
                     renderInput={(params) => <FormField {...params} withoutErrorMessage/>}
