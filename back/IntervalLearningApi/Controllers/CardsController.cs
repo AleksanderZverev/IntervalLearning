@@ -97,10 +97,15 @@ namespace IntervalLearningApi.Controllers
         }
 
         [HttpGet("search")]
-        public async Task<ActionResult<List<Card>>> SearchCard(short collectionId, [FromQuery] string searchValue, [FromQuery] SearchFieldType fieldType)
+        public async Task<ActionResult<List<Card>>> SearchCard(
+            short collectionId,
+            [FromQuery] string searchValue,
+            [FromQuery] SearchFieldType fieldType,
+            [FromQuery] int page = 1,
+            [FromQuery] int count = 10)
         {
             var userId = HttpContext.GetUserId();
-            var cardEntities = await cardsService.Search(userId, collectionId, searchValue.ToLower(), fieldType);
+            var cardEntities = await cardsService.Search(userId, collectionId, searchValue.ToLower(), fieldType, page, count);
             return cardEntities.Select(CollectionsController.ToCard).ToList();
         }
 
