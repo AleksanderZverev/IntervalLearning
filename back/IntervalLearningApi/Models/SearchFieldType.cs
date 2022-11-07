@@ -2,7 +2,7 @@
 
 public enum SearchFieldType
 {
-    FrontText,
+    RememberingText,
     PromptText,
-    BackText
+    MeaningText
 }

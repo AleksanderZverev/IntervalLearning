@@ -101,7 +101,7 @@ public class CardsService
 
         return fieldType switch
         {
-            SearchFieldType.FrontText => await GetCards(c =>
+            SearchFieldType.RememberingText => await GetCards(c =>
                 c.ParentUserId == userId
                 && c.ParentCollectionId == collectionId
                 && c.FrontSideText.ToLower().StartsWith(searchValue), skip, count),
@@ -109,7 +109,7 @@ public class CardsService
                 c.ParentUserId == userId
                 && c.ParentCollectionId == collectionId
                 && c.PromptText.ToLower().StartsWith(searchValue), skip, count),
-            SearchFieldType.BackText => await GetCards(c =>
+            SearchFieldType.MeaningText => await GetCards(c =>
                 c.ParentUserId == userId
                 && c.ParentCollectionId == collectionId
                 && c.BackSideText.ToLower().StartsWith(searchValue), skip, count),

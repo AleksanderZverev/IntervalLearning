@@ -273,8 +273,7 @@ public class CollectionService
             return (card, error);
         }
 
-        if (card != null)
-            collection.CardsCount--;
+        collection.CardsCount--;
 
         await db.SaveChangesAsync();
 
