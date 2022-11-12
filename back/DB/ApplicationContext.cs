@@ -35,6 +35,11 @@ namespace DB
         public DbSet<WordEntity> Words { get; set; }
         public DbSet<LanguageEntity> Languages { get; set; }
         public DbSet<TranslationEntity> Translations { get; set; }
+        
+        //Courses
+
+        public DbSet<CourseEntity> Courses { get; set; }
+        public DbSet<UsersGroupEntity> UsersGroups { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
