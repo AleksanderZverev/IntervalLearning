@@ -18,12 +18,12 @@ import { CardRow } from './CardRow';
 import { FormField } from "../../../controls/Form/Form";
 import { useDocumentTitle } from "../../../hooks/useCollectionTitle";
 
-const cardsCountPerPage = 50;
+const cardsCountPerPage = 1;
 const defaultSearchFieldType = "Слово";
-const mapFieldTypeToText: { [key: string]: SearchFieldType; } = {
-    "Перевод": SearchFieldType.BackText,
+const mapTextToFieldType: { [key: string]: SearchFieldType; } = {
+    "Перевод": SearchFieldType.MeaningText,
     "Подсказка": SearchFieldType.PromptText,
-    "Слово": SearchFieldType.FrontText
+    "Слово": SearchFieldType.RememberingText
 }
 
 export const CollectionPage: FC = () => {
@@ -39,11 +39,13 @@ export const CollectionPage: FC = () => {
     const [searchValue, setSearchValue] = useState('');
     const [searchFieldType, setSearchFieldType] = useState<string>(defaultSearchFieldType);
     const useSearch = useMemo(() => Boolean(searchValue), [searchValue]);
-    useEffect(() => {
-        if (!useSearch){
+
+    const onSearchValueChange = (newValue: string) => {
+        if (!Boolean(newValue)) {
             setSearchPage(1);
         }
-    }, [useSearch]);
+        setSearchValue(newValue);
+    }
 
     const { isFetching: isCollectionFetching, isError: isCollectionError } = useGetCollectionQuery({ collectionId });
     const { isFetching: isCardsFetching, isError: isCardsError } = useGetCardsQuery({
@@ -57,12 +59,11 @@ export const CollectionPage: FC = () => {
         userId,
         request: {
             searchValue,
-            page: searchPage,
+            page: 1,
             count: cardsCountPerPage * searchPage,//todo придумать как хранить в состоянии
-            fieldType: mapFieldTypeToText[searchFieldType]
+            fieldType: mapTextToFieldType[searchFieldType]
         }
     }, { skip: !useSearch });
-
     const isFetching = isCollectionFetching || isCardsFetching;
     const isError = isCollectionError || isCardsError || isSearchError;
 
@@ -85,7 +86,7 @@ export const CollectionPage: FC = () => {
         workingCards.splice(cardsCountPerPage);
 
         return workingCards;
-    }, [useSearch, searchPage, page, sortedCards]);
+    }, [page, sortedCards]);
 
     const [showCreateCardModal, setShowCreateCardModal] = useState(false);
     // const defaultSchedule = useTypedSelector(
@@ -146,14 +147,14 @@ export const CollectionPage: FC = () => {
                         placeholder="Поиск карточки"
                         variant="standard"
                         sx={{ fontSize: "50px" }}
-                        onChange={(e) => setSearchValue(e.target.value)}
+                        onChange={(e) => onSearchValueChange(e.target.value)}
                     />
                     <Autocomplete
                         sx={{ minWidth: '150px', width: "150px" }}
                         value={searchFieldType}
-                        options={Object.keys(mapFieldTypeToText)}
+                        options={Object.keys(mapTextToFieldType)}
                         renderInput={params => <FormField sx={{ height: "20px" }} {...params}/>}
-                        onChange={(event, newValue) => setSearchFieldType( newValue ?? defaultSearchFieldType)}
+                        onChange={(event, newValue) => setSearchFieldType(newValue ?? defaultSearchFieldType)}
                     />
                 </Stack>
                 <Table>
@@ -162,7 +163,7 @@ export const CollectionPage: FC = () => {
                         <TableHeaderCell>Подсказка (чтение)</TableHeaderCell>
                         <TableHeaderCell>Значение</TableHeaderCell>
                         <TableHeaderCell>Описание</TableHeaderCell>
-                        <TableHeaderCell sx={{minWidth: "100px"}}/>
+                        <TableHeaderCell sx={{ minWidth: "100px" }}/>
                     </TableHead>
                     <TableBody>
                         {cards && cards.length > 0 ? (

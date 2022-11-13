@@ -25,9 +25,9 @@ export interface GetCardItem {
 }
 
 export enum SearchFieldType {
-    FrontText = "FrontText",
+    RememberingText = "RememberingText",
     PromptText = "PromptText",
-    BackText = "BackText"
+    MeaningText = "MeaningText"
 }
 
 export interface SearchCardsItem {
