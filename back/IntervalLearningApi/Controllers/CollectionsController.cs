@@ -51,10 +51,10 @@ namespace IntervalLearningApi.Controllers
         }
 
         [HttpGet("search/private")]
-        public async Task<ActionResult<List<Collection>>> SearchPrivateCollection(short themeId, string? searchName = null, int page = 1, int count = 10)
+        public async Task<ActionResult<List<Collection>>> SearchCollection(short themeId, string? searchName = null, int page = 1, int count = 10)
         {
             var userId = HttpContext.GetUserId();
-            var collections = await collectionService.SearchPrivateCollections(userId, themeId, searchName ?? "", page, count);
+            var collections = await collectionService.SearchCollections(userId, themeId, searchName ?? "", page, count);
             return collections.Select(ToCollection).ToList();
         }
 

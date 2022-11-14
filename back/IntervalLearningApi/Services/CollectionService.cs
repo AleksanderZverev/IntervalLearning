@@ -584,7 +584,7 @@ public class CollectionService
         return result;
     }
     
-    public async Task<List<CollectionEntity>> SearchPrivateCollections(
+    public async Task<List<CollectionEntity>> SearchCollections(
         long userId,
         short themeId, 
         string searchName, 
@@ -607,7 +607,6 @@ public class CollectionService
                 && c.Title.ToLower().StartsWith(lowerSearchName))
             .Skip(toSkip)
             .Take(count)
-            .OrderBy(x => x.Title)
             .ToListAsync();
     }
 
