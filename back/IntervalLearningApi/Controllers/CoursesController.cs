@@ -18,30 +18,68 @@ public class CoursesController : ControllerBase
     }
 
     [HttpPost]
-    public ActionResult<Course> CreateCourse([FromBody] CreateCourseRequest request)
+    public ActionResult<Course> Create([FromBody] CreateCourseRequest request)
     {
         var (course, error) = coursesService.CreateOrEdit(
             new CreateOrPatchCourse
             {
                 Name = request.Name,
-                UsersGroupIds = request.UsersGroupId
+                UsersGroupIds = request.UsersGroupIds
             },
-            request.CourseId);
+            null);
 
         return course != null
             ? ToCourse(course)
             : BadRequest(error);
     }
     
-    public Course ToCourse(CourseEntity courseEntity)
+    [HttpPost("{courseId:long}")]
+    public ActionResult<Course> Patch(long courseId, [FromBody] PatchCourseRequest request)
     {
-        return new Course(courseEntity.Id, courseEntity.Name, courseEntity.UsersGroupIds);
+        var (course, error) = coursesService.CreateOrEdit(
+            new CreateOrPatchCourse
+            {
+                Name = request.Name
+            },
+            courseId);
+
+        return course != null
+            ? ToCourse(course)
+            : BadRequest(error);
     }
+
+    [HttpGet]
+    public async Task<ActionResult<List<Course>>> GetAll([FromQuery] int page, [FromQuery] int count)
+    {
+        var courses = await coursesService.Search(null, page, count);
+        return courses.Select(ToCourse).ToList();
+    }
+
+    [HttpGet("search/{name}")]
+    public async Task<ActionResult<List<Course>>> Search(string name, [FromQuery] int page, [FromQuery] int count)
+    {
+        var courses = await coursesService.Search(name, page, count);
+        return courses.Select(ToCourse).ToList();
+    }
+
+    [HttpDelete("{id:long}")]
+    public async Task<ActionResult<Course>> Delete(long id)
+    {
+        var (course, error) = await coursesService.Delete(id);
+        return course != null ? ToCourse(course) : BadRequest(error);
+    }
+
+    public Course ToCourse(CourseEntity courseEntity) =>
+        new(courseEntity.Id, courseEntity.Name, courseEntity.Link, courseEntity.UsersGroupIds);
 }
 
 public class CreateCourseRequest
 {
-    public long CourseId;
-    public string Name;
-    public List<long> UsersGroupId;
+    public string Name { get; set; }
+    public List<long> UsersGroupIds { get; set; }
+}
+
+public class PatchCourseRequest
+{
+    public string Name { get; set; }
 }

@@ -1,17 +1,15 @@
 ﻿using DB;
 using DB.Models;
-using IntervalLearningApi.Models.Courses;
-using Microsoft.EntityFrameworkCore;
 
 namespace IntervalLearningApi.Services;
 
-public class CoursesService
+public class TopicsService
 {
     private readonly ILogger<CardsService> logger;
     private readonly IWebHostEnvironment env;
     private readonly ApplicationContext db;
 
-    public CoursesService(ILogger<CardsService> logger,
+    public TopicsService(ILogger<CardsService> logger,
         IWebHostEnvironment env,
         ApplicationContext db)
     {
@@ -20,7 +18,7 @@ public class CoursesService
         this.db = db;
     }
 
-    public (CourseEntity? course, string? error) CreateOrEdit(CreateOrPatchCourse item, long? courseId)
+    public (TopicEntity? course, string? error) CreateOrEdit(CreateOrPatchCourse item, long? courseId)
     {
         var course = courseId == null
             ? new CourseEntity()
@@ -43,16 +41,27 @@ public class CoursesService
         }
     }
 
-    public Task<List<CourseEntity>> Search(string? name, int page, int count)
+    public Task<List<CourseEntity>> GetAll(int page, int count)
     {
         var toSkip = (page - 1) * count;
 
         return db.Courses
-            .Where(x => name == null || x.Name.ToLowerInvariant().StartsWith(name.ToLowerInvariant()))
             .OrderByDescending(c => c.Name)
             .Skip(toSkip)
             .Take(count)
             .ToListAsync();
+    }
+
+    public async Task<CourseEntity?> Get(string name) => await db.Courses.FindAsync(name);
+
+    public async Task<(string?, string?)> GetLink(long id)
+    {
+        var course = await db.Courses.FindAsync(id);
+
+        if (course == null)
+            return (null, "Course not found");
+
+        return (course.Link, null) ;
     }
 
     public async Task<(CourseEntity? course, string? error)> Delete(long id)
