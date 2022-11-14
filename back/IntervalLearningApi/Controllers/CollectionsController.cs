@@ -50,6 +50,14 @@ namespace IntervalLearningApi.Controllers
             return collections.Select((t) => ToStoreCollection(t.collection, t.subscriber)).ToList();
         }
 
+        [HttpGet("search/private")]
+        public async Task<ActionResult<List<Collection>>> SearchCollection(short themeId, string? searchName = null, int page = 1, int count = 10)
+        {
+            var userId = HttpContext.GetUserId();
+            var collections = await collectionService.SearchCollections(userId, themeId, searchName ?? "", page, count);
+            return collections.Select(ToCollection).ToList();
+        }
+
         [AllowAnonymous]
         [HttpGet("/public/{userId:long}-{collectionId}")]
         public async Task<ActionResult<Collection>> GetPublicCollection(long userId, short collectionId)

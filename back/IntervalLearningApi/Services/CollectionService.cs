@@ -249,6 +249,98 @@ public class CollectionService
 
         return (card, null);
     }
+    
+    public async Task<(CardEntity? card, string? error)> DeleteCard(
+        long userId,
+        short collectionId,
+        short cardId,
+        bool disableTransaction = false)
+    {
+        var collection = await db.Collections.FindAsync(userId, collectionId);
+
+        if (collection == null)
+            return (null, "Collection not found");
+
+        if (!disableTransaction)
+            await db.Database.BeginTransactionAsync();
+
+        var (card, error) = await cardsService.Delete(userId, collectionId, cardId);
+
+        if (error != null)
+        {
+            if (!disableTransaction)
+                await db.Database.RollbackTransactionAsync();
+            return (card, error);
+        }
+
+        collection.CardsCount--;
+
+        await db.SaveChangesAsync();
+
+        if (!disableTransaction)
+            await db.Database.CommitTransactionAsync();
+
+        return (card, null);
+    }
+
+    public async Task<(CardEntity? card, string? error)> MoveCard(
+        long userId,
+        short sourceCollectionId,
+        short destinationCollectionId,
+        short cardId,
+        bool disableTransaction = false)
+    {
+        var sourceCollection = await db.Collections.FindAsync(userId, sourceCollectionId);
+        var destinationCollection = await db.Collections.FindAsync(userId, destinationCollectionId);
+
+        if (sourceCollection == null)
+            return (null, "Source collection not found");
+        if (destinationCollection == null)
+            return (null, "Destination collection not found");
+
+        if (!disableTransaction)
+            await db.Database.BeginTransactionAsync();
+
+        var (deletedCard, deletedError) = await cardsService.Delete(userId, sourceCollectionId, cardId);
+
+        if (deletedError != null)
+        {
+            if (!disableTransaction)
+                await db.Database.RollbackTransactionAsync();
+            return (deletedCard, deletedError);
+        }
+
+        var (card, error, isCreated) = cardsService.CreateOrEdit(
+            new CardsService.CreateOrPatchCard(
+                userId,
+                destinationCollectionId,
+                deletedCard!.FrontSideText,
+                deletedCard.PromptText,
+                deletedCard.BackSideText,
+                deletedCard.Description,
+                deletedCard.Examples),
+            null);
+
+        if (error != null)
+        {
+            if (!disableTransaction)
+                await db.Database.RollbackTransactionAsync();
+            return (card, error);
+        }
+
+        if (isCreated)
+        {
+            sourceCollection.CardsCount--;
+            destinationCollection.CardsCount++;
+        }
+
+        await db.SaveChangesAsync();
+
+        if (!disableTransaction)
+            await db.Database.CommitTransactionAsync();
+
+        return (card, null);
+    }
 
     public async Task<(List<WordEntity>? words, LanguageEntity? language, string? error)> GetRandomWords(
         long userId, 
@@ -490,6 +582,32 @@ public class CollectionService
             .ToList();
 
         return result;
+    }
+    
+    public async Task<List<CollectionEntity>> SearchCollections(
+        long userId,
+        short themeId, 
+        string searchName, 
+        int page, 
+        int count)
+    {
+        var theme = await db.Themes.FindAsync(themeId);
+
+        if (theme == null)
+            return new List<CollectionEntity>();
+
+        var lowerSearchName = searchName.ToLowerInvariant();
+
+        var toSkip = (page - 1) * count;
+
+        return await db.Collections
+            .Where(c => 
+                c.ParentUserId == userId
+                && c.ThemeId == themeId
+                && c.Title.ToLower().StartsWith(lowerSearchName))
+            .Skip(toSkip)
+            .Take(count)
+            .ToListAsync();
     }
 
     public class RepeatingPhase

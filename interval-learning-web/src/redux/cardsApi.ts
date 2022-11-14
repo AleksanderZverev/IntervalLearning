@@ -1,8 +1,8 @@
 import { PhaseInfo } from '../types/schedule';
-import { Card } from './../types/Collection';
+import { Card } from '../types/Collection';
 import { api, tagTypes } from './apiSlice';
-import { addCard, addManyCards, getCardUniqueKey } from './slices/cardsSlice';
-import { addStartedCards, cardAddedToCollection } from './slices/collectionsSlice';
+import { addCard, addManyCards, deleteCard, getCardUniqueKey } from './slices/cardsSlice';
+import { addStartedCards, cardAddedToCollection, cardDeletedFromCollection } from './slices/collectionsSlice';
 
 interface BaseRequestItem<T> {
     userId: string;
@@ -22,6 +22,19 @@ export interface CreateCardItem {
 export interface GetCardItem {
     page: number;
     count: number;
+}
+
+export enum SearchFieldType {
+    RememberingText = "RememberingText",
+    PromptText = "PromptText",
+    MeaningText = "MeaningText"
+}
+
+export interface SearchCardsItem {
+    searchValue: string;
+    page: number;
+    count: number;
+    fieldType: SearchFieldType
 }
 
 export interface CardIdsList {
@@ -69,6 +82,11 @@ export interface GetNotStartedCardsRequest {
     scheduleUserId: string;
     scheduleId: string;
     count: number;
+}
+
+export interface MoveCardRequest{
+    destinationCollectionId: string;
+    cardId: string;
 }
 
 export const cardsApi = api.injectEndpoints({
@@ -165,6 +183,50 @@ export const cardsApi = api.injectEndpoints({
             }),
             invalidatesTags: [tagTypes.repeatCardsList, tagTypes.queueCollectionsList],
         }),
+        deleteCard: build.mutation<Card, BaseRequestItem<Card>>({
+            query: ({ collectionId, request: { id } }) => ({
+                url: `/collections/${collectionId}/cards/${id}`,
+                method: 'DELETE',
+                onSuccess: async (dispatch, data) => {
+                    const card = data as Card;
+                    dispatch(deleteCard({ cardId: card.id, userId: card.userId, collectionId: card.collectionId }));
+                    dispatch(cardDeletedFromCollection({ collectionId: card.collectionId, userId: card.userId }));
+                }
+            }),
+            invalidatesTags: [tagTypes.repeatCardsList, tagTypes.notFinishedCollectionsList, tagTypes.queueCollectionsList],
+        }),
+        moveCard: build.mutation<Card, BaseRequestItem<MoveCardRequest>>({
+            query: ({ collectionId, request }) => ({
+                url: `/collections/${collectionId}/cards/move`,
+                method: 'POST',
+                data: request
+            }),
+            async onQueryStarted(arg, { queryFulfilled, dispatch }) {
+                try {
+                    const response = await queryFulfilled;
+                    dispatch(deleteCard({
+                        cardId: arg.request.cardId,
+                        userId: arg.userId,
+                        collectionId: arg.collectionId
+                    }));
+                    dispatch(cardDeletedFromCollection({ collectionId: arg.collectionId, userId: arg.userId }));
+                    dispatch(addCard(response.data));
+                    dispatch(cardAddedToCollection({
+                        collectionId: arg.request.destinationCollectionId,
+                        userId: arg.userId
+                    }))
+                } catch {
+                }
+            },
+            invalidatesTags: [tagTypes.repeatCardsList, tagTypes.notFinishedCollectionsList, tagTypes.queueCollectionsList],
+        }),
+        searchCards: build.query<Card[], BaseRequestItem<SearchCardsItem>>({
+            query: ({ collectionId, request }) => ({
+                url: `/collections/${collectionId}/cards/search`,
+                method: 'GET',
+                params: request
+            })
+        })
     }),
 });
 
@@ -175,4 +237,7 @@ export const {
     useStartCardsMutation,
     useGetRepeatCardsQuery,
     usePatchRememberCardsMutation,
+    useDeleteCardMutation,
+    useMoveCardMutation,
+    useSearchCardsQuery
 } = cardsApi;
