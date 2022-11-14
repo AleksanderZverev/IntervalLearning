@@ -604,7 +604,6 @@ public class CollectionService
             .Where(c => 
                 c.ParentUserId == userId
                 && c.ThemeId == themeId
-                && !c.IsPublic
                 && c.Title.ToLower().StartsWith(lowerSearchName))
             .Skip(toSkip)
             .Take(count)
