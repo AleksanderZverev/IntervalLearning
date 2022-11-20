@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using IntervalLearningApi.Extensions;
+using IntervalLearningApi.Models;
 using IntervalLearningApi.Models.ByUser;
 using IntervalLearningApi.Models.RepeatsSchedule;
 using IntervalLearningApi.Services;
@@ -77,6 +78,35 @@ namespace IntervalLearningApi.Controllers
             return card != null
                 ? CollectionsController.ToCard(card)
                 : BadRequest(error);
+        }
+
+        [HttpDelete("{cardId}")]
+        public async Task<ActionResult<Card>> DeleteCard(short collectionId, short cardId)
+        {
+            var userId = HttpContext.GetUserId();
+            var (cardEntity, error) = await collectionService.DeleteCard(userId, collectionId, cardId);
+            return cardEntity != null ? CollectionsController.ToCard(cardEntity) : BadRequest(error);
+        }
+
+        [HttpPost("move")]
+        public async Task<ActionResult<Card>> MoveCard(short collectionId, [FromBody] MoveRequest request)
+        {
+            var userId = HttpContext.GetUserId();
+            var (cardEntity, error) = await collectionService.MoveCard(userId, collectionId, request.DestinationCollectionId, request.CardId);
+            return cardEntity != null ? CollectionsController.ToCard(cardEntity) : BadRequest(error);
+        }
+
+        [HttpGet("search")]
+        public async Task<ActionResult<List<Card>>> SearchCard(
+            short collectionId,
+            [FromQuery] string searchValue,
+            [FromQuery] SearchFieldType fieldType,
+            [FromQuery] int page = 1,
+            [FromQuery] int count = 10)
+        {
+            var userId = HttpContext.GetUserId();
+            var cardEntities = await cardsService.Search(userId, collectionId, searchValue.ToLower(), fieldType, page, count);
+            return cardEntities.Select(CollectionsController.ToCard).ToList();
         }
 
         [HttpPost("start")]
@@ -165,6 +195,12 @@ namespace IntervalLearningApi.Controllers
         public long ScheduleUserId { get; set; }
         public short ScheduleId { get; set; }
         public short PhaseIndex { get; set; }
+    }
+
+    public class MoveRequest
+    {
+        public short DestinationCollectionId { get; set; }
+        public short CardId { get; set; }
     }
 
     public class RememberItem
