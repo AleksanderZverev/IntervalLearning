@@ -1,9 +1,8 @@
-﻿using System.ComponentModel.DataAnnotations.Schema;
+﻿using DB.Models;
 
-namespace DB.Models;
+namespace IntervalLearningApi.Models.Topics;
 
-[Table("Topics")]
-public class TopicEntity
+public class Topic
 {
     public long Id { get; set; }
     public long ParentCourseId { get; set; }

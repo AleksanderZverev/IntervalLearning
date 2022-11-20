@@ -1,5 +1,7 @@
 ﻿using DB;
 using DB.Models;
+using IntervalLearningApi.Models.Topics;
+using Microsoft.EntityFrameworkCore;
 
 namespace IntervalLearningApi.Services;
 
@@ -18,22 +20,22 @@ public class TopicsService
         this.db = db;
     }
 
-    public (TopicEntity? course, string? error) CreateOrEdit(CreateOrPatchCourse item, long? courseId)
+    public (TopicEntity? course, string? error) CreateOrEdit(CreateOrPatchTopic item, long? courseId)
     {
-        var course = courseId == null
-            ? new CourseEntity()
-            : db.Courses.Find(courseId);
+        var topic = courseId == null
+            ? new TopicEntity()
+            : db.Topics.Find(courseId);
 
-        if (course == null)
+        if (topic == null)
             return (null, "Course not found");
 
-        var entry = db.Entry(course);
+        var entry = db.Entry(topic);
         entry.CurrentValues.SetValues(item);
 
         try
         {
             db.SaveChanges();
-            return (course, null);
+            return (topic, null);
         }
         catch
         {
@@ -41,18 +43,18 @@ public class TopicsService
         }
     }
 
-    public Task<List<CourseEntity>> GetAll(int page, int count)
+    public Task<List<TopicEntity>> GetAll(long parentCourseId, int page, int count)
     {
         var toSkip = (page - 1) * count;
 
-        return db.Courses
-            .OrderByDescending(c => c.Name)
+        return db.Topics
+            .Where(x => x.ParentCourseId == parentCourseId)
             .Skip(toSkip)
             .Take(count)
             .ToListAsync();
     }
 
-    public async Task<CourseEntity?> Get(string name) => await db.Courses.FindAsync(name);
+    public async Task<TopicEntity?> Get(long name) => await db.Topics.FindAsync(name);
 
     public async Task<(string?, string?)> GetLink(long id)
     {

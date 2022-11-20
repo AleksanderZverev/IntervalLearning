@@ -40,6 +40,7 @@ namespace DB
 
         public DbSet<CourseEntity> Courses { get; set; }
         public DbSet<UsersGroupEntity> UsersGroups { get; set; }
+        public DbSet<TopicEntity> Topics { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
