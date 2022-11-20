@@ -1,4 +1,5 @@
-﻿using DB;
+﻿using System.Linq.Expressions;
+using DB;
 using DB.Models;
 using IntervalLearningApi.Models.Topics;
 using Microsoft.EntityFrameworkCore;
@@ -43,46 +44,42 @@ public class TopicsService
         }
     }
 
-    public Task<List<TopicEntity>> GetAll(long parentCourseId, int page, int count)
-    {
-        var toSkip = (page - 1) * count;
-
-        return db.Topics
-            .Where(x => x.ParentCourseId == parentCourseId)
-            .Skip(toSkip)
-            .Take(count)
-            .ToListAsync();
-    }
+    public Task<List<TopicEntity>> GetAll(long parentCourseId, int page, int count) =>
+        SearchByCondition(x => x.ParentCourseId == parentCourseId, page, count);
 
     public async Task<TopicEntity?> Get(long name) => await db.Topics.FindAsync(name);
 
-    public async Task<(string?, string?)> GetLink(long id)
-    {
-        var course = await db.Courses.FindAsync(id);
+    public Task<List<TopicEntity>> SearchByName(long parentCourseId, string name, int page, int count) =>
+        SearchByCondition(x => x.ParentCourseId == parentCourseId && x.Name == name, page, count);
 
-        if (course == null)
+    public async Task<(TopicEntity? course, string? error)> Delete(long id)
+    {
+        var topicEntity = await db.Topics.FindAsync(id);
+
+        if (topicEntity == null)
             return (null, "Course not found");
 
-        return (course.Link, null) ;
-    }
-
-    public async Task<(CourseEntity? course, string? error)> Delete(long id)
-    {
-        var course = await db.Courses.FindAsync(id);
-
-        if (course == null)
-            return (null, "Course not found");
-
-        db.Courses.Remove(course);
+        db.Topics.Remove(topicEntity);
 
         try
         {
             await db.SaveChangesAsync();
-            return (course, null);
+            return (topicEntity, null);
         }
         catch
         {
             return (null, "Unknown error");
         }
+    }
+
+    private Task<List<TopicEntity>> SearchByCondition(Expression<Func<TopicEntity, bool>> condition, int page, int count)
+    {
+        var toSkip = (page - 1) * count;
+
+        return db.Topics
+            .Where(condition)
+            .Skip(toSkip)
+            .Take(count)
+            .ToListAsync();
     }
 }

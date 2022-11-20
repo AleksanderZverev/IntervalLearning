@@ -33,7 +33,7 @@ public class CoursesController : ControllerBase
             : BadRequest(error);
     }
     
-    [HttpPost("{courseId:long}")]
+    [HttpPatch("{courseId:long}")]
     public ActionResult<Course> Patch(long courseId, [FromBody] PatchCourseRequest request)
     {
         var (course, error) = coursesService.CreateOrEdit(

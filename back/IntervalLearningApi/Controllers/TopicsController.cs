@@ -34,6 +34,23 @@ public class TopicsController : ControllerBase
             : BadRequest(error);
     }
 
+    [HttpPost("{parentCourseId:long}")]
+    public ActionResult<Topic> Patch(long parentCourseId, [FromBody] PatchTopicRequest request)
+    {
+        var (topicEntity, error) = topicsService.CreateOrEdit(
+            new CreateOrPatchTopic
+            {
+                ParentCourseId = parentCourseId,
+                Name = request.Name,
+                Theory = request.Theory
+            },
+            parentCourseId);
+
+        return topicEntity != null
+            ? ToTopic(topicEntity)
+            : BadRequest(error);
+    }
+
     [HttpGet("all/{parentCourseId:long}")]
     public async Task<ActionResult<List<Topic>>> GetAll(long parentCourseId, [FromQuery] int page, [FromQuery] int count)
     {
@@ -48,6 +65,24 @@ public class TopicsController : ControllerBase
         return topicEntity != null
             ? ToTopic(topicEntity)
             : NotFound();
+    }
+
+    [HttpGet("{parentCourseId:long}")]
+    public async Task<ActionResult<List<Topic>>> SearchByName(
+        long parentCourseId,
+        [FromQuery] string name,
+        [FromQuery] int page,
+        [FromQuery] int count)
+    {
+        var topicEntities = await topicsService.SearchByName(parentCourseId, name, page, count);
+        return topicEntities.Select(ToTopic).ToList();
+    }
+
+    [HttpDelete("{id:long}")]
+    public async Task<ActionResult<Topic>> Delete(long id)
+    {
+        var (topicEntity, error) = await topicsService.Delete(id);
+        return topicEntity != null ? ToTopic(topicEntity) : BadRequest(error);
     }
 
     private static Topic ToTopic(TopicEntity course)
@@ -66,6 +101,12 @@ public class TopicsController : ControllerBase
 public class CreateTopicRequest
 {
     public string Name { get; set; }
-    public Guid ParentCourseId { get; set; }
+    public long ParentCourseId { get; set; }
+    public string Theory { get; set; }
+}
+
+public class PatchTopicRequest
+{
+    public string Name { get; set; }
     public string Theory { get; set; }
 }
