@@ -54,11 +54,6 @@ namespace DB
                 .WithOne(c => c.ParentUser)
                 .HasForeignKey(c => c.ParentUserId);
 
-            modelBuilder.Entity<UserEntity>()
-                .HasMany<UsersGroupEntity>()
-                .WithMany(x => x.Users)
-                .UsingEntity(j => j.ToTable("Users-UsersGroups"));
-
            // UserPasswordsEntity
 
             modelBuilder.Entity<UserPasswordsEntity>()
@@ -101,7 +96,7 @@ namespace DB
             // CollectionEntity
 
             modelBuilder.Entity<CollectionEntity>()
-                .HasKey(c => new {c.ParentUserId, c.Id});
+                .HasKey(c => new {c.ParentUserId, c.ParentTopicId, c.Id});
 
             modelBuilder.Entity<CollectionEntity>()
                 .HasOne(c => c.ParentUser)
@@ -125,6 +120,11 @@ namespace DB
                 .HasOne<TopicEntity>()
                 .WithMany(x => x.CourseCollections)
                 .HasForeignKey(x => x.ParentTopicId);
+
+            modelBuilder.Entity<CollectionEntity>()
+                .HasOne(x => x.ParentTopic)
+                .WithMany(x => x.CourseCollections)
+                .HasForeignKey(c => c.ParentTopicId);
 
             // CardEntity
 
@@ -266,16 +266,36 @@ namespace DB
             // TopicEntity
 
             modelBuilder.Entity<TopicEntity>()
-                .HasOne<CourseEntity>()
-                .WithMany()
+                .HasKey(x => new { x.ParentCourseId, x.Id });
+
+            modelBuilder.Entity<TopicEntity>()
+                .HasOne(x => x.ParentCourse)
+                .WithMany(x => x.Topics)
                 .HasForeignKey(x => x.ParentCourseId);
-            
+
             // UserGroupEntity
 
             modelBuilder.Entity<UsersGroupEntity>()
-                .HasOne<CourseEntity>()
-                .WithMany()
+                .HasKey(x => new { x.ParentCourseId, x.Id });
+
+            modelBuilder.Entity<UsersGroupEntity>()
+                .HasOne(x => x.ParentCourse)
+                .WithMany(x => x.UsersGroups)
                 .HasForeignKey(x => x.ParentCourseId);
+            
+            modelBuilder.Entity<UserEntity>()
+                .HasMany(x => x.UsersGroups)
+                .WithMany(x => x.Users)
+                .UsingEntity<UserToCourseGroupEntity>(x =>
+                {
+                    x.HasOne(y => y.UserGroupEntity)
+                        .WithMany()
+                        .HasForeignKey(y => y.UserGroupId);
+
+                    x.HasOne(y => y.UserEntity)
+                        .WithMany()
+                        .HasForeignKey(y => y.UserId);
+                });
         }
 
         private void BuildStoreModels(ModelBuilder modelBuilder)
