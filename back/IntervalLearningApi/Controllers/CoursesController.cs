@@ -1,4 +1,5 @@
 ﻿using DB.Models;
+using IntervalLearningApi.Models;
 using IntervalLearningApi.Models.Courses;
 using IntervalLearningApi.Services;
 using Microsoft.AspNetCore.Mvc;
@@ -70,7 +71,20 @@ public class CoursesController : ControllerBase
     }
 
     public Course ToCourse(CourseEntity courseEntity) =>
-        new(courseEntity.Id, courseEntity.Name, courseEntity.Link, courseEntity.UsersGroupIds);
+        new()
+        {
+            CourseId = courseEntity.Id,
+            Name = courseEntity.Name,
+            Link = courseEntity.Link,
+            UsersGroups = courseEntity.UsersGroups.Select(ToUsersGroup).ToList()
+        };
+
+    public UsersGroup ToUsersGroup(UsersGroupEntity usersGroupEntity) =>
+        new()
+        {
+            Id = usersGroupEntity.Id,
+            Name = usersGroupEntity.Name
+        };
 }
 
 public class CreateCourseRequest

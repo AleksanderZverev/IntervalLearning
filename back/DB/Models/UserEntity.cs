@@ -36,6 +36,8 @@ public class UserEntity
     public List<RefreshTokenEntity> RefreshTokens { get; set; } = new();
 
     public virtual List<CollectionEntity> Collections { get; set; } = new();
+    
+    public virtual List<UsersGroupEntity> UsersGroups { get; set; } = new();
 }
 
 public class UserMetadataEntity : IParentUserReference

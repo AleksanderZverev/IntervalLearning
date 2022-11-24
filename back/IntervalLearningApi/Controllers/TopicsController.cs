@@ -92,7 +92,7 @@ public class TopicsController : ControllerBase
             Id = course.Id,
             ParentCourseId = course.ParentCourseId,
             Name = course.Name,
-            CourseCollections = course.CourseCollections,
+            CourseCollections = course.CourseCollections.Select(CollectionsController.ToCollection).ToList(),
             Theory = course.Theory
         };
     }

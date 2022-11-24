@@ -9,5 +9,5 @@ public class CourseEntity
     public string Name { get; set; }
     public string Link { get; set; }
     public List<TopicEntity> Topics { get; set; }
-    public List<long> UsersGroupIds { get; set; }
+    public List<UsersGroupEntity> UsersGroups { get; set; }
 }

@@ -54,7 +54,12 @@ namespace DB
                 .WithOne(c => c.ParentUser)
                 .HasForeignKey(c => c.ParentUserId);
 
-            // UserPasswordsEntity
+            modelBuilder.Entity<UserEntity>()
+                .HasMany<UsersGroupEntity>()
+                .WithMany(x => x.Users)
+                .UsingEntity(j => j.ToTable("Users-UsersGroups"));
+
+           // UserPasswordsEntity
 
             modelBuilder.Entity<UserPasswordsEntity>()
                 .HasKey(p => p.ParentUserId);
@@ -115,6 +120,11 @@ namespace DB
                 .WithOne(p => p.ParentCollection)
                 .HasForeignKey<CollectionPublicationEntity>(c => new {c.ParentUserId, c.ParentCollectionId})
                 .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<CollectionEntity>()
+                .HasOne<TopicEntity>()
+                .WithMany(x => x.CourseCollections)
+                .HasForeignKey(x => x.ParentTopicId);
 
             // CardEntity
 
@@ -252,6 +262,20 @@ namespace DB
                 .WithMany()
                 .HasForeignKey(t => t.LanguageId)
                 .OnDelete(DeleteBehavior.NoAction);
+            
+            // TopicEntity
+
+            modelBuilder.Entity<TopicEntity>()
+                .HasOne<CourseEntity>()
+                .WithMany()
+                .HasForeignKey(x => x.ParentCourseId);
+            
+            // UserGroupEntity
+
+            modelBuilder.Entity<UsersGroupEntity>()
+                .HasOne<CourseEntity>()
+                .WithMany()
+                .HasForeignKey(x => x.ParentCourseId);
         }
 
         private void BuildStoreModels(ModelBuilder modelBuilder)

@@ -6,8 +6,8 @@ namespace DB.Models;
 public class TopicEntity
 {
     public long Id { get; set; }
-    public long ParentCourseId { get; set; }
     public string Name { get; set; }
-    public List<CardEntity> CourseCollections { get; set; }
     public string Theory { get; set; }
+    public long? ParentCourseId { get; set; }
+    public List<CollectionEntity> CourseCollections { get; set; }
 }
