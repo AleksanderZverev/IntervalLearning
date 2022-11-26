@@ -2,7 +2,7 @@
 
 public class UsersGroupEntity
 {
-    public Guid Id { get; set; }
+    public long Id { get; set; }
     public string Name { get; set; }
     public long ParentCourseId { get; set; }
     public CourseEntity? ParentCourse { get; set; }

@@ -117,11 +117,6 @@ namespace DB
                 .OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.Entity<CollectionEntity>()
-                .HasOne<TopicEntity>()
-                .WithMany(x => x.CourseCollections)
-                .HasForeignKey(x => x.ParentTopicId);
-
-            modelBuilder.Entity<CollectionEntity>()
                 .HasOne(x => x.ParentTopic)
                 .WithMany(x => x.CourseCollections)
                 .HasForeignKey(c => c.ParentTopicId);

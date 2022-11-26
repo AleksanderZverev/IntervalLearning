@@ -1,6 +1,7 @@
 using DB;
 using IntervalLearningApi;
 using IntervalLearningApi.Extensions;
+using IntervalLearningApi.Mapping;
 using Microsoft.AspNetCore.HttpLogging;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json.Serialization;
@@ -23,6 +24,8 @@ builder.Services.AddHttpLogging(o =>
                       | HttpLoggingFields.ResponseBody 
                       | HttpLoggingFields.ResponseStatusCode;
 });
+
+builder.Services.AddAutoMapper(typeof(MappingProfile));
 
 builder.Services.AddCors(o =>
 {

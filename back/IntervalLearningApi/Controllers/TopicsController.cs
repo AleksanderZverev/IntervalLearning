@@ -1,4 +1,5 @@
-﻿using DB.Models;
+﻿using AutoMapper;
+using DB.Models;
 using IntervalLearningApi.Models.Topics;
 using IntervalLearningApi.Services;
 using Microsoft.AspNetCore.Mvc;
@@ -11,10 +12,12 @@ namespace IntervalLearningApi.Controllers;
 public class TopicsController : ControllerBase
 {
     private readonly TopicsService topicsService;
+    private readonly IMapper mapper;
 
-    public TopicsController(TopicsService topicsService)
+    public TopicsController(TopicsService topicsService, IMapper mapper)
     {
         this.topicsService = topicsService;
+        this.mapper = mapper;
     }
 
     [HttpPost]
@@ -30,7 +33,7 @@ public class TopicsController : ControllerBase
             null);
 
         return topicEntity != null
-            ? ToTopic(topicEntity)
+            ? mapper.Map<Topic>(topicEntity)
             : BadRequest(error);
     }
 
@@ -47,7 +50,7 @@ public class TopicsController : ControllerBase
             parentCourseId);
 
         return topicEntity != null
-            ? ToTopic(topicEntity)
+            ? mapper.Map<Topic>(topicEntity)
             : BadRequest(error);
     }
 
@@ -55,7 +58,7 @@ public class TopicsController : ControllerBase
     public async Task<ActionResult<List<Topic>>> GetAll(long parentCourseId, [FromQuery] int page, [FromQuery] int count)
     {
         var topicEntities = await topicsService.GetAll(parentCourseId, page, count);
-        return topicEntities.Select(ToTopic).ToList();
+        return topicEntities.Select(mapper.Map<Topic>).ToList();
     }
 
     [HttpGet("{id:long}")]
@@ -63,7 +66,7 @@ public class TopicsController : ControllerBase
     {
         var topicEntity = await topicsService.Get(id);
         return topicEntity != null
-            ? ToTopic(topicEntity)
+            ? mapper.Map<Topic>(topicEntity)
             : NotFound();
     }
 
@@ -75,26 +78,14 @@ public class TopicsController : ControllerBase
         [FromQuery] int count)
     {
         var topicEntities = await topicsService.SearchByName(parentCourseId, name, page, count);
-        return topicEntities.Select(ToTopic).ToList();
+        return topicEntities.Select(mapper.Map<Topic>).ToList();
     }
 
     [HttpDelete("{id:long}")]
     public async Task<ActionResult<Topic>> Delete(long id)
     {
         var (topicEntity, error) = await topicsService.Delete(id);
-        return topicEntity != null ? ToTopic(topicEntity) : BadRequest(error);
-    }
-
-    private static Topic ToTopic(TopicEntity course)
-    {
-        return new Topic
-        {
-            Id = course.Id,
-            ParentCourseId = course.ParentCourseId,
-            Name = course.Name,
-            CourseCollections = course.CourseCollections.Select(CollectionsController.ToCollection).ToList(),
-            Theory = course.Theory
-        };
+        return topicEntity != null ? mapper.Map<Topic>(topicEntity) : BadRequest(error);
     }
 }
 

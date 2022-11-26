@@ -1,5 +1,4 @@
-﻿using DB.Models;
-using IntervalLearningApi.Models;
+﻿using AutoMapper;
 using IntervalLearningApi.Models.Courses;
 using IntervalLearningApi.Services;
 using Microsoft.AspNetCore.Mvc;
@@ -12,10 +11,12 @@ namespace IntervalLearningApi.Controllers;
 public class CoursesController : ControllerBase
 {
     private readonly CoursesService coursesService;
+    private readonly IMapper mapper;
 
-    public CoursesController(CoursesService coursesService)
+    public CoursesController(CoursesService coursesService, IMapper mapper)
     {
         this.coursesService = coursesService;
+        this.mapper = mapper;
     }
 
     [HttpPost]
@@ -30,7 +31,7 @@ public class CoursesController : ControllerBase
             null);
 
         return course != null
-            ? ToCourse(course)
+            ? mapper.Map<Course>(course)
             : BadRequest(error);
     }
     
@@ -45,7 +46,7 @@ public class CoursesController : ControllerBase
             courseId);
 
         return course != null
-            ? ToCourse(course)
+            ? mapper.Map<Course>(course)
             : BadRequest(error);
     }
 
@@ -53,38 +54,22 @@ public class CoursesController : ControllerBase
     public async Task<ActionResult<List<Course>>> GetAll([FromQuery] int page, [FromQuery] int count)
     {
         var courses = await coursesService.Search(null, page, count);
-        return courses.Select(ToCourse).ToList();
+        return courses.Select(mapper.Map<Course>).ToList();
     }
 
     [HttpGet("search/{name}")]
     public async Task<ActionResult<List<Course>>> Search(string name, [FromQuery] int page, [FromQuery] int count)
     {
         var courses = await coursesService.Search(name, page, count);
-        return courses.Select(ToCourse).ToList();
+        return courses.Select(mapper.Map<Course>).ToList();
     }
 
     [HttpDelete("{id:long}")]
     public async Task<ActionResult<Course>> Delete(long id)
     {
         var (course, error) = await coursesService.Delete(id);
-        return course != null ? ToCourse(course) : BadRequest(error);
+        return course != null ? mapper.Map<Course>(course) : BadRequest(error);
     }
-
-    public Course ToCourse(CourseEntity courseEntity) =>
-        new()
-        {
-            CourseId = courseEntity.Id,
-            Name = courseEntity.Name,
-            Link = courseEntity.Link,
-            UsersGroups = courseEntity.UsersGroups.Select(ToUsersGroup).ToList()
-        };
-
-    public UsersGroup ToUsersGroup(UsersGroupEntity usersGroupEntity) =>
-        new()
-        {
-            Id = usersGroupEntity.Id,
-            Name = usersGroupEntity.Name
-        };
 }
 
 public class CreateCourseRequest
