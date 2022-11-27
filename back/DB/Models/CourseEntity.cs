@@ -5,9 +5,11 @@ namespace DB.Models;
 [Table("Courses")]
 public class CourseEntity
 {
-    public long Id { get; set; }
-    public string Name { get; set; }
-    public string Link { get; set; }
-    public List<TopicEntity> Topics { get; set; }
-    public List<UsersGroupEntity> UsersGroups { get; set; }
+    [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+    public long Id { get; }
+    public string Name { get; }
+    public string Description { get; }
+    public string Link { get; }
+    public List<TopicEntity> Topics { get; } = new();
+    public List<UsersGroupEntity> UsersGroups { get; } = new();
 }

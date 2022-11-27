@@ -20,7 +20,7 @@ public class CoursesService
         this.db = db;
     }
 
-    public (CourseEntity? course, string? error) CreateOrEdit(CreateOrPatchCourse item, long? courseId)
+    public (CourseEntity? course, string? error) CreateOrEdit(CreateOrPatchCourse item, long? courseId = null)
     {
         var course = courseId == null
             ? new CourseEntity()

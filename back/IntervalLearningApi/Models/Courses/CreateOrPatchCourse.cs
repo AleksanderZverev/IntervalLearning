@@ -2,6 +2,6 @@
 
 public class CreateOrPatchCourse
 {
-    public string Name;
-    public List<long> UsersGroupIds;
+    public string Name { get; }
+    public string Description { get; }
 }

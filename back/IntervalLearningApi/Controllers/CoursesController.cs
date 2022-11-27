@@ -1,34 +1,29 @@
 ﻿using AutoMapper;
 using IntervalLearningApi.Models.Courses;
+using IntervalLearningApi.Models.Requests;
 using IntervalLearningApi.Services;
 using Microsoft.AspNetCore.Mvc;
 
 namespace IntervalLearningApi.Controllers;
 
-[Route("api/courses")]
 [Authorize]
 [ApiController]
+[Route("api/courses")]
 public class CoursesController : ControllerBase
 {
-    private readonly CoursesService coursesService;
     private readonly IMapper mapper;
+    private readonly CoursesService coursesService;
 
-    public CoursesController(CoursesService coursesService, IMapper mapper)
+    public CoursesController(IMapper mapper, CoursesService coursesService)
     {
-        this.coursesService = coursesService;
         this.mapper = mapper;
+        this.coursesService = coursesService;
     }
 
     [HttpPost]
     public ActionResult<Course> Create([FromBody] CreateCourseRequest request)
     {
-        var (course, error) = coursesService.CreateOrEdit(
-            new CreateOrPatchCourse
-            {
-                Name = request.Name,
-                UsersGroupIds = request.UsersGroupIds
-            },
-            null);
+        var (course, error) = coursesService.CreateOrEdit(mapper.Map<CreateOrPatchCourse>(request));
 
         return course != null
             ? mapper.Map<Course>(course)
@@ -38,12 +33,7 @@ public class CoursesController : ControllerBase
     [HttpPatch("{courseId:long}")]
     public ActionResult<Course> Patch(long courseId, [FromBody] PatchCourseRequest request)
     {
-        var (course, error) = coursesService.CreateOrEdit(
-            new CreateOrPatchCourse
-            {
-                Name = request.Name
-            },
-            courseId);
+        var (course, error) = coursesService.CreateOrEdit(mapper.Map<CreateOrPatchCourse>(request), courseId);
 
         return course != null
             ? mapper.Map<Course>(course)
@@ -54,6 +44,7 @@ public class CoursesController : ControllerBase
     public async Task<ActionResult<List<Course>>> GetAll([FromQuery] int page, [FromQuery] int count)
     {
         var courses = await coursesService.Search(null, page, count);
+
         return courses.Select(mapper.Map<Course>).ToList();
     }
 
@@ -61,6 +52,7 @@ public class CoursesController : ControllerBase
     public async Task<ActionResult<List<Course>>> Search(string name, [FromQuery] int page, [FromQuery] int count)
     {
         var courses = await coursesService.Search(name, page, count);
+
         return courses.Select(mapper.Map<Course>).ToList();
     }
 
@@ -68,17 +60,9 @@ public class CoursesController : ControllerBase
     public async Task<ActionResult<Course>> Delete(long id)
     {
         var (course, error) = await coursesService.Delete(id);
-        return course != null ? mapper.Map<Course>(course) : BadRequest(error);
+
+        return course != null 
+            ? mapper.Map<Course>(course) 
+            : BadRequest(error);
     }
-}
-
-public class CreateCourseRequest
-{
-    public string Name { get; set; }
-    public List<long> UsersGroupIds { get; set; }
-}
-
-public class PatchCourseRequest
-{
-    public string Name { get; set; }
 }
