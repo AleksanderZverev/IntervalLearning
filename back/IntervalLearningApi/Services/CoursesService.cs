@@ -7,34 +7,49 @@ namespace IntervalLearningApi.Services;
 
 public class CoursesService
 {
-    private readonly ILogger<CardsService> logger;
-    private readonly IWebHostEnvironment env;
     private readonly ApplicationContext db;
 
-    public CoursesService(ILogger<CardsService> logger,
-        IWebHostEnvironment env,
-        ApplicationContext db)
+    public CoursesService(ApplicationContext db)
     {
-        this.logger = logger;
-        this.env = env;
         this.db = db;
     }
 
-    public (CourseEntity? course, string? error) CreateOrEdit(CreateOrPatchCourse item, long? courseId = null)
+    public async Task<(CourseEntity? course, string? error)> Create(long userId, CreateCourseParameters parameters)
     {
-        var course = courseId == null
-            ? new CourseEntity()
-            : db.Courses.Find(courseId);
-
-        if (course == null)
-            return (null, "Course not found");
-
-        var entry = db.Entry(course);
-        entry.CurrentValues.SetValues(item);
+        var course = new CourseEntity
+        {
+            Name = parameters.Name,
+            Description = parameters.Description
+        };
+        course.AdminIds.Add(userId);
+        await db.Courses.AddAsync(course);
 
         try
         {
-            db.SaveChanges();
+            await db.SaveChangesAsync();
+            return (course, null);
+        }
+        catch
+        {
+            return (null, "Unknown error");
+        }
+    }
+
+    public async Task<(CourseEntity? course, string? error)> Patch(long userId, long courseId, PatchCourseParameters parameters)
+    {
+        var course = await db.Courses.FindAsync(courseId);
+
+        if (course == null)
+            return (null, "Course not found");
+        if (!course.AdminIds.Contains(userId))
+            return (null, $"User can't perform operation because {userId} is not admin of current course");
+
+        var entry = db.Entry(course);
+        entry.CurrentValues.SetValues(parameters);
+
+        try
+        {
+            await db.SaveChangesAsync();
             return (course, null);
         }
         catch
@@ -55,12 +70,14 @@ public class CoursesService
             .ToListAsync();
     }
 
-    public async Task<(CourseEntity? course, string? error)> Delete(long id)
+    public async Task<(CourseEntity? course, string? error)> Delete(long userId, long courseId)
     {
-        var course = await db.Courses.FindAsync(id);
+        var course = await db.Courses.FindAsync(courseId);
 
         if (course == null)
             return (null, "Course not found");
+        if (!course.AdminIds.Contains(userId))
+            return (null, $"User can't perform operation because {userId} is not admin of current course");
 
         db.Courses.Remove(course);
 

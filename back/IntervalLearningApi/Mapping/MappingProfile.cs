@@ -13,8 +13,8 @@ public class MappingProfile : Profile
     {
         // Courses
 
-        CreateMap<CreateCourseRequest, CreateOrPatchCourse>();
-        CreateMap<PatchCourseRequest, CreateOrPatchCourse>();
+        CreateMap<CreateCourseRequest, CreateCourseParameters>();
+        CreateMap<PatchCourseRequest, PatchCourseParameters>();
         
         CreateMap<CourseEntity, Course>();
         CreateMap<TopicEntity, Topic>();

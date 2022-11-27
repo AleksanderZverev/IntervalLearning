@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using IntervalLearningApi.Extensions;
 using IntervalLearningApi.Models.Courses;
 using IntervalLearningApi.Models.Requests;
 using IntervalLearningApi.Services;
@@ -21,9 +22,11 @@ public class CoursesController : ControllerBase
     }
 
     [HttpPost]
-    public ActionResult<Course> Create([FromBody] CreateCourseRequest request)
+    public async Task<ActionResult<Course>> Create([FromBody] CreateCourseRequest request)
     {
-        var (course, error) = coursesService.CreateOrEdit(mapper.Map<CreateOrPatchCourse>(request));
+        var (course, error) = await coursesService.Create(
+            HttpContext.GetUserId(),
+            mapper.Map<CreateCourseParameters>(request));
 
         return course != null
             ? mapper.Map<Course>(course)
@@ -31,9 +34,12 @@ public class CoursesController : ControllerBase
     }
     
     [HttpPatch("{courseId:long}")]
-    public ActionResult<Course> Patch(long courseId, [FromBody] PatchCourseRequest request)
+    public async Task<ActionResult<Course>> Patch(long courseId, [FromBody] PatchCourseRequest request)
     {
-        var (course, error) = coursesService.CreateOrEdit(mapper.Map<CreateOrPatchCourse>(request), courseId);
+        var (course, error) = await coursesService.Patch(
+            HttpContext.GetUserId(),
+            courseId,
+            mapper.Map<PatchCourseParameters>(request));
 
         return course != null
             ? mapper.Map<Course>(course)
@@ -56,10 +62,12 @@ public class CoursesController : ControllerBase
         return courses.Select(mapper.Map<Course>).ToList();
     }
 
-    [HttpDelete("{id:long}")]
-    public async Task<ActionResult<Course>> Delete(long id)
+    [HttpDelete("{courseId:long}")]
+    public async Task<ActionResult<Course>> Delete(long courseId)
     {
-        var (course, error) = await coursesService.Delete(id);
+        var (course, error) = await coursesService.Delete(
+            HttpContext.GetUserId(),
+            courseId);
 
         return course != null 
             ? mapper.Map<Course>(course) 

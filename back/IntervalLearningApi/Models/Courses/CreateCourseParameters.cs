@@ -1,6 +1,6 @@
 ﻿namespace IntervalLearningApi.Models.Courses;
 
-public class CreateOrPatchCourse
+public class CreateCourseParameters
 {
     public string Name { get; }
     public string Description { get; }
