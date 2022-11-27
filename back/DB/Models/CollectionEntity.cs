@@ -50,8 +50,4 @@ public class CollectionEntity : IParentUserReference, ICreateOrEditModel
     public bool IsPublic { get; set; }
 
     public CollectionPublicationEntity? CollectionPublicationEntity { get; set; }
-
-    public long ParentTopicId { get; set; }
-
-    public TopicEntity? ParentTopic { get; set; }
 }

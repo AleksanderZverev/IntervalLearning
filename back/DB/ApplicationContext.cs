@@ -96,7 +96,7 @@ namespace DB
             // CollectionEntity
 
             modelBuilder.Entity<CollectionEntity>()
-                .HasKey(c => new {c.ParentUserId, c.ParentTopicId, c.Id});
+                .HasKey(c => new {c.ParentUserId, c.Id});
 
             modelBuilder.Entity<CollectionEntity>()
                 .HasOne(c => c.ParentUser)
@@ -115,11 +115,6 @@ namespace DB
                 .WithOne(p => p.ParentCollection)
                 .HasForeignKey<CollectionPublicationEntity>(c => new {c.ParentUserId, c.ParentCollectionId})
                 .OnDelete(DeleteBehavior.Cascade);
-
-            modelBuilder.Entity<CollectionEntity>()
-                .HasOne(x => x.ParentTopic)
-                .WithMany(x => x.CourseCollections)
-                .HasForeignKey(c => c.ParentTopicId);
 
             // CardEntity
 
@@ -291,6 +286,26 @@ namespace DB
                         .WithMany()
                         .HasForeignKey(y => y.UserId);
                 });
+            
+            // TopicCollectionEntity
+
+            modelBuilder.Entity<TopicCollectionEntity>()
+                .HasKey(x => new { x.ParentTopicId, x.Id });
+
+            modelBuilder.Entity<TopicCollectionEntity>()
+                .HasOne(x => x.Topic)
+                .WithMany(x => x.TopicsCollections)
+                .HasForeignKey(x => x.ParentTopicId);
+            
+            // TopicCardEntity
+
+            modelBuilder.Entity<TopicCardEntity>()
+                .HasKey(x => new { x.ParentTopicCollectionId, x.Id });
+
+            modelBuilder.Entity<TopicCardEntity>()
+                .HasOne(x => x.TopicCollection)
+                .WithMany(x => x.Cards)
+                .HasForeignKey(x => x.ParentTopicCollectionId);
         }
 
         private void BuildStoreModels(ModelBuilder modelBuilder)
