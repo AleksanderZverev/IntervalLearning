@@ -6,7 +6,7 @@ namespace DB.Models;
 public class TopicCardEntity
 {
     [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-    public short Id { get; set; }
+    public long Id { get; set; }
 
     [Required]
     [StringLength(255)]

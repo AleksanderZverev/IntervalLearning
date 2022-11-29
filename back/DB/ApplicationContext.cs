@@ -295,7 +295,7 @@ namespace DB
             modelBuilder.Entity<TopicCollectionEntity>()
                 .HasOne(x => x.Topic)
                 .WithMany(x => x.TopicsCollections)
-                .HasForeignKey(x => x.ParentTopicId);
+                .HasForeignKey(x =>  new { x.ParentTopicId, x.Id});
             
             // TopicCardEntity
 
@@ -305,7 +305,7 @@ namespace DB
             modelBuilder.Entity<TopicCardEntity>()
                 .HasOne(x => x.TopicCollection)
                 .WithMany(x => x.Cards)
-                .HasForeignKey(x => x.ParentTopicCollectionId);
+                .HasForeignKey(x => new {x.ParentTopicCollectionId, x.Id});
         }
 
         private void BuildStoreModels(ModelBuilder modelBuilder)
