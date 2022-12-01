@@ -10,16 +10,14 @@ public class TopicCardEntity
 
     [Required]
     [StringLength(255)]
-    [Column("RememberingText")]
-    public string FrontSideText { get; set; }
+    public string RememberingText { get; set; }
 
     [StringLength(255)]
     public string PromptText { get; set; }
 
     [Required]
     [StringLength(255)]
-    [Column("MeaningText")]
-    public string BackSideText { get; set; }
+    public string MeaningText { get; set; }
 
     [StringLength(500)]
     public string? Description { get; set; }

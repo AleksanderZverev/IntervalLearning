@@ -1,7 +1,3 @@
 ﻿namespace IntervalLearningApi.Models.Courses;
 
-public class PatchCourseParameters
-{
-    public string Name { get; }
-    public string Description { get; }
-}
+public record PatchCourseParameters(string Name, string Description);

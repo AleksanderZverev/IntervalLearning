@@ -19,7 +19,8 @@ public class CoursesService
         var course = new CourseEntity
         {
             Name = parameters.Name,
-            Description = parameters.Description
+            Description = parameters.Description,
+            IsPrivate = parameters.IsPrivate
         };
         course.AdminIds.Add(userId);
         await db.Courses.AddAsync(course);
@@ -60,12 +61,13 @@ public class CoursesService
 
     public Task<List<CourseEntity>> Search(string? name, int page, int count)
     {
-        var toSkip = (page - 1) * count;
+        var skip = (page - 1) * count;
 
         return db.Courses
+            .Where(x => !x.IsPrivate)
             .Where(x => name == null || x.Name.ToLowerInvariant().StartsWith(name.ToLowerInvariant()))
             .OrderByDescending(c => c.Name)
-            .Skip(toSkip)
+            .Skip(skip)
             .Take(count)
             .ToListAsync();
     }

@@ -6,7 +6,7 @@ public class UsersGroupEntity
     public string Name { get; set; }
     public long ParentCourseId { get; set; }
     public CourseEntity? ParentCourse { get; set; }
-    public List<UserEntity> Users { get; set; }
+    public List<UserEntity> Users { get; set; } = new();
 }
 
 public class UserToCourseGroupEntity
