@@ -291,22 +291,22 @@ namespace DB
             // TopicCollectionEntity
 
             modelBuilder.Entity<TopicCollectionEntity>()
-                .HasKey(x => new { x.ParentTopicId, x.Id });
+                .HasKey(x => new { x.ParentCourseId, x.ParentTopicId, x.Id });
 
             modelBuilder.Entity<TopicCollectionEntity>()
                 .HasOne(x => x.Topic)
                 .WithMany(x => x.TopicsCollections)
-                .HasForeignKey(x =>  new { x.ParentTopicId, x.Id});
+                .HasForeignKey(x =>  new { x.ParentCourseId, x.ParentTopicId});
             
             // TopicCardEntity
 
             modelBuilder.Entity<TopicCardEntity>()
-                .HasKey(x => new { x.ParentTopicCollectionId, x.Id });
+                .HasKey(x => new { x.ParentCourseId, x.ParentTopicId, x.ParentTopicCollectionId, x.Id });
 
             modelBuilder.Entity<TopicCardEntity>()
                 .HasOne(x => x.TopicCollection)
                 .WithMany(x => x.Cards)
-                .HasForeignKey(x => new {x.ParentTopicCollectionId, x.Id});
+                .HasForeignKey(x => new { x.ParentCourseId, x.ParentTopicId, Id = x.ParentTopicCollectionId});
         }
 
         private void BuildStoreModels(ModelBuilder modelBuilder)

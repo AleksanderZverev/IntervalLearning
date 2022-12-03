@@ -26,6 +26,12 @@ public class TopicCardEntity
     [StringLength(255)]
     public List<string>? Examples { get; set; }
 
+    public long ParentCourseId { get; set; }
+    public CourseEntity? Course { get; set; }
+
+    public long ParentTopicId { get; set; }
+    public TopicEntity? Topic { get; set; }
+
     public long ParentTopicCollectionId { get; set; }
     public TopicCollectionEntity? TopicCollection { get; set; }
 }

@@ -8,6 +8,9 @@ public class TopicCollectionEntity
     public long Id { get; set; }
     public string Name { get; set; }
 
+    public long ParentCourseId { get; set; }
+    public CourseEntity? Course { get; set; }
+
     public long ParentTopicId { get; set; }
     public TopicEntity? Topic { get; set; }
 
