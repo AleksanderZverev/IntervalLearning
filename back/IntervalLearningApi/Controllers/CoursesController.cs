@@ -47,17 +47,9 @@ public class CoursesController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<ActionResult<List<Course>>> GetAll([FromQuery] int page, [FromQuery] int count)
+    public async Task<ActionResult<List<Course>>> Search([FromQuery] string? name, [FromQuery] int page, [FromQuery] int count)
     {
-        var courses = await coursesService.Search(null, page, count);
-
-        return courses.Select(mapper.Map<Course>).ToList();
-    }
-
-    [HttpGet("search/{name}")]
-    public async Task<ActionResult<List<Course>>> Search(string name, [FromQuery] int page, [FromQuery] int count)
-    {
-        var courses = await coursesService.Search(name.ToLower(), page, count);
+        var courses = await coursesService.Search(name?.ToLower(), page, count);
 
         return courses.Select(mapper.Map<Course>).ToList();
     }

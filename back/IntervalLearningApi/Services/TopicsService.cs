@@ -1,5 +1,4 @@
-﻿using System.Linq.Expressions;
-using DB;
+﻿using DB;
 using DB.Models;
 using IntervalLearningApi.Models.Topics;
 using Microsoft.EntityFrameworkCore;
@@ -8,34 +7,58 @@ namespace IntervalLearningApi.Services;
 
 public class TopicsService
 {
-    private readonly ILogger<CardsService> logger;
-    private readonly IWebHostEnvironment env;
     private readonly ApplicationContext db;
 
-    public TopicsService(ILogger<CardsService> logger,
-        IWebHostEnvironment env,
-        ApplicationContext db)
+    public TopicsService(ApplicationContext db)
     {
-        this.logger = logger;
-        this.env = env;
         this.db = db;
     }
 
-    public (TopicEntity? course, string? error) CreateOrEdit(CreateOrPatchTopic item, long? courseId)
+    public async Task<(TopicEntity? course, string? error)> Create(long userId, long courseId, CreateTopicParameters parameters)
     {
-        var topic = courseId == null
-            ? new TopicEntity()
-            : db.Topics.Find(courseId);
-
-        if (topic == null)
+        var course = await db.Courses.FindAsync(courseId);
+        if (course == null)
             return (null, "Course not found");
+        if (!course.AdminIds.Contains(userId))
+            return (null, $"User can't perform operation because {userId} is not admin of current course");
 
-        var entry = db.Entry(topic);
-        entry.CurrentValues.SetValues(item);
+        var topic = new TopicEntity
+        {
+            ParentCourseId = courseId,
+            Name = parameters.Name,
+            Theory = parameters.Theory
+        };
+        await db.Topics.AddAsync(topic);
 
         try
         {
-            db.SaveChanges();
+            await db.SaveChangesAsync();
+            return (topic, null);
+        }
+        catch
+        {
+            return (null, "Unknown error");
+        }
+    }
+    
+    public async Task<(TopicEntity? course, string? error)> Patch(long userId, long courseId, long topicId, PatchTopicParameters parameters)
+    {
+        var course = await db.Courses.FindAsync(courseId);
+        if (course == null)
+            return (null, "Course not found");
+        if (!course.AdminIds.Contains(userId))
+            return (null, $"User can't perform operation because {userId} is not admin of current course");
+
+        var topic = await db.Topics.FindAsync(courseId, topicId);
+        if (topic == null)
+            return (null, "Topic not found");
+
+        var entry = db.Entry(topic);
+        entry.CurrentValues.SetValues(parameters);
+
+        try
+        {
+            await db.SaveChangesAsync();
             return (topic, null);
         }
         catch
@@ -44,20 +67,33 @@ public class TopicsService
         }
     }
 
-    public Task<List<TopicEntity>> GetAll(long parentCourseId, int page, int count) =>
-        SearchByCondition(x => x.ParentCourseId == parentCourseId, page, count);
-
-    public async Task<TopicEntity?> Get(long name) => await db.Topics.FindAsync(name);
-
-    public Task<List<TopicEntity>> SearchByName(long parentCourseId, string name, int page, int count) =>
-        SearchByCondition(x => x.ParentCourseId == parentCourseId && x.Name == name, page, count);
-
-    public async Task<(TopicEntity? course, string? error)> Delete(long id)
+    public Task<List<TopicEntity>> SearchByName(long courseId, string? name, int page, int count)
     {
-        var topicEntity = await db.Topics.FindAsync(id);
+        var toSkip = (page - 1) * count;
+
+        var query = db.Topics.Where(x => x.ParentCourseId == courseId);
+
+        if (name != null)
+            query = query.Where(x => x.Name.ToLower().StartsWith(name));
+
+        return query
+            .Skip(toSkip)
+            .Take(count)
+            .ToListAsync();
+    }
+
+    public async Task<(TopicEntity? course, string? error)> Delete(long userId, long courseId, long topicId)
+    {
+        var course = await db.Courses.FindAsync(courseId);
+        if (course == null)
+            return (null, "Course not found");
+        if (!course.AdminIds.Contains(userId))
+            return (null, $"User can't perform operation because {userId} is not admin of current course");
+
+        var topicEntity = await db.Topics.FindAsync(courseId, topicId);
 
         if (topicEntity == null)
-            return (null, "Course not found");
+            return (null, "Topic not found");
 
         db.Topics.Remove(topicEntity);
 
@@ -70,16 +106,5 @@ public class TopicsService
         {
             return (null, "Unknown error");
         }
-    }
-
-    private Task<List<TopicEntity>> SearchByCondition(Expression<Func<TopicEntity, bool>> condition, int page, int count)
-    {
-        var toSkip = (page - 1) * count;
-
-        return db.Topics
-            .Where(condition)
-            .Skip(toSkip)
-            .Take(count)
-            .ToListAsync();
     }
 }

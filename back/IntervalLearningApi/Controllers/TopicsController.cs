@@ -1,103 +1,71 @@
 ﻿using AutoMapper;
-using DB.Models;
+using IntervalLearningApi.Extensions;
+using IntervalLearningApi.Models.Requests;
 using IntervalLearningApi.Models.Topics;
 using IntervalLearningApi.Services;
 using Microsoft.AspNetCore.Mvc;
 
 namespace IntervalLearningApi.Controllers;
 
-[Route("api/topics")]
+[Route("api/courses/{courseId:long}/topics")]
 [Authorize]
 [ApiController]
 public class TopicsController : ControllerBase
 {
-    private readonly TopicsService topicsService;
     private readonly IMapper mapper;
+    private readonly TopicsService topicsService;
 
-    public TopicsController(TopicsService topicsService, IMapper mapper)
+    public TopicsController(IMapper mapper, TopicsService topicsService)
     {
-        this.topicsService = topicsService;
         this.mapper = mapper;
+        this.topicsService = topicsService;
     }
 
     [HttpPost]
-    public ActionResult<Topic> Create(CreateTopicRequest request)
+    public async Task<ActionResult<Topic>> Create(long courseId, CreateTopicRequest request)
     {
-        var (topicEntity, error) = topicsService.CreateOrEdit(
-            new CreateOrPatchTopic
-            {
-                ParentCourseId = request.ParentCourseId,
-                Name = request.Name,
-                Theory = request.Theory
-            },
-            null);
+        var (topicEntity, error) = await topicsService.Create(
+            HttpContext.GetUserId(),
+            courseId,
+            new CreateTopicParameters(request.Name, request.Theory));
 
         return topicEntity != null
             ? mapper.Map<Topic>(topicEntity)
             : BadRequest(error);
     }
 
-    [HttpPost("{parentCourseId:long}")]
-    public ActionResult<Topic> Patch(long parentCourseId, [FromBody] PatchTopicRequest request)
+    [HttpPost("{topicId:long}")]
+    public async Task<ActionResult<Topic>> Patch(long courseId, long topicId, [FromBody] PatchTopicRequest request)
     {
-        var (topicEntity, error) = topicsService.CreateOrEdit(
-            new CreateOrPatchTopic
-            {
-                ParentCourseId = parentCourseId,
-                Name = request.Name,
-                Theory = request.Theory
-            },
-            parentCourseId);
+        var (topicEntity, error) = await topicsService.Patch(
+            HttpContext.GetUserId(),
+            courseId,
+            topicId,
+            new PatchTopicParameters(request.Name, request.Theory));
 
         return topicEntity != null
             ? mapper.Map<Topic>(topicEntity)
             : BadRequest(error);
     }
 
-    [HttpGet("all/{parentCourseId:long}")]
-    public async Task<ActionResult<List<Topic>>> GetAll(long parentCourseId, [FromQuery] int page, [FromQuery] int count)
+    [HttpGet]
+    public async Task<ActionResult<List<Topic>>> Search(long courseId, [FromQuery] string? name, [FromQuery] int page, [FromQuery] int count)
     {
-        var topicEntities = await topicsService.GetAll(parentCourseId, page, count);
+        var topicEntities = await topicsService.SearchByName(courseId, name?.ToLower(), page, count);
+
         return topicEntities.Select(mapper.Map<Topic>).ToList();
     }
 
-    [HttpGet("{id:long}")]
-    public async Task<ActionResult<Topic>> Get(long id)
+    [HttpDelete("{topicId:long}")]
+    public async Task<ActionResult<Topic>> Delete(long courseId, long topicId)
     {
-        var topicEntity = await topicsService.Get(id);
+        var (topicEntity, error) = await topicsService.Delete(
+            HttpContext.GetUserId(),
+            courseId,
+            topicId);
+
         return topicEntity != null
-            ? mapper.Map<Topic>(topicEntity)
-            : NotFound();
+            ? mapper.Map<Topic>(topicEntity) 
+            : BadRequest(error);
     }
-
-    [HttpGet("{parentCourseId:long}")]
-    public async Task<ActionResult<List<Topic>>> SearchByName(
-        long parentCourseId,
-        [FromQuery] string name,
-        [FromQuery] int page,
-        [FromQuery] int count)
-    {
-        var topicEntities = await topicsService.SearchByName(parentCourseId, name, page, count);
-        return topicEntities.Select(mapper.Map<Topic>).ToList();
-    }
-
-    [HttpDelete("{id:long}")]
-    public async Task<ActionResult<Topic>> Delete(long id)
-    {
-        var (topicEntity, error) = await topicsService.Delete(id);
-        return topicEntity != null ? mapper.Map<Topic>(topicEntity) : BadRequest(error);
-    }
-}
-
-public class CreateTopicRequest
-{
-    public string Name { get; set; }
-    public long ParentCourseId { get; set; }
-    public string Theory { get; set; }
-}
-
-public class PatchTopicRequest
-{
-    public string Name { get; set; }
-    public string Theory { get; set; }
 }
