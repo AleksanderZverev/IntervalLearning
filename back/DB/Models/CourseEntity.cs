@@ -15,7 +15,7 @@ public class CourseEntity
     public string Description { get; set; }
     public string Link { get; }
     public bool IsPrivate { get; set; }
-    public HashSet<long> AdminIds { get; } = new();
+    public HashSet<long> AdminIds { get; set; } = new();
     public List<TopicEntity> Topics { get; } = new();
     public List<UsersGroupEntity> UsersGroups { get; } = new();
 }

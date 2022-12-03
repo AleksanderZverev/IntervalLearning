@@ -307,6 +307,12 @@ namespace DB
                 .HasOne(x => x.TopicCollection)
                 .WithMany(x => x.Cards)
                 .HasForeignKey(x => new { x.ParentCourseId, x.ParentTopicId, Id = x.ParentTopicCollectionId});
+            
+            modelBuilder.Entity<CourseEntity>()
+                .Property(e => e.AdminIds)
+                .HasConversion(
+                    v => string.Join(',', v),
+                    v => v.Split(',', StringSplitOptions.RemoveEmptyEntries).Select(long.Parse).ToHashSet());
         }
 
         private void BuildStoreModels(ModelBuilder modelBuilder)

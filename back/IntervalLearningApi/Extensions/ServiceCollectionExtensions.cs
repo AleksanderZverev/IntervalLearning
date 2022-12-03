@@ -21,5 +21,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<UserMetadataService>();
         services.AddScoped<DictionaryService>();
         services.AddScoped(typeof(Repository<>));
+        services.AddScoped<CoursesService>();
+        services.AddScoped<TopicsService>();
     }
 }
