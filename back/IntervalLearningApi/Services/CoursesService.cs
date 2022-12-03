@@ -63,9 +63,13 @@ public class CoursesService
     {
         var skip = (page - 1) * count;
 
-        return db.Courses
-            .Where(x => !x.IsPrivate)
-            .Where(x => name == null || x.Name.ToLowerInvariant().StartsWith(name.ToLowerInvariant()))
+        var query = db.Courses
+            .Where(x => !x.IsPrivate);
+
+        if (name != null)
+            query = query.Where(x => x.Name.ToLower().StartsWith(name));
+
+        return query
             .OrderByDescending(c => c.Name)
             .Skip(skip)
             .Take(count)

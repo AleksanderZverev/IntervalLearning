@@ -8,6 +8,7 @@ public class Course
     public string Name { get; set; }
     public string Description { get; }
     public string Link { get; set; }
+    public HashSet<long> AdminIds { get; set; }
     public List<Topic> Topics { get; set; }
     public List<UsersGroup> UsersGroups { get; set; }
 }
