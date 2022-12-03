@@ -272,20 +272,21 @@ namespace DB
                 .HasOne(x => x.ParentCourse)
                 .WithMany(x => x.UsersGroups)
                 .HasForeignKey(x => x.ParentCourseId);
-            
-            modelBuilder.Entity<UserEntity>()
-                .HasMany(x => x.UsersGroups)
-                .WithMany(x => x.Users)
-                .UsingEntity<UserToCourseGroupEntity>(x =>
-                {
-                    x.HasOne(y => y.UserGroupEntity)
-                        .WithMany()
-                        .HasForeignKey(y => y.UserGroupId);
 
-                    x.HasOne(y => y.UserEntity)
-                        .WithMany()
-                        .HasForeignKey(y => y.UserId);
-                });
+            modelBuilder.Entity<UserEntity>()
+                .HasMany(x => x.UserGroups)
+                .WithMany(x => x.Users)
+                .UsingEntity<UserToCourseGroupEntity>(y => y
+                        .HasOne(pt => pt.UserGroupEntity)
+                        .WithMany(p => p.UserToCourseGroupEntities)
+                        .HasForeignKey(pt => new { pt.ParentCourseId, Id = pt.UserGroupId }),
+                    x => x.HasOne(pt => pt.UserEntity)
+                        .WithMany(t => t.UserToCourseGroupEntities)
+                        .HasForeignKey(pt => pt.UserId),
+                    j =>
+                    {
+                        j.HasKey(z => new { z.ParentCourseId, z.UserGroupId, z.UserId });
+                    });
             
             // TopicCollectionEntity
 
