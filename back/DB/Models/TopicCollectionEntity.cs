@@ -2,6 +2,7 @@
 
 namespace DB.Models;
 
+[Table("TopicCollections")]
 public class TopicCollectionEntity
 {   
     [DatabaseGenerated(DatabaseGeneratedOption.Identity)]

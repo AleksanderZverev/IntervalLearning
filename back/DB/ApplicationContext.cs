@@ -41,6 +41,7 @@ namespace DB
         public DbSet<CourseEntity> Courses { get; set; }
         public DbSet<UsersGroupEntity> UsersGroups { get; set; }
         public DbSet<TopicEntity> Topics { get; set; }
+        public DbSet<TopicCollectionEntity> TopicCollections { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -298,6 +299,11 @@ namespace DB
                 .WithMany(x => x.TopicsCollections)
                 .HasForeignKey(x =>  new { x.ParentCourseId, x.ParentTopicId});
             
+            modelBuilder.Entity<TopicCollectionEntity>()
+                .HasOne(x => x.Course)
+                .WithMany()
+                .HasForeignKey(x => x.ParentCourseId);
+            
             // TopicCardEntity
 
             modelBuilder.Entity<TopicCardEntity>()
@@ -306,7 +312,12 @@ namespace DB
             modelBuilder.Entity<TopicCardEntity>()
                 .HasOne(x => x.TopicCollection)
                 .WithMany(x => x.Cards)
-                .HasForeignKey(x => new { x.ParentCourseId, x.ParentTopicId, Id = x.ParentTopicCollectionId});
+                .HasForeignKey(x => new { x.ParentCourseId, x.ParentTopicId, x.ParentTopicCollectionId});
+            
+            modelBuilder.Entity<TopicCardEntity>()
+                .HasOne(x => x.Topic)
+                .WithMany()
+                .HasForeignKey(x => new {x.ParentCourseId, x.ParentTopicId});
             
             modelBuilder.Entity<CourseEntity>()
                 .Property(e => e.AdminIds)

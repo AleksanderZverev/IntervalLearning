@@ -23,5 +23,6 @@ public static class ServiceCollectionExtensions
         services.AddScoped(typeof(Repository<>));
         services.AddScoped<CoursesService>();
         services.AddScoped<TopicsService>();
+        services.AddScoped<TopicCollectionsService>();
     }
 }
