@@ -26,9 +26,15 @@ public class MappingProfile : Profile
         CreateMap<TopicEntity, Topic>();
 
         // TopicsCollections
+
         CreateMap<CreateTopicCollectionRequest, CreateTopicCollectionParameters>();
         CreateMap<PatchTopicCollectionRequest, PatchTopicCollectionParameters>();
         CreateMap<TopicCollectionEntity, TopicCollection>();
+        
+        // TopicCards
+        CreateMap<CreateTopicCardRequest, CreateTopicCardParameters>();
+        CreateMap<PatchTopicCardRequest, PatchTopicCardParameters>();
+        CreateMap<TopicCardEntity, TopicCard>();
 
         // UsersGroups
 

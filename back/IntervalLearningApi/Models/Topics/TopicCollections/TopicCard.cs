@@ -1,4 +1,4 @@
-namespace IntervalLearningApi.Models.Topics.TopicCollections.TopicCards;
+namespace IntervalLearningApi.Models.Topics.TopicCollections;
 
 public class TopicCard
 {

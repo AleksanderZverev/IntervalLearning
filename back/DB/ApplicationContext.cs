@@ -42,6 +42,7 @@ namespace DB
         public DbSet<UsersGroupEntity> UsersGroups { get; set; }
         public DbSet<TopicEntity> Topics { get; set; }
         public DbSet<TopicCollectionEntity> TopicCollections { get; set; }
+        public DbSet<TopicCardEntity> TopicCards { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -318,6 +319,11 @@ namespace DB
                 .HasOne(x => x.Topic)
                 .WithMany()
                 .HasForeignKey(x => new {x.ParentCourseId, x.ParentTopicId});
+            
+            modelBuilder.Entity<TopicCardEntity>()
+                .HasOne(x => x.Course)
+                .WithMany()
+                .HasForeignKey(x => x.ParentCourseId);
             
             modelBuilder.Entity<CourseEntity>()
                 .Property(e => e.AdminIds)
