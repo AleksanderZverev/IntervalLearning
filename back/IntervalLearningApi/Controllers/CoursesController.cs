@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using IntervalLearningApi.Extensions;
 using IntervalLearningApi.Models.Courses;
+using IntervalLearningApi.Models.Pagination;
 using IntervalLearningApi.Models.Requests;
 using IntervalLearningApi.Services;
 using Microsoft.AspNetCore.Mvc;
@@ -57,11 +58,15 @@ public class CoursesController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<ActionResult<List<Course>>> Search([FromQuery] string? name, [FromQuery] int page, [FromQuery] int count)
+    public async Task<ActionResult<SearchResult<Course>>> Search([FromQuery] string? name, [FromQuery] int page, [FromQuery] int count)
     {
-        var courses = await coursesService.Search(name?.ToLower(), page, count);
+        var (courses, totalCount) = await coursesService.Search(name?.ToLower(), page, count);
 
-        return courses.Select(mapper.Map<Course>).ToList();
+        return new SearchResult<Course>
+        {
+            FoundItems = courses.Select(mapper.Map<Course>).ToList(),
+            TotalCount = totalCount
+        };
     }
 
     [HttpDelete("{courseId:long}")]

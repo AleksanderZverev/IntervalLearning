@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using IntervalLearningApi.Extensions;
+using IntervalLearningApi.Models.Pagination;
 using IntervalLearningApi.Models.Requests;
 using IntervalLearningApi.Models.Topics;
 using IntervalLearningApi.Services;
@@ -59,11 +60,15 @@ public class TopicsController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<ActionResult<List<Topic>>> Search(long courseId, [FromQuery] string? name, [FromQuery] int page, [FromQuery] int count)
+    public async Task<ActionResult<SearchResult<Topic>>> Search(long courseId, [FromQuery] string? name, [FromQuery] int page, [FromQuery] int count)
     {
-        var topicEntities = await topicsService.SearchByName(courseId, name?.ToLower(), page, count);
+        var (topicEntities, totalCount) = await topicsService.Search(courseId, name?.ToLower(), page, count);
 
-        return topicEntities.Select(mapper.Map<Topic>).ToList();
+        return new SearchResult<Topic>
+        {
+            FoundItems = topicEntities.Select(mapper.Map<Topic>).ToList(),
+            TotalCount = totalCount
+        };
     }
 
     [HttpDelete("{topicId:long}")]

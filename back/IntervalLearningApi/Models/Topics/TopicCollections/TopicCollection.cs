@@ -6,5 +6,4 @@ public class TopicCollection
     public string Name { get; set; }
     public long ParentCourseId { get; set; }
     public long ParentTopicId { get; set; }
-    public List<TopicCard> Cards { get; set; } = new();
 }

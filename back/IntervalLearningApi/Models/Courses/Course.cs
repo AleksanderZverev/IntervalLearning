@@ -1,6 +1,4 @@
-﻿using IntervalLearningApi.Models.UsersGroups;
-
-namespace IntervalLearningApi.Models.Courses;
+﻿namespace IntervalLearningApi.Models.Courses;
 
 public class Course
 {
@@ -9,6 +7,4 @@ public class Course
     public string Description { get; }
     public string Link { get; set; }
     public HashSet<long> AdminIds { get; set; }
-    public List<Topic> Topics { get; set; }
-    public List<UsersGroup> UsersGroups { get; set; }
 }

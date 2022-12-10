@@ -70,7 +70,7 @@ public class TopicsService
     public async Task<TopicEntity?> Get(long courseId, long topicId) =>
         await db.Topics.FindAsync(courseId, topicId);
 
-    public Task<List<TopicEntity>> SearchByName(long courseId, string? name, int page, int count)
+    public async Task<(List<TopicEntity>, int)> Search(long courseId, string? name, int page, int count)
     {
         var toSkip = (page - 1) * count;
 
@@ -79,10 +79,12 @@ public class TopicsService
         if (name != null)
             query = query.Where(x => x.Name.ToLower().StartsWith(name));
 
-        return query
+        var foundItems = query
             .Skip(toSkip)
             .Take(count)
-            .ToListAsync();
+            .ToList();
+
+        return (foundItems, await db.Courses.CountAsync());
     }
 
     public async Task<(TopicEntity? course, string? error)> Delete(long userId, long courseId, long topicId)

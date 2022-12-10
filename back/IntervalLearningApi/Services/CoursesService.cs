@@ -61,7 +61,7 @@ public class CoursesService
 
     public async Task<CourseEntity?> Get(long courseId) => await db.Courses.FindAsync(courseId);
 
-    public Task<List<CourseEntity>> Search(string? name, int page, int count)
+    public async Task<(List<CourseEntity>, int)> Search(string? name, int page, int count)
     {
         var skip = (page - 1) * count;
 
@@ -71,11 +71,13 @@ public class CoursesService
         if (name != null)
             query = query.Where(x => x.Name.ToLower().StartsWith(name));
 
-        return query
+        var foundItems = query
             .OrderByDescending(c => c.Name)
             .Skip(skip)
             .Take(count)
-            .ToListAsync();
+            .ToList();
+
+        return (foundItems, await db.Courses.CountAsync());
     }
 
     public async Task<(CourseEntity? course, string? error)> Delete(long userId, long courseId)
