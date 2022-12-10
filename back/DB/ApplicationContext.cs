@@ -263,7 +263,8 @@ namespace DB
             modelBuilder.Entity<TopicEntity>()
                 .HasOne(x => x.ParentCourse)
                 .WithMany(x => x.Topics)
-                .HasForeignKey(x => x.ParentCourseId);
+                .HasForeignKey(x => x.ParentCourseId)
+                .OnDelete(DeleteBehavior.Cascade);
 
             // UserGroupEntity
 
@@ -298,7 +299,8 @@ namespace DB
             modelBuilder.Entity<TopicCollectionEntity>()
                 .HasOne(x => x.Topic)
                 .WithMany(x => x.TopicsCollections)
-                .HasForeignKey(x =>  new { x.ParentCourseId, x.ParentTopicId});
+                .HasForeignKey(x =>  new { x.ParentCourseId, x.ParentTopicId})
+                .OnDelete(DeleteBehavior.Cascade);
             
             modelBuilder.Entity<TopicCollectionEntity>()
                 .HasOne(x => x.Course)
@@ -313,7 +315,8 @@ namespace DB
             modelBuilder.Entity<TopicCardEntity>()
                 .HasOne(x => x.TopicCollection)
                 .WithMany(x => x.Cards)
-                .HasForeignKey(x => new { x.ParentCourseId, x.ParentTopicId, x.ParentTopicCollectionId});
+                .HasForeignKey(x => new { x.ParentCourseId, x.ParentTopicId, x.ParentTopicCollectionId})
+                .OnDelete(DeleteBehavior.Cascade);
             
             modelBuilder.Entity<TopicCardEntity>()
                 .HasOne(x => x.Topic)

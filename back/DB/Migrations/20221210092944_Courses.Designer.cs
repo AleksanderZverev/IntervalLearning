@@ -13,8 +13,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace DB.Migrations
 {
     [DbContext(typeof(ApplicationContext))]
-    [Migration("20221203103740_CoursesFix")]
-    partial class CoursesFix
+    [Migration("20221210092944_Courses")]
+    partial class Courses
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -153,6 +153,10 @@ namespace DB.Migrations
                         .HasColumnType("bigint");
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<string>("AdminIds")
+                        .IsRequired()
+                        .HasColumnType("text");
 
                     b.Property<string>("Description")
                         .IsRequired()
@@ -560,9 +564,6 @@ namespace DB.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
 
-                    b.Property<long?>("CourseId")
-                        .HasColumnType("bigint");
-
                     b.Property<string>("Description")
                         .HasMaxLength(500)
                         .HasColumnType("character varying(500)");
@@ -586,19 +587,9 @@ namespace DB.Migrations
                         .HasMaxLength(255)
                         .HasColumnType("character varying(255)");
 
-                    b.Property<long?>("TopicId")
-                        .HasColumnType("bigint");
-
-                    b.Property<long?>("TopicParentCourseId")
-                        .HasColumnType("bigint");
-
                     b.HasKey("ParentCourseId", "ParentTopicId", "ParentTopicCollectionId", "Id");
 
-                    b.HasIndex("CourseId");
-
-                    b.HasIndex("TopicParentCourseId", "TopicId");
-
-                    b.ToTable("TopicCardEntity");
+                    b.ToTable("TopicCards");
                 });
 
             modelBuilder.Entity("DB.Models.TopicCollectionEntity", b =>
@@ -615,18 +606,13 @@ namespace DB.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
 
-                    b.Property<long?>("CourseId")
-                        .HasColumnType("bigint");
-
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("text");
 
                     b.HasKey("ParentCourseId", "ParentTopicId", "Id");
 
-                    b.HasIndex("CourseId");
-
-                    b.ToTable("TopicCollectionEntity");
+                    b.ToTable("TopicCollections");
                 });
 
             modelBuilder.Entity("DB.Models.TopicEntity", b =>
@@ -1049,11 +1035,15 @@ namespace DB.Migrations
                 {
                     b.HasOne("DB.Models.CourseEntity", "Course")
                         .WithMany()
-                        .HasForeignKey("CourseId");
+                        .HasForeignKey("ParentCourseId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.HasOne("DB.Models.TopicEntity", "Topic")
                         .WithMany()
-                        .HasForeignKey("TopicParentCourseId", "TopicId");
+                        .HasForeignKey("ParentCourseId", "ParentTopicId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.HasOne("DB.Models.TopicCollectionEntity", "TopicCollection")
                         .WithMany("Cards")
@@ -1072,7 +1062,9 @@ namespace DB.Migrations
                 {
                     b.HasOne("DB.Models.CourseEntity", "Course")
                         .WithMany()
-                        .HasForeignKey("CourseId");
+                        .HasForeignKey("ParentCourseId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.HasOne("DB.Models.TopicEntity", "Topic")
                         .WithMany("TopicsCollections")

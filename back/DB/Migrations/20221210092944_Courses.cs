@@ -18,7 +18,8 @@ namespace DB.Migrations
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     Name = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: false),
                     Description = table.Column<string>(type: "text", nullable: false),
-                    IsPrivate = table.Column<bool>(type: "boolean", nullable: false)
+                    IsPrivate = table.Column<bool>(type: "boolean", nullable: false),
+                    AdminIds = table.Column<string>(type: "text", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -66,19 +67,27 @@ namespace DB.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "TopicCollectionEntity",
+                name: "TopicCollections",
                 columns: table => new
                 {
-                    Id = table.Column<long>(type: "bigint", nullable: false),
+                    Id = table.Column<long>(type: "bigint", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    ParentCourseId = table.Column<long>(type: "bigint", nullable: false),
                     ParentTopicId = table.Column<long>(type: "bigint", nullable: false),
                     Name = table.Column<string>(type: "text", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_TopicCollectionEntity", x => new { x.ParentTopicId, x.Id });
+                    table.PrimaryKey("PK_TopicCollections", x => new { x.ParentCourseId, x.ParentTopicId, x.Id });
                     table.ForeignKey(
-                        name: "FK_TopicCollectionEntity_Topics_ParentTopicId_Id",
-                        columns: x => new { x.ParentTopicId, x.Id },
+                        name: "FK_TopicCollections_Courses_ParentCourseId",
+                        column: x => x.ParentCourseId,
+                        principalTable: "Courses",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_TopicCollections_Topics_ParentCourseId_ParentTopicId",
+                        columns: x => new { x.ParentCourseId, x.ParentTopicId },
                         principalTable: "Topics",
                         principalColumns: new[] { "ParentCourseId", "Id" },
                         onDelete: ReferentialAction.Cascade);
@@ -116,10 +125,13 @@ namespace DB.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "TopicCardEntity",
+                name: "TopicCards",
                 columns: table => new
                 {
-                    Id = table.Column<long>(type: "bigint", nullable: false),
+                    Id = table.Column<long>(type: "bigint", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    ParentCourseId = table.Column<long>(type: "bigint", nullable: false),
+                    ParentTopicId = table.Column<long>(type: "bigint", nullable: false),
                     ParentTopicCollectionId = table.Column<long>(type: "bigint", nullable: false),
                     RememberingText = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: false),
                     PromptText = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: false),
@@ -129,12 +141,24 @@ namespace DB.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_TopicCardEntity", x => new { x.ParentTopicCollectionId, x.Id });
+                    table.PrimaryKey("PK_TopicCards", x => new { x.ParentCourseId, x.ParentTopicId, x.ParentTopicCollectionId, x.Id });
                     table.ForeignKey(
-                        name: "FK_TopicCardEntity_TopicCollectionEntity_ParentTopicCollection~",
-                        columns: x => new { x.ParentTopicCollectionId, x.Id },
-                        principalTable: "TopicCollectionEntity",
-                        principalColumns: new[] { "ParentTopicId", "Id" },
+                        name: "FK_TopicCards_Courses_ParentCourseId",
+                        column: x => x.ParentCourseId,
+                        principalTable: "Courses",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_TopicCards_TopicCollections_ParentCourseId_ParentTopicId_Pa~",
+                        columns: x => new { x.ParentCourseId, x.ParentTopicId, x.ParentTopicCollectionId },
+                        principalTable: "TopicCollections",
+                        principalColumns: new[] { "ParentCourseId", "ParentTopicId", "Id" },
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_TopicCards_Topics_ParentCourseId_ParentTopicId",
+                        columns: x => new { x.ParentCourseId, x.ParentTopicId },
+                        principalTable: "Topics",
+                        principalColumns: new[] { "ParentCourseId", "Id" },
                         onDelete: ReferentialAction.Cascade);
                 });
 
@@ -147,13 +171,13 @@ namespace DB.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "TopicCardEntity");
+                name: "TopicCards");
 
             migrationBuilder.DropTable(
                 name: "UserToCourseGroupEntity");
 
             migrationBuilder.DropTable(
-                name: "TopicCollectionEntity");
+                name: "TopicCollections");
 
             migrationBuilder.DropTable(
                 name: "UsersGroups");
