@@ -59,6 +59,8 @@ public class CoursesService
         }
     }
 
+    public async Task<CourseEntity?> Get(long courseId) => await db.Courses.FindAsync(courseId);
+
     public Task<List<CourseEntity>> Search(string? name, int page, int count)
     {
         var skip = (page - 1) * count;

@@ -67,6 +67,9 @@ public class TopicsService
         }
     }
 
+    public async Task<TopicEntity?> Get(long courseId, long topicId) =>
+        await db.Topics.FindAsync(courseId, topicId);
+
     public Task<List<TopicEntity>> SearchByName(long courseId, string? name, int page, int count)
     {
         var toSkip = (page - 1) * count;

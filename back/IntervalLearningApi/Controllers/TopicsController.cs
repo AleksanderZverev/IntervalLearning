@@ -48,6 +48,16 @@ public class TopicsController : ControllerBase
             : BadRequest(error);
     }
 
+    [HttpGet("{topicId:long}")]
+    public async Task<ActionResult<Topic>> Get(long courseId, long topicId)
+    {
+        var course = await topicsService.Get(courseId, topicId);
+
+        return course != null
+            ? mapper.Map<Topic>(course)
+            : NotFound();
+    }
+
     [HttpGet]
     public async Task<ActionResult<List<Topic>>> Search(long courseId, [FromQuery] string? name, [FromQuery] int page, [FromQuery] int count)
     {

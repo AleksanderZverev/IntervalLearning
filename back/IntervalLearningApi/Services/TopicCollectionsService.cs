@@ -86,6 +86,9 @@ public class TopicCollectionsService
         }
     }
 
+    public async Task<TopicCollectionEntity?> Get(long courseId, long topicId, long topicCollectionId) =>
+        await db.TopicCollections.FindAsync(courseId, topicId, topicCollectionId);
+
     public Task<List<TopicCollectionEntity>> SearchTopicCollections(long courseId, long topicId, string? name, int page, int count)
     {
         var toSkip = (page - 1) * count;
@@ -206,6 +209,9 @@ public class TopicCollectionsService
             return (null, "Unknown error");
         }
     }
+
+    public async Task<TopicCardEntity?> GetCard(long courseId, long topicId, long topicCollectionId, long topicCardId) =>
+        await db.TopicCards.FindAsync(courseId, topicId, topicCollectionId, topicCardId);
 
     public async Task<List<TopicCardEntity>> SearchTopicCards(
         long courseId,

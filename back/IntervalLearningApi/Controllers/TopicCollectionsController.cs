@@ -57,7 +57,17 @@ public class TopicCollectionsController : ControllerBase
             ? mapper.Map<TopicCollection>(topicCollectionEntity)
             : BadRequest(error);
     }
-    
+
+    [HttpGet("{topicCollectionId:long}")]
+    public async Task<ActionResult<TopicCollection>> Get(long courseId, long topicId, long topicCollectionId)
+    {
+        var course = await topicCollectionsService.Get(courseId, topicId, topicCollectionId);
+
+        return course != null
+            ? mapper.Map<TopicCollection>(course)
+            : NotFound();
+    }
+
     [HttpGet]
     public async Task<ActionResult<List<TopicCollection>>> Search(
         long courseId,
@@ -123,6 +133,16 @@ public class TopicCollectionsController : ControllerBase
         return topicCollectionEntity != null
             ? mapper.Map<TopicCard>(topicCollectionEntity)
             : BadRequest(error);
+    }
+
+    [HttpGet("{topicCollectionId:long}/cards/{topicCardId:long}")]
+    public async Task<ActionResult<TopicCard>> Get(long courseId, long topicId, long topicCollectionId, long topicCardId)
+    {
+        var course = await topicCollectionsService.GetCard(courseId, topicId, topicCollectionId, topicCardId);
+
+        return course != null
+            ? mapper.Map<TopicCard>(course)
+            : NotFound();
     }
     
     [HttpGet("{topicCollectionId:long}/cards/")]
