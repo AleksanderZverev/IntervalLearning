@@ -35,6 +35,14 @@ namespace DB
         public DbSet<WordEntity> Words { get; set; }
         public DbSet<LanguageEntity> Languages { get; set; }
         public DbSet<TranslationEntity> Translations { get; set; }
+        
+        //Courses
+
+        public DbSet<CourseEntity> Courses { get; set; }
+        public DbSet<UsersGroupEntity> UsersGroups { get; set; }
+        public DbSet<TopicEntity> Topics { get; set; }
+        public DbSet<TopicCollectionEntity> TopicCollections { get; set; }
+        public DbSet<TopicCardEntity> TopicCards { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -48,7 +56,7 @@ namespace DB
                 .WithOne(c => c.ParentUser)
                 .HasForeignKey(c => c.ParentUserId);
 
-            // UserPasswordsEntity
+           // UserPasswordsEntity
 
             modelBuilder.Entity<UserPasswordsEntity>()
                 .HasKey(p => p.ParentUserId);
@@ -246,6 +254,85 @@ namespace DB
                 .WithMany()
                 .HasForeignKey(t => t.LanguageId)
                 .OnDelete(DeleteBehavior.NoAction);
+            
+            // TopicEntity
+
+            modelBuilder.Entity<TopicEntity>()
+                .HasKey(x => new { x.ParentCourseId, x.Id });
+
+            modelBuilder.Entity<TopicEntity>()
+                .HasOne(x => x.ParentCourse)
+                .WithMany(x => x.Topics)
+                .HasForeignKey(x => x.ParentCourseId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // UserGroupEntity
+
+            modelBuilder.Entity<UsersGroupEntity>()
+                .HasKey(x => new { x.ParentCourseId, x.Id });
+
+            modelBuilder.Entity<UsersGroupEntity>()
+                .HasOne(x => x.ParentCourse)
+                .WithMany(x => x.UsersGroups)
+                .HasForeignKey(x => x.ParentCourseId);
+
+            modelBuilder.Entity<UserEntity>()
+                .HasMany(x => x.UserGroups)
+                .WithMany(x => x.Users)
+                .UsingEntity<UserToCourseGroupEntity>(y => y
+                        .HasOne(pt => pt.UserGroupEntity)
+                        .WithMany(p => p.UserToCourseGroupEntities)
+                        .HasForeignKey(pt => new { pt.ParentCourseId, Id = pt.UserGroupId }),
+                    x => x.HasOne(pt => pt.UserEntity)
+                        .WithMany(t => t.UserToCourseGroupEntities)
+                        .HasForeignKey(pt => pt.UserId),
+                    j =>
+                    {
+                        j.HasKey(z => new { z.ParentCourseId, z.UserGroupId, z.UserId });
+                    });
+            
+            // TopicCollectionEntity
+
+            modelBuilder.Entity<TopicCollectionEntity>()
+                .HasKey(x => new { x.ParentCourseId, x.ParentTopicId, x.Id });
+
+            modelBuilder.Entity<TopicCollectionEntity>()
+                .HasOne(x => x.Topic)
+                .WithMany(x => x.TopicsCollections)
+                .HasForeignKey(x =>  new { x.ParentCourseId, x.ParentTopicId})
+                .OnDelete(DeleteBehavior.Cascade);
+            
+            modelBuilder.Entity<TopicCollectionEntity>()
+                .HasOne(x => x.Course)
+                .WithMany()
+                .HasForeignKey(x => x.ParentCourseId);
+            
+            // TopicCardEntity
+
+            modelBuilder.Entity<TopicCardEntity>()
+                .HasKey(x => new { x.ParentCourseId, x.ParentTopicId, x.ParentTopicCollectionId, x.Id });
+
+            modelBuilder.Entity<TopicCardEntity>()
+                .HasOne(x => x.TopicCollection)
+                .WithMany(x => x.Cards)
+                .HasForeignKey(x => new { x.ParentCourseId, x.ParentTopicId, x.ParentTopicCollectionId})
+                .OnDelete(DeleteBehavior.Cascade);
+            
+            modelBuilder.Entity<TopicCardEntity>()
+                .HasOne(x => x.Topic)
+                .WithMany()
+                .HasForeignKey(x => new {x.ParentCourseId, x.ParentTopicId});
+            
+            modelBuilder.Entity<TopicCardEntity>()
+                .HasOne(x => x.Course)
+                .WithMany()
+                .HasForeignKey(x => x.ParentCourseId);
+            
+            modelBuilder.Entity<CourseEntity>()
+                .Property(e => e.AdminIds)
+                .HasConversion(
+                    v => string.Join(',', v),
+                    v => v.Split(',', StringSplitOptions.RemoveEmptyEntries).Select(long.Parse).ToHashSet());
         }
 
         private void BuildStoreModels(ModelBuilder modelBuilder)
