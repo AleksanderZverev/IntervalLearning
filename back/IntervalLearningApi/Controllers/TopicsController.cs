@@ -60,7 +60,11 @@ public class TopicsController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<ActionResult<SearchResult<Topic>>> Search(long courseId, [FromQuery] string? name, [FromQuery] int page, [FromQuery] int count)
+    public async Task<ActionResult<SearchResult<Topic>>> Search(
+        long courseId,
+        [FromQuery] string? name,
+        [FromQuery] int page = 1,
+        [FromQuery] int count = 10)
     {
         var (topicEntities, totalCount) = await topicsService.Search(courseId, name?.ToLower(), page, count);
 

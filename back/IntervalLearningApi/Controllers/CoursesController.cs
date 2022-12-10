@@ -58,7 +58,7 @@ public class CoursesController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<ActionResult<SearchResult<Course>>> Search([FromQuery] string? name, [FromQuery] int page, [FromQuery] int count)
+    public async Task<ActionResult<SearchResult<Course>>> Search([FromQuery] string? name, [FromQuery] int page = 1, [FromQuery] int count = 10)
     {
         var (courses, totalCount) = await coursesService.Search(name?.ToLower(), page, count);
 

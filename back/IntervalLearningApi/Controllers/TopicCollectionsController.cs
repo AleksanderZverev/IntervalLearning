@@ -73,8 +73,8 @@ public class TopicCollectionsController : ControllerBase
         long courseId,
         long topicId,
         [FromQuery] string? name,
-        [FromQuery] int page,
-        [FromQuery] int count)
+        [FromQuery] int page = 1,
+        [FromQuery] int count = 10)
     {
         var topicEntities = await topicCollectionsService.SearchTopicCollections(courseId, topicId, name?.ToLower(), page, count);
 
