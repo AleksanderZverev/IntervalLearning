@@ -10,6 +10,7 @@ import { themeSlice } from './slices/themeSlice';
 import { cardsSlice } from './slices/cardsSlice';
 import { queueLearnSlice } from './slices/queueLearnSlice';
 import { languagesSlice } from './slices/languagesSlice';
+import { coursesSlice } from "./slices/coursesSlice";
 
 const makeStore = () => {
     const store = configureStore({
@@ -24,6 +25,7 @@ const makeStore = () => {
             cards: cardsSlice.reducer,
             queueLearn: queueLearnSlice.reducer,
             languages: languagesSlice.reducer,
+            courses: coursesSlice.reducer,
         },
         middleware: (getDefaultMiddleware) =>
             getDefaultMiddleware({ serializableCheck: false }).concat(api.middleware, accountSlice.middleware),

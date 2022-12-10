@@ -1,8 +1,6 @@
 import {createSlice, PayloadAction} from '@reduxjs/toolkit';
 import {Card} from '../../types/Collection';
 import {RootState} from '../store';
-import {getCollectionKey} from "./collectionsSlice";
-import {adapter} from "next/dist/server/web/adapter";
 
 export const getCardKey = (userId: string, collectionId: string) => `${userId}-${collectionId}`;
 
