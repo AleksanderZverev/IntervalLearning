@@ -1,6 +1,6 @@
 import { api, tagTypes } from "./apiSlice";
 import { addTopicToCourse, deleteCourse, setCourse, setCourses } from "./slices/coursesSlice";
-import { Course, Topic } from "../types/Course";
+import { Course, Topic, TopicCollection } from "../types/Course";
 import Courses from "../../pages/courses/[[...courses]]";
 
 const baseUrl = "/courses"
@@ -34,7 +34,14 @@ export interface GetTopicsItem {
 export interface SearchResponse<T> {
     foundItems: T[];
     totalCount: number;
+}
 
+export interface SearchTopicCollectionsRequest {
+    courseId: string;
+    topicId: string;
+    name?: string;
+    page: number;
+    count: number;
 }
 
 export const coursesApi = api.injectEndpoints({
@@ -126,6 +133,26 @@ export const coursesApi = api.injectEndpoints({
                 }
             }),
         }),
+        searchTopicCollections: build.query<TopicCollection[], SearchTopicCollectionsRequest>({
+            query: (item) => ({
+                method: 'GET',
+                url: `${baseUrl}/${item.courseId}/topics/${item.topicId}/topic-collections`,
+                params: item,
+                onSuccess: async (dispatch, data) => {
+                    //todo
+                }
+            }),
+        }),
+        createTopicCollection: build.mutation<TopicCollection, {courseId: string, topicId: string, name: string}>({
+            query: (item) => ({
+                method: 'POST',
+                url: `${baseUrl}/${item.courseId}/topics/${item.topicId}/topic-collections`,
+                data: item,
+                onSuccess: async (dispatch, data) => {
+                    //todo
+                }
+            }),
+        }),
     })
 });
 
@@ -138,5 +165,7 @@ export const {
     useDeleteTopicMutation,
     usePatchTopicMutation,
     useGetCourseQuery,
-    useGetTopicQuery
+    useGetTopicQuery,
+    useSearchTopicCollectionsQuery,
+    useCreateTopicCollectionMutation,
 } = coursesApi;

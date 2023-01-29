@@ -19,6 +19,13 @@ export interface Topic {
     collections: Collection[];
 }
 
+export interface TopicCollection {
+    id: string;
+    name: string;
+    parentCourseId: string;
+    parentTopicId: string;
+}
+
 export interface UserGroup {
     id: string;
     name: string;

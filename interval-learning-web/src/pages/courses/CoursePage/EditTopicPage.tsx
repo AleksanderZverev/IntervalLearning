@@ -9,11 +9,12 @@ import { TextAreaFormField } from "../../../controls/Form/Form";
 import {
     useGetCourseQuery,
     useGetTopicQuery,
-    usePatchTopicMutation
+    usePatchTopicMutation, useSearchTopicCollectionsQuery
 } from "../../../redux/courseApi";
 import { Table, TableBody, TableCell, TableHead, TableHeaderCell, TableRow } from "../../../controls/Table/Table";
 import { withMutationResolver, WithMutationResolverProps } from "../../../hoc/withQueryResolver";
 import Markdown from "markdown-to-jsx";
+import { AddTopicCollectionsPage } from "./AddTopicCollectionsPage";
 
 enum Mode {
     Theory = "Теория",
@@ -34,7 +35,7 @@ export const EditTopicPageContent: FC<EditTopicPageProps> =
              }
      }) => {
         const { courseId, topicId } = useParams();
-        if (!Boolean(courseId) || !Boolean(topicId)) {
+        if (!courseId || !topicId) {
             throw new Error();
         }
         const timer = useRef<{ id: number | null }>({ id: null });
@@ -43,8 +44,8 @@ export const EditTopicPageContent: FC<EditTopicPageProps> =
 
         const [showMarkdownTheory, setShowMarkdownTheory] = useState(false);
         const { data: course, isFetching: isCoursesFetching } = useGetCourseQuery({ courseId: courseId });
-
         const { data: topic, isFetching: isTopicsFetching } = useGetTopicQuery({ courseId, topicId });
+
 
         const [theory, setTheory] = useState("");
         useEffect(() => {
@@ -103,28 +104,7 @@ export const EditTopicPageContent: FC<EditTopicPageProps> =
                         </Stack>
                     )
                 case Mode.Collections:
-                    return (
-                        <Box>
-                            <Table>
-                                <TableHead>
-                                    <TableHeaderCell>Название</TableHeaderCell>
-                                    <TableHeaderCell>Слов</TableHeaderCell>
-                                    <TableHeaderCell>Добавило</TableHeaderCell>
-                                    <TableHeaderCell/>
-                                </TableHead>
-                                <TableBody>
-                                    {topic.collections.map(x => (
-                                        <TableRow key={`topic-${topic.id}-collections-${x.id}`}>
-                                            <TableCell>{x.title}</TableCell>
-                                            <TableCell>{x.cardsCount}</TableCell>
-                                            <TableCell>100</TableCell>
-                                            <TableCell><Edit/></TableCell>
-                                        </TableRow>))}
-                                </TableBody>
-                            </Table>
-                            <Button variant={"outlined"}>Добавить коллекцию</Button>
-                        </Box>
-                    )
+                    return <AddTopicCollectionsPage topicId={topicId} courseId={courseId}/>
             }
         }
 
