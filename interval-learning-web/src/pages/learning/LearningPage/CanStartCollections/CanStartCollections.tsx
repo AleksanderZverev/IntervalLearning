@@ -7,6 +7,7 @@ import { SelectSchedule } from '../../../../controls/SelectSchedule/SelectSchedu
 import { Table, TableBody, TableCell, TableHead, TableHeaderCell, TableRow } from '../../../../controls/Table/Table';
 import { LocalStorageHelper } from '../../../../helpers/localStorageHelper';
 import { withQueryResolver, WithQueryResolverData } from '../../../../hoc/withQueryResolver';
+import { useLocalStorageValue } from '../../../../hooks/useLocalStorageValue';
 import { useGetNotFinishedQuery } from '../../../../redux/collectionApi';
 import { Collection } from '../../../../types/Collection';
 import { Schedule } from '../../../../types/schedule';
@@ -87,8 +88,8 @@ export const CanStartCollections: FC<CanStartCollectionsProps> = ({}) => {
     const [page, setPage] = useState(1);
 
     const count = window ? Math.ceil((window.innerHeight - 50) / 80) : 10;
-    const [schedule, setSchedule] = useState<Schedule>();
-    const [wordsQuantity, setWordsQuantity] = useState<number | undefined>();
+    const [schedule, setSchedule] = useLocalStorageValue<Schedule>('CanStartCollections-schedule');
+    const [wordsQuantity, setWordsQuantity] = useState<number | undefined>(schedule?.cardsCountPerPhase);
 
     const saveWordsCount = (newCount: number | undefined) => {
         if (!schedule) {

@@ -7,6 +7,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeaderCell, TableRow } fro
 import { DateHelper } from '../../../../helpers/DateHelper';
 import { LocalStorageHelper } from '../../../../helpers/localStorageHelper';
 import { withQueryResolver, WithQueryResolverData } from '../../../../hoc/withQueryResolver';
+import { useLocalStorageValue } from '../../../../hooks/useLocalStorageValue';
 import { RepeatingPhaseDto, useGetQueueCollectionsQuery } from '../../../../redux/collectionApi';
 import { Schedule } from '../../../../types/schedule';
 import { CollectionRow } from './CollectionRow/CollectionRow';
@@ -57,7 +58,7 @@ const InProgressCollectionsContent: FC<InProgressCollectionsProps> = ({ queryDat
     const dateToCollectionsQueue = Object.entries(queryData.dateToRepeatingPhases);
     const now = dayjs();
     const allowFutureSelect = process.env.NODE_ENV === 'development';
-    const [schedule, setSchedule] = useState<Schedule | undefined>();
+    const [schedule, setSchedule] = useLocalStorageValue<Schedule | undefined>('InProgressCollectionsContent-schedule');
     const availableScheduleKeys = useMemo(
         () => getScheduleKeys(queryData.dateToRepeatingPhases),
         [queryData.dateToRepeatingPhases]
