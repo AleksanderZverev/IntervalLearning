@@ -1,4 +1,4 @@
-import { RootState } from './../store';
+import { RootState } from '../store';
 import { createEntityAdapter, createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { Collection } from '../../types/Collection';
 
@@ -7,7 +7,7 @@ export const getCollectionKey = (userId: string, collectionId: string) => `${use
 const adapter = createEntityAdapter<Collection>({ selectId: (c) => getCollectionKey(c.userId, c.id) });
 const { selectAll, selectById } = adapter.getSelectors();
 
-interface CardAddedItem {
+interface CardChangedItem {
     userId: string;
     collectionId: string;
 }
@@ -28,7 +28,7 @@ export const collectionSlice = createSlice({
         setOneCollection: (state, action: PayloadAction<Collection>) => {
             adapter.setOne(state, action.payload);
         },
-        cardAddedToCollection: (state, action: PayloadAction<CardAddedItem>) => {
+        cardAddedToCollection: (state, action: PayloadAction<CardChangedItem>) => {
             const { userId, collectionId } = action.payload;
             const key = getCollectionKey(userId, collectionId);
             const collection = selectById(state, key);
@@ -43,6 +43,23 @@ export const collectionSlice = createSlice({
                 changes: {
                     cardsCount: collection.cardsCount + 1,
                     notStartedCards: collection.notStartedCards + 1,
+                },
+            });
+        },
+        cardDeletedFromCollection: (state, action: PayloadAction<CardChangedItem>) => {
+            const {collectionId, userId} = action.payload;
+            const key = getCollectionKey(userId, collectionId);
+            const collection = selectById(state, key);
+
+            if (!collection) {
+                console.error('REDUX: collection not found');
+                return;
+            }
+
+            adapter.updateOne(state, {
+                id: key,
+                changes: {
+                    cardsCount: collection.cardsCount - 1,
                 },
             });
         },
@@ -66,7 +83,7 @@ export const collectionSlice = createSlice({
     },
 });
 
-export const { setCollections, setOneCollection, cardAddedToCollection, addStartedCards } = collectionSlice.actions;
+export const { setCollections, setOneCollection, cardAddedToCollection, addStartedCards, cardDeletedFromCollection } = collectionSlice.actions;
 
 export const { selectCollections, selectCollectionById } = {
     selectCollections: (state: RootState) => selectAll(state.collections),

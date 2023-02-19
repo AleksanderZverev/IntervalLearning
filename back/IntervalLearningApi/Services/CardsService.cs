@@ -1,8 +1,9 @@
 ﻿using System.Diagnostics;
+using System.Linq.Expressions;
 using DB;
 using DB.Models;
 using Infrastructure;
-using IntervalLearningApi.Models.RepeatsSchedule;
+using IntervalLearningApi.Models;
 using Microsoft.EntityFrameworkCore;
 
 namespace IntervalLearningApi.Services;
@@ -67,6 +68,63 @@ public class CardsService
         {
             return (null, "Unknown error", false);
         }
+    }
+    
+    public async Task<(CardEntity? card, string? error)> Delete(long userId, short collectionId, short cardId)
+    {
+        var card = await db.Cards.FindAsync(userId, collectionId, cardId);
+
+        if (card == null)
+            return (null, "Card not found");
+
+        var deletedCard = db.Cards.Remove(card);
+        try
+        {
+            await db.SaveChangesAsync();
+            return (deletedCard.Entity, null);
+        }
+        catch
+        {
+            return (null, "Unable to save changes to database");
+        }
+    }
+
+    public async Task<List<CardEntity>> Search(
+        long userId,
+        short collectionId,
+        string searchValue,
+        SearchFieldType fieldType,
+        int page,
+        int count)
+    {
+        var skip = (page - 1) * count;
+
+        return fieldType switch
+        {
+            SearchFieldType.RememberingText => await GetCards(c =>
+                c.ParentUserId == userId
+                && c.ParentCollectionId == collectionId
+                && c.FrontSideText.ToLower().StartsWith(searchValue), skip, count),
+            SearchFieldType.PromptText => await GetCards(c =>
+                c.ParentUserId == userId
+                && c.ParentCollectionId == collectionId
+                && c.PromptText.ToLower().StartsWith(searchValue), skip, count),
+            SearchFieldType.MeaningText => await GetCards(c =>
+                c.ParentUserId == userId
+                && c.ParentCollectionId == collectionId
+                && c.BackSideText.ToLower().StartsWith(searchValue), skip, count),
+            _ => throw new ArgumentOutOfRangeException(nameof(fieldType), fieldType, null)
+        };
+    }
+
+    private async Task<List<CardEntity>> GetCards(Expression<Func<CardEntity, bool>> condition, int skip, int take)
+    {
+        return await db.Cards
+            .Where(condition)
+            .OrderByDescending(c => c.CreatedDate)
+            .Skip(skip)
+            .Take(take)
+            .ToListAsync();
     }
 
     public async Task<(List<CardEntity>? cards, string? error)> GetNotStartedCards(long scheduleUserId,
