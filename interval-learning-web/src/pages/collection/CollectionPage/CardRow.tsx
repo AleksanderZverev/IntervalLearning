@@ -1,24 +1,18 @@
-import {
-    ArrowForward,
-    Delete, Edit, KeyboardArrowRight
-} from '@mui/icons-material';
+import { ArrowForward, Delete, Edit, KeyboardArrowRight } from '@mui/icons-material';
 import { Collapse, IconButton, Portal, Stack } from '@mui/material';
 import { FC, useState } from 'react';
 import { CreateCardModal } from '../../../controls/Modals/CreateCardModal';
 import { TableCell, TableRow } from '../../../controls/Table/Table';
 import { Card } from '../../../types/Collection';
-import {withMutationResolver, WithMutationResolverProps} from "../../../hoc/withQueryResolver";
-import {useDeleteCardMutation} from "../../../redux/cardsApi";
-import {MoveCardModal} from "../../../controls/Modals/MoveCardModal";
+import { withMutationResolver, WithMutationResolverProps } from '../../../hoc/withQueryResolver';
+import { useDeleteCardMutation } from '../../../redux/cardsApi';
+import { MoveCardModal } from '../../../controls/Modals/MoveCardModal';
 
 interface CardRowProps extends WithMutationResolverProps<typeof useDeleteCardMutation> {
     card: Card;
 }
 
-const CardRowComponent: FC<CardRowProps> = ({
-                                                mutationProps: {mutate: deleteCard},
-                                                card
-                                            }) => {
+const CardRowComponent: FC<CardRowProps> = ({ mutationProps: { mutate: deleteCard }, card }) => {
     const [showDetails, setShowDetails] = useState(false);
     const [showEditCardModal, setShowEditCardModal] = useState(false);
     const [showMoveCardModal, setShowMoveCardModal] = useState(false);
@@ -44,10 +38,7 @@ const CardRowComponent: FC<CardRowProps> = ({
                     />
                 )}
                 {showMoveCardModal && (
-                    <MoveCardModal
-                    isOpen={showMoveCardModal}
-                    card={card}
-                    onClose={() => setShowMoveCardModal(false)}/>
+                    <MoveCardModal isOpen={showMoveCardModal} card={card} onClose={() => setShowMoveCardModal(false)} />
                 )}
             </Portal>
             <TableRow borderless hover={Boolean(hasExamples)} onClick={() => onShowDetails()}>
@@ -56,18 +47,17 @@ const CardRowComponent: FC<CardRowProps> = ({
                 <TableCell>{card.backSideText}</TableCell>
                 <TableCell>{card.description}</TableCell>
                 <TableCell sx={{ position: 'relative', paddingRight: 5 }}>
-                    <Stack direction={"row"} sx={{ position: 'absolute', right: 20, top: 10 }}>
+                    <Stack direction={'row'} sx={{ position: 'absolute', right: 20, top: 10 }}>
                         <IconButton
                             onClick={(e) => {
                                 e.stopPropagation();
                                 setShowEditCardModal(true);
                             }}
                         >
-                            <Edit fontSize="small"/>
+                            <Edit fontSize="small" />
                         </IconButton>
-                        <IconButton
-                            onClick={() => setShowMoveCardModal(true)}>
-                            <ArrowForward fontSize={"small"}/>
+                        <IconButton onClick={() => setShowMoveCardModal(true)}>
+                            <ArrowForward fontSize={'small'} />
                         </IconButton>
                         <IconButton
                             onClick={async (e) => {
@@ -75,10 +65,11 @@ const CardRowComponent: FC<CardRowProps> = ({
                                 await deleteCard({
                                     collectionId: card.collectionId,
                                     userId: card.userId,
-                                    request: card
+                                    request: card,
                                 });
-                            }}>
-                            <Delete fontSize="small" color={"error"}/>
+                            }}
+                        >
+                            <Delete fontSize="small" color={'error'} />
                         </IconButton>
                     </Stack>
                 </TableCell>
@@ -105,4 +96,4 @@ const CardRowComponent: FC<CardRowProps> = ({
     );
 };
 
-export const CardRow = withMutationResolver(useDeleteCardMutation, "Не удалось удалить карточку")(CardRowComponent);
+export const CardRow = withMutationResolver(useDeleteCardMutation, 'Не удалось удалить карточку')(CardRowComponent);
