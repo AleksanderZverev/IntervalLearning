@@ -25,16 +25,16 @@ export interface GetCardItem {
 }
 
 export enum SearchFieldType {
-    RememberingText = "RememberingText",
-    PromptText = "PromptText",
-    MeaningText = "MeaningText"
+    RememberingText = 'RememberingText',
+    PromptText = 'PromptText',
+    MeaningText = 'MeaningText',
 }
 
 export interface SearchCardsItem {
     searchValue: string;
     page: number;
     count: number;
-    fieldType: SearchFieldType
+    fieldType: SearchFieldType;
 }
 
 export interface CardIdsList {
@@ -84,8 +84,12 @@ export interface GetNotStartedCardsRequest {
     count: number;
 }
 
-export interface MoveCardRequest{
+export interface MoveCardRequest {
     destinationCollectionId: string;
+    cardId: string;
+}
+
+export interface DeleteCardRequest {
     cardId: string;
 }
 
@@ -183,50 +187,61 @@ export const cardsApi = api.injectEndpoints({
             }),
             invalidatesTags: [tagTypes.repeatCardsList, tagTypes.queueCollectionsList],
         }),
-        deleteCard: build.mutation<Card, BaseRequestItem<Card>>({
-            query: ({ collectionId, request: { id } }) => ({
-                url: `/collections/${collectionId}/cards/${id}`,
+        deleteCard: build.mutation<Card, BaseRequestItem<DeleteCardRequest>>({
+            query: ({ collectionId, request: { cardId } }) => ({
+                url: `/collections/${collectionId}/cards/${cardId}`,
                 method: 'DELETE',
                 onSuccess: async (dispatch, data) => {
                     const card = data as Card;
                     dispatch(deleteCard({ cardId: card.id, userId: card.userId, collectionId: card.collectionId }));
                     dispatch(cardDeletedFromCollection({ collectionId: card.collectionId, userId: card.userId }));
-                }
+                },
             }),
-            invalidatesTags: [tagTypes.repeatCardsList, tagTypes.notFinishedCollectionsList, tagTypes.queueCollectionsList],
+            invalidatesTags: [
+                tagTypes.repeatCardsList,
+                tagTypes.notFinishedCollectionsList,
+                tagTypes.queueCollectionsList,
+            ],
         }),
         moveCard: build.mutation<Card, BaseRequestItem<MoveCardRequest>>({
             query: ({ collectionId, request }) => ({
                 url: `/collections/${collectionId}/cards/move`,
                 method: 'POST',
-                data: request
+                data: request,
             }),
             async onQueryStarted(arg, { queryFulfilled, dispatch }) {
                 try {
                     const response = await queryFulfilled;
-                    dispatch(deleteCard({
-                        cardId: arg.request.cardId,
-                        userId: arg.userId,
-                        collectionId: arg.collectionId
-                    }));
+                    dispatch(
+                        deleteCard({
+                            cardId: arg.request.cardId,
+                            userId: arg.userId,
+                            collectionId: arg.collectionId,
+                        })
+                    );
                     dispatch(cardDeletedFromCollection({ collectionId: arg.collectionId, userId: arg.userId }));
                     dispatch(addCard(response.data));
-                    dispatch(cardAddedToCollection({
-                        collectionId: arg.request.destinationCollectionId,
-                        userId: arg.userId
-                    }))
-                } catch {
-                }
+                    dispatch(
+                        cardAddedToCollection({
+                            collectionId: arg.request.destinationCollectionId,
+                            userId: arg.userId,
+                        })
+                    );
+                } catch {}
             },
-            invalidatesTags: [tagTypes.repeatCardsList, tagTypes.notFinishedCollectionsList, tagTypes.queueCollectionsList],
+            invalidatesTags: [
+                tagTypes.repeatCardsList,
+                tagTypes.notFinishedCollectionsList,
+                tagTypes.queueCollectionsList,
+            ],
         }),
         searchCards: build.query<Card[], BaseRequestItem<SearchCardsItem>>({
             query: ({ collectionId, request }) => ({
                 url: `/collections/${collectionId}/cards/search`,
                 method: 'GET',
-                params: request
-            })
-        })
+                params: request,
+            }),
+        }),
     }),
 });
 
@@ -239,5 +254,5 @@ export const {
     usePatchRememberCardsMutation,
     useDeleteCardMutation,
     useMoveCardMutation,
-    useSearchCardsQuery
+    useSearchCardsQuery,
 } = cardsApi;

@@ -7,6 +7,7 @@ import { Card } from '../../../types/Collection';
 import { withMutationResolver, WithMutationResolverProps } from '../../../hoc/withQueryResolver';
 import { useDeleteCardMutation } from '../../../redux/cardsApi';
 import { MoveCardModal } from '../../../controls/Modals/MoveCardModal';
+import { DeleteCardModal } from '../../../controls/Modals/DeleteCardModal';
 
 interface CardRowProps extends WithMutationResolverProps<typeof useDeleteCardMutation> {
     card: Card;
@@ -16,6 +17,7 @@ const CardRowComponent: FC<CardRowProps> = ({ mutationProps: { mutate: deleteCar
     const [showDetails, setShowDetails] = useState(false);
     const [showEditCardModal, setShowEditCardModal] = useState(false);
     const [showMoveCardModal, setShowMoveCardModal] = useState(false);
+    const [showDeleteCardModal, setShowDeleteCardModal] = useState(false);
 
     const hasExamples = card.examples && card.examples.length > 0;
 
@@ -40,6 +42,13 @@ const CardRowComponent: FC<CardRowProps> = ({ mutationProps: { mutate: deleteCar
                 {showMoveCardModal && (
                     <MoveCardModal isOpen={showMoveCardModal} card={card} onClose={() => setShowMoveCardModal(false)} />
                 )}
+                {showDeleteCardModal && (
+                    <DeleteCardModal
+                        isOpen={showDeleteCardModal}
+                        card={card}
+                        onClose={() => setShowDeleteCardModal(false)}
+                    />
+                )}
             </Portal>
             <TableRow borderless hover={Boolean(hasExamples)} onClick={() => onShowDetails()}>
                 <TableCell>{card.frontSideText}</TableCell>
@@ -59,16 +68,7 @@ const CardRowComponent: FC<CardRowProps> = ({ mutationProps: { mutate: deleteCar
                         <IconButton onClick={() => setShowMoveCardModal(true)}>
                             <ArrowForward fontSize={'small'} />
                         </IconButton>
-                        <IconButton
-                            onClick={async (e) => {
-                                e.stopPropagation();
-                                await deleteCard({
-                                    collectionId: card.collectionId,
-                                    userId: card.userId,
-                                    request: card,
-                                });
-                            }}
-                        >
+                        <IconButton onClick={() => setShowDeleteCardModal(true)}>
                             <Delete fontSize="small" color={'error'} />
                         </IconButton>
                     </Stack>
