@@ -1,11 +1,13 @@
 import { FC, useState } from 'react';
-import { Autocomplete, Button, Dialog, DialogActions, DialogContent, DialogTitle } from '@mui/material';
+import { Autocomplete, Button, Dialog, DialogActions, DialogContent, DialogTitle, Stack } from '@mui/material';
 import useTypedSelector from '../../hooks/useTypedSelector';
 import { selectCollections } from '../../redux/slices/collectionsSlice';
-import { FormField } from '../Form/Form';
+import { Form, FormField } from '../Form/Form';
 import { Card, Collection } from '../../types/Collection';
 import { useMoveCardMutation } from '../../redux/cardsApi';
 import { withMutationResolver, WithMutationResolverProps } from '../../hoc/withQueryResolver';
+import { Label } from '../Label/Label';
+import { KeyboardArrowRight } from '@mui/icons-material';
 
 interface MoveCardModalProps extends WithMutationResolverProps<typeof useMoveCardMutation> {
     isOpen: boolean;
@@ -31,23 +33,26 @@ const MoveCardModalComponent: FC<MoveCardModalProps> = ({
                 },
             });
         } catch {
-            await onMove();
             showRetryModal(onMove);
         }
     };
 
     return (
         <Dialog open={props.isOpen} fullWidth maxWidth={'sm'} onClose={props.onClose}>
-            <DialogTitle>Перемещение карточки</DialogTitle>
+            <DialogTitle>
+                Перемещение карточки «{props.card.backSideText} ({props.card.frontSideText})»
+            </DialogTitle>
             <DialogContent>
-                <Autocomplete
-                    renderInput={(params) => <FormField {...params} withoutErrorMessage />}
-                    options={availableCollections}
-                    renderOption={(props, option, state) => <li {...props}>{option.title}</li>}
-                    getOptionLabel={(option) => option.title}
-                    value={selectedCollection}
-                    onChange={(event, newValue) => setSelectedCollection(newValue ?? null)}
-                />
+                <Label label="Выберите коллекцию">
+                    <Autocomplete
+                        renderInput={(params) => <FormField {...params} withoutErrorMessage />}
+                        options={availableCollections}
+                        renderOption={(props, option, state) => <li {...props}>{option.title}</li>}
+                        getOptionLabel={(option) => option.title}
+                        value={selectedCollection}
+                        onChange={(event, newValue) => setSelectedCollection(newValue ?? null)}
+                    />
+                </Label>
                 <DialogActions>
                     <Button variant="contained" onClick={onMove} disabled={!Boolean(selectedCollection) || isLoading}>
                         Переместить

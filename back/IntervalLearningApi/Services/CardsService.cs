@@ -127,6 +127,75 @@ public class CardsService
             .ToListAsync();
     }
 
+    public async Task<(CardEntity? card, string? error, bool isMoved)> MoveCard(
+        long userId,
+        short sourceCollectionId,
+        short destinationCollectionId,
+        short cardId,
+        bool disableTransaction = false)
+    {
+        var card = await db.Cards
+            .Include(c => c.Remembers)
+            .AsSplitQuery()
+            .SingleOrDefaultAsync(c =>
+                c.ParentUserId == userId && c.ParentCollectionId == sourceCollectionId && c.Id == cardId);
+
+        if (!disableTransaction)
+            await db.Database.BeginTransactionAsync();
+
+        var movedCard = new CardEntity
+        {
+            ParentUserId = userId,
+            ParentCollectionId = destinationCollectionId,
+            FrontSideText = card.FrontSideText,
+            PromptText = card.PromptText,
+            BackSideText = card.BackSideText,
+            Description = card.Description,
+            Examples = card.Examples?.ToList(),
+            CreatedDate = card.CreatedDate,
+        };
+
+        db.Add(movedCard);
+
+        if (!db.SoftSaveChanges())
+        {
+            if (!disableTransaction)
+                await db.Database.RollbackTransactionAsync();
+            return (null, "Unable to create card", false);
+        }
+
+
+        var remembers = card.Remembers.Select(r => new RememberEntity(
+            r.ParentRepeatsScheduleUserId,
+            r.ParentRepeatsScheduleId,
+            movedCard.ParentUserId,
+            movedCard.ParentCollectionId,
+            movedCard.Id,
+            r.Weight,
+            r.PhaseIndex,
+            r.RepeatedDate)).ToList();
+        
+        await db.Remembers.AddRangeAsync(remembers);
+
+
+        if (!db.SoftSaveChanges())
+        {
+            return (null, "Unable to save remember entities", false);
+        }
+
+        var (deleted, deletionError) = await Delete(userId, sourceCollectionId, cardId);
+
+        if (deletionError != null)
+        {
+            return (null, deletionError, false);
+        }
+
+        if (!disableTransaction)
+            await db.Database.CommitTransactionAsync();
+
+        return (movedCard, null, true);
+    }
+
     public async Task<(List<CardEntity>? cards, string? error)> GetNotStartedCards(long scheduleUserId,
         short scheduleId,
         long userId,

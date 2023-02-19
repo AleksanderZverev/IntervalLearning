@@ -287,8 +287,7 @@ public class CollectionService
         long userId,
         short sourceCollectionId,
         short destinationCollectionId,
-        short cardId,
-        bool disableTransaction = false)
+        short cardId)
     {
         var sourceCollection = await db.Collections.FindAsync(userId, sourceCollectionId);
         var destinationCollection = await db.Collections.FindAsync(userId, destinationCollectionId);
@@ -298,48 +297,33 @@ public class CollectionService
         if (destinationCollection == null)
             return (null, "Destination collection not found");
 
-        if (!disableTransaction)
-            await db.Database.BeginTransactionAsync();
+        await db.Database.BeginTransactionAsync();
 
-        var (deletedCard, deletedError) = await cardsService.Delete(userId, sourceCollectionId, cardId);
+        var (movedCard, movingError, isMoved) = await cardsService.MoveCard(
+            userId,
+            sourceCollectionId,
+            destinationCollectionId,
+            cardId,
+            true);
 
-        if (deletedError != null)
+        if (movingError != null || !isMoved)
         {
-            if (!disableTransaction)
-                await db.Database.RollbackTransactionAsync();
-            return (deletedCard, deletedError);
+            
+            await db.Database.RollbackTransactionAsync();
+            return (null, movingError);
         }
 
-        var (card, error, isCreated) = cardsService.CreateOrEdit(
-            new CardsService.CreateOrPatchCard(
-                userId,
-                destinationCollectionId,
-                deletedCard!.FrontSideText,
-                deletedCard.PromptText,
-                deletedCard.BackSideText,
-                deletedCard.Description,
-                deletedCard.Examples),
-            null);
+        sourceCollection.CardsCount--;
+        destinationCollection.CardsCount++;
 
-        if (error != null)
+        if (!db.SoftSaveChanges())
         {
-            if (!disableTransaction)
-                await db.Database.RollbackTransactionAsync();
-            return (card, error);
+            return (null, "Unable to increase cards count");
         }
 
-        if (isCreated)
-        {
-            sourceCollection.CardsCount--;
-            destinationCollection.CardsCount++;
-        }
-
-        await db.SaveChangesAsync();
-
-        if (!disableTransaction)
-            await db.Database.CommitTransactionAsync();
-
-        return (card, null);
+        
+        await db.Database.CommitTransactionAsync();
+        return (movedCard, null);
     }
 
     public async Task<(List<WordEntity>? words, LanguageEntity? language, string? error)> GetRandomWords(
