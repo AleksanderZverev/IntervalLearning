@@ -39,6 +39,7 @@ export const ShowCardModal: FC<ShowCardModalProps> = ({ open, onClose, userId, c
                 <DialogContent>
                     <div style={{ display: 'flex', flexDirection: 'column', rowGap: 15 }}>
                         <Label label="Запомнить">{card.frontSideText}</Label>
+                        <Label label="Подсказка">{card.promptText}</Label>
                         <Label label="Значение">{card.backSideText}</Label>
                         <Label label="Описание">{card.description}</Label>
                         <Label label="Примеры">

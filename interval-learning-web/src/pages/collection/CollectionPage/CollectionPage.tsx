@@ -17,6 +17,7 @@ import { selectTheme } from '../../../redux/slices/themeSlice';
 import { CardRow } from './CardRow';
 import { FormField } from '../../../controls/Form/Form';
 import { useDocumentTitle } from '../../../hooks/useCollectionTitle';
+import { withQueryResolver } from '../../../hoc/withQueryResolver';
 
 const cardsCountPerPage = 50;
 const defaultSearchFieldType = 'Слово';
@@ -26,7 +27,7 @@ const mapTextToFieldType: { [key: string]: SearchFieldType } = {
     Слово: SearchFieldType.RememberingText,
 };
 
-export const CollectionPage: FC = () => {
+const CollectionPageContent: FC = () => {
     const { userId, collectionId } = useParams();
 
     if (!collectionId || !userId) {
@@ -192,5 +193,21 @@ export const CollectionPage: FC = () => {
                 )}
             </div>
         </PageContainer>
+    );
+};
+
+const ConnectedCollectionPage = withQueryResolver(useGetCollectionQuery)(CollectionPageContent);
+
+export const CollectionPage: FC = () => {
+    const { userId, collectionId } = useParams();
+
+    if (!userId || !collectionId) {
+        throw new Error();
+    }
+
+    return (
+        <>
+            <ConnectedCollectionPage queryArg={{ collectionId: collectionId }} />
+        </>
     );
 };
