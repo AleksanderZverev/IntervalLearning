@@ -4,7 +4,16 @@ import { Collection } from '../../types/Collection';
 
 export const getCollectionKey = (userId: string, collectionId: string) => `${userId}-${collectionId}`;
 
-const adapter = createEntityAdapter<Collection>({ selectId: (c) => getCollectionKey(c.userId, c.id) });
+const adapter = createEntityAdapter<Collection>({
+    selectId: (c) => getCollectionKey(c.userId, c.id),
+    sortComparer: (a, b) => {
+        if (a.themeId != b.themeId) {
+            return a.themeId > b.themeId ? 1 : -1;
+        }
+
+        return a.cardsCount > b.cardsCount ? -1 : 1;
+    },
+});
 const { selectAll, selectById } = adapter.getSelectors();
 
 interface CardChangedItem {
@@ -47,7 +56,7 @@ export const collectionSlice = createSlice({
             });
         },
         cardDeletedFromCollection: (state, action: PayloadAction<CardChangedItem>) => {
-            const {collectionId, userId} = action.payload;
+            const { collectionId, userId } = action.payload;
             const key = getCollectionKey(userId, collectionId);
             const collection = selectById(state, key);
 
@@ -83,7 +92,8 @@ export const collectionSlice = createSlice({
     },
 });
 
-export const { setCollections, setOneCollection, cardAddedToCollection, addStartedCards, cardDeletedFromCollection } = collectionSlice.actions;
+export const { setCollections, setOneCollection, cardAddedToCollection, addStartedCards, cardDeletedFromCollection } =
+    collectionSlice.actions;
 
 export const { selectCollections, selectCollectionById } = {
     selectCollections: (state: RootState) => selectAll(state.collections),
