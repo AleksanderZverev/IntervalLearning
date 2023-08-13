@@ -11,11 +11,11 @@ namespace IntervalLearningApi.Services;
 public class CardsService
 {
     private readonly ILogger<CardsService> logger;
-    private readonly IWebHostEnvironment env;
+    private readonly IHostEnvironment env;
     private readonly ApplicationContext db;
 
     public CardsService(ILogger<CardsService> logger,
-        IWebHostEnvironment env,
+        IHostEnvironment env,
         ApplicationContext db)
     {
         this.logger = logger;

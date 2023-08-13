@@ -1,0 +1,21 @@
+using Newtonsoft.Json;
+
+namespace IntervalLearningApi.IntegrationTests;
+
+public static class BaseExtensions
+{
+    public static TResponse? ToResponseDto<TResponse>(this HttpResponseMessage response)
+        where TResponse : class
+        => ToResponseDtoAsync<TResponse>(response).GetAwaiter().GetResult();
+    
+    public static async Task<TResponse?> ToResponseDtoAsync<TResponse>(this HttpResponseMessage response)
+        where TResponse : class
+    {
+        var responseJson = await response.Content.ReadAsStringAsync();
+        
+        if (responseJson == null)
+            return null;
+        
+        return JsonConvert.DeserializeObject<TResponse>(responseJson);
+    }
+}

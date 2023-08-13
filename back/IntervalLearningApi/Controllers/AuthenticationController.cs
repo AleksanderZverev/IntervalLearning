@@ -19,13 +19,13 @@ public class AuthenticationController : ControllerBase
     private readonly JwtSettings jwtSettings;
 
     public AuthenticationController(
-        IOptions<JwtSettings> jwtSettings,
+        JwtSettings jwtSettings,
         IAuthenticationService authService, 
         UserService userService)
     {
         this.authService = authService;
         this.userService = userService;
-        this.jwtSettings = jwtSettings.Value;
+        this.jwtSettings = jwtSettings;
     }
 
     [AllowAnonymous]
@@ -119,6 +119,6 @@ public class AuthenticationController : ControllerBase
         if (Request.Headers.ContainsKey("X-Forwarded-For"))
             return Request.Headers["X-Forwarded-For"];
         else
-            return HttpContext.Connection.RemoteIpAddress.MapToIPv4().ToString();
+            return HttpContext.Connection.RemoteIpAddress?.MapToIPv4().ToString() ?? string.Empty;
     }
 }

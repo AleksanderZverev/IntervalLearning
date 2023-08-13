@@ -6,12 +6,37 @@ using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json.Serialization;
 using NodaTime;
 using NodaTime.Serialization.JsonNet;
+using DB.DependencyInjection;
+using IntervalLearningApi.Models;
+using Newtonsoft.Json;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
+var configuration = builder.Configuration;
 
-//builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection("JsonWebTokenKeys"));
+var connectionString =
+#if DEBUG
+    configuration.GetConnectionString("DefaultConnection");
+#else
+        Environment.GetEnvironmentVariable("DB_CONNECTION_STRING");
+#endif
+
+var bindJwtSettings = new JwtSettings();
+configuration.Bind("JsonWebTokenKeys", bindJwtSettings);
+var jwtSettings = configuration.GetSection("JsonWebTokenKeys").Get<JwtSettings>();
+
+var services = builder.Services;
+
+services.AddPersistence((o) =>
+{
+    o.UseNpgsql(connectionString);
+});
+services.AddWeb(new SecretConfig()
+{
+    JwtSettings = jwtSettings,
+});
+
+// Add services to the container.
 
 builder.Services.AddHttpLogging(o =>
 {
@@ -38,12 +63,6 @@ builder.Services.AddCors(o =>
     o.AddPolicy("Default", b => b.AllowCredentials());
 });
 
-builder.Services.AddControllers().AddNewtonsoftJson(opts =>
-{
-    opts.SerializerSettings.ContractResolver = new DefaultContractResolver()
-        {NamingStrategy = new CamelCaseNamingStrategy()};
-    opts.SerializerSettings.ConfigureForNodaTime(DateTimeZoneProviders.Tzdb);
-});
 //.AddJsonOptions(x => x.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull);
 builder.Services.AddSwaggerGen(options =>
 {
@@ -73,19 +92,6 @@ builder.Services.AddSwaggerGen(options =>
     });
 });
 
-builder.Services.AddDbContext<ApplicationContext>(options =>
-{
-    var connectionString =
-#if DEBUG
-     builder.Configuration.GetConnectionString("DefaultConnection");
-#else
-     Environment.GetEnvironmentVariable("DB_CONNECTION_STRING");
-#endif
-    options.UseNpgsql(connectionString);
-});
-
-builder.Services.AddJwtTokenServices(builder.Configuration);
-builder.Services.AddWeb(builder.Configuration);
 
 var app = builder.Build();
 
@@ -141,3 +147,5 @@ app.MapControllers();
 //app.MapFallbackToFile("index.html"); ;
 
 app.Run();
+
+public partial class Program { }
