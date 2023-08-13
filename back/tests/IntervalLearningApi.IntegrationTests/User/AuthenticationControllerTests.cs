@@ -1,18 +1,16 @@
 using System.Net.Http.Json;
 using FluentAssertions;
 using IntervalLearningApi.Constants;
+using IntervalLearningApi.IntegrationTests.Common;
+using IntervalLearningApi.IntegrationTests.Common.Attributes;
+using IntervalLearningApi.IntegrationTests.Common.Extensions;
 using IntervalLearningApi.Models;
 
 namespace IntervalLearningApi.IntegrationTests.User;
 
+[UseBasePath(ApiRoutes.Accounts.BasePath)]
 public class AuthenticationControllerTests : BaseTests
 {
-    [OneTimeSetUp]
-    public void OneTimeSetUp()
-    {
-        client.BaseAddress = new Uri(client.BaseAddress.AbsoluteUri + ApiRoutes.Accounts.BasePath + "/");
-    } 
-        
     [Test]
     public async Task Register_ShouldRegisterUser()
     {

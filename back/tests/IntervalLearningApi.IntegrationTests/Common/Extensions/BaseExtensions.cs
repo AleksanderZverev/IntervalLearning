@@ -1,6 +1,6 @@
 using Newtonsoft.Json;
 
-namespace IntervalLearningApi.IntegrationTests;
+namespace IntervalLearningApi.IntegrationTests.Common.Extensions;
 
 public static class BaseExtensions
 {

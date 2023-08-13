@@ -1,6 +1,7 @@
 ﻿using DB.Models;
 using DB.Models.Dictionary;
 using DB.Models.Store;
+using IntervalLearningApi.Constants;
 using IntervalLearningApi.Extensions;
 using IntervalLearningApi.Models.ByUser;
 using IntervalLearningApi.Models.Dictionary;
@@ -10,7 +11,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace IntervalLearningApi.Controllers
 {
-    [Route("api/collections")]
+    [Route(ApiRoutes.Collections.BasePath)]
     [Authorize]
     [ApiController]
     public class CollectionsController : ControllerBase
@@ -23,7 +24,7 @@ namespace IntervalLearningApi.Controllers
             this.collectionService = collectionService;
         }
 
-        [HttpPost]
+        [HttpPost(ApiRoutes.Collections.Create)]
         public ActionResult<Collection> CreateCollection([FromBody]CreateCollectionItem item)
         {
             var userId = HttpContext.GetUserId();
@@ -42,7 +43,7 @@ namespace IntervalLearningApi.Controllers
                 : BadRequest(error);
         }
         
-        [HttpGet("search")]
+        [HttpGet(ApiRoutes.Collections.SearchPublic)]
         public async Task<ActionResult<List<StoreCollection>>> SearchPublicCollection(short themeId, string? searchName = null, int page = 1, int count = 10)
         {
             var userId = HttpContext.GetUserId();
@@ -50,7 +51,7 @@ namespace IntervalLearningApi.Controllers
             return collections.Select((t) => ToStoreCollection(t.collection, t.subscriber)).ToList();
         }
 
-        [HttpGet("search/private")]
+        [HttpGet(ApiRoutes.Collections.SearchPrivate)]
         public async Task<ActionResult<List<Collection>>> SearchCollection(short themeId, string? searchName = null, int page = 1, int count = 10)
         {
             var userId = HttpContext.GetUserId();
@@ -59,14 +60,14 @@ namespace IntervalLearningApi.Controllers
         }
 
         [AllowAnonymous]
-        [HttpGet("/public/{userId:long}-{collectionId}")]
+        [HttpGet(ApiRoutes.Collections.GetPublicCollection)]
         public async Task<ActionResult<Collection>> GetPublicCollection(long userId, short collectionId)
         {
             var collection = await collectionService.FindPublicCollection(userId, collectionId);
             return collection == null ? NotFound() : ToCollection(collection);
         }
 
-        [HttpGet]
+        [HttpGet(ApiRoutes.Collections.GetAll)]
         public async Task<ActionResult<List<Collection>>> GetAll()
         {
             var userId = HttpContext.GetUserId();
@@ -74,7 +75,7 @@ namespace IntervalLearningApi.Controllers
             return collections.Select(ToCollection).ToList();
         }
 
-        [HttpGet("words/random")]
+        [HttpGet(ApiRoutes.Collections.GetRandomWords)]
         public async Task<ActionResult<GetRandomWordResponse>> GetRandomWords([FromQuery]short collectionId)
         {
             var userId = HttpContext.GetUserId();
@@ -85,7 +86,7 @@ namespace IntervalLearningApi.Controllers
                 : new GetRandomWordResponse(words, language);
         }
 
-        [HttpGet("repeat")]
+        [HttpGet(ApiRoutes.Collections.GetRepeatCollections)]
         public async Task<ActionResult<RepeatingCollectionResponse>> GetRepeatCollections()
         {
             var userId = HttpContext.GetUserId();
@@ -110,7 +111,7 @@ namespace IntervalLearningApi.Controllers
                             .ToList()));
         }
 
-        [HttpGet("not-finished")]
+        [HttpGet(ApiRoutes.Collections.GetNotFinished)]
         public async Task<ActionResult<GetNotFinishedResponse>> GetNotFinished(
             long scheduleUserId,
             short scheduleId,
@@ -122,7 +123,7 @@ namespace IntervalLearningApi.Controllers
             return new GetNotFinishedResponse(totalCollections, ToCollection(canStartCollections));
         }
 
-        [HttpGet("{collectionId}")]
+        [HttpGet(ApiRoutes.Collections.GetCollection)]
         public async Task<ActionResult<Collection>> Get(short collectionId)
         {
             var userId = HttpContext.GetUserId();
@@ -130,7 +131,7 @@ namespace IntervalLearningApi.Controllers
             return collection != null ? Ok(ToCollection(collection)) : NotFound();
         }
 
-        [HttpPost("{collectionId}/public")]
+        [HttpPost(ApiRoutes.Collections.MakePublic)]
         public async Task<ActionResult<Collection>> MakePublic(short collectionId)
         {
             var userId = HttpContext.GetUserId();
@@ -138,7 +139,7 @@ namespace IntervalLearningApi.Controllers
             return collection != null ? ToCollection(collection) : BadRequest(error);
         }
 
-        [HttpPost("{collectionUserId}-{collectionId}/add")]
+        [HttpPost(ApiRoutes.Collections.AddCardsToMyCollection)]
         public async Task<ActionResult<Collection>> AddCardsToMyCollection(
             long collectionUserId,
             short collectionId,

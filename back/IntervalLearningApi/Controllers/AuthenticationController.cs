@@ -1,4 +1,5 @@
-﻿using IntervalLearningApi.Models;
+﻿using IntervalLearningApi.Constants;
+using IntervalLearningApi.Models;
 using IntervalLearningApi.Services.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -8,7 +9,7 @@ namespace IntervalLearningApi.Controllers;
 
 [Authorize]
 [ApiController]
-[Route("api/accounts")]
+[Route(ApiRoutes.Accounts.BasePath)]
 public class AuthenticationController : ControllerBase
 {
     private const string RefreshTokenKey = "refreshToken";
@@ -29,7 +30,7 @@ public class AuthenticationController : ControllerBase
     }
 
     [AllowAnonymous]
-    [HttpPost("register")]
+    [HttpPost(ApiRoutes.Accounts.Register)]
     public IActionResult Register(RegisterRequest req)
     {
         var (ok, errorMessage) = authService.Register(req, GetSourceIpAddress());
@@ -37,7 +38,7 @@ public class AuthenticationController : ControllerBase
     }
 
     [AllowAnonymous]
-    [HttpPost("authenticate")]
+    [HttpPost(ApiRoutes.Accounts.Authenticate)]
     public ActionResult<AuthenticateResponse> Authenticate(AuthenticateRequest model)
     {
         var (response, error) = authService.Authenticate(model, GetSourceIpAddress());
@@ -51,7 +52,7 @@ public class AuthenticationController : ControllerBase
     }
 
     [AllowAnonymous]
-    [HttpPost("refresh-token")]
+    [HttpPost(ApiRoutes.Accounts.RefreshToken)]
     public ActionResult<AuthenticateResponse> RefreshToken()
     {
         var jwtToken = GetJwtToken(Request);
@@ -77,7 +78,7 @@ public class AuthenticationController : ControllerBase
         return response;
     }
 
-    [HttpPost("revoke-token")]
+    [HttpPost(ApiRoutes.Accounts.RevokeToken)]
     public IActionResult RevokeToken(RevokeTokenRequest req)
     {
         var token = req.Token ?? GetRefreshToken(Request);
