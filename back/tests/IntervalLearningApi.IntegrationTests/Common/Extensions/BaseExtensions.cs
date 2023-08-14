@@ -4,13 +4,16 @@ namespace IntervalLearningApi.IntegrationTests.Common.Extensions;
 
 public static class BaseExtensions
 {
-    public static TResponse? ToResponseDto<TResponse>(this HttpResponseMessage response)
+    public static TResponse? ToResponseDto<TResponse>(this HttpResponseMessage? response)
         where TResponse : class
         => ToResponseDtoAsync<TResponse>(response).GetAwaiter().GetResult();
     
-    public static async Task<TResponse?> ToResponseDtoAsync<TResponse>(this HttpResponseMessage response)
+    public static async Task<TResponse?> ToResponseDtoAsync<TResponse>(this HttpResponseMessage? response)
         where TResponse : class
     {
+        if (response == null)
+            return null;
+        
         var responseJson = await response.Content.ReadAsStringAsync();
         
         if (responseJson == null)

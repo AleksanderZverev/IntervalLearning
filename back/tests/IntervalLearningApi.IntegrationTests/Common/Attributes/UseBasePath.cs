@@ -14,6 +14,8 @@ public class UseBasePath : Attribute
 
 public class UseDefaultTestUser : Attribute
 {
-    public string Email => TestUserConstants.Email;
-    public string Password => TestUserConstants.Password;
+    public string Email => TestConstants.User.Email;
+    public string Password => TestConstants.User.Password;
+    public string FirstName => TestConstants.User.FirstName;
+    public string LastName => TestConstants.User.LastName;
 } 
