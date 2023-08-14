@@ -4,11 +4,15 @@ namespace IntervalLearningApi.IntegrationTests.Common.Attributes;
 
 public class UseBasePath : Attribute
 {
-    public string BasePath { get; }
+    private string basePathPattern;
+    
+    public string BasePath =>
+        basePathPattern
+            .Replace("{collectionId}", TestConstants.Collection.Id.ToString());
 
     public UseBasePath(string basePath)
     {
-        BasePath = basePath;
+        basePathPattern = basePath;
     }
 }
 

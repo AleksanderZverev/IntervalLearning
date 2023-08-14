@@ -42,6 +42,26 @@ public static class ApiRoutes
         public const string AddCardsToMyCollection = "{collectionUserId}-{collectionId}/add";
         public static string AddCardsToMyCollectionPath(long userId, int collectionId)  
             => $"{userId}-{collectionId}/add";
+    }
+    
+    public static class Cards
+    {
+        public const string BasePath = "api/collections/{collectionId}/cards";
+        public static string GetBasePath(short collectionId)
+            => $"api/collections/{collectionId}/cards";
         
+        public const string Get_GetAll = "";
+        public const string Get_GetCardQueue = "repeat";
+        public const string Get_GetNotStartedCards = "not-started";
+        public const string Post_CreateCard = "";
+        
+        public const string Delete_DeleteCard = "{cardId}";
+        public static string GetDeleteCardPath(short cardId) 
+            => $"{cardId}";
+        
+        public const string Post_MoveCard = "move";
+        public const string Get_SearchCard = "search";
+        public const string Post_StartCards = "start";
+        public const string Path_RememberCard = "remember";
     }
 }

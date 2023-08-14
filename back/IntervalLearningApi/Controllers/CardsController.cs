@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using IntervalLearningApi.Constants;
 using IntervalLearningApi.Extensions;
 using IntervalLearningApi.Models;
 using IntervalLearningApi.Models.ByUser;
@@ -8,7 +9,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace IntervalLearningApi.Controllers
 {
-    [Route("api/collections/{collectionId}/cards")]
+    [Route(ApiRoutes.Cards.BasePath)]
     [Authorize]
     [ApiController]
     public class CardsController : ControllerBase
@@ -22,7 +23,7 @@ namespace IntervalLearningApi.Controllers
             this.collectionService = collectionService;
         }
 
-        [HttpGet]
+        [HttpGet(ApiRoutes.Cards.Get_GetAll)]
         public async Task<ActionResult<IList<Card>>> GetCards(short collectionId, [FromQuery] int page = 1, [FromQuery] int count = 10)
         {
             var userId = HttpContext.GetUserId();
@@ -30,7 +31,7 @@ namespace IntervalLearningApi.Controllers
             return cards.Select(CollectionsController.ToCard).ToList();
         }
 
-        [HttpGet("repeat")]
+        [HttpGet(ApiRoutes.Cards.Get_GetCardQueue)]
         public async Task<ActionResult<List<Card>>> GetCardsQueue(
             short collectionId,
             [FromQuery] long scheduleUserId,
@@ -43,7 +44,7 @@ namespace IntervalLearningApi.Controllers
             return cards.Select(CollectionsController.ToCard).ToList();
         }
 
-        [HttpGet("not-started")]
+        [HttpGet(ApiRoutes.Cards.Get_GetNotStartedCards)]
         public async Task<ActionResult<List<Card>>> GetNotStartedCards(
             short collectionId,
             long scheduleUserId,
@@ -55,7 +56,7 @@ namespace IntervalLearningApi.Controllers
             return cards == null ? BadRequest(error) : cards.Select(CollectionsController.ToCard).ToList();
         }
 
-        [HttpPost]
+        [HttpPost(ApiRoutes.Cards.Post_CreateCard)]
         public ActionResult<Card> CreateCard(short collectionId, [FromBody]CreateCardItem item)
         {
             if (item.Examples != null && item.Examples.Any(e => e.Length > 255))
@@ -80,7 +81,7 @@ namespace IntervalLearningApi.Controllers
                 : BadRequest(error);
         }
 
-        [HttpDelete("{cardId}")]
+        [HttpDelete(ApiRoutes.Cards.Delete_DeleteCard)]
         public async Task<ActionResult<Card>> DeleteCard(short collectionId, short cardId)
         {
             var userId = HttpContext.GetUserId();
@@ -88,7 +89,7 @@ namespace IntervalLearningApi.Controllers
             return cardEntity != null ? CollectionsController.ToCard(cardEntity) : BadRequest(error);
         }
 
-        [HttpPost("move")]
+        [HttpPost(ApiRoutes.Cards.Post_MoveCard)]
         public async Task<ActionResult<Card>> MoveCard(short collectionId, [FromBody] MoveRequest request)
         {
             var userId = HttpContext.GetUserId();
@@ -96,7 +97,7 @@ namespace IntervalLearningApi.Controllers
             return cardEntity != null ? CollectionsController.ToCard(cardEntity) : BadRequest(error);
         }
 
-        [HttpGet("search")]
+        [HttpGet(ApiRoutes.Cards.Get_SearchCard)]
         public async Task<ActionResult<List<Card>>> SearchCard(
             short collectionId,
             [FromQuery] string searchValue,
@@ -109,7 +110,7 @@ namespace IntervalLearningApi.Controllers
             return cardEntities.Select(CollectionsController.ToCard).ToList();
         }
 
-        [HttpPost("start")]
+        [HttpPost(ApiRoutes.Cards.Post_StartCards)]
         public ActionResult<StartCardResponse> StartCards(short collectionId, [FromBody]CardsItem item)
         {
             var userId = HttpContext.GetUserId();
@@ -124,7 +125,7 @@ namespace IntervalLearningApi.Controllers
                 : BadRequest(error);
         }
 
-        [HttpPatch("remember")]
+        [HttpPatch(ApiRoutes.Cards.Path_RememberCard)]
         public async Task<ActionResult<RememberCardResponse>> RememberCard(short collectionId, [FromBody] RememberRequest request)
         {
             var userId = HttpContext.GetUserId();

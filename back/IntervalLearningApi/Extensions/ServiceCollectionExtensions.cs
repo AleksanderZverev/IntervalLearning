@@ -38,11 +38,11 @@ public static class ServiceCollectionExtensions
 
         services.AddSingleton(config.JwtSettings);
 
-        services.AddScoped<SessionUser>(provider =>
-        {
-            var httpContext = provider.GetRequiredService<IHttpContextAccessor>();
-            return new SessionUser(httpContext.HttpContext.GetUserId());
-        });
+        // services.AddScoped<SessionUser>(provider =>
+        // {
+        //     var httpContext = provider.GetRequiredService<IHttpContextAccessor>();
+        //     return new SessionUser(httpContext.HttpContext.GetUserId());
+        // });
         
         var mvcBuilder = services.AddControllers();
         mvcBuilder

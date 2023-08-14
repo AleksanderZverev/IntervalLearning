@@ -62,38 +62,62 @@ public class BaseTests
 
         if (basePathAttribute != null && !string.IsNullOrEmpty(basePathAttribute.BasePath))
         {
-            client.BaseAddress = new Uri(hostPath + basePathAttribute.BasePath + "/");    
+            client.BaseAddress = new Uri(hostPath + basePathAttribute.BasePath + "/");
         }
         
         var testUserAttribute = type.GetCustomAttribute<UseDefaultTestUser>();
 
         if (testUserAttribute != null)
-        { 
-            await SetupTestUserAsync(
+        {
+            await RegisterUser(testUserAttribute.Email,
+                testUserAttribute.Password,
+                testUserAttribute.FirstName,
+                testUserAttribute.LastName);
+
+            await AuthenticateTestUserAsync(
                 testUserAttribute.Email,
                 testUserAttribute.Password,
                 testUserAttribute.FirstName,
                 testUserAttribute.LastName);
+
+            await SetupTestUserCollectionsAsync(dbContext);
         }
     }
 
-    protected virtual async Task SetupTestUserAsync(string email, string password, string firstName, string lastName)
+    private async Task SetupTestUserCollectionsAsync(ApplicationContext db)
     {
-        var register = await client.PostAsJsonAsync(
-            hostPath + ApiRoutes.Accounts.BasePath + "/" + ApiRoutes.Accounts.Register, new RegisterRequest()
+        var firstCollectionEntry = await db.Collections.AddAsync(new CollectionEntity()
+        {
+            ParentUserId = TestConstants.User.Id,
+            Title = "[For tests] Test user collection",
+            ThemeId = TestConstants.Theme.TestId,
+            IsPublic = false,
+            IsDefaultBackSide = false,
+        });
+        
+        var secondCollectionEntry = await db.Collections.AddAsync(new CollectionEntity()
+        {
+            ParentUserId = TestConstants.User.Id,
+            Title = "[For tests] Test user second collection",
+            ThemeId = TestConstants.Theme.TestId,
+            IsPublic = false,
+            IsDefaultBackSide = false,
+        });
+        await db.SaveChangesAsync();
+        
+        TestConstants.Collection.Id = firstCollectionEntry.Entity.Id;
+        TestConstants.Collection.Other.Id = secondCollectionEntry.Entity.Id;
+    }
+
+    protected virtual async Task AuthenticateTestUserAsync(string email, string password, string firstName, string lastName)
+    {
+        var authResponse = await client.PostAsJsonAsync(
+            AbsoluteQuery(ApiRoutes.Accounts.BasePath, ApiRoutes.Accounts.Authenticate),
+            new AuthenticateRequest()
             {
                 Email = email,
                 Password = password,
-                FirstName = firstName,
-                LastName = lastName,
-                SuggestLanguageId = TestConstants.Language.TestId,
             });
-
-        var authResponse = await client.PostAsJsonAsync(hostPath + ApiRoutes.Accounts.BasePath  + "/" + ApiRoutes.Accounts.Authenticate, new AuthenticateRequest()
-        {
-            Email = email,
-            Password = password,
-        });
 
         var auth = authResponse.ToResponseDto<AuthenticateResponse>();
         if (auth == null || string.IsNullOrEmpty(auth.JwtToken))
@@ -102,6 +126,23 @@ public class BaseTests
         TestConstants.User.Id = long.Parse(auth.Id);
         client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", auth.JwtToken);
     }
+
+    private async Task<HttpResponseMessage> RegisterUser(string email, string password, string firstName, string lastName)
+    {
+        var register = await client.PostAsJsonAsync(
+            AbsoluteQuery(ApiRoutes.Accounts.BasePath, ApiRoutes.Accounts.Register), new RegisterRequest()
+            {
+                Email = email,
+                Password = password,
+                FirstName = firstName,
+                LastName = lastName,
+                SuggestLanguageId = TestConstants.Language.TestId,
+            });
+        return register;
+    }
+
+    protected string AbsoluteQuery(params string[] paths)
+        => hostPath + string.Join("/", paths.Select(path => path.TrimStart('/')));
 
     protected virtual async Task SetupDatabaseAsync(ApplicationContext db)
     {
@@ -125,17 +166,5 @@ public class BaseTests
     public async Task OneTimeTearDown()
     {
         await _container.StopAsync();
-    }
-
-    protected async Task AuthenticateAsync()
-    {
-        // var email = "test@mail.ru";
-        // var password = "test123";
-        //
-        // var response = await client.PostAsJsonAsync(ApiRoutes.Accounts.Authenticate, new AuthenticateRequest()
-        // {
-        //     Email = email,
-        //     Password = password,
-        // });
     }
 }

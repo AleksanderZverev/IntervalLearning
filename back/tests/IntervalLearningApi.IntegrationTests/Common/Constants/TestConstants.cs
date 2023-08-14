@@ -10,6 +10,16 @@ public static class TestConstants
         public static string FirstName => "Иван";
         public static string LastName => "Тестировщик";
     }
+    
+    public static class Collection
+    {
+        public static short Id { get; set; } = 1;
+        
+        public static class Other
+        {
+            public static short Id { get; set; } = 2;
+        }
+    }
 
     public static class Language
     {
