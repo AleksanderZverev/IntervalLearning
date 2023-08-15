@@ -6,10 +6,13 @@ using DB.DependencyInjection;
 using DB.Models;
 using DB.Models.Dictionary;
 using IntervalLearningApi.Constants;
+using IntervalLearningApi.Controllers;
 using IntervalLearningApi.IntegrationTests.Common.Attributes;
 using IntervalLearningApi.IntegrationTests.Common.Constants;
 using IntervalLearningApi.IntegrationTests.Common.Extensions;
 using IntervalLearningApi.Models;
+using IntervalLearningApi.Models.ByUser;
+using IntervalLearningApi.Models.RepeatsSchedule;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -81,11 +84,28 @@ public class BaseTests
                 testUserAttribute.LastName);
 
             await SetupTestUserCollectionsAsync(dbContext);
+            await SetupScheduleAsync(dbContext);
         }
+    }
+
+    private async Task SetupScheduleAsync(ApplicationContext db)
+    {
+        
+    }
+
+    protected async Task<Schedule> CreateSchedule(RepeatsScheduleController.CreateScheduleRequest createScheduleRequest)
+    {
+        var createScheduleResponse = await client.PostAsJsonAsync(
+            AbsoluteQuery(ApiRoutes.Schedule.BasePath, ApiRoutes.Schedule.Post_CreateSchedule),
+            createScheduleRequest);
+
+        var schedule = createScheduleResponse.ToResponseDto<Schedule>();
+        return schedule ?? throw new InvalidOperationException();
     }
 
     private async Task SetupTestUserCollectionsAsync(ApplicationContext db)
     {
+        //TODO: use api instead
         var firstCollectionEntry = await db.Collections.AddAsync(new CollectionEntity()
         {
             ParentUserId = TestConstants.User.Id,
@@ -161,6 +181,24 @@ public class BaseTests
         await db.SaveChangesAsync();
         TestConstants.Theme.TestId = themeEntry.Entity.Id;
     } 
+    
+    protected async Task<Card?> CreateCardAsync(short collectionId, CreateCardItem card)
+    {
+        var createCardResponse = await client.PostAsJsonAsync(
+            AbsoluteQuery(ApiRoutes.Cards.GetBasePath(collectionId), ApiRoutes.Cards.Post_CreateCard),
+            card);
+        var createdCard = createCardResponse.ToResponseDto<Card>();
+        return createdCard;
+    }
+
+    protected async Task<Collection?> CreateCollectionAsync(CreateCollectionItem createCollectionItem)
+    {
+        var createCollectionResponse = await client.PostAsJsonAsync(
+            AbsoluteQuery(ApiRoutes.Collections.BasePath, ApiRoutes.Collections.Create),
+            createCollectionItem);
+        var createdCollection = createCollectionResponse.ToResponseDto<Collection>();
+        return createdCollection;
+    }
 
     [OneTimeTearDown]
     public async Task OneTimeTearDown()

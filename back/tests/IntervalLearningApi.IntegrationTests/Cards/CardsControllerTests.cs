@@ -157,8 +157,7 @@ public class CardsControllerTests : BaseTests
 
     private async Task<Card?> CreateCardAsync(CardEntity card)
     {
-        var createCardResponse = await client.PostAsJsonAsync(
-            ApiRoutes.Cards.Post_CreateCard,
+        return await CreateCardAsync(TestConstants.Collection.Id, 
             new CreateCardItem()
             {
                 BackText = card.BackSideText,
@@ -167,7 +166,5 @@ public class CardsControllerTests : BaseTests
                 Description = card.Description,
                 Examples = card.Examples,
             });
-        var createdCard = createCardResponse.ToResponseDto<Card>();
-        return createdCard;
     }
 }

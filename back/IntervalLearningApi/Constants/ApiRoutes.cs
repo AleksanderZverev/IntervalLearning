@@ -64,4 +64,25 @@ public static class ApiRoutes
         public const string Post_StartCards = "start";
         public const string Path_RememberCard = "remember";
     }
+    
+    public static class Schedule
+    {
+        public const string BasePath = "api/schedules";
+        
+        public const string Get_GetAll = "";
+        
+        public const string Get_GetUserSchedule = "{userId}/{scheduleId}";
+        public static string GetGetUserSchedulePath(long userId, short scheduleId)
+            => $"{userId}/{scheduleId}";
+        
+        public const string Get_GetMySchedule = "my/{scheduleId}";
+        public static string GetGetMySchedulePath(short scheduleId)
+            => $"my/{scheduleId}";
+        
+        public const string Patch_EditSchedule = "{scheduleId}";
+        public static string GetEditSchedulePath(short scheduleId)
+            => $"{scheduleId}";
+        
+        public const string Post_CreateSchedule = "";
+    }
 }
