@@ -1,9 +1,7 @@
 using DB.Models;
-using IntervalLearningApi.Controllers;
 using IntervalLearningApi.Models.ByUser;
 using IntervalLearningApi.Models.RepeatsSchedule;
 using IntervalLearningApi.Services;
-using Microsoft.AspNetCore.Http;
 
 namespace IntervalLearningApi.IntegrationTests.Learning;
 

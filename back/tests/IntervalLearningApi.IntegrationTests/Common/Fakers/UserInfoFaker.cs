@@ -1,11 +1,11 @@
 using Bogus;
 using IntervalLearningApi.Models.ByUser;
 
-namespace IntervalLearningApi.IntegrationTests.User;
+namespace IntervalLearningApi.IntegrationTests.Common.Fakers;
 
-public class UserFaker : Faker<UserInfo>
+public class UserInfoFaker : Faker<UserInfo>
 {
-    public UserFaker()
+    public UserInfoFaker()
     {
         CustomInstantiator((f) =>
         {
@@ -17,9 +17,4 @@ public class UserFaker : Faker<UserInfo>
             );
         });
     }
-}
-
-public class AuthenticationControllerTests_Utils
-{
-    
 }

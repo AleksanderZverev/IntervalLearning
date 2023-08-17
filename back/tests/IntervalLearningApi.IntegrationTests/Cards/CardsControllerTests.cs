@@ -1,7 +1,5 @@
-using IntervalLearningApi.Controllers;
-using IntervalLearningApi.IntegrationTests.Common.Fakers.DB;
+using IntervalLearningApi.IntegrationTests.Common.Fakers.Api;
 using IntervalLearningApi.Models.ByUser;
-using Microsoft.AspNetCore.Http;
 
 namespace IntervalLearningApi.IntegrationTests.Cards;
 
@@ -98,14 +96,14 @@ public class CardsControllerTests : SharedApiTests
         var collection = await CreateRandomCollectionAsync();
         
         //Act
-        var fakeCard = new CardEntityFaker().Generate();
+        var fakeCard = new CardFaker().Generate();
         var createdCard = await CreateCardAsync(
             short.Parse(collection.Id),
             new CreateCardItem()
             {
-                BackText = fakeCard.BackSideText,
+                BackText = fakeCard.BackText,
                 PromptText = fakeCard.PromptText,
-                FrontText = fakeCard.FrontSideText,
+                FrontText = fakeCard.FrontText,
                 Description = fakeCard.Description,
                 Examples = fakeCard.Examples,
             });
@@ -113,8 +111,8 @@ public class CardsControllerTests : SharedApiTests
         //Assert
         createdCard.Should().NotBeNull();
         createdCard.Id.Should().NotBeNullOrEmpty();
-        createdCard.FrontSideText.Should().Be(fakeCard.FrontSideText);
-        createdCard.BackSideText.Should().Be(fakeCard.BackSideText);
+        createdCard.FrontSideText.Should().Be(fakeCard.FrontText);
+        createdCard.BackSideText.Should().Be(fakeCard.BackText);
         createdCard.PromptText.Should().Be(fakeCard.PromptText);
         createdCard.Description.Should().Be(fakeCard.Description);
         createdCard.Examples.Should().BeEquivalentTo(fakeCard.Examples);

@@ -1,6 +1,5 @@
 using IntervalLearningApi.IntegrationTests.Common.Constants;
 using IntervalLearningApi.Models.ByUser;
-using Microsoft.AspNetCore.Http;
 
 namespace IntervalLearningApi.IntegrationTests.Collections;
 

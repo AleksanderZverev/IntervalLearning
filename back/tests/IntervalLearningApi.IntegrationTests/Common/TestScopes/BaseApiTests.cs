@@ -2,7 +2,7 @@ using System.Net.Http.Headers;
 using System.Reflection;
 using Bogus;
 using IntervalLearningApi.IntegrationTests.Common.Constants;
-using IntervalLearningApi.IntegrationTests.User;
+using IntervalLearningApi.IntegrationTests.Common.Fakers;
 using IntervalLearningApi.Models.ByUser;
 
 namespace IntervalLearningApi.IntegrationTests.Common.TestScopes;
@@ -116,7 +116,7 @@ public class BaseApiTests : IAsyncLifetime
 
     protected async Task<HttpResponseMessage> RegisterUserAsync(HttpClient client, string email, string password)
     {
-        var user = new UserFaker().Generate();
+        var user = new UserInfoFaker().Generate();
         var response = await client.PostAsJsonAsync(
             AbsoluteQuery(ApiRoutes.Accounts.BasePath, ApiRoutes.Accounts.Register),
             new RegisterRequest()

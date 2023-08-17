@@ -1,6 +1,5 @@
-using IntervalLearningApi.Controllers;
 using IntervalLearningApi.IntegrationTests.Common.Constants;
-using IntervalLearningApi.IntegrationTests.Common.Fakers.DB;
+using IntervalLearningApi.IntegrationTests.Common.Fakers.Api;
 using IntervalLearningApi.Models.ByUser;
 using IntervalLearningApi.Models.RepeatsSchedule;
 
@@ -50,13 +49,13 @@ public class SharedApiTests : BaseApiTests, IAsyncLifetime
         var cards = new List<Card>(count);
         for (var i = 0; i < count; i++)
         {
-            var fakeCard = new CardEntityFaker().Generate();
+            var fakeCard = new CardFaker().Generate();
             var createdCard = await CreateCardAsync(
                 short.Parse(collectionId),
                 new CreateCardItem()
                 {
-                    BackText = fakeCard.BackSideText,
-                    FrontText = fakeCard.FrontSideText,
+                    BackText = fakeCard.BackText,
+                    FrontText = fakeCard.FrontText,
                     PromptText = fakeCard.PromptText,
                     Description = fakeCard.Description,
                     Examples = fakeCard.Examples,
@@ -91,7 +90,7 @@ public class SharedApiTests : BaseApiTests, IAsyncLifetime
     
     protected async Task<List<Collection>> CreateRandomCollectionsAsync(int count)
     {
-        var randomCollections = new CollectionEntityFaker().Generate(count);
+        var randomCollections = new CollectionFaker().Generate(count);
 
         var result = new List<Collection>(count);
         foreach (var randomCollection in randomCollections)
