@@ -1,3 +1,4 @@
+using Bogus;
 using IntervalLearningApi.IntegrationTests.Common.Constants;
 using IntervalLearningApi.Models.ByUser;
 
@@ -21,6 +22,24 @@ public class CollectionsControllerTests : SharedApiTests
         allCollections.Should().NotBeNull().And.BeEmpty();
     }
 
+    [Fact]
+    public async Task GetAll_ShouldReturnAllCollections()
+    {
+        //Arrange
+        var (client, scope) = SharedScope;
+        var addedCollections = await CreateRandomCollectionsAsync(10);
+
+        //Act
+        var getAllResponse = await client.GetAsync(ApiRoutes.Collections.GetAll);
+        var allCollections = getAllResponse.ToResponseDto<List<Collection>>();
+
+        //Assert
+        allCollections.Should().NotBeNull().And.NotBeEmpty();
+        allCollections.Count.Should().Be(addedCollections.Count);
+        allCollections.Select(c => c.Title).Should().BeEquivalentTo(addedCollections.Select(c => c.Title));
+    }
+
+    //TODO: Update logic
     [Theory]
     [InlineData("New collection")]
     [InlineData("My_Simple_Collection")]
@@ -49,25 +68,35 @@ public class CollectionsControllerTests : SharedApiTests
         // AddedCollections.Add(addedCollection);
     }
 
-    [Fact]
-    public async Task GetAll_ShouldReturnAllCollections()
+    public static IEnumerable<object[]> IncorrectNames = new object[][]
+    {
+        new[] { "" },
+        new[] { new string('a', 300) },
+    };
+    
+    [Theory]
+    [MemberData(nameof(IncorrectNames))]
+    public async Task CreateCollection_ShouldFailOnIncorrectName(string collectionName)
     {
         //Arrange
         var (client, scope) = SharedScope;
-        var addedCollections = await CreateRandomCollectionsAsync(10);
 
         //Act
-        var getAllResponse = await client.GetAsync(ApiRoutes.Collections.GetAll);
-        var allCollections = getAllResponse.ToResponseDto<List<Collection>>();
+        var createResponse = await client.PostAsJsonAsync(
+            ApiRoutes.Collections.Create,
+            new CreateCollectionItem()
+            {
+                Title = collectionName,
+                IsDefaultBackSide = false,
+                ThemeId = TestConstants.Theme.TestId,
+            });
 
         //Assert
-        allCollections.Should().NotBeNull().And.NotBeEmpty();
-        allCollections.Count.Should().Be(addedCollections.Count);
-        allCollections.Select(c => c.Title).Should().BeEquivalentTo(addedCollections.Select(c => c.Title));
+        createResponse.IsSuccessStatusCode.Should().BeFalse();
     }
 
     [Fact]
-    public async Task GetCollection_ShouldReturnExistingCollection()
+    public async Task GetCollection_ShouldReturnExistingCollections()
     {
         //Arrange
         var (client, scope) = SharedScope;
@@ -90,6 +119,21 @@ public class CollectionsControllerTests : SharedApiTests
         }
     }
 
+    [Fact]
+    public async Task GetCollection_ShouldReturnFailOnUnknownCollection()
+    {
+        //Arrange
+        var (client, scope) = SharedScope;
+        var fakeCollectionId = new Faker().Random.Short();
+
+        //Act
+        var getCollectionResponse = await client.GetAsync(
+            ApiRoutes.Collections.GetCollectionPath(
+                fakeCollectionId));
+
+        //Assert
+        getCollectionResponse.IsSuccessStatusCode.Should().BeFalse();
+    }
 
     [Theory]
     [InlineData("Check_and_mate", "chec")]
@@ -187,5 +231,76 @@ public class CollectionsControllerTests : SharedApiTests
         firstPageCollections.Select(c => c.Title).Should().Equal(secondPageCollections.Select(c => c.Title));
         
         firstPageCollections.Select(c => c.Title).Should().BeSubsetOf(preAddedCollections.Select(c => c.Title));
+    }
+    
+    [Theory]
+    [InlineData("My super collection", "Unknown")]
+    [InlineData("My_super_collection", "Unknown")]
+    public async Task SearchCollection_ShouldReturnEmpty_IfNothingFound(string collectionFullName, string searchRequestName)
+    {
+        //Arrange
+        var (client, scope) = SharedScope;
+        await CreateCollectionAsync(collectionFullName);
+
+        //Act
+        var searchResponse = await client.GetAsync(
+            ApiRoutes.Collections.SearchPrivate +
+            new QueryString()
+                //TODO: move Theme Id to class property 
+                .Add("themeId", TestConstants.Theme.TestId.ToString())
+                .Add("searchName", searchRequestName));
+        var searchResult = searchResponse.ToResponseDto<List<Collection>>();
+
+        //Assert
+        searchResult.Should().NotBeNull().And.BeEmpty();
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("Aaa")]
+    [InlineData("My super collection")]
+    [InlineData("My_super_collection")]
+    public async Task SearchCollection_ShouldReturnEmpty_IfNoCollections(string searchRequestName)
+    {
+        //Arrange
+        var (client, scope) = SharedScope;
+
+        //Act
+        var searchResponse = await client.GetAsync(
+            ApiRoutes.Collections.SearchPrivate +
+            new QueryString()
+                //TODO: move Theme Id to class property 
+                .Add("themeId", TestConstants.Theme.TestId.ToString())
+                .Add("searchName", searchRequestName));
+        var searchResult = searchResponse.ToResponseDto<List<Collection>>();
+
+        //Assert
+        searchResult.Should().NotBeNull().And.BeEmpty();
+    }
+    
+    public static IEnumerable<object[]> IncorrectSearchRequests = new object[][]
+    {
+        new[] { new string('a', 300) },
+    };
+    
+    [Theory]
+    [MemberData(nameof(IncorrectSearchRequests))]
+    public async Task SearchCollection_ShouldReturnFailOnIncorrectInput(string searchRequestName)
+    {
+        //Arrange
+        var (client, scope) = SharedScope;
+        await CreateRandomCollectionsAsync(10);
+
+        //Act
+        var searchResponse = await client.GetAsync(
+            ApiRoutes.Collections.SearchPrivate +
+            new QueryString()
+                //TODO: move Theme Id to class property 
+                .Add("themeId", TestConstants.Theme.TestId.ToString())
+                .Add("searchName", searchRequestName));
+        var searchResult = searchResponse.ToResponseDto<List<Collection>>();
+
+        //Assert
+        searchResult.Should().NotBeNull().And.BeEmpty();
     }
 }

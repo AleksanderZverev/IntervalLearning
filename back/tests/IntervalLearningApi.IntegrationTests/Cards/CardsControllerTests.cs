@@ -1,3 +1,4 @@
+using Bogus;
 using IntervalLearningApi.IntegrationTests.Common.Fakers.Api;
 using IntervalLearningApi.Models.ByUser;
 
@@ -11,7 +12,37 @@ public class CardsControllerTests : SharedApiTests
     
     private string Query(string collectionId, string path)
         => AbsoluteQuery(ApiRoutes.Cards.GetBasePath(short.Parse(collectionId)), path);
-    
+
+    private async Task<List<Card>?> GetCardsPageAsync(
+        HttpClient client,
+        Collection collection,
+        int pageNumber,
+        int countPerPage)
+    {
+        var pageCardsResponse = await client.GetAsync(
+            Query(collection.Id, ApiRoutes.Cards.Get_GetAll) +
+            new QueryString()
+                .Add("collectionId", collection.Id)
+                .Add("page", pageNumber.ToString())
+                .Add("count", countPerPage.ToString()));
+        var pageCards = pageCardsResponse.ToResponseDto<List<Card>>();
+        return pageCards;
+    }
+
+    [Fact]
+    public async Task GetCards_ShouldReturnEmpty_IfNoCardsAdded()
+    {
+        //Arrange
+        var (client, user) = SharedScope;
+        var collection = await CreateRandomCollectionAsync();
+
+        //Act
+        var pageCards = await GetCardsPageAsync(client, collection, 1, 50);
+
+        //Assert
+        pageCards.Should().NotBeNull().And.BeEmpty();
+    }
+
     [Fact]
     public async Task GetCards_ShouldReturnByPage()
     {
@@ -26,13 +57,7 @@ public class CardsControllerTests : SharedApiTests
         for (var i = 0; i < pages; i++)
         {
             var pageNumber = i + 1;
-            var pageCardsResponse = await client.GetAsync(
-                Query(collection.Id, ApiRoutes.Cards.Get_GetAll) +
-                new QueryString()
-                    .Add("collectionId", collection.Id)
-                    .Add("page", pageNumber.ToString())
-                    .Add("count", countPerPage.ToString()));
-            var pageCards = pageCardsResponse.ToResponseDto<List<Card>>();
+            var pageCards = await GetCardsPageAsync(client, collection, pageNumber, countPerPage);
             pageToCards.Add((pageNumber, pageCards));
         }
 
@@ -49,8 +74,7 @@ public class CardsControllerTests : SharedApiTests
         allCards.Select(c => c.Id).Should().BeSubsetOf(preAddedCards.Select(c => c.Id.ToString()));
         allCards.Select(c => c.FrontSideText).Should().BeSubsetOf(preAddedCards.Select(c => c.FrontSideText));
     }
-    
-    // [Test, Order(1)]
+
     [Fact]
     public async Task GetCards_ShouldReturnSameCardsForSpecifiedPage()
     {
@@ -61,22 +85,9 @@ public class CardsControllerTests : SharedApiTests
         var (collection, preAddedCards) = await CreateRandomCardsAsync(pages * countPerPage);
 
         //Act
-        var pageNumber = Random.Shared.Next(0, pages + 1);
-        var firstCardsPageResponse = await client.GetAsync(
-            Query(collection.Id, ApiRoutes.Cards.Get_GetAll) +
-            new QueryString()
-                .Add("collectionId", collection.Id)
-                .Add("page", pageNumber.ToString())
-                .Add("count", countPerPage.ToString()));
-        var firstCardsPage = firstCardsPageResponse.ToResponseDto<List<Card>>();
-        
-        var secondCardsPageResponse = await client.GetAsync(
-            Query(collection.Id, ApiRoutes.Cards.Get_GetAll) +
-            new QueryString()
-                .Add("collectionId", collection.Id)
-                .Add("page", pageNumber.ToString())
-                .Add("count", countPerPage.ToString()));
-        var secondCardsPage = secondCardsPageResponse.ToResponseDto<List<Card>>();
+        var pageNumber = Random.Shared.Next(1, pages + 1);
+        var firstCardsPage = await GetCardsPageAsync(client, collection, pageNumber, countPerPage);
+        var secondCardsPage = await GetCardsPageAsync(client, collection, pageNumber, countPerPage);
 
         //Assert
         firstCardsPage.Should().NotBeNullOrEmpty();
@@ -88,13 +99,19 @@ public class CardsControllerTests : SharedApiTests
         firstCardsPage.Select(c => c.Id).Should().BeSubsetOf(preAddedCards.Select(c => c.Id));
     }
     
+    public static IEnumerable<object[]> IncorrectSearchRequests = new object[][]
+    {
+        new[] { new string('a', 300) },
+    };
+    
+    //TODO: update logic
     [Fact]
-    public async Task CreateCard_ShouldCreateCard()
+    public async Task CreateCard_ShouldCreateCard_WithFullData()
     {
         //Arrange
         var (client, user) = SharedScope;
         var collection = await CreateRandomCollectionAsync();
-        
+
         //Act
         var fakeCard = new CardFaker().Generate();
         var createdCard = await CreateCardAsync(
@@ -117,22 +134,115 @@ public class CardsControllerTests : SharedApiTests
         createdCard.Description.Should().Be(fakeCard.Description);
         createdCard.Examples.Should().BeEquivalentTo(fakeCard.Examples);
     }
+    
+    [Fact]
+    public async Task CreateCard_ShouldCreateCardWithMinimalData()
+    {
+        //Arrange
+        var (client, user) = SharedScope;
+        var collection = await CreateRandomCollectionAsync();
+        
+        //Act
+        var fakeCard = new CardFaker().Generate();
+        var createdCard = await CreateCardAsync(
+            short.Parse(collection.Id),
+            new CreateCardItem()
+            {
+                BackText = fakeCard.BackText,
+                FrontText = fakeCard.FrontText,
+            });
+
+        //Assert
+        createdCard.Should().NotBeNull();
+        createdCard.Id.Should().NotBeNullOrEmpty();
+        createdCard.FrontSideText.Should().Be(fakeCard.FrontText);
+        createdCard.BackSideText.Should().Be(fakeCard.BackText);
+        createdCard.PromptText.Should().BeNullOrEmpty();
+        createdCard.Description.Should().BeNullOrEmpty();
+        createdCard.Examples.Should().BeNullOrEmpty();
+    }
+    
+    public static IEnumerable<object[]> IncorrectCardsData = new object[][]
+    {
+        new[] { "", "", null, null },
+        
+        new[] { new string('a', 300), "front text", null, null },
+        new[] { "back text", new string('a', 300), null, null},
+        
+        new[] { "back text", "front text", new string('a', 600), null },
+        
+        new object[] { "back text", "front text", new string('a', 200), new[] { new string('a', 400) } },
+    };
+    
+    [Theory]
+    [MemberData(nameof(IncorrectCardsData))]
+    public async Task CreateCard_ShouldFailOnIncorrectData(
+        string backText,
+        string frontText,
+        string? description,
+        string[]? examples)
+    {
+        //Arrange
+        var (client, user) = SharedScope;
+        var collection = await CreateRandomCollectionAsync();
+        
+        //Act
+        var createdCard = await CreateCardAsync(
+            short.Parse(collection.Id),
+            new CreateCardItem()
+            {
+                BackText = backText,
+                FrontText = frontText,
+                Description = description,
+                Examples = examples?.ToList(),
+            });
+
+        //Assert
+        createdCard.Should().BeNull();
+    }
 
     [Fact]
-    public async Task DeleteCard_ShouldDelete()
+    public async Task DeleteCard_ShouldDeleteExistingCard()
     {
         //Arrange
         var (client, user) = SharedScope;
         var (collection, createdCard) = await CreateRandomCardAsync();
-        
+        var oldPage = await GetCardsPageAsync(client, collection, 1, 50);
+
         //Act
         var deleteCardResponse = await client.DeleteAsync(
             Query(collection.Id, ApiRoutes.Cards.GetDeleteCardPath(short.Parse(createdCard.Id))));
         var deletedCard = deleteCardResponse.ToResponseDto<Card>();
 
+        //Assert
         deletedCard.Should().NotBeNull();
         deletedCard.Id.Should().Be(createdCard.Id);
-        //TODO: Check list of cards
+
+        oldPage.Should().NotBeEmpty();
+        
+        var newPage = await GetCardsPageAsync(client, collection, 1, 50);
+        newPage.Should().BeEmpty();
+    }
+    
+    [Fact]
+    public async Task DeleteCard_ShouldFailOnDeletingUnknownCard()
+    {
+        //Arrange
+        var (client, user) = SharedScope;
+        var (collection, createdCard) = await CreateRandomCardAsync();
+        var oldPage = await GetCardsPageAsync(client, collection, 1, 50);
+
+        //Act
+        var randomCardId = new Faker().Random.Short(min: (short)(short.Parse(createdCard.Id) + 1));
+        var deleteCardResponse = await client.DeleteAsync(
+            Query(collection.Id, ApiRoutes.Cards.GetDeleteCardPath(randomCardId)));
+
+        //Assert
+        deleteCardResponse.IsSuccessStatusCode.Should().BeFalse();
+        
+        var newPage = await GetCardsPageAsync(client, collection, 1, 50);
+        oldPage.Count.Should().Be(newPage.Count);
+        oldPage.Select(c => c.Id).Should().Equal(newPage.Select(c => c.Id));
     }
     
     [Fact]
@@ -142,6 +252,9 @@ public class CardsControllerTests : SharedApiTests
         var (client, user) = SharedScope;
         var (collection, createdCard) = await CreateRandomCardAsync();
         var otherCollection = await CreateRandomCollectionAsync();
+        
+        var oldCollectionPage = await GetCardsPageAsync(client, collection, 1, 50);
+        var oldOtherCollectionPage = await GetCardsPageAsync(client, otherCollection, 1, 50);
         
         //Act
         var moveCardResponse = await client.PostAsJsonAsync(
@@ -156,6 +269,34 @@ public class CardsControllerTests : SharedApiTests
         movedCard.Should().NotBeNull();
         movedCard.ParentUserId.Should().Be(createdCard.ParentUserId);
         movedCard.ParentCollectionId.Should().Be(otherCollection.Id);
+
+        oldCollectionPage.Should().NotBeEmpty();
+        var newCollectionPage = await GetCardsPageAsync(client, collection, 1, 50);
+        newCollectionPage.Should().BeEmpty();
+
+        oldOtherCollectionPage.Should().BeEmpty();
+        var newOtherCollectionPage = await GetCardsPageAsync(client, otherCollection, 1, 50);
+        newOtherCollectionPage.Should().NotBeEmpty();
+    }
+    
+    [Fact]
+    public async Task MoveCard_ShouldFailOnMoveToUnknownCollection()
+    {
+        //Arrange
+        var (client, user) = SharedScope;
+        var (collection, createdCard) = await CreateRandomCardAsync();
+        
+        //Act
+        var randomCollectionId = new Faker().Random.Short(min: (short)(short.Parse(collection.Id) + 1));
+        var moveCardResponse = await client.PostAsJsonAsync(
+            Query(collection.Id, ApiRoutes.Cards.Post_MoveCard),
+            new MoveRequest()
+            {
+                CardId = short.Parse(createdCard.Id),
+                DestinationCollectionId = randomCollectionId,
+            });
+
+        moveCardResponse.IsSuccessStatusCode.Should().BeFalse();
     }
     
     public async Task Method_Should()

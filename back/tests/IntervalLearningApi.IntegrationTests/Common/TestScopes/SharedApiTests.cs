@@ -81,6 +81,10 @@ public class SharedApiTests : BaseApiTests, IAsyncLifetime
         var createCardResponse = await sharedClient.PostAsJsonAsync(
             AbsoluteQuery(ApiRoutes.Cards.GetBasePath(collectionId), ApiRoutes.Cards.Post_CreateCard),
             card);
+
+        if (!createCardResponse.IsSuccessStatusCode)
+            return null;
+        
         var createdCard = createCardResponse.ToResponseDto<Card>();
         return createdCard;
     }
