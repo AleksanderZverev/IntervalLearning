@@ -72,7 +72,7 @@ public class AuthenticationService : IAuthenticationService
 
     public (AuthenticateResponse? response, string? errorMessage) Authenticate(AuthenticateRequest req, string ipAddress)
     {
-        var user = db.Users.Include(u => u.PasswordHash).Include(u => u.RefreshTokens).SingleOrDefault(x => x.Email == req.Email);
+        var user = db.Users.Include(u => u.PasswordHash).Include(u => u.RefreshTokens).SingleOrDefault(x => x.Email == req.Email.ToLower());
 
         if (user is {PasswordHash: null})
             return (null, "Not signed up user!");
