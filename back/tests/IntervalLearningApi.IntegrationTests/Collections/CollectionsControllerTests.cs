@@ -1,86 +1,88 @@
-using System.Net.Http.Json;
-using DB;
-using DB.Models;
-using FluentAssertions;
-using IntervalLearningApi.Constants;
-using IntervalLearningApi.IntegrationTests.Common;
-using IntervalLearningApi.IntegrationTests.Common.Attributes;
 using IntervalLearningApi.IntegrationTests.Common.Constants;
-using IntervalLearningApi.IntegrationTests.Common.Extensions;
 using IntervalLearningApi.Models.ByUser;
 using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace IntervalLearningApi.IntegrationTests.Collections;
 
 [UseBasePath(ApiRoutes.Collections.BasePath)]
-[UseDefaultTestUser]
-public class CollectionsControllerTests : BaseTests
+public class CollectionsControllerTests : SharedApiTests
 {
-    private IReadOnlyList<CollectionEntity> AllTestCollections;
-    private IReadOnlyDictionary<short, List<CardEntity>> collectionIdToCards;
-    private const int MaxCollections = 10;
-    private const int MaxCard = 20;
-
-    [OneTimeSetUp]
-    public async Task SetUp()
+    public CollectionsControllerTests(IntervalLearningApiFactory apiFactory) : base(apiFactory)
     {
-        using var scope = GetScope();
-        var db = scope.ServiceProvider.GetRequiredService<ApplicationContext>();
-
-        AllTestCollections = new CollectionEntityFaker().Generate(MaxCollections);
-
-        await db.Collections.AddRangeAsync(AllTestCollections);
-        await db.SaveChangesAsync();
-
-        var collectionIdToCardsEditable = new Dictionary<short, List<CardEntity>>();
-        collectionIdToCards = collectionIdToCardsEditable; 
-
-        foreach (var collection in AllTestCollections)
-        {
-            var cards = new CardEntityFaker().Generate(MaxCard);
-            cards.ForEach(c => c.ParentCollectionId = collection.Id);
-            db.Cards.AddRange(cards);
-
-            collectionIdToCardsEditable[collection.Id] = cards.ToList();
-        }
-        await db.SaveChangesAsync();
     }
-
-    private async Task AddCollections(params string[] collectionNames)
+    
+    [Fact]
+    public async Task GetAll_ShouldReturnEmptyCollection_WhenNewUserRegistered()
     {
-        using var scope = GetScope();
-        var db = scope.ServiceProvider.GetRequiredService<ApplicationContext>();
+        var (client, scope) = SharedScope;
 
-        foreach (var collectionName in collectionNames)
-        {
-            var collection = new CollectionEntityFaker().Generate();
-            collection.Title = collectionName;
-            await db.Collections.AddAsync(collection);
-        }
+        var getAllResponse = await client.GetAsync(ApiRoutes.Collections.GetAll);
         
-        await db.SaveChangesAsync();
+        var allCollections = getAllResponse.ToResponseDto<List<Collection>>();
+        allCollections.Should().NotBeNull().And.BeEmpty();
     }
 
-    [Test, Order(1)]
+    [Theory]
+    [InlineData("New collection")]
+    [InlineData("My_Simple_Collection")]
+    public async Task CreateCollection_ShouldCreate(string collectionName)
+    {
+        //Arrange
+        var (client, scope) = SharedScope;
+
+        //Act
+        var createResponse = await client.PostAsJsonAsync(
+            ApiRoutes.Collections.Create,
+            new CreateCollectionItem()
+            {
+                Title = collectionName,
+                IsDefaultBackSide = false,
+                ThemeId = TestConstants.Theme.TestId,
+            });
+
+        //Assert
+        createResponse.IsSuccessStatusCode.Should().BeTrue();
+        var addedCollection = createResponse.ToResponseDto<Collection>();
+
+        addedCollection.Should().NotBeNull();
+        addedCollection.Title.Should().BeEquivalentTo(collectionName);
+        
+        // AddedCollections.Add(addedCollection);
+    }
+
+    [Fact]
     public async Task GetAll_ShouldReturnAllCollections()
     {
+        //Arrange
+        var (client, scope) = SharedScope;
+        var addedCollections = await CreateRandomCollectionsAsync(10);
+
+        //Act
         var getAllResponse = await client.GetAsync(ApiRoutes.Collections.GetAll);
         var allCollections = getAllResponse.ToResponseDto<List<Collection>>();
 
+        //Assert
         allCollections.Should().NotBeNull().And.NotBeEmpty();
-        allCollections.Count.Should().Be(AllTestCollections.Count);
-        allCollections.Select(c => c.Title).Should().BeEquivalentTo(AllTestCollections.Select(c => c.Title));
+        allCollections.Count.Should().Be(addedCollections.Count);
+        allCollections.Select(c => c.Title).Should().BeEquivalentTo(addedCollections.Select(c => c.Title));
     }
 
-    [Test]
+    [Fact]
     public async Task GetCollection_ShouldReturnExistingCollection()
     {
-        foreach (var testCollection in AllTestCollections)
+        //Arrange
+        var (client, scope) = SharedScope;
+        var addedCollections = await CreateRandomCollectionsAsync(10);
+
+        //Act
+        foreach (var testCollection in addedCollections)
         {
-            var getCollectionResponse = await client.GetAsync(ApiRoutes.Collections.GetCollectionPath(testCollection.Id));
+            var getCollectionResponse = await client.GetAsync(
+                ApiRoutes.Collections.GetCollectionPath(
+                        short.Parse(testCollection.Id)));
             var collection = getCollectionResponse.ToResponseDto<Collection>();
             
+            //Assert
             collection.Id.Should().Be(testCollection.Id.ToString());
             collection.Title.Should().Be(testCollection.Title);
             collection.ThemeId.Should().Be(testCollection.ThemeId);
@@ -90,62 +92,84 @@ public class CollectionsControllerTests : BaseTests
     }
 
 
-    [TestCase("Mathematics", "mat")]
-    [TestCase("Check_and_mate", "chec")]
-    [TestCase("My collections", "My c")]
+    [Theory]
+    [InlineData("Check_and_mate", "chec")]
+    [InlineData("Mathematics", "mat")]
+    [InlineData("My collections", "My c")]
     public async Task SearchCollection_ShouldSearchByName(string collectionFullName, string searchRequestName)
     {
-        await AddCollections(collectionFullName);
-        
+        //Arrange
+        var (client, scope) = SharedScope;
+        var addedCollection = await CreateCollectionAsync(collectionFullName);
+
+        //Act
         var searchResponse = await client.GetAsync(
             ApiRoutes.Collections.SearchPrivate +
             new QueryString()
+                //TODO: move Theme Id to class property 
                 .Add("themeId", TestConstants.Theme.TestId.ToString())
                 .Add("searchName", searchRequestName));
         var searchResult = searchResponse.ToResponseDto<List<Collection>>();
 
+        //Assert
         searchResult.Should().NotBeNull().And.NotBeEmpty();
         searchResult.Select(c => c.Title).Should().ContainSingle(collectionFullName);
     }
 
-    [Test]
+    [Fact]
     public async Task SearchCollection_ShouldSearchByPages()
     {
+        //Arrange
+        var (client, scope) = SharedScope;
         var countPerPage = 4;
-        var fistPageResponse = await client.GetAsync(
-            ApiRoutes.Collections.SearchPrivate +
-            new QueryString()
-                .Add("themeId", TestConstants.Theme.TestId.ToString())
-                .Add("page", "1")
-                .Add("count", countPerPage.ToString()));
-        var firstPageCollections = fistPageResponse.ToResponseDto<List<Collection>>();
+        var pages = 6;
+        var preAddedCollections = await CreateRandomCollectionsAsync(countPerPage * pages);
 
-        var secondPageResponse = await client.GetAsync(
-            ApiRoutes.Collections.SearchPrivate +
-            new QueryString()
-                .Add("themeId", TestConstants.Theme.TestId.ToString())
-                .Add("page", "2")
-                .Add("count", countPerPage.ToString()));
-        var secondPageCollections = secondPageResponse.ToResponseDto<List<Collection>>();
+        //Act
+        var pageToCollections = new List<(int Page, List<Collection>? Collections)>();
+        for (var i = 0; i < pages; i++)
+        {
+            var pageNumber = i + 1;
+            
+            var pageResponse = await client.GetAsync(
+                ApiRoutes.Collections.SearchPrivate +
+                new QueryString()
+                    .Add("themeId", TestConstants.Theme.TestId.ToString())
+                        .Add("page", pageNumber.ToString())
+                    .Add("count", countPerPage.ToString()));
+            var pageCollections = pageResponse.ToResponseDto<List<Collection>>();
+            pageToCollections.Add((pageNumber, pageCollections));
+        }
         
+        //Assert
+        pageToCollections.Should().NotBeEmpty();
+        pageToCollections.Count.Should().Be(pages);
+        pageToCollections.Select(t => t.Collections).Should().AllSatisfy(c => c.Count.Should().Be(countPerPage));
         
-        firstPageCollections.Should().NotBeNull().And.NotBeEmpty();
-        secondPageCollections.Should().NotBeNull().And.NotBeEmpty();
-        var allCollections = firstPageCollections.Union(secondPageCollections).ToList();
 
+        var allCollections = pageToCollections.SelectMany(t => t.Collections).ToList();
+        
+        allCollections.Select(c => c.Id).Should().OnlyHaveUniqueItems();
         allCollections.Select(c => c.Title).Should().OnlyHaveUniqueItems();
-        allCollections.Select(c => c.Title).Should().BeSubsetOf(AllTestCollections.Select(c => c.Title));
+        allCollections.Select(c => c.Title).Should().BeSubsetOf(preAddedCollections.Select(c => c.Title));
     }
 
-    [Test]
+    [Fact]
     public async Task SearchCollection_ShouldReturnSameValueForThePage()
     {
-        var countPerPage = 5;
+        //Arrange
+        var (client, scope) = SharedScope;
+        var countPerPage = 4;
+        var pages = 5;
+        var preAddedCollections = await CreateRandomCollectionsAsync(countPerPage * pages);
+        
+        //Act
+        var pageNumber = Random.Shared.Next(1, pages + 1);
         var fistPageResponse = await client.GetAsync(
             ApiRoutes.Collections.SearchPrivate +
             new QueryString()
                 .Add("themeId", TestConstants.Theme.TestId.ToString())
-                .Add("page", "2")
+                .Add("page", pageNumber.ToString())
                 .Add("count", countPerPage.ToString()));
         var firstPageCollections = fistPageResponse.ToResponseDto<List<Collection>>();
 
@@ -153,31 +177,16 @@ public class CollectionsControllerTests : BaseTests
             ApiRoutes.Collections.SearchPrivate +
             new QueryString()
                 .Add("themeId", TestConstants.Theme.TestId.ToString())
-                .Add("page", "2")
+                .Add("page", pageNumber.ToString())
                 .Add("count", countPerPage.ToString()));
         var secondPageCollections = secondPageResponse.ToResponseDto<List<Collection>>();
 
+        //Assert
         firstPageCollections.Should().NotBeNull().And.NotBeEmpty();
         secondPageCollections.Should().NotBeNull().And.NotBeEmpty();
-        firstPageCollections.Should().BeEquivalentTo(secondPageCollections);
+        firstPageCollections.Select(c => c.Id).Should().Equal(secondPageCollections.Select(c => c.Id));
+        firstPageCollections.Select(c => c.Title).Should().Equal(secondPageCollections.Select(c => c.Title));
         
-        firstPageCollections.Select(c => c.Title).Should().BeSubsetOf(AllTestCollections.Select(c => c.Title));
-    }
-
-    [TestCase("New collection")]
-    public async Task CreateCollection_ShouldCreate(string collectionName)
-    {
-        var createResponse = await client.PostAsJsonAsync(ApiRoutes.Collections.Create, new CreateCollectionItem()
-        {
-            Title = collectionName,
-            IsDefaultBackSide = false,
-            ThemeId = TestConstants.Theme.TestId,
-        });
-
-        createResponse.IsSuccessStatusCode.Should().BeTrue();
-        var response = createResponse.ToResponseDto<Collection>();
-
-        response.Should().NotBeNull();
-        response.Title.Should().BeEquivalentTo(collectionName);
+        firstPageCollections.Select(c => c.Title).Should().BeSubsetOf(preAddedCollections.Select(c => c.Title));
     }
 }

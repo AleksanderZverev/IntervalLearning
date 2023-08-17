@@ -1,81 +1,77 @@
-using System.Net.Http.Json;
-using Bogus;
-using FluentAssertions;
-using IntervalLearningApi.Constants;
-using IntervalLearningApi.IntegrationTests.Common;
-using IntervalLearningApi.IntegrationTests.Common.Attributes;
-using IntervalLearningApi.IntegrationTests.Common.Constants;
-using IntervalLearningApi.IntegrationTests.Common.Extensions;
-using IntervalLearningApi.Models;
-
 namespace IntervalLearningApi.IntegrationTests.User;
 
 [UseBasePath(ApiRoutes.Accounts.BasePath)]
-[UseDefaultTestUser]
-public class AuthenticationControllerTests : BaseTests
+public class AuthenticationControllerTests : ScopeApiTests
 {
-    [Test]
-    public async Task Register_ShouldRegisterUser()
+    public AuthenticationControllerTests(IntervalLearningApiFactory apiFactory) 
+        : base(apiFactory)
     {
-        var user = new UserFaker().Generate();
-        var password = new Faker().Internet.Password();
-        
-        var response = await client.PostAsJsonAsync(ApiRoutes.Accounts.Register, new RegisterRequest()
-        {
-            Email = user.Email,
-            Password =  password,
-            FirstName = user.FirstName,
-            LastName = user.LastName,
-            SuggestLanguageId = TestConstants.Language.TestId,
-        });
-
-        response.IsSuccessStatusCode.Should().BeTrue();
-    }
-
-    [Test]
-    public async Task Authenticate_ShouldAuthenticateExistingPerson()
-    {
-        var response = await client.PostAsJsonAsync(ApiRoutes.Accounts.Authenticate, new AuthenticateRequest()
-        {
-            Email = TestConstants.User.Email,
-            Password = TestConstants.User.Password,
-        });
-
-        response.IsSuccessStatusCode.Should().BeTrue();
-
-        var responseModel = response.ToResponseDto<AuthenticateResponse>();
-        
-        responseModel.Should().NotBeNull();
-        responseModel.Email.Should().Be(TestConstants.User.Email);
-        responseModel.JwtToken.Should().NotBeEmpty();
-        responseModel.RefreshToken.Should().NotBeEmpty();
     }
     
-    [Test]
-    public async Task RefreshToken_ShouldNotRefreshTokenNotExpiredToken()
+    [Fact]
+    public async Task Register_ShouldRegisterUser()
     {
-        var email = TestConstants.User.Email;
-        var password = TestConstants.User.Password;
+        //Arrange
+        var client = await GetEmptyClient();
+
+        //Act
+        var registration = await RegisterRandomUserAsync(client);
+
+        //Assert
+        registration.Response.IsSuccessStatusCode.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task Authenticate_ShouldAuthenticateRegisteredPerson()
+    {
+        //Arrange
+        var client = await GetEmptyClient();
+        var (email, password, _) = await RegisterRandomUserAsync(client);
         
+        //Act
         var response = await client.PostAsJsonAsync(ApiRoutes.Accounts.Authenticate, new AuthenticateRequest()
         {
             Email = email,
             Password = password,
         });
-        var oldAuth = response.ToResponseDto<AuthenticateResponse>();
-        oldAuth.Should().NotBeNull();
-        oldAuth.JwtToken.Should().NotBeEmpty();
+
+        //Assert
+        response.IsSuccessStatusCode.Should().BeTrue();
+        var responseModel = response.ToResponseDto<AuthenticateResponse>();
         
+        responseModel.Should().NotBeNull();
+        responseModel.Email.Should().BeEquivalentTo(email);
+        responseModel.JwtToken.Should().NotBeEmpty();
+        responseModel.RefreshToken.Should().NotBeEmpty();
+    }
+    
+    [Fact]
+    public async Task RefreshToken_ShouldNotRefreshTokenNotExpiredToken()
+    {
+        //Arrange
+        var client = await GetEmptyClient();
+        var (email, password, _) = await RegisterRandomUserAsync(client);
+        var authResponse = await client.PostAsJsonAsync(ApiRoutes.Accounts.Authenticate, new AuthenticateRequest()
+        {
+            Email = email,
+            Password = password,
+        });
+        var oldAuth = authResponse.ToResponseDto<AuthenticateResponse>();
+        
+        //Act
         var refreshResponse = await client.PostAsJsonAsync(ApiRoutes.Accounts.RefreshToken, new AuthenticateRequest()
         {
             Email = email,
             Password = password,
         });
+        var newAuth = authResponse.ToResponseDto<AuthenticateResponse>();
 
-        var newAuth = response.ToResponseDto<AuthenticateResponse>();
+        //Assert
+        oldAuth.Should().NotBeNull();
+        oldAuth.JwtToken.Should().NotBeEmpty();
+        
         newAuth.Should().NotBeNull();
         newAuth.JwtToken.Should().NotBeNull();
-        
         oldAuth.JwtToken.Should().BeEquivalentTo(newAuth.JwtToken);
     }
 }

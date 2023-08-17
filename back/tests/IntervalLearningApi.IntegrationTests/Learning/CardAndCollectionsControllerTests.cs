@@ -1,14 +1,5 @@
-using System.Net.Http.Json;
 using DB.Models;
-using FluentAssertions;
-using FluentAssertions.Extensions;
-using IntervalLearningApi.Constants;
 using IntervalLearningApi.Controllers;
-using IntervalLearningApi.IntegrationTests.Collections;
-using IntervalLearningApi.IntegrationTests.Common;
-using IntervalLearningApi.IntegrationTests.Common.Attributes;
-using IntervalLearningApi.IntegrationTests.Common.Constants;
-using IntervalLearningApi.IntegrationTests.Common.Extensions;
 using IntervalLearningApi.Models.ByUser;
 using IntervalLearningApi.Models.RepeatsSchedule;
 using IntervalLearningApi.Services;
@@ -16,44 +7,16 @@ using Microsoft.AspNetCore.Http;
 
 namespace IntervalLearningApi.IntegrationTests.Learning;
 
-[UseDefaultTestUser]
-public class CardAndCollectionsControllerTests : BaseTests
+public class CardAndCollectionsControllerTests : SharedApiTests
 {
-    private IReadOnlyList<Card> AllTestCards;
-    private List<Card> AddedCards = new();
-    private IReadOnlyList<Collection> TestCollections;
-    private IReadOnlyList<Schedule> Schedules;
-
     private List<TimeSpan> phasesDuration;
-    private const int MaxCard = 30;
-
+    
     private const float RememberedWeight = 1f;
     private const float ForgottenWeight = 0f;
     private const float UnknownWeight = 0.5f;
     
-    public static List<ForgottenBehavior> Behaviors = new()
+    public CardAndCollectionsControllerTests(IntervalLearningApiFactory apiFactory) : base(apiFactory)
     {
-        ForgottenBehavior.StartFromFirstStep,
-        ForgottenBehavior.StayOnCurrentStep,
-        ForgottenBehavior.MoveToNextStep,
-        ForgottenBehavior.MoveToPreviousStep,
-    };
-
-    [OneTimeSetUp]
-    public async Task OneTimeSetup()
-    {
-        var fistCollection = await AddRandomCollection();
-        var secondCollection = await AddRandomCollection();
-        TestCollections = new List<Collection>()
-        {
-            fistCollection,
-            secondCollection
-        };
-        
-        var addCards = await AddRandomCardsToCollection(TestConstants.Collection.Id);
-
-        AllTestCards = addCards.ToList();
-
         phasesDuration = new List<TimeSpan>()
         {
             TimeSpan.FromDays(1),
@@ -72,56 +35,18 @@ public class CardAndCollectionsControllerTests : BaseTests
             TimeSpan.FromDays(40),
         };
 
-        var allSchedules = new List<Schedule>();
-        foreach (var behavior in Behaviors)
-        {
-            var schedule = await CreateTestSchedule(behavior);
-            if (schedule == null)
-                throw new InvalidOperationException();
-            allSchedules.Add(schedule);
-        }
-        
-        Schedules = allSchedules.AsReadOnly();
     }
-
-    private async Task<List<Card>> AddRandomCardsToCollection(short collectionId)
+    
+    public static List<ForgottenBehavior> Behaviors = new()
     {
-        var cards = new CardEntityFaker().Generate(MaxCard);
+        ForgottenBehavior.StartFromFirstStep,
+        ForgottenBehavior.StayOnCurrentStep,
+        ForgottenBehavior.MoveToNextStep,
+        ForgottenBehavior.MoveToPreviousStep,
+    };
 
-        var addCards = new List<Card>();
-
-        foreach (var card in cards)
-        {
-            var createdCard = await CreateCardAsync(collectionId, new CreateCardItem()
-            {
-                BackText = card.BackSideText,
-                FrontText = card.FrontSideText,
-                PromptText = card.PromptText,
-                Description = card.Description,
-                Examples = card.Examples,
-            });
-
-            if (createdCard == null)
-                throw new InvalidOperationException();
-
-            addCards.Add(createdCard);
-        }
-
-        return addCards;
-    }
-
-    private async Task<Collection> AddRandomCollection()
-    {
-        var collection = new CollectionEntityFaker().Generate();
-        var addedCollection = await CreateCollectionAsync(new CreateCollectionItem()
-        {
-            Title = collection.Title,
-            IsDefaultBackSide = false,
-            ThemeId = TestConstants.Theme.TestId,
-        });
-        
-        return addedCollection ?? throw new InvalidOperationException();
-    }
+    public static IEnumerable<object[]> TestBehaviors =
+        Behaviors.Select(behavior => new object[] { behavior });
 
     private async Task<Schedule> CreateTestSchedule(ForgottenBehavior forgottenBehavior)
     {
@@ -141,37 +66,30 @@ public class CardAndCollectionsControllerTests : BaseTests
         return createSchedule;
     } 
 
-    private string CardsQuery(string path)
+    private string CardsQuery(string collectionId, string path)
         => AbsoluteQuery(
-            ApiRoutes.Cards.GetBasePath(TestConstants.Collection.Id),
+            ApiRoutes.Cards.GetBasePath(short.Parse(collectionId)),
             path);
     
     private string CollectionsQuery(string path)
         => AbsoluteQuery(
             ApiRoutes.Collections.BasePath,
             path);
-
-    private Schedule GetSchedule(ForgottenBehavior forgottenBehavior)
-        => Schedules.Single(s => s.ForgottenBehavior == (int)forgottenBehavior);
-
-    [Order(1)]
-    [TestCaseSource(nameof(Behaviors))]
+    
+    [Theory]
+    [MemberData(nameof(TestBehaviors))]
     public async Task CardsController_StartCards_ShouldAddRememberEntity(ForgottenBehavior forgottenBehavior)
     {
-        var schedule = GetSchedule(forgottenBehavior);
+        //Arrange
+        var (client, user) = SharedScope;
+        var schedule = await CreateTestSchedule(forgottenBehavior);
+        var (collection, cards) = await CreateRandomCardsAsync(10);
         
+        //Act
         var startDate = DateTime.UtcNow;
-        var startCardsResponse = await client.PostAsJsonAsync(
-            CardsQuery(ApiRoutes.Cards.Post_StartCards),
-            new CardsItem()
-            {
-                CardIds = AllTestCards.Select(c => short.Parse(c.Id)).ToList(),
-                ScheduleId = short.Parse(schedule.Id),
-                ScheduleUserId = long.Parse(schedule.ParentUserId),
-            }
-        );
-        var startCards = startCardsResponse.ToResponseDto<StartCardResponse>();
-        
+        var startCards = await StartCardsAsync(client, collection, cards, schedule);
+
+        //Assert
         startCards.Should().NotBeNull();
         var expectedRepeatDate = startDate.Add(phasesDuration.First());
         startCards.NextRepeatDate.Should().BeCloseTo(
@@ -182,11 +100,30 @@ public class CardAndCollectionsControllerTests : BaseTests
         startCards.NextRepeatPhase.Id.Should().Be("1");
     }
 
+    private async Task<StartCardResponse?> StartCardsAsync(
+        HttpClient client,
+        Collection collection,
+        List<Card> cards, 
+        Schedule schedule)
+    {
+        var startCardsResponse = await client.PostAsJsonAsync(
+            CardsQuery(collection.Id, ApiRoutes.Cards.Post_StartCards),
+            new CardsItem()
+            {
+                CardIds = cards.Select(c => short.Parse(c.Id)).ToList(),
+                ScheduleId = short.Parse(schedule.Id),
+                ScheduleUserId = long.Parse(schedule.ParentUserId),
+            }
+        );
+        var startCards = startCardsResponse.ToResponseDto<StartCardResponse>();
+        return startCards;
+    }
+
     public record ScenarioStep(float Weight, int NextPhaseIndexDiff);
 
     public record Scenario(ForgottenBehavior Behavior, List<ScenarioStep> Steps);
 
-    public static object[] Scenarios =
+    public static List<Scenario> Scenarios = new()
     {
         new Scenario(ForgottenBehavior.MoveToNextStep, new List<ScenarioStep>()
         {
@@ -213,13 +150,22 @@ public class CardAndCollectionsControllerTests : BaseTests
             new(UnknownWeight, 1),
         }),
     };
+
+    public static IEnumerable<object[]> TestScenarios = Scenarios.Select(s => new object[] { s });
     
-    [Order(2)]
-    [TestCaseSource(nameof(Scenarios))]
+    [Theory]
+    [MemberData(nameof(TestScenarios))]
     public async Task CollectionsController_GetRepeatCollections_ShouldReturnAllCollectionsAfterStartingCards(Scenario scenario)
     {
-        var schedule = GetSchedule(scenario.Behavior);
+        //Arrange
+        var (client, user) = SharedScope;
+        var schedule = await CreateTestSchedule(scenario.Behavior);
+        var (collection, cards) = await CreateRandomCardsAsync(10);
+
+        //Act
+        await StartCardsAsync(client, collection, cards, schedule);
         
+        //Assert
         var getRepeatCollectionsResponse = await client.GetAsync(
             CollectionsQuery(ApiRoutes.Collections.GetRepeatCollections));
         var repeatCollections = getRepeatCollectionsResponse.ToResponseDto<RepeatingCollectionResponse>();
@@ -229,15 +175,20 @@ public class CardAndCollectionsControllerTests : BaseTests
         AssertHasDate(repeatCollections, schedule.Id, 0);
         AssertHasPhasesAtDate(repeatCollections, schedule.Id, 0, 0);
         AssertHasCollectionsAtDatePhase(repeatCollections, schedule.Id, 0, 0,
-            new CollectionAssertion(TestConstants.Collection.Id, AllTestCards.Count));
+            new CollectionAssertion(collection.Id, cards.Count));
     }
     
-    [Order(2)]
-    [TestCaseSource(nameof(Scenarios))]
+    [Theory]
+    [MemberData(nameof(TestScenarios))]
     public async Task CollectionsController_GetNotFinished_ShouldReturnEmptyWhenNoCardsLeft(Scenario scenario)
     {
-        var schedule = GetSchedule(scenario.Behavior);
-        
+        //Arrange
+        var (client, user) = SharedScope;
+        var schedule = await CreateTestSchedule(scenario.Behavior);
+        var (collection, addedCards) = await CreateRandomCardsAsync(10);
+        await StartCardsAsync(client, collection, addedCards, schedule);
+
+        //Act
         var getNotFinishedCollectionsResponse = await client.GetAsync(
             CollectionsQuery(ApiRoutes.Collections.GetNotFinished)
             + new QueryString()
@@ -250,18 +201,18 @@ public class CardAndCollectionsControllerTests : BaseTests
         notFinishedCollections.CanStartCollections.Should().BeEmpty();
     }
     
-    [Order(3)]
-    [TestCaseSource(nameof(Scenarios))]
+    [Theory]
+    [MemberData(nameof(TestScenarios))]
     public async Task CollectionsController_GetNotFinished_ShouldReturnNotEmptyWhenNewCardsAdded(Scenario scenario)
     {
-        var schedule = GetSchedule(scenario.Behavior);
-        var collectionId = TestConstants.Collection.Id;
-        if (AddedCards.Count == 0)
-        {
-            var newAddedCards = await AddRandomCardsToCollection(collectionId);
-            AddedCards.AddRange(newAddedCards);
-        }
+        //Arrange
+        var (client, user) = SharedScope;
+        var schedule = await CreateTestSchedule(scenario.Behavior);
+        var (collection, preAddedCards) = await CreateRandomCardsAsync(10);
+        await StartCardsAsync(client, collection, preAddedCards, schedule);
+        var newCards = await AddRandomCardsToCollection(collection.Id, 10);
 
+        //Act
         var getNotFinishedCollectionsResponse = await client.GetAsync(
             CollectionsQuery(ApiRoutes.Collections.GetNotFinished)
             + new QueryString()
@@ -269,54 +220,63 @@ public class CardAndCollectionsControllerTests : BaseTests
                 .Add("scheduleId", schedule.Id));
         var notFinishedCollections = getNotFinishedCollectionsResponse.ToResponseDto<GetNotFinishedResponse>();
 
+        //Assert
         notFinishedCollections.Should().NotBeNull();
         notFinishedCollections.CanStartCollections.Should().ContainSingle();
+        
         var canStartCollection = notFinishedCollections.CanStartCollections.Single();
-        canStartCollection.Id.Should().Be(collectionId.ToString());
-        canStartCollection.NotStartedCards.Should().Be((short)AddedCards.Count);
+        canStartCollection.Id.Should().Be(collection.Id);
+        canStartCollection.NotStartedCards.Should().Be((short)newCards.Count);
     }
-
-    [Order(3)]
-    [TestCaseSource(nameof(Scenarios))]
-    public async Task CardsController_RememberCard_ShouldAssertAllScenarios(Scenario scenario)
+    
+    [Theory]
+    [MemberData(nameof(TestScenarios))]
+    public async Task CardsController_RememberCard_ShouldAssertAllSteps(Scenario scenario)
     {
-        var schedule = GetSchedule(scenario.Behavior);
+        //Arrange
+        var (client, user) = SharedScope;
+        var schedule = await CreateTestSchedule(scenario.Behavior);
+        var (collection, preAddedCards) = await CreateRandomCardsAsync(10);
+        await StartCardsAsync(client, collection, preAddedCards, schedule);
+        
+        //Act
         var currentPhaseIndex = 0;
         foreach (var step in scenario.Steps)
         {
-            var shouldBeNextPhaseIndex = Math.Max(0, currentPhaseIndex + step.NextPhaseIndexDiff);
-            await Assert_CardsController_RememberCard_MovesToRightStep(
-                schedule,
+            await RememberCardsAsync(
+                client,
+                collection,
+                preAddedCards,
+                schedule, 
                 (short)currentPhaseIndex,
-                (short)shouldBeNextPhaseIndex,
-                step.Weight
+                step.Weight);
+            
+            //Assert
+            var shouldBeNextPhaseIndex = Math.Max(0, currentPhaseIndex + step.NextPhaseIndexDiff);
+            await AssertRememberedCardsMovedToNextStep(
+                client,
+                collection,
+                preAddedCards,
+                schedule,
+                (short)shouldBeNextPhaseIndex
             );
             
             currentPhaseIndex = shouldBeNextPhaseIndex;
         }
     }
-
-    public async Task Assert_CardsController_RememberCard_MovesToRightStep(
-        Schedule schedule,
-        short rememberPhaseIndex,
-        short shouldMoveToPhaseIndex,
-        float rememberWeight)
+    
+    public async Task Controller_Method_Should()
     {
-        //ACTION
-        var rememberCardResponse = await client.PatchAsJsonAsync(
-            CardsQuery(ApiRoutes.Cards.Path_RememberCard),
-            new RememberRequest()
-            {
-                PhaseIndex = rememberPhaseIndex,
-                ScheduleId = short.Parse(schedule.Id),
-                ScheduleUserId = long.Parse(schedule.ParentUserId),
-                RememberItems = AllTestCards.Select(c => new RememberItem()
-                {
-                    CardId = short.Parse(c.Id),
-                    Weight = rememberWeight,
-                }).ToList(),
-            });
         
+    }
+
+    private async Task AssertRememberedCardsMovedToNextStep(
+        HttpClient client,
+        Collection collection,
+        List<Card> cards,
+        Schedule schedule,
+        short shouldMoveToPhaseIndex)
+    {
         //ASSERT
         var getRepeatCollectionsResponse = await client.GetAsync(
             CollectionsQuery(ApiRoutes.Collections.GetRepeatCollections));
@@ -329,52 +289,36 @@ public class CardAndCollectionsControllerTests : BaseTests
             schedule.Id,
             shouldMoveToPhaseIndex,
             shouldMoveToPhaseIndex,
-            new CollectionAssertion(TestConstants.Collection.Id, AllTestCards.Count));
-    }
-    
-    // [Test, Order(4)]
-    // public async Task CardsController_RememberCard_ShouldStayOnForgetting()
-    // {
-    //     //ARRANGE
-    //     const short rememberPhaseIndex = 1;
-    //     var nextPhaseIndex = rememberPhaseIndex;
-    //     
-    //     //ACTION
-    //     var rememberCardResponse = await client.PatchAsJsonAsync(
-    //         CardsQuery(ApiRoutes.Cards.Path_RememberCard),
-    //         new RememberRequest()
-    //         {
-    //             PhaseIndex = rememberPhaseIndex,
-    //             ScheduleId = short.Parse(schedule.Id),
-    //             ScheduleUserId = long.Parse(schedule.ParentUserId),
-    //             RememberItems = AllTestCards.Select(c => new RememberItem()
-    //             {
-    //                 CardId = short.Parse(c.Id),
-    //                 Weight = ForgottenWeight,
-    //             }).ToList(),
-    //         });
-    //     
-    //     //ASSERT
-    //     var getRepeatCollectionsResponse = await client.GetAsync(
-    //         CollectionsQuery(ApiRoutes.Collections.GetRepeatCollections));
-    //     var repeatCollections = getRepeatCollectionsResponse.ToResponseDto<RepeatingCollectionResponse>();
-    //     
-    //     AssertHasDate(repeatCollections, nextPhaseIndex);
-    //     AssertHasPhasesAtDate(repeatCollections, nextPhaseIndex, nextPhaseIndex);
-    //     AssertHasCollectionsAtDatePhase(
-    //         repeatCollections,
-    //         nextPhaseIndex,
-    //         nextPhaseIndex,
-    //         new CollectionAssertion(TestConstants.Collection.Id, AllTestCards.Count));
-    // }
-    
-    [Test]
-    public async Task Test()
-    {
-        
+            new CollectionAssertion(collection.Id, cards.Count));
     }
 
-    private void AssertHasDate(RepeatingCollectionResponse repeatingCollectionResponse, string scheduleId, params int[] phaseIndexes)
+    private async Task RememberCardsAsync(
+        HttpClient client,
+        Collection collection,
+        List<Card> cards,
+        Schedule schedule,
+        short rememberPhaseIndex,
+        float rememberWeight)
+    {
+        var rememberCardResponse = await client.PatchAsJsonAsync(
+            CardsQuery(collection.Id, ApiRoutes.Cards.Path_RememberCard),
+            new RememberRequest()
+            {
+                PhaseIndex = rememberPhaseIndex,
+                ScheduleId = short.Parse(schedule.Id),
+                ScheduleUserId = long.Parse(schedule.ParentUserId),
+                RememberItems = cards.Select(c => new RememberItem()
+                {
+                    CardId = short.Parse(c.Id),
+                    Weight = rememberWeight,
+                }).ToList(),
+            });
+    }
+
+    private void AssertHasDate(
+        RepeatingCollectionResponse repeatingCollectionResponse,
+        string scheduleId,
+        params int[] phaseIndexes)
     {
         var dates = repeatingCollectionResponse.DateToRepeatingPhases
             .Where((pair) => pair.Value.Any(p => p.ScheduleId == scheduleId))
@@ -386,62 +330,66 @@ public class CardAndCollectionsControllerTests : BaseTests
         {
             var phase = phasesDuration[phaseIndex];
             var date = now.Add(phase);
-            var diff = TimeSpan.FromHours(1);
             
             dates.Should().OnlyContain(d => d.Date == date.Date);
         }
     }
     
-    private void AssertHasPhasesAtDate(RepeatingCollectionResponse repeatingCollectionResponse, string scheduleId, int phaseDateIndex, params int[] phaseIndexes)
+    private void AssertHasPhasesAtDate(
+        RepeatingCollectionResponse repeatingCollectionResponse,
+        string scheduleId,
+        int phaseDateIndex,
+        params int[] shouldContainPhaseByIndexes)
     {
         var now = DateTime.Now;
-        var dates = repeatingCollectionResponse.DateToRepeatingPhases.Keys.ToList();
+        var repeatableDates = repeatingCollectionResponse.DateToRepeatingPhases.Keys.ToList();
 
-        var targetDate = dates.FirstOrDefault(d => d.Date == now.Add(phasesDuration[phaseDateIndex]).Date);
-        var phases = repeatingCollectionResponse.DateToRepeatingPhases[targetDate];
+        var phaseDate = repeatableDates.FirstOrDefault(d => d.Date == now.Add(phasesDuration[phaseDateIndex]).Date);
+        var repeatablePhases = repeatingCollectionResponse.DateToRepeatingPhases[phaseDate];
 
-        foreach (var shouldContainPhaseIndex in phaseIndexes)
+        foreach (var shouldContainPhaseIndex in shouldContainPhaseByIndexes)
         {
             var duration = phasesDuration[shouldContainPhaseIndex];
-            var phase = phases
+            var repeatablePhase = repeatablePhases
                 .Where(p => p.ScheduleId == scheduleId)
                 .SingleOrDefault(p => TimeSpan.FromSeconds(p.SecondsFromLastPhase) == duration);
             
-            phase.Should().NotBeNull();
-            phase.RepeatingCollections.Should().NotBeEmpty();
+            repeatablePhase.Should().NotBeNull();
+            repeatablePhase.RepeatingCollections.Should().NotBeEmpty();
         }
     }
 
-    private record CollectionAssertion(short CollectionId, int ShouldHasCardsCount);
+    private record CollectionAssertion(string CollectionId, int ShouldHasCardsCount);
     
     private void AssertHasCollectionsAtDatePhase(
         RepeatingCollectionResponse repeatingCollectionResponse,
         string scheduleId,
         int phaseDateIndex,
         int phaseIndex, 
-        params CollectionAssertion[] collectionAssertions)
+        params CollectionAssertion[] shouldContainCollections)
     {
         var now = DateTime.Now;
-        var dates = repeatingCollectionResponse.DateToRepeatingPhases.Keys.ToList();
+        var repeatableDates = repeatingCollectionResponse.DateToRepeatingPhases.Keys.ToList();
 
-        var targetDate = dates.FirstOrDefault(d => d.Date == now.Add(phasesDuration[phaseDateIndex]).Date);
-        var phases = repeatingCollectionResponse.DateToRepeatingPhases[targetDate];
+        var repeatableDate = repeatableDates.FirstOrDefault(d => d.Date == now.Add(phasesDuration[phaseDateIndex]).Date);
+        var repeatablePhases = repeatingCollectionResponse.DateToRepeatingPhases[repeatableDate];
 
         var phaseDuration = phasesDuration[phaseIndex];
-        var phase = phases
+        var repeatablePhase = repeatablePhases
             .Where(p => p.ScheduleId == scheduleId)
             .Single(p => TimeSpan.FromSeconds(p.SecondsFromLastPhase) == phaseDuration);
         
-        phase.Should().NotBeNull();
-        phase.RepeatingCollections.Should().NotBeEmpty();
+        repeatablePhase.Should().NotBeNull();
+        repeatablePhase.RepeatingCollections.Should().NotBeEmpty();
         
-        foreach (var phaseRepeatingCollection in phase.RepeatingCollections)
+        foreach (var phaseRepeatingCollection in repeatablePhase.RepeatingCollections)
         {
-            var collectionAssert = collectionAssertions.FirstOrDefault(c =>
+            var shouldContainCollectionInfo = shouldContainCollections.FirstOrDefault(c =>
                 c.CollectionId.ToString() == phaseRepeatingCollection.Collection.Id);
             
-            collectionAssert.Should().NotBeNull();
-            phaseRepeatingCollection.CardsToRepeatCount.Should().Be(collectionAssert.ShouldHasCardsCount);
+            shouldContainCollectionInfo.Should().NotBeNull();
+            phaseRepeatingCollection.Collection.Id.Should().Be(shouldContainCollectionInfo.CollectionId.ToString());
+            phaseRepeatingCollection.CardsToRepeatCount.Should().Be(shouldContainCollectionInfo.ShouldHasCardsCount);
         }
     }
 }

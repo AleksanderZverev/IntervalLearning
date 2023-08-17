@@ -2,7 +2,7 @@ using Bogus;
 using DB.Models;
 using IntervalLearningApi.IntegrationTests.Common.Constants;
 
-namespace IntervalLearningApi.IntegrationTests.Collections;
+namespace IntervalLearningApi.IntegrationTests.Common.Fakers.DB;
 
 public class CollectionEntityFaker : Faker<CollectionEntity>
 {
