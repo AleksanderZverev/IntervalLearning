@@ -131,6 +131,8 @@ public class SharedApiTests : BaseApiTests, IAsyncLifetime
         var createCollectionResponse = await sharedClient.PostAsJsonAsync(
             AbsoluteQuery(ApiRoutes.Collections.BasePath, ApiRoutes.Collections.Create),
             createCollectionItem);
+        if (!createCollectionResponse.IsSuccessStatusCode)
+            return null;
         var createdCollection = createCollectionResponse.ToResponseDto<Collection>();
         return createdCollection;
     }

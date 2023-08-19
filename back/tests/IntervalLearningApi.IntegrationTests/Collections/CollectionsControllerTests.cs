@@ -10,15 +10,24 @@ public class CollectionsControllerTests : SharedApiTests
     public CollectionsControllerTests(IntervalLearningApiFactory apiFactory) : base(apiFactory)
     {
     }
-    
+
+    private static async Task<List<Collection>?> GetAllCollectionsAsync(HttpClient client)
+    {
+        var getAllResponse = await client.GetAsync(ApiRoutes.Collections.GetAll);
+        var allCollections = getAllResponse.ToResponseDto<List<Collection>>();
+        return allCollections;
+    }
+
     [Fact]
     public async Task GetAll_ShouldReturnEmptyCollection_WhenNewUserRegistered()
     {
+        //Arrange
         var (client, scope) = SharedScope;
 
-        var getAllResponse = await client.GetAsync(ApiRoutes.Collections.GetAll);
+        //Act
+        var allCollections = await GetAllCollectionsAsync(client);
         
-        var allCollections = getAllResponse.ToResponseDto<List<Collection>>();
+        //Assert
         allCollections.Should().NotBeNull().And.BeEmpty();
     }
 
@@ -30,8 +39,7 @@ public class CollectionsControllerTests : SharedApiTests
         var addedCollections = await CreateRandomCollectionsAsync(10);
 
         //Act
-        var getAllResponse = await client.GetAsync(ApiRoutes.Collections.GetAll);
-        var allCollections = getAllResponse.ToResponseDto<List<Collection>>();
+        var allCollections = await GetAllCollectionsAsync(client);
 
         //Assert
         allCollections.Should().NotBeNull().And.NotBeEmpty();
@@ -43,29 +51,36 @@ public class CollectionsControllerTests : SharedApiTests
     [Theory]
     [InlineData("New collection")]
     [InlineData("My_Simple_Collection")]
-    public async Task CreateCollection_ShouldCreate(string collectionName)
+    public async Task CreateCollection_ShouldReturnCreatedData(string collectionName)
     {
         //Arrange
         var (client, scope) = SharedScope;
 
         //Act
-        var createResponse = await client.PostAsJsonAsync(
-            ApiRoutes.Collections.Create,
-            new CreateCollectionItem()
-            {
-                Title = collectionName,
-                IsDefaultBackSide = false,
-                ThemeId = TestConstants.Theme.TestId,
-            });
+        var createdCollection = await CreateCollectionAsync(collectionName);
 
         //Assert
-        createResponse.IsSuccessStatusCode.Should().BeTrue();
-        var addedCollection = createResponse.ToResponseDto<Collection>();
+        createdCollection.Should().NotBeNull();
+        createdCollection.Title.Should().BeEquivalentTo(collectionName);
+    }
+    
+    [Theory]
+    [InlineData("New collection")]
+    [InlineData("My_Simple_Collection")]
+    public async Task CreateCollection_ShouldActuallyCreate(string collectionName)
+    {
+        //Arrange
+        var (client, scope) = SharedScope;
+        var oldCollections = await GetAllCollectionsAsync(client);
 
-        addedCollection.Should().NotBeNull();
-        addedCollection.Title.Should().BeEquivalentTo(collectionName);
-        
-        // AddedCollections.Add(addedCollection);
+        //Act
+        await CreateCollectionAsync(collectionName);
+
+        //Assert
+        var newCollections = await GetAllCollectionsAsync(client);
+        oldCollections.Should().BeEmpty();
+        newCollections.Should().NotBeNull().And.HaveCount(1);
+        newCollections.Single().Title.Should().BeEquivalentTo(collectionName);
     }
 
     public static IEnumerable<object[]> IncorrectNames = new object[][]
@@ -82,17 +97,122 @@ public class CollectionsControllerTests : SharedApiTests
         var (client, scope) = SharedScope;
 
         //Act
-        var createResponse = await client.PostAsJsonAsync(
+        var createdCollection = await CreateCollectionAsync(collectionName);
+
+        //Assert
+        createdCollection.Should().BeNull();
+    }
+    
+    [Theory]
+    [InlineData("New collection")]
+    [InlineData("My_Simple_Collection")]
+    public async Task CreateCollection_ShouldReturnUpdatedData(string collectionName)
+    {
+        //Arrange
+        var (client, scope) = SharedScope;
+        var collection = await CreateRandomCollectionAsync();
+
+        //Act
+        var updatedCollectionResponse = await client.PostAsJsonAsync(
             ApiRoutes.Collections.Create,
             new CreateCollectionItem()
             {
+                CollectionId = short.Parse(collection.Id),
+                Title = collectionName,
+                IsDefaultBackSide = false,
+                ThemeId = TestConstants.Theme.TestId,
+            });
+        var updatedCollection = updatedCollectionResponse.ToResponseDto<Collection>();
+
+
+        //Assert
+        updatedCollection.Should().NotBeNull();
+        updatedCollection.Id.Should().Be(collection.Id);
+        updatedCollection.Title.Should().BeEquivalentTo(collectionName);
+    }
+    
+    [Theory]
+    [InlineData("New collection")]
+    [InlineData("My_Simple_Collection")]
+    public async Task CreateCollection_ShouldActuallyUpdateCollection(string collectionName)
+    {
+        //Arrange
+        var (client, scope) = SharedScope;
+        var oldCollection = await CreateRandomCollectionAsync();
+        var oldCollections = await GetAllCollectionsAsync(client);
+
+        //Act
+        await client.PostAsJsonAsync(
+            ApiRoutes.Collections.Create,
+            new CreateCollectionItem()
+            {
+                CollectionId = short.Parse(oldCollection.Id),
                 Title = collectionName,
                 IsDefaultBackSide = false,
                 ThemeId = TestConstants.Theme.TestId,
             });
 
         //Assert
-        createResponse.IsSuccessStatusCode.Should().BeFalse();
+        var newCollections = await GetAllCollectionsAsync(client);
+        oldCollections.Should().NotBeNull().And.HaveCount(1);
+        newCollections.Should().NotBeNull().And.HaveCount(1);
+
+        var newCollection = newCollections.Single();
+        newCollection.Id.Should().Be(oldCollection.Id);
+        newCollection.Title.Should().BeEquivalentTo(collectionName);
+    }
+    
+    [Theory]
+    [MemberData(nameof(IncorrectNames))]
+    public async Task CreateCollection_ShouldFailOnUpdatingWithIncorrectName(string collectionName)
+    {
+        //Arrange
+        var (client, scope) = SharedScope;
+        var oldCollection = await CreateRandomCollectionAsync();
+
+        //Act
+        var updateResponse = await client.PostAsJsonAsync(
+            ApiRoutes.Collections.Create,
+            new CreateCollectionItem()
+            {
+                CollectionId = short.Parse(oldCollection.Id),
+                Title = collectionName,
+                IsDefaultBackSide = false,
+                ThemeId = TestConstants.Theme.TestId,
+            });
+
+        //Assert
+        updateResponse.IsSuccessStatusCode.Should().BeFalse();
+    }
+    
+    [Theory]
+    [MemberData(nameof(IncorrectNames))]
+    public async Task CreateCollection_ShouldNotUpdateAnythingOnFail(string collectionName)
+    {
+        //Arrange
+        var (client, scope) = SharedScope;
+        var oldCollection = await CreateRandomCollectionAsync();
+        var oldCollections = await GetAllCollectionsAsync(client);
+
+        //Act
+        await client.PostAsJsonAsync(
+            ApiRoutes.Collections.Create,
+            new CreateCollectionItem()
+            {
+                CollectionId = short.Parse(oldCollection.Id),
+                Title = collectionName,
+                IsDefaultBackSide = false,
+                ThemeId = TestConstants.Theme.TestId,
+            });
+
+        //Assert
+        var newCollections = await GetAllCollectionsAsync(client);
+        oldCollections.Should().NotBeNull().And.HaveCount(1);
+        newCollections.Should().NotBeNull().And.HaveCount(1);
+
+        var newCollection = newCollections.Single();
+        newCollection.Id.Should().Be(oldCollection.Id);
+        newCollection.Title.Should().Be(oldCollection.Title);
     }
 
     [Fact]
@@ -120,7 +240,7 @@ public class CollectionsControllerTests : SharedApiTests
     }
 
     [Fact]
-    public async Task GetCollection_ShouldReturnFailOnUnknownCollection()
+    public async Task GetCollection_ShouldFailOnGettingUnknownCollection()
     {
         //Arrange
         var (client, scope) = SharedScope;
@@ -143,7 +263,7 @@ public class CollectionsControllerTests : SharedApiTests
     {
         //Arrange
         var (client, scope) = SharedScope;
-        var addedCollection = await CreateCollectionAsync(collectionFullName);
+        await CreateCollectionAsync(collectionFullName);
 
         //Act
         var searchResponse = await client.GetAsync(
@@ -198,7 +318,7 @@ public class CollectionsControllerTests : SharedApiTests
     }
 
     [Fact]
-    public async Task SearchCollection_ShouldReturnSameValueForThePage()
+    public async Task SearchCollection_ShouldReturnSameValueForTheSamePage()
     {
         //Arrange
         var (client, scope) = SharedScope;
