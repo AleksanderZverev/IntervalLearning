@@ -539,32 +539,34 @@ public class CardsService
 
     private (int nextPhaseIndex, PhaseEntity? nextPhase) GetNextPhaseIndex(RepeatsScheduleEntity schedule, RememberEntity remember)
     {
-        var orderedPhases = schedule.Phases.OrderBy(p => p.Id).ToList();
+        var sortedPhases = schedule.Phases.OrderBy(p => p.Id).ToList();
 
         var currentPhaseIndex = remember.PhaseIndex;
-        var nextPhaseIndex = currentPhaseIndex + 1;
-
-        var nextPhase = nextPhaseIndex < orderedPhases.Count 
-            ? orderedPhases[currentPhaseIndex + 1] 
+        
+        var nextPhaseIndex = currentPhaseIndex + 1 < sortedPhases.Count
+            ? currentPhaseIndex + 1
+            : -1;
+        
+        var nextPhase = nextPhaseIndex >= 0 && nextPhaseIndex < sortedPhases.Count
+            ? sortedPhases[nextPhaseIndex]
             : null;
 
-        if (nextPhase == null)
-            return (-1, null);
-
-        var nextPhaseIsRepeatPhase = nextPhase.SecondsFromLastPhase < 10;
+        var nextPhaseIsRepeatPhase = nextPhase != null && nextPhase.SecondsFromLastPhase < 10;
 
         if (nextPhaseIsRepeatPhase)
         {
             if (remember.Weight >= 0.49f)
             {
                 nextPhaseIndex++;
-                nextPhase = nextPhaseIndex < orderedPhases.Count ? orderedPhases[nextPhaseIndex] : null;
+                nextPhase = nextPhaseIndex >= 0 && nextPhaseIndex < sortedPhases.Count 
+                    ? sortedPhases[nextPhaseIndex] 
+                    : null;
             }
 
             return (nextPhaseIndex, nextPhase);
         }
 
-        var currentPhase = orderedPhases[currentPhaseIndex];
+        var currentPhase = sortedPhases[currentPhaseIndex];
         var isCurrentPhaseRepeatPhase = currentPhase.SecondsFromLastPhase < 10;
 
         if (isCurrentPhaseRepeatPhase && currentPhaseIndex > 0)
@@ -583,7 +585,7 @@ public class CardsService
             if (previousRemember != null)
             {
                 currentPhaseIndex = previousRemember.PhaseIndex;
-                currentPhase = orderedPhases[currentPhaseIndex];
+                currentPhase = sortedPhases[currentPhaseIndex];
                 remember = previousRemember;
             }
         }
@@ -600,20 +602,20 @@ public class CardsService
             case ForgottenBehavior.StayOnCurrentStep:
                 return (currentPhaseIndex, currentPhase);
             case ForgottenBehavior.StartFromFirstStep:
-                return (0, orderedPhases[0]);
+                return (0, sortedPhases[0]);
             case ForgottenBehavior.MoveToPreviousStep:
             {
                 if (currentPhaseIndex == 0)
-                    return (0, orderedPhases[0]);
+                    return (0, sortedPhases[0]);
 
                 var previousPhaseIndex = currentPhaseIndex - 1;
-                var previousPhase = orderedPhases[previousPhaseIndex];
+                var previousPhase = sortedPhases[previousPhaseIndex];
 
                 var isPreviousPhaseRepeatPhase = previousPhase.SecondsFromLastPhase < 10;
 
                 if (isPreviousPhaseRepeatPhase && previousPhaseIndex > 0)
                 {
-                    previousPhase = orderedPhases[previousPhaseIndex - 1];
+                    previousPhase = sortedPhases[previousPhaseIndex - 1];
                     previousPhaseIndex -= 1;
                 }
                 
