@@ -5,15 +5,9 @@ using IntervalLearningApi.Models.RepeatsSchedule;
 
 namespace IntervalLearningApi.IntegrationTests.Common.TestScopes;
 
-[CollectionDefinition("Shared api collection")]
-public class SharedApiCollection : ICollectionFixture<IntervalLearningApiFactory>
+public class SharedApiTests : BaseApiTests, IClassFixture<SharedIntervalLearningApiFactory>, IAsyncLifetime
 {
-}
-
-[Collection("Shared api collection")]
-public class SharedApiTests : BaseApiTests, IAsyncLifetime
-{
-    public SharedApiTests(IntervalLearningApiFactory apiFactory) : base(apiFactory)
+    public SharedApiTests(SharedIntervalLearningApiFactory apiFactory) : base(apiFactory.SharedFactory)
     {
     }
 

@@ -7,7 +7,7 @@ namespace IntervalLearningApi.IntegrationTests.Collections;
 [UseBasePath(ApiRoutes.Collections.BasePath)]
 public class CollectionsControllerTests : SharedApiTests
 {
-    public CollectionsControllerTests(IntervalLearningApiFactory apiFactory) : base(apiFactory)
+    public CollectionsControllerTests(SharedIntervalLearningApiFactory apiFactory) : base(apiFactory)
     {
     }
 

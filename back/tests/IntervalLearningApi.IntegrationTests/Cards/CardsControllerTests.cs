@@ -6,7 +6,7 @@ namespace IntervalLearningApi.IntegrationTests.Cards;
 
 public class CardsControllerTests : SharedApiTests
 {
-    public CardsControllerTests(IntervalLearningApiFactory apiFactory) : base(apiFactory)
+    public CardsControllerTests(SharedIntervalLearningApiFactory apiFactory) : base(apiFactory)
     {
     }
     
