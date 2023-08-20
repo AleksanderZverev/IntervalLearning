@@ -292,7 +292,21 @@ export const RepeatCollectionPageContent: FC<RepeatCollectionPageContentProps> =
                         >
                             <Stack direction={'row'} alignItems={'center'} columnGap={'5px'}>
                                 <HelpOutline />
-                                <span>Спустя {dayjs.duration(phase.secondsFromLastPhase, 's').humanize()}</span>
+                                <span>
+                                    {phase.secondsFromLastPhase < 10
+                                        ? `Повторение ${
+                                              phaseIndex === 0
+                                                  ? 'после изучения'
+                                                  : 'интервала: ' +
+                                                    dayjs
+                                                        .duration(
+                                                            schedule.phases[phaseIndex - 1].secondsFromLastPhase,
+                                                            's'
+                                                        )
+                                                        .humanize()
+                                          }`
+                                        : `Спустя ${dayjs.duration(phase.secondsFromLastPhase, 's').humanize()}`}
+                                </span>
                             </Stack>
                         </LightTooltip>
                     )}
