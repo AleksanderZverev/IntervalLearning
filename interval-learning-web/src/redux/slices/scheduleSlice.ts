@@ -9,7 +9,7 @@ const initialState = adapter.getInitialState();
 
 function prepareSchedule(schedule: Schedule): Schedule {
     const newSchedule = { ...schedule };
-    newSchedule.phases = [...schedule.phases].sort((f, s) => f.id.localeCompare(s.id));
+    newSchedule.phases = [...schedule.phases].sort((f, s) => parseInt(f.id) - parseInt(s.id));
     return newSchedule;
 }
 

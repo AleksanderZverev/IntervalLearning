@@ -201,8 +201,7 @@ export const RepeatCollectionPageContent: FC<RepeatCollectionPageContentProps> =
 
     const isEmptyCollection = repeatCards.length === 0;
 
-    const sortedPhases = [...schedule.phases].sort((f, s) => f.id.localeCompare(s.id));
-    const phase = sortedPhases[phaseIndex];
+    const phase = schedule.phases[phaseIndex];
 
     const phaseShortDescription =
         phase.shortDescription ||
