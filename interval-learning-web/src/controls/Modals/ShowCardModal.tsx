@@ -47,8 +47,8 @@ export const ShowCardModal: FC<ShowCardModalProps> = ({ open, onClose, userId, c
                                 <Stack component={'ul'} spacing={'5px'}>
                                     {card.examples.map((e) => {
                                         return (
-                                            <li key={e} style={{ display: 'flex', alignItems: 'center' }}>
-                                                <KeyboardArrowRight color={'primary'} />
+                                            <li key={e} style={{ display: 'flex' }}>
+                                                <KeyboardArrowRight color={'primary'} style={{ marginTop: '4px' }} />
                                                 <span>{e}</span>
                                             </li>
                                         );

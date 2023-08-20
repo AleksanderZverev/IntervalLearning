@@ -17,6 +17,8 @@ interface AsyncAutocompleteProps {
     errorMessage?: string;
     required?: boolean;
     textFieldProps?: TextFieldProps;
+    multiline?: boolean;
+    rows?: number;
 }
 
 export const AsyncAutocomplete: FC<AsyncAutocompleteProps> = ({
@@ -27,6 +29,8 @@ export const AsyncAutocomplete: FC<AsyncAutocompleteProps> = ({
     errorMessage,
     required,
     textFieldProps,
+    multiline,
+    rows,
     ...otherProps
 }) => {
     const [open, setOpen] = useState(false);
@@ -85,6 +89,8 @@ export const AsyncAutocomplete: FC<AsyncAutocompleteProps> = ({
                     {...textFieldProps}
                     variant="standard"
                     autoComplete="off"
+                    multiline={multiline}
+                    rows={rows}
                     label={label}
                     error={error}
                     helperText={errorMessage ?? ' '}
