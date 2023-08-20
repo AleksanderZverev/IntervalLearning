@@ -20,6 +20,22 @@ public class SharedApiTests : BaseApiTests, IClassFixture<SharedIntervalLearning
         await base.InitializeAsync();
         SharedScope = await GetRandomUserScope();
     }
+    
+    protected async Task<List<Collection>?> GetAllCollectionsAsync()
+    {
+        var getAllResponse = await sharedClient.GetAsync(
+            AbsoluteQuery(ApiRoutes.Collections.BasePath, ApiRoutes.Collections.GetAll));
+        var allCollections = getAllResponse.ToResponseDto<List<Collection>>();
+        return allCollections;
+    }
+    
+    protected async Task<Collection?> GetCollectionAsync(string collectionId)
+    {
+        var getCollectionResponse = await sharedClient.GetAsync(
+            AbsoluteQuery(ApiRoutes.Collections.BasePath, ApiRoutes.Collections.GetCollectionPath(int.Parse(collectionId))));
+        var collection = getCollectionResponse.ToResponseDto<Collection>();
+        return collection;
+    }
 
     protected async Task<Schedule> CreateSchedule(RepeatsScheduleController.CreateScheduleRequest createScheduleRequest)
     {
@@ -29,13 +45,6 @@ public class SharedApiTests : BaseApiTests, IClassFixture<SharedIntervalLearning
 
         var schedule = createScheduleResponse.ToResponseDto<Schedule>();
         return schedule ?? throw new InvalidOperationException();
-    }
-
-    protected async Task<(Collection Collection, List<Card> Cards)> CreateRandomCardsAsync(int count)
-    {
-        var collection = await CreateRandomCollectionAsync();
-        var cards = await AddRandomCardsToCollection(collection.Id, count);
-        return (collection, cards);
     }
 
     protected async Task<List<Card>> AddRandomCardsToCollection(string collectionId, int count)
@@ -68,6 +77,13 @@ public class SharedApiTests : BaseApiTests, IClassFixture<SharedIntervalLearning
     {
         var (collection, cards) = await CreateRandomCardsAsync(1);
         return (collection, cards.Single());
+    }
+
+    protected async Task<(Collection Collection, List<Card> Cards)> CreateRandomCardsAsync(int count)
+    {
+        var collection = await CreateRandomCollectionAsync();
+        var cards = await AddRandomCardsToCollection(collection.Id, count);
+        return (collection, cards);
     }
 
     protected async Task<Card?> CreateCardAsync(short collectionId, CreateCardItem card)

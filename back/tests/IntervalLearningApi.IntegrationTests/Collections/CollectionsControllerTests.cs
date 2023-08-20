@@ -11,13 +11,6 @@ public class CollectionsControllerTests : SharedApiTests
     {
     }
 
-    private static async Task<List<Collection>?> GetAllCollectionsAsync(HttpClient client)
-    {
-        var getAllResponse = await client.GetAsync(ApiRoutes.Collections.GetAll);
-        var allCollections = getAllResponse.ToResponseDto<List<Collection>>();
-        return allCollections;
-    }
-
     [Fact]
     public async Task GetAll_ShouldReturnEmptyCollection_WhenNewUserRegistered()
     {
@@ -25,7 +18,7 @@ public class CollectionsControllerTests : SharedApiTests
         var (client, scope) = SharedScope;
 
         //Act
-        var allCollections = await GetAllCollectionsAsync(client);
+        var allCollections = await GetAllCollectionsAsync();
         
         //Assert
         allCollections.Should().NotBeNull().And.BeEmpty();
@@ -39,7 +32,7 @@ public class CollectionsControllerTests : SharedApiTests
         var addedCollections = await CreateRandomCollectionsAsync(10);
 
         //Act
-        var allCollections = await GetAllCollectionsAsync(client);
+        var allCollections = await GetAllCollectionsAsync();
 
         //Assert
         allCollections.Should().NotBeNull().And.NotBeEmpty();
@@ -71,13 +64,13 @@ public class CollectionsControllerTests : SharedApiTests
     {
         //Arrange
         var (client, scope) = SharedScope;
-        var oldCollections = await GetAllCollectionsAsync(client);
+        var oldCollections = await GetAllCollectionsAsync();
 
         //Act
         await CreateCollectionAsync(collectionName);
 
         //Assert
-        var newCollections = await GetAllCollectionsAsync(client);
+        var newCollections = await GetAllCollectionsAsync();
         oldCollections.Should().BeEmpty();
         newCollections.Should().NotBeNull().And.HaveCount(1);
         newCollections.Single().Title.Should().BeEquivalentTo(collectionName);
@@ -139,7 +132,7 @@ public class CollectionsControllerTests : SharedApiTests
         //Arrange
         var (client, scope) = SharedScope;
         var oldCollection = await CreateRandomCollectionAsync();
-        var oldCollections = await GetAllCollectionsAsync(client);
+        var oldCollections = await GetAllCollectionsAsync();
 
         //Act
         await client.PostAsJsonAsync(
@@ -153,7 +146,7 @@ public class CollectionsControllerTests : SharedApiTests
             });
 
         //Assert
-        var newCollections = await GetAllCollectionsAsync(client);
+        var newCollections = await GetAllCollectionsAsync();
         oldCollections.Should().NotBeNull().And.HaveCount(1);
         newCollections.Should().NotBeNull().And.HaveCount(1);
 
@@ -192,7 +185,7 @@ public class CollectionsControllerTests : SharedApiTests
         //Arrange
         var (client, scope) = SharedScope;
         var oldCollection = await CreateRandomCollectionAsync();
-        var oldCollections = await GetAllCollectionsAsync(client);
+        var oldCollections = await GetAllCollectionsAsync();
 
         //Act
         await client.PostAsJsonAsync(
@@ -206,7 +199,7 @@ public class CollectionsControllerTests : SharedApiTests
             });
 
         //Assert
-        var newCollections = await GetAllCollectionsAsync(client);
+        var newCollections = await GetAllCollectionsAsync();
         oldCollections.Should().NotBeNull().And.HaveCount(1);
         newCollections.Should().NotBeNull().And.HaveCount(1);
 
@@ -422,5 +415,41 @@ public class CollectionsControllerTests : SharedApiTests
 
         //Assert
         searchResult.Should().NotBeNull().And.BeEmpty();
+    }
+
+    [Fact]
+    public async Task CreateCard_ShouldIncrementCounter()
+    {
+        //Arrange
+        var (client, scope) = SharedScope;
+        var oldCollection = await CreateRandomCollectionAsync();
+        
+        //Act
+        var cardsCount = 10;
+        await AddRandomCardsToCollection(oldCollection.Id, cardsCount);
+        
+        //Assert
+        oldCollection.CardsCount.Should().Be(0);
+        var newCollection = await GetCollectionAsync(oldCollection.Id);
+        newCollection.CardsCount.Should().Be((short)cardsCount);
+    }
+    
+    [Fact]
+    public async Task CreateCard_ShouldDecrementCounter_WhenCardDeleted()
+    {
+        //Arrange
+        var (client, scope) = SharedScope;
+        var cardsCount = 10;
+        var (collection, cards) = await CreateRandomCardsAsync(cardsCount);
+        
+        //Act
+        await client.DeleteAsync(
+            AbsoluteQuery(
+                ApiRoutes.Cards.GetBasePath(short.Parse(collection.Id)),
+                ApiRoutes.Cards.GetDeleteCardPath(short.Parse(cards.First().Id))));
+
+        //Assert
+        var newCollection = await GetCollectionAsync(collection.Id);
+        newCollection.CardsCount.Should().Be((short)(cardsCount - 1));
     }
 }

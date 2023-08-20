@@ -246,6 +246,43 @@ public class CardAndCollectionsControllerTests : SharedApiTests
         AssertHasCollectionsAtDatePhase(repeatCollections, schedule.Id, 0, 0,
             new CollectionAssertion(collection.Id, cards.Count));
     }
+
+    [Theory]
+    [MemberData(nameof(TestBehaviors))]
+    public async Task StartCards_ShouldDecrementCollectionCounter(ForgottenBehavior behavior)
+    {
+        //Arrange
+        var (client, user) = SharedScope;
+        var schedule = await CreateTestSchedule(behavior);
+        var cardsCount = 10;
+        var (collection, cards) = await CreateRandomCardsAsync(cardsCount);
+
+        //Act
+        await StartCardsAsync(client, collection, cards, schedule);
+        
+        //Assert
+        var newCollection = await GetCollectionAsync(collection.Id);
+        newCollection.NotStartedCards.Should().Be(0);
+    }
+    
+    [Theory(Skip = "Not implemented logic")]
+    [MemberData(nameof(TestBehaviors))]
+    public async Task StartCards_ShouldIncrementCollectionCounter_WhenNewCardsAdded(ForgottenBehavior behavior)
+    {
+        //Arrange
+        var (client, user) = SharedScope;
+        var schedule = await CreateTestSchedule(behavior);
+        var cardsCount = 10;
+        var (collection, cards) = await CreateRandomCardsAsync(cardsCount);
+
+        //Act
+        await StartCardsAsync(client, collection, cards, schedule);
+        await AddRandomCardsToCollection(collection.Id, cardsCount);
+        
+        //Assert
+        var newCollection = await GetCollectionAsync(collection.Id);
+        newCollection.NotStartedCards.Should().Be((short)cardsCount);
+    }
     
     [Theory]
     [MemberData(nameof(TestBehaviors))]
