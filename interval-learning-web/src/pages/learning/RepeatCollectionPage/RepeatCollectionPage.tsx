@@ -317,7 +317,7 @@ export const RepeatCollectionPageContent: FC<RepeatCollectionPageContentProps> =
                                 display: 'flex',
                                 flexDirection: 'column',
                                 alignItems: 'center',
-                                rowGap: 35,
+                                rowGap: 36,
                             }}
                         >
                             {isSuccess && mutationData && (
@@ -354,7 +354,7 @@ export const RepeatCollectionPageContent: FC<RepeatCollectionPageContentProps> =
                                     if (v > notActiveIndex) return;
                                     setCardIndex(v);
                                 }}
-                                getHoverTitle={(index) => repeatCards[index].frontSideText}
+                                getHoverTitle={(index) => repeatCards[index].backSideText}
                             />
                         </div>
                     )}
