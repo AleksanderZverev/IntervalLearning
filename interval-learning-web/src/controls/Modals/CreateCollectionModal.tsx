@@ -109,6 +109,7 @@ const CreateCollectionModalContent: FC<CreateCollectionModalProps> = ({
                 <FormProvider {...formMethods}>
                     <Form>
                         <FormField
+                            multiline
                             label="Название"
                             error={!!errors.title}
                             errorMessage={errors.title?.message}

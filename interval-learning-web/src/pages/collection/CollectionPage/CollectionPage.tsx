@@ -17,6 +17,7 @@ import { selectTheme } from '../../../redux/slices/themeSlice';
 import { CardRow } from './CardRow';
 import { FormField } from '../../../controls/Form/Form';
 import { useDocumentTitle } from '../../../hooks/useCollectionTitle';
+import { withQueryResolver } from '../../../hoc/withQueryResolver';
 
 const cardsCountPerPage = 50;
 const defaultSearchFieldType = 'Слово';
@@ -26,7 +27,13 @@ const mapTextToFieldType: { [key: string]: SearchFieldType } = {
     Слово: SearchFieldType.RememberingText,
 };
 
-export const CollectionPage: FC = () => {
+interface SearchCardsFilter {
+    page: number;
+    input: string;
+    fieldType: string;
+}
+
+const CollectionPageContent: FC = () => {
     const { userId, collectionId } = useParams();
 
     if (!collectionId || !userId) {
@@ -35,16 +42,21 @@ export const CollectionPage: FC = () => {
 
     const navigate = useNavigate();
     const [page, setPage] = useState(1);
-    const [searchPage, setSearchPage] = useState(1);
-    const [searchValue, setSearchValue] = useState('');
-    const [searchFieldType, setSearchFieldType] = useState<string>(defaultSearchFieldType);
-    const useSearch = useMemo(() => Boolean(searchValue), [searchValue]);
+    const getDefaultFilter = (): SearchCardsFilter => ({ page: 1, input: '', fieldType: defaultSearchFieldType });
+
+    var [filter, setFilter] = useState<SearchCardsFilter>(getDefaultFilter());
+    const useSearch = Boolean(filter.input);
 
     const onSearchValueChange = (newValue: string) => {
-        if (!Boolean(newValue)) {
-            setSearchPage(1);
+        if (!newValue) {
+            setFilter({ ...getDefaultFilter(), fieldType: filter.fieldType });
         }
-        setSearchValue(newValue);
+
+        setFilter({
+            page: 1,
+            input: newValue,
+            fieldType: filter.fieldType,
+        });
     };
 
     const { isFetching: isCollectionFetching, isError: isCollectionError } = useGetCollectionQuery({ collectionId });
@@ -59,10 +71,10 @@ export const CollectionPage: FC = () => {
             collectionId,
             userId,
             request: {
-                searchValue,
-                page: 1,
-                count: cardsCountPerPage * searchPage, //todo придумать как хранить в состоянии
-                fieldType: mapTextToFieldType[searchFieldType],
+                searchValue: filter.input,
+                page: filter.page,
+                count: cardsCountPerPage,
+                fieldType: mapTextToFieldType[filter.fieldType],
             },
         },
         { skip: !useSearch }
@@ -76,16 +88,20 @@ export const CollectionPage: FC = () => {
 
     useDocumentTitle(collection?.title, '📘');
 
-    const sortedCards = useMemo(
-        () =>
-            [...(useSearch ? searchedCards ?? [] : storageCards)].sort((f, s) =>
-                dayjs(s.createdDate).diff(dayjs(f.createdDate))
-            ),
-        [useSearch, searchedCards, storageCards]
-    );
+    const sortedCards = useMemo(() => {
+        if (useSearch) {
+            return searchedCards ?? [];
+        }
+
+        return [...storageCards].sort((f, s) => dayjs(s.createdDate).diff(dayjs(f.createdDate)));
+    }, [useSearch, searchedCards, storageCards]);
 
     const cards = useMemo(() => {
-        const skip = ((useSearch ? searchPage : page) - 1) * cardsCountPerPage;
+        if (useSearch) {
+            return sortedCards;
+        }
+
+        const skip = ((useSearch ? filter.page : page) - 1) * cardsCountPerPage;
 
         const workingCards = [...sortedCards];
         workingCards.splice(0, skip);
@@ -148,7 +164,7 @@ export const CollectionPage: FC = () => {
             <div>
                 <Stack direction={'row'} gap={4} marginY={2}>
                     <TextField
-                        value={searchValue}
+                        value={filter.input}
                         margin={'none'}
                         placeholder="Поиск карточки"
                         variant="standard"
@@ -157,10 +173,12 @@ export const CollectionPage: FC = () => {
                     />
                     <Autocomplete
                         sx={{ minWidth: '150px', width: '150px' }}
-                        value={searchFieldType}
+                        value={filter.fieldType}
                         options={Object.keys(mapTextToFieldType)}
                         renderInput={(params) => <FormField sx={{ height: '20px' }} {...params} />}
-                        onChange={(event, newValue) => setSearchFieldType(newValue ?? defaultSearchFieldType)}
+                        onChange={(event, newValue) =>
+                            setFilter({ ...filter, fieldType: newValue ?? defaultSearchFieldType })
+                        }
                     />
                 </Stack>
                 <Table>
@@ -177,7 +195,7 @@ export const CollectionPage: FC = () => {
                         ) : (
                             <TableRow borderless>
                                 <TableCell colSpan={99} align="center">
-                                    {searchValue ? 'Ничего не найдено' : 'Коллекция пуста'}
+                                    {filter.input ? 'Ничего не найдено' : 'Коллекция пуста'}
                                 </TableCell>
                             </TableRow>
                         )}
@@ -185,12 +203,28 @@ export const CollectionPage: FC = () => {
                 </Table>
                 {collection.cardsCount > cardsCountPerPage && (
                     <Pagination
-                        page={useSearch ? searchPage : page}
+                        page={useSearch ? filter.page : page}
                         count={Math.ceil(collection.cardsCount / cardsCountPerPage)}
-                        onChange={(event, page) => (useSearch ? setSearchPage(page) : setPage(page))}
+                        onChange={(event, page) => (useSearch ? setFilter({ ...filter, page: page }) : setPage(page))}
                     />
                 )}
             </div>
         </PageContainer>
+    );
+};
+
+const ConnectedCollectionPage = withQueryResolver(useGetCollectionQuery)(CollectionPageContent);
+
+export const CollectionPage: FC = () => {
+    const { userId, collectionId } = useParams();
+
+    if (!userId || !collectionId) {
+        throw new Error();
+    }
+
+    return (
+        <>
+            <ConnectedCollectionPage queryArg={{ collectionId: collectionId }} />
+        </>
     );
 };

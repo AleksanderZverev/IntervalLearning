@@ -23,7 +23,7 @@ import { selectLanguageById } from '../../redux/slices/languagesSlice';
 import { selectTheme } from '../../redux/slices/themeSlice';
 import { Card } from '../../types/Collection';
 import { AsyncAutocomplete } from '../AsyncAutocomplete/AsyncAutocomplete';
-import { Form, FormField, FormFiledLabel, IconFormField } from '../Form/Form';
+import { Form, FormField, FormFiledLabel, IconFormField, TextAreaFormField } from '../Form/Form';
 
 interface Example {
     value: string;
@@ -324,7 +324,7 @@ const CreateCardModalContent: FC<CreateCardModalProps> = ({
                                 />
                             )}
                         />
-                        <FormField
+                        <TextAreaFormField
                             label="Описание"
                             error={!!errors.description}
                             errorMessage={errors.description?.message}
@@ -337,6 +337,7 @@ const CreateCardModalContent: FC<CreateCardModalProps> = ({
                                     <div key={f.id}>
                                         <IconFormField
                                             label=""
+                                            multiline
                                             icon={ArrowForwardIos}
                                             error={!!errors.examples?.at(i)?.value}
                                             errorMessage={errors.examples?.at(i)?.value?.message}

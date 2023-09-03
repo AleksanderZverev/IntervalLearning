@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net6.0</TargetFramework>
+    <TargetFramework>net7.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
   </PropertyGroup>
@@ -9,6 +9,16 @@
   <ItemGroup>
     <ProjectReference Include="..\DB\DB.csproj" />
     <ProjectReference Include="..\Infrastructure\Infrastructure.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="FluentResults" Version="3.15.2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Card\Entities\" />
+    <Folder Include="Collection\Entities\" />
+    <Folder Include="User\Entities\" />
   </ItemGroup>
 
 </Project>

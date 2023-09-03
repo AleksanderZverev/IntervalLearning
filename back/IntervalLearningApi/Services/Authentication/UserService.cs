@@ -15,11 +15,11 @@ public class UserService
     public UserService(
         ApplicationContext db,
         IJwtService jwtService,
-        IOptions<JwtSettings> appSettings)
+        JwtSettings appSettings)
     {
         this.db = db;
         this.jwtService = jwtService;
-        _jwtSettings = appSettings.Value;
+        _jwtSettings = appSettings;
     }
 
     public IEnumerable<UserEntity> GetAll()

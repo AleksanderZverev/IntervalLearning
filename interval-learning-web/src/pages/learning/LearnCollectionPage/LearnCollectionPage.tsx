@@ -289,7 +289,7 @@ export const LearnCollectionPageContent: FC<LearnCollectionPageContentProps> = (
                         getHoverTitle={(index) => {
                             const cardId = notStartedCardIds[index];
                             const target = cards.find((c) => c.id === cardId);
-                            return target?.frontSideText ?? index.toString();
+                            return target?.backSideText ?? index.toString();
                         }}
                         vertical
                     />

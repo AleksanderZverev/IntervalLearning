@@ -45,8 +45,8 @@ export const Slider: FC<SliderProps> = ({
     const counterTopProperty = vertical ? 'bottom' : 'top';
     const counterTopValuePrefix = vertical ? '' : '-';
     const counterRightValuePrefix = vertical ? '-' : '';
-    const counterHeight = vertical ? '5px' : '25px';
-    const counterWidth = vertical ? '25px' : '5px';
+    const counterHeight = vertical ? '4px' : '26px';
+    const counterWidth = vertical ? '26px' : '4px';
 
     const total = max - min;
     const activePoint = activeValue - min;
@@ -107,7 +107,7 @@ export const Slider: FC<SliderProps> = ({
                 className={styles.counter}
                 style={{
                     [counterTopProperty]: `${counterTopValuePrefix}${counterHeight}`,
-                    right: `${counterRightValuePrefix}${counterWidth}`,
+                    right: `${counterWidth}`,
                 }}
             >{`${activeValue - min}/${max - min + 1}`}</span>
 

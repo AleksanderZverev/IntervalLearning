@@ -18,10 +18,10 @@ public class JwtService : IJwtService
 
     public JwtService(
         ApplicationContext db,
-        IOptions<JwtSettings> appSettings)
+        JwtSettings appSettings)
     {
         this.db = db;
-        jwtSettings = appSettings.Value;
+        jwtSettings = appSettings;
     }
 
     public string GenerateJwtToken(UserEntity userEntity)

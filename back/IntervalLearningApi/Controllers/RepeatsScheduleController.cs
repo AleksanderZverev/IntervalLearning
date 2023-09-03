@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using DB.Models;
+using IntervalLearningApi.Constants;
 using IntervalLearningApi.Extensions;
 using IntervalLearningApi.Models.RepeatsSchedule;
 using IntervalLearningApi.Services;
@@ -7,7 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace IntervalLearningApi.Controllers
 {
-    [Route("api/schedules")]
+    [Route(ApiRoutes.Schedule.BasePath)]
     [Authorize]
     [ApiController]
     public class RepeatsScheduleController : ControllerBase
@@ -19,21 +20,21 @@ namespace IntervalLearningApi.Controllers
             this.repeatsScheduleService = repeatsScheduleService;
         }
 
-        [HttpGet]
+        [HttpGet(ApiRoutes.Schedule.Get_GetAll)]
         public List<Schedule> GetAll()
         {
             var userId = HttpContext.GetUserId();
             return repeatsScheduleService.GetAll(userId).Select(ToSchedule).ToList();
         }
 
-        [HttpGet("{userId}/{scheduleId}")]
+        [HttpGet(ApiRoutes.Schedule.Get_GetUserSchedule)]
         public ActionResult<Schedule> GetSchedule(long userId, short scheduleId)
         {
             var schedule = repeatsScheduleService.Find(userId, scheduleId);
             return schedule == null ? NotFound() : ToSchedule(schedule);
         }
 
-        [HttpGet("my/{scheduleId}")]
+        [HttpGet(ApiRoutes.Schedule.Get_GetMySchedule)]
         public ActionResult<Schedule> GetSchedule(short scheduleId)
         {
             var userId = HttpContext.GetUserId();
@@ -41,7 +42,7 @@ namespace IntervalLearningApi.Controllers
             return schedule == null ? NotFound() : ToSchedule(schedule);
         }
 
-        [HttpPatch("{scheduleId}")]
+        [HttpPatch(ApiRoutes.Schedule.Patch_EditSchedule)]
         public async Task<ActionResult<Schedule>> EditSchedule(short scheduleId, [FromBody] UpdateScheduleRequest request)
         {
             var userId = HttpContext.GetUserId();
@@ -49,7 +50,7 @@ namespace IntervalLearningApi.Controllers
             return schedule != null ? ToSchedule(schedule) : BadRequest(error);
         }
 
-        [HttpPost]
+        [HttpPost(ApiRoutes.Schedule.Post_CreateSchedule)]
         public async Task<ActionResult<Schedule>> CreateSchedule([FromBody] CreateScheduleRequest request)
         {
             var userId = HttpContext.GetUserId();

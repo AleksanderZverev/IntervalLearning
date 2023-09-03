@@ -14,17 +14,14 @@ public class JwtMiddleware
     private const string BearerPrefix = "Bearer ";
 
     private readonly RequestDelegate _next;
-    private readonly IWebHostEnvironment env;
     private readonly JwtSettings _jwtSettings;
 
     public JwtMiddleware(
         RequestDelegate next, 
-        IOptions<JwtSettings> appSettings,  
-        IWebHostEnvironment env)
+        JwtSettings appSettings)
     {
         _next = next;
-        this.env = env;
-        _jwtSettings = appSettings.Value;
+        _jwtSettings = appSettings;
     }
 
     public async Task Invoke(HttpContext context, ApplicationContext db, IJwtService jwtService)

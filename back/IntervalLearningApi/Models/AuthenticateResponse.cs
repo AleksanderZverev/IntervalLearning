@@ -13,14 +13,4 @@ public class AuthenticateResponse
 
     [JsonIgnore] // refresh token is returned in http only cookie
     public string RefreshToken { get; set; }
-
-    public AuthenticateResponse(UserEntity userEntity, string jwtToken, string refreshToken)
-    {
-        Id = userEntity.Id.ToString();
-        FirstName = userEntity.FirstName;
-        LastName = userEntity.LastName;
-        Email = userEntity.Email;
-        JwtToken = jwtToken;
-        RefreshToken = refreshToken;
-    }
 }

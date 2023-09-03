@@ -39,6 +39,7 @@ export const ShowCardModal: FC<ShowCardModalProps> = ({ open, onClose, userId, c
                 <DialogContent>
                     <div style={{ display: 'flex', flexDirection: 'column', rowGap: 15 }}>
                         <Label label="Запомнить">{card.frontSideText}</Label>
+                        <Label label="Подсказка">{card.promptText}</Label>
                         <Label label="Значение">{card.backSideText}</Label>
                         <Label label="Описание">{card.description}</Label>
                         <Label label="Примеры">
@@ -46,8 +47,8 @@ export const ShowCardModal: FC<ShowCardModalProps> = ({ open, onClose, userId, c
                                 <Stack component={'ul'} spacing={'5px'}>
                                     {card.examples.map((e) => {
                                         return (
-                                            <li key={e} style={{ display: 'flex', alignItems: 'center' }}>
-                                                <KeyboardArrowRight color={'primary'} />
+                                            <li key={e} style={{ display: 'flex' }}>
+                                                <KeyboardArrowRight color={'primary'} style={{ marginTop: '4px' }} />
                                                 <span>{e}</span>
                                             </li>
                                         );
