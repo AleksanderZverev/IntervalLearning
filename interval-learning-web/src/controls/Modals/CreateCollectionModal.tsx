@@ -1,7 +1,7 @@
 import { Button, Dialog, DialogActions, DialogContent, DialogTitle, Stack } from '@mui/material';
 import { FC } from 'react';
 import { Theme } from '../../types/global';
-import { SelectTheme } from '../SelectTheme/SelectTheme';
+import { SelectThemeControl } from '../SelectTheme/SelectTheme';
 import * as yup from 'yup';
 import { FormProvider, SubmitHandler, useForm, FieldError } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
@@ -115,7 +115,7 @@ const CreateCollectionModalContent: FC<CreateCollectionModalProps> = ({
                             errorMessage={errors.title?.message}
                             {...register('title')}
                         />
-                        <SelectTheme
+                        <SelectThemeControl
                             label="Тема"
                             error={!!errors.theme}
                             errorMessage={(errors.theme as FieldError)?.message}
