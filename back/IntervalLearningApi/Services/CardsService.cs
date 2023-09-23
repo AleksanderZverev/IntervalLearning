@@ -30,6 +30,11 @@ public class CardsService
             .ToListAsync();
     }
 
+    public Task<CardEntity?> FindCard(long userId, short collectionId, short cardId)
+    {
+        return db.Cards.FindAsync(userId, collectionId, cardId).AsTask();
+    }
+
     public Task<List<CardEntity>> GetCards(long userId, short collectionId, int page, int count)
     {
         var toSkip = (page - 1) * count;

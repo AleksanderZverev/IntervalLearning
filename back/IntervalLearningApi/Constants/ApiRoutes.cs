@@ -50,6 +50,7 @@ public static class ApiRoutes
         public static string GetBasePath(short collectionId)
             => $"api/collections/{collectionId}/cards";
         
+        public const string Get_Card = "{cardId}";
         public const string Get_GetAll = "";
         public const string Get_GetCardQueue = "repeat";
         public const string Get_GetNotStartedCards = "not-started";

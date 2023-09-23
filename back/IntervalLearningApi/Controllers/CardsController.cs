@@ -23,6 +23,16 @@ namespace IntervalLearningApi.Controllers
             this.collectionService = collectionService;
         }
 
+        [HttpGet(ApiRoutes.Cards.Get_Card)]
+        public async Task<ActionResult<Card>> GetCard(short collectionId, short cardId)
+        {
+            var userId = HttpContext.GetUserId();
+            var card = await cardsService.FindCard(userId, collectionId, cardId);
+            return card == null 
+                ? NotFound() 
+                : CollectionsController.ToCard(card);
+        }
+
         [HttpGet(ApiRoutes.Cards.Get_GetAll)]
         public async Task<ActionResult<IList<Card>>> GetCards(short collectionId, [FromQuery] int page = 1, [FromQuery] int count = 10)
         {
