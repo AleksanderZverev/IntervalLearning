@@ -55,7 +55,10 @@ const getScheduleKeys = (dateToRepeatingPhases: Record<string, RepeatingPhaseDto
     });
 };
 
-function CountWordsByThemes(dateToCollectionsQueue: [string, RepeatingPhaseDto[]][]): Map<number, number> {
+function CountWordsByThemes(
+    schedule: Schedule | undefined,
+    dateToCollectionsQueue: [string, RepeatingPhaseDto[]][]
+): Map<number, number> {
     const result: Map<number, number> = new Map();
 
     const addToTheme = (themeId: number, cardsCount: number) => {
@@ -79,6 +82,10 @@ function CountWordsByThemes(dateToCollectionsQueue: [string, RepeatingPhaseDto[]
         }
 
         phase.forEach((p) => {
+            if (schedule && (p.scheduleId !== schedule.id || p.scheduleUserId !== schedule.userId)) {
+                return;
+            }
+
             p.repeatingCollections.forEach((c) => {
                 addToTheme(c.collection.themeId, c.cardsToRepeatCount);
             });
@@ -147,7 +154,7 @@ const InProgressCollectionsContent: FC<InProgressCollectionsProps> = ({ queryDat
         return phases.length > 0;
     });
 
-    const wordByThemes = CountWordsByThemes(dateToCollectionsQueue);
+    const wordByThemes = CountWordsByThemes(schedule, dateToCollectionsQueue);
 
     return (
         <div style={{ display: 'grid', gridTemplateRows: 'auto 1fr' }}>
