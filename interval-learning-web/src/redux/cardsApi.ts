@@ -93,8 +93,23 @@ export interface DeleteCardRequest {
     cardId: string;
 }
 
+export interface GetCardRequest {
+    cardId: string;
+}
+
 export const cardsApi = api.injectEndpoints({
     endpoints: (build) => ({
+        getCard: build.query<Card, BaseRequestItem<GetCardRequest>>({
+            query: ({ collectionId, request: { cardId } }) => ({
+                url: `/collections/${collectionId}/cards/${cardId}`,
+                method: 'GET',
+                onSuccess: async (dispatch, data) => {
+                    const card = data as Card;
+                    dispatch(addCard(card));
+                },
+            }),
+            keepUnusedDataFor: 0,
+        }),
         getCards: build.query<Card[], BaseRequestItem<GetCardItem>>({
             query: ({ collectionId, request }) => ({
                 url: `/collections/${collectionId}/cards?page=${request.page}&count=${request.count}`,
@@ -246,6 +261,7 @@ export const cardsApi = api.injectEndpoints({
 });
 
 export const {
+    useLazyGetCardQuery,
     useAddCardMutation,
     useGetCardsQuery,
     useGetNotStartedCardsQuery,

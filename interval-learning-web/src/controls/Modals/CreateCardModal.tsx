@@ -9,21 +9,23 @@ import {
     InputAdornment,
     Link,
     IconButton,
+    Portal,
 } from '@mui/material';
-import { FC } from 'react';
+import { FC, useState } from 'react';
 import { Controller, FormProvider, SubmitHandler, useFieldArray, useForm } from 'react-hook-form';
 import * as yup from 'yup';
 import { withMutationResolver, WithMutationResolverProps } from '../../hoc/withQueryResolver';
 import useTypedSelector from '../../hooks/useTypedSelector';
 import { useLazyGetWordTranslationsQuery, useLazySearchWordsQuery } from '../../redux/api/dictionaryApi';
-import { CreateCardItem, useAddCardMutation } from '../../redux/cardsApi';
+import { CreateCardItem, useAddCardMutation, useLazyGetCardQuery } from '../../redux/cardsApi';
 import { selectCardById } from '../../redux/slices/cardsSlice';
 import { selectCollectionById } from '../../redux/slices/collectionsSlice';
 import { selectLanguageById } from '../../redux/slices/languagesSlice';
 import { selectTheme } from '../../redux/slices/themeSlice';
 import { Card } from '../../types/Collection';
 import { AsyncAutocomplete } from '../AsyncAutocomplete/AsyncAutocomplete';
-import { Form, FormField, FormFiledLabel, IconFormField, TextAreaFormField } from '../Form/Form';
+import { Form, FormFiledLabel, IconFormField, TextAreaFormField } from '../Form/Form';
+import { AssertionModal } from './AssertionModal';
 
 interface Example {
     value: string;
@@ -63,6 +65,19 @@ function getDefaultValues(card: Card): CardForm {
     };
 
     return cardForm;
+}
+
+function CheckIfCardAlreadyChanged(oldCard: Card, newCard?: Card | null): boolean | null {
+    if (!newCard) {
+        return false;
+    }
+
+    return !Boolean(
+        oldCard.backSideText === newCard.backSideText &&
+            oldCard.frontSideText === newCard.frontSideText &&
+            oldCard.promptText === newCard.promptText &&
+            oldCard.description === newCard.description
+    );
 }
 
 interface CreateCardModalProps extends WithMutationResolverProps<typeof useAddCardMutation> {
@@ -122,9 +137,11 @@ const CreateCardModalContent: FC<CreateCardModalProps> = ({
     } = formMethods;
 
     const { fields, append } = useFieldArray({ control, name: 'examples' });
+    const [showCardStateChangedModal, setShowCardStateChangedModal] = useState(false);
 
     const [getTranslation, {}] = useLazyGetWordTranslationsQuery();
     const [searchWords, {}] = useLazySearchWordsQuery();
+    const [getCard, {}] = useLazyGetCardQuery();
 
     const onAddExample = () => {
         const currentState = getValues();
@@ -143,6 +160,25 @@ const CreateCardModalContent: FC<CreateCardModalProps> = ({
             examples: data.examples.filter((e) => Boolean(e.value)).map((e) => e.value),
         };
 
+        if (card) {
+            try {
+                const currentCardState = await getCard({
+                    userId: props.collectionUserId,
+                    collectionId: props.collectionId,
+                    request: {
+                        cardId: card.id,
+                    },
+                }).unwrap();
+
+                const isChanged = CheckIfCardAlreadyChanged(card, currentCardState);
+
+                if (isChanged) {
+                    setShowCardStateChangedModal(true);
+                    return;
+                }
+            } catch {}
+        }
+
         try {
             await addCard({ collectionId: props.collectionId, userId: props.collectionUserId, request: item });
             props.onAdded ? props.onAdded() : props.onClose();
@@ -155,6 +191,19 @@ const CreateCardModalContent: FC<CreateCardModalProps> = ({
         <Dialog open={props.open} onClose={props.onClose} maxWidth={'sm'} fullWidth>
             <DialogTitle>{props.cardId ? 'Изменение карточки' : 'Создание карточки'}</DialogTitle>
             <DialogContent>
+                <Portal>
+                    {showCardStateChangedModal && (
+                        <AssertionModal
+                            title="Невозможно обновить карточку"
+                            message="Карточка изменилась за время просмотра"
+                            onClose={() => {
+                                setShowCardStateChangedModal(false);
+                                props.onClose();
+                            }}
+                            assertTitle="OK"
+                        />
+                    )}
+                </Portal>
                 <FormProvider {...formMethods}>
                     <Form>
                         <Controller
