@@ -14,6 +14,7 @@ interface SliderProps {
     onValueChange: (newValue: number) => void;
     getHoverTitle: (value: number) => string;
     vertical?: boolean;
+    disableMoving?: boolean;
 }
 
 const horizontalKeys: Record<string, number> = {
@@ -31,10 +32,11 @@ export const Slider: FC<SliderProps> = ({
     max,
     value,
     activeValue,
-    onValueChange,
     getHoverTitle,
     vertical,
     finishMode,
+    disableMoving,
+    ...props
 }) => {
     const maxWidthProperty = vertical ? 'maxHeight' : 'maxWidth';
     const widthProperty = vertical ? 'height' : 'width';
@@ -52,6 +54,11 @@ export const Slider: FC<SliderProps> = ({
     const activePoint = activeValue - min;
     const sliderWidth = activeValue > max ? 100 : (activePoint / (total + 2)) * 100;
 
+    const onValueChange = (newValue: number) => {
+        if (disableMoving) return;
+        props.onValueChange(newValue);
+    };
+
     const values = useMemo(() => {
         const values: number[] = [];
 
@@ -63,19 +70,23 @@ export const Slider: FC<SliderProps> = ({
     }, [min, max]);
 
     useEventListener('keydown', (e) => {
-        if (finishMode) {
+        if (!e.ctrlKey || finishMode) {
             return;
         }
 
         const keys = vertical ? verticalKeys : horizontalKeys;
 
-        if (e.key in keys) {
-            const offset = keys[e.key];
-            const nextValue = value + offset;
-            if ((offset > 0 && nextValue <= max) || (offset < 0 && nextValue >= min)) {
-                onValueChange(nextValue);
-            }
+        if (!(e.key in keys)) {
+            return;
         }
+
+        const offset = keys[e.key];
+        const nextValue = value + offset;
+        if ((offset > 0 && nextValue <= max) || (offset < 0 && nextValue >= min)) {
+            onValueChange(nextValue);
+        }
+
+        e.stopPropagation();
     });
 
     return (
@@ -135,7 +146,11 @@ export const Slider: FC<SliderProps> = ({
                 return isCurrentElement ? (
                     mark
                 ) : (
-                    <LightTooltip key={v} title={getHoverTitle ? getHoverTitle(v) : v.toString()}>
+                    <LightTooltip
+                        key={v}
+                        title={getHoverTitle ? getHoverTitle(v) : v.toString()}
+                        placement={vertical ? 'left' : 'bottom'}
+                    >
                         {mark}
                     </LightTooltip>
                 );

@@ -11,7 +11,7 @@ import {
     IconButton,
     Portal,
 } from '@mui/material';
-import { FC, useState } from 'react';
+import { FC, useRef, useState } from 'react';
 import { Controller, FormProvider, SubmitHandler, useFieldArray, useForm } from 'react-hook-form';
 import * as yup from 'yup';
 import { withMutationResolver, WithMutationResolverProps } from '../../hoc/withQueryResolver';
@@ -80,6 +80,12 @@ function CheckIfCardAlreadyChanged(oldCard: Card, newCard?: Card | null): boolea
     );
 }
 
+interface ReadOnlyState {
+    cardId: string | undefined;
+    collectionId: string;
+    collectionUserId: string;
+}
+
 interface CreateCardModalProps extends WithMutationResolverProps<typeof useAddCardMutation> {
     collectionId: string;
     collectionUserId: string;
@@ -99,9 +105,15 @@ const CreateCardModalContent: FC<CreateCardModalProps> = ({
     defaultBackText,
     ...props
 }) => {
-    const collection = useTypedSelector((state) =>
-        selectCollectionById(state, props.collectionUserId, props.collectionId)
-    );
+    const {
+        current: { cardId, collectionId, collectionUserId },
+    } = useRef<ReadOnlyState>({
+        cardId: props.cardId,
+        collectionId: props.collectionId,
+        collectionUserId: props.collectionUserId,
+    });
+
+    const collection = useTypedSelector((state) => selectCollectionById(state, collectionUserId, collectionId));
 
     const theme = useTypedSelector((state) => (collection ? selectTheme(state, collection.themeId) : undefined));
 
@@ -109,9 +121,7 @@ const CreateCardModalContent: FC<CreateCardModalProps> = ({
         theme?.languageId ? selectLanguageById(state, theme.languageId) : undefined
     );
 
-    const card = useTypedSelector((state) =>
-        selectCardById(state, props.collectionUserId, props.collectionId, props.cardId)
-    );
+    const card = useTypedSelector((state) => selectCardById(state, collectionUserId, collectionId, cardId));
 
     const formMethods = useForm<CardForm>({
         resolver: yupResolver(schema),
@@ -152,7 +162,7 @@ const CreateCardModalContent: FC<CreateCardModalProps> = ({
 
     const onCreate: SubmitHandler<CardForm> = async (data) => {
         const item: CreateCardItem = {
-            cardId: props.cardId,
+            cardId: cardId,
             frontText: data.frontText,
             promptText: data.promptText,
             backText: data.backText,
@@ -163,8 +173,8 @@ const CreateCardModalContent: FC<CreateCardModalProps> = ({
         if (card) {
             try {
                 const currentCardState = await getCard({
-                    userId: props.collectionUserId,
-                    collectionId: props.collectionId,
+                    userId: collectionUserId,
+                    collectionId: collectionId,
                     request: {
                         cardId: card.id,
                     },
@@ -180,7 +190,7 @@ const CreateCardModalContent: FC<CreateCardModalProps> = ({
         }
 
         try {
-            await addCard({ collectionId: props.collectionId, userId: props.collectionUserId, request: item });
+            await addCard({ collectionId: collectionId, userId: collectionUserId, request: item });
             props.onAdded ? props.onAdded() : props.onClose();
         } catch {
             showRetryModal(() => onCreate(data));
@@ -189,7 +199,7 @@ const CreateCardModalContent: FC<CreateCardModalProps> = ({
 
     return (
         <Dialog open={props.open} onClose={props.onClose} maxWidth={'sm'} fullWidth>
-            <DialogTitle>{props.cardId ? 'Изменение карточки' : 'Создание карточки'}</DialogTitle>
+            <DialogTitle>{cardId ? 'Изменение карточки' : 'Создание карточки'}</DialogTitle>
             <DialogContent>
                 <Portal>
                     {showCardStateChangedModal && (
@@ -406,7 +416,7 @@ const CreateCardModalContent: FC<CreateCardModalProps> = ({
             </DialogContent>
             <DialogActions style={{ padding: '20px', paddingTop: 0 }}>
                 <Button variant="contained" onClick={handleSubmit(onCreate)} disabled={isLoading}>
-                    {props.cardId ? 'Сохранить' : 'Создать'}
+                    {cardId ? 'Сохранить' : 'Создать'}
                 </Button>
             </DialogActions>
         </Dialog>
