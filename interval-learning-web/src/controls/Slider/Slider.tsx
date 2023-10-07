@@ -69,26 +69,6 @@ export const Slider: FC<SliderProps> = ({
         return values;
     }, [min, max]);
 
-    useEventListener('keydown', (e) => {
-        if (!e.ctrlKey || finishMode) {
-            return;
-        }
-
-        const keys = vertical ? verticalKeys : horizontalKeys;
-
-        if (!(e.key in keys)) {
-            return;
-        }
-
-        const offset = keys[e.key];
-        const nextValue = value + offset;
-        if ((offset > 0 && nextValue <= max) || (offset < 0 && nextValue >= min)) {
-            onValueChange(nextValue);
-        }
-
-        e.stopPropagation();
-    });
-
     return (
         <span
             className={styles.container}
