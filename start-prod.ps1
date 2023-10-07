@@ -1,3 +1,9 @@
+$answer = Read-Host "Start deploy (y/[n])"
+
+if ($answer -ne "y") {
+    return;
+}
+
 $startProcess = Start-Process -FilePath "docker" -ArgumentList "compose", "-f", "docker-compose.yml", "-f", "docker-compose.production.yml", "up", "-d" -WorkingDirectory "." -NoNewWindow -PassThru -Wait
 
 if ($startProcess.ExitCode -ne 0) {

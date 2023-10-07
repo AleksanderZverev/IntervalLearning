@@ -1,3 +1,9 @@
+$answer = Read-Host "Start build (y/[n])"
+
+if ($answer -ne "y") {
+    return;
+}
+
 $buildResult = Start-Process -FilePath "docker" -ArgumentList "compose", "build" -WorkingDirectory "." -NoNewWindow -PassThru -Wait
 
 if ($buildResult.ExitCode -ne 0) {
