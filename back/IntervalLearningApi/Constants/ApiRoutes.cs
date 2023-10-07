@@ -62,7 +62,7 @@ public static class ApiRoutes
         
         public const string Post_MoveCard = "move";
         public const string Get_SearchCard = "search";
-        public const string Post_StartCards = "start";
+        public const string Post_StartCards = "start";  
         public const string Path_RememberCard = "remember";
     }
     
@@ -85,5 +85,12 @@ public static class ApiRoutes
             => $"{scheduleId}";
         
         public const string Post_CreateSchedule = "";
+    }
+
+    public class Statistics
+    {
+        public const string BasePath = "api/statistics";
+
+        public const string Get_LearningStatistic = "learning";
     }
 }

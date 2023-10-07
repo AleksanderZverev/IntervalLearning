@@ -4,9 +4,15 @@ using DB;
 using DB.Models;
 using Infrastructure;
 using IntervalLearningApi.Models;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 namespace IntervalLearningApi.Services;
+
+public record LearningStatistic(
+    int RepeatedCards,
+    int LearnedCards
+);
 
 public class CardsService
 {
@@ -21,6 +27,46 @@ public class CardsService
         this.logger = logger;
         this.env = env;
         this.db = db;
+    }
+
+    public async Task<LearningStatistic> GetStatistic(long userId, DateTime dateTime)
+    {
+        var date = dateTime.Date;
+
+        var dateRemembers = await db.Remembers
+            .Where(r => r.ParentUserId == userId && r.RepeatedDate.Date == date)
+            .Include(r => r.ParentCard)
+            .ThenInclude(c => c.Remembers)
+            .ToListAsync();
+
+        var cards = dateRemembers
+            .Select(r => r.ParentCard)
+            .DistinctBy(c => c.ParentCollectionId + "-" + c.Id)
+            .ToList();
+
+        var repeatedCards = 0;
+        var learnedCards = 0;
+        
+        foreach (var card in cards)
+        {
+            var remembers = card.Remembers
+                .OrderBy(r => r.RepeatedDate)
+                .ToList();
+
+            var startedDate = remembers.First().RepeatedDate;
+            if (startedDate.Date == date)
+            {
+                learnedCards++;
+                continue;
+            }
+
+            repeatedCards++;
+        }
+
+        return new LearningStatistic(
+            RepeatedCards: repeatedCards,
+            LearnedCards: learnedCards
+        );
     }
 
     public Task<List<CardEntity>> GetAllCards(long userId, short collectionId)
