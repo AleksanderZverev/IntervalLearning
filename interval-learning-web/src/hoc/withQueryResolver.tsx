@@ -40,6 +40,7 @@ type GetQueryResult<S> = S extends UseQuery<infer TDefinition>
 interface PrivateResolverProps {
     containsFetching?: boolean;
     containsError?: boolean;
+    extendedData?: object;
     onRefetch?: () => void;
 }
 
@@ -52,6 +53,12 @@ export interface WithQueryResolverData<T extends UseQuery<QueryDefinition<any, C
     queryData: GetQueryResult<T>;
 }
 
+export interface WithOtherQueryResolverData<
+    T extends UseQuery<QueryDefinition<any, CustomBaseQueryType, TagType, any>>
+> {
+    extendedData: GetQueryResult<T>;
+}
+
 export const withQueryResolver =
     <TQueryArg, TResult>(useQuery: UseQuery<QueryDefinition<TQueryArg, CustomBaseQueryType, TagType, TResult>>) =>
     <TComponentProps,>(
@@ -62,7 +69,8 @@ export const withQueryResolver =
             ResolverProps<TQueryArg> &
             Omit<TComponentProps, keyof (WithQueryResolverData<typeof useQuery> & TQueryArg)>
     ) => {
-        const { queryArg, containsError, disableLoading, containsFetching, onRefetch, ...otherProps } = props;
+        const { queryArg, containsError, disableLoading, containsFetching, extendedData, onRefetch, ...otherProps } =
+            props;
         const {
             data,
             isError: isQueryError,
@@ -97,10 +105,12 @@ export const withQueryResolver =
             return <ErrorPage errorMessage="Не удалось загрузить данные" onReload={tryRefetch} />;
         }
 
+        console.log('test', extendedData, data);
+
         //TODO: don't know how to fix
         const HackComponent = Component as any;
 
-        return <HackComponent queryData={data} {...queryArg} {...otherProps} />;
+        return <HackComponent queryData={data} extendedData={extendedData} {...queryArg} {...otherProps} />;
     };
 
 export const withOtherQueryResolver =
@@ -113,6 +123,7 @@ export const withOtherQueryResolver =
             queryArg,
             containsError: otherError,
             containsFetching: otherFetching,
+            extendedData,
             onRefetch: onOtherRefetch,
             ...otherProps
         } = props;
@@ -130,6 +141,11 @@ export const withOtherQueryResolver =
             }
         };
 
+        const resultExtendedData = {
+            ...extendedData,
+            ...data,
+        };
+
         const HackComponent = Component as any;
 
         return (
@@ -137,6 +153,7 @@ export const withOtherQueryResolver =
                 queryArg={queryArg}
                 containsFetching={isFetching || otherFetching}
                 containsError={isError || otherError}
+                extendedData={resultExtendedData}
                 onRefetch={onRefetch}
                 {...otherProps}
             />
