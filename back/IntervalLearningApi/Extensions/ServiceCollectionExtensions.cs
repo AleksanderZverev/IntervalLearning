@@ -30,6 +30,7 @@ public static class ServiceCollectionExtensions
 
         services.AddScoped<CollectionService>();
         services.AddScoped<CardsService>();
+        services.AddScoped<StatisticsService>();
         services.AddScoped<RepeatsScheduleService>();
         services.AddScoped<ThemeService>();
         services.AddScoped<UserMetadataService>();

@@ -11,17 +11,17 @@ namespace IntervalLearningApi.Controllers;
 [ApiController]
 public class StatisticsController : ControllerBase
 {
-    private readonly CardsService cardsService;
+    private readonly StatisticsService statisticsService;
 
-    public StatisticsController(CardsService cardsService)
+    public StatisticsController(StatisticsService statisticsService)
     {
-        this.cardsService = cardsService;
+        this.statisticsService = statisticsService;
     }
     
     [HttpGet(ApiRoutes.Statistics.Get_LearningStatistic)]
     public async Task<ActionResult<LearningStatisticModel>> GetLearningStatistic([FromQuery(Name = "date")] DateTime dateTime)
     {
-        var statistic = await cardsService.GetStatistic(HttpContext.GetUserId(), dateTime);
+        var statistic = await statisticsService.GetStatistic(HttpContext.GetUserId(), dateTime);
 
         return new LearningStatisticModel(
             RepeatedCards: statistic.RepeatedCards,
