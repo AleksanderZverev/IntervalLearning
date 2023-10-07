@@ -48,3 +48,8 @@ export interface Remember {
     phaseId: number;
     repeatedDate: string;
 }
+
+export interface LearningStatistic {
+    repeatedCards: number;
+    learnedCards: number;
+}
