@@ -13,9 +13,6 @@ import { ErrorHandler } from '../src/ErrorHandler';
 import { themesApi } from '../src/redux/themeSlice';
 import { useOnMount } from '../src/hooks/useOnMount';
 import { useTypedDispatch } from '../src/hooks/useTypedDispatch';
-import { selectCurrentUser } from '../src/redux/currentUserSlice';
-import useTypedSelector from '../src/hooks/useTypedSelector';
-import { useAutoAuthorization } from './accounts/authorize';
 import { schedulesApi } from '../src/redux/schedulesSlice';
 import { BrowserRouter } from 'react-router-dom';
 import { StaticRouter } from 'react-router-dom/server';
@@ -28,6 +25,8 @@ import 'dayjs/locale/ru';
 import { NextComponentType } from 'next';
 import GlobalErrorBoundary from '../src/GlobalErrorBoundary';
 import { dictionaryApi } from '../src/redux/api/dictionaryApi';
+import { LocalizationProvider } from '@mui/x-date-pickers';
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 
 dayjs.extend(duration);
 dayjs.extend(relativeTime);
@@ -74,16 +73,18 @@ function MyApp(props: MyAppProps) {
                     <meta name="viewport" content="initial-scale=1, width=device-width" />
                     <link rel="icon" href="/favicon.svg" />
                 </Head>
-                <ThemeProvider theme={theme}>
-                    {/* CssBaseline kickstart an elegant, consistent, and simple baseline to build upon. */}
-                    <CssBaseline />
-                    <GlobalErrorBoundary>
-                        <ErrorHandler>
-                            <WebHeader isServerSide={isServerSide} />
-                            <Component isServerSide={isServerSide} {...pageProps} />
-                        </ErrorHandler>
-                    </GlobalErrorBoundary>
-                </ThemeProvider>
+                <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale="ru">
+                    <ThemeProvider theme={theme}>
+                        {/* CssBaseline kickstart an elegant, consistent, and simple baseline to build upon. */}
+                        <CssBaseline />
+                        <GlobalErrorBoundary>
+                            <ErrorHandler>
+                                <WebHeader isServerSide={isServerSide} />
+                                <Component isServerSide={isServerSide} {...pageProps} />
+                            </ErrorHandler>
+                        </GlobalErrorBoundary>
+                    </ThemeProvider>
+                </LocalizationProvider>
             </CacheProvider>
         </Router>
     );
