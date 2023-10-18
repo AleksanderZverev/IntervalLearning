@@ -7,7 +7,7 @@ namespace IntervalLearningApi.Services;
 public record CalendarLearningStatistic(
     Dictionary<DateTime, int> DateToLearnedCards,
     Dictionary<DateTime, int> DateToRepeatedCards,
-    Dictionary<DateTime, int> DateQueueCars,
+    Dictionary<DateTime, int> DateQueueCards,
     Dictionary<DateTime, int> DateToRecommendationToLearn);
 
 public class StatisticsService
@@ -25,15 +25,15 @@ public class StatisticsService
         this.db = db;
     }
 
-    public async Task<CalendarLearningStatistic?> GetLearningStatistic(
-        long userId,
+    public async Task<CalendarLearningStatistic?> GetLearningStatistic(long userId,
         long scheduleUserId,
         long scheduleId,
-        DateTime from, 
-        DateTime to)
+        DateTime from,
+        DateTime to, 
+        TimeSpan timezoneOffset)
     {
         var rangeRemembers = await db.Remembers
-            .Where(r => r.ParentUserId == userId && r.RepeatedDate.Date >= from && r.RepeatedDate.Date <= to)
+            .Where(r => r.ParentUserId == userId && r.RepeatedDate >= from && r.RepeatedDate <= to)
             .ToListAsync();
 
         var cardToRemembers = rangeRemembers.GroupBy(r => (r.ParentCollectionId, r.ParentCardId));
@@ -50,13 +50,13 @@ public class StatisticsService
                     && c.ParentCollectionId == cardPair.Key.ParentCollectionId
                     && c.Id == cardPair.Key.ParentCardId);
 
-            AddOrIncrementDate(dateToLearnedCards, GetLearnedDate(card));
+            AddOrIncrementDate(dateToLearnedCards, GetLearnedDate(card), timezoneOffset);
 
             foreach (var repeatedRemember in FilterRepeatedRemembers(card))
-                AddOrIncrementDate(dateToRepeatedCards, repeatedRemember.RepeatedDate);
+                AddOrIncrementDate(dateToRepeatedCards, repeatedRemember.RepeatedDate, timezoneOffset);
         }
 
-        var dateToQueueCount = await GetDateToQueueCount(userId, scheduleUserId, scheduleId, from, to);
+        var dateToQueueCount = await GetDateToQueueCount(userId, scheduleUserId, scheduleId, from, to, timezoneOffset);
 
         var dateToRecommendationToLearn = await GetDateToRecommendationToLearn(
             userId,
@@ -64,6 +64,7 @@ public class StatisticsService
             scheduleId, 
             from,
             to,
+            timezoneOffset,
             dateToQueueCount);
 
         return new CalendarLearningStatistic(
@@ -72,12 +73,17 @@ public class StatisticsService
             dateToQueueCount,
             dateToRecommendationToLearn);
     }
-    
-    static void AddOrIncrementDate(Dictionary<DateTime, int> dict, DateTime value)
+
+    static DateTime GetUserLocalDate(DateTime dateTime, TimeSpan offset)
     {
-        value = value.Date;
-        dict.TryAdd(value, 0);
-        dict[value]++;
+        return (dateTime + offset).Date;
+    }
+    
+    static void AddOrIncrementDate(Dictionary<DateTime, int> dict, DateTime value, TimeSpan offset)
+    {
+        var userLocalDate = GetUserLocalDate(value, offset);
+        dict.TryAdd(userLocalDate, 0);
+        dict[userLocalDate]++;
     }
 
     private async Task<Dictionary<DateTime, int>> GetDateToRecommendationToLearn(
@@ -86,38 +92,48 @@ public class StatisticsService
         long scheduleId,
         DateTime from,
         DateTime to,
+        TimeSpan timezoneOffset,
         Dictionary<DateTime,int> dateToRepetitionsCount)
     {
+        var now = DateTime.UtcNow;
+
+        if (now < from || now > to)
+        {
+            return new Dictionary<DateTime, int>();
+        }
+
         var schedule = await db.RepeatsSchedules
             .Include(s => s.Phases)
             .SingleAsync(s => s.Id == scheduleId && s.ParentUserId == scheduleUserId);
         
-        var phases = schedule.Phases
+        var orderedPhasesWithoutRepetitions = schedule.Phases
             .Where(p => p.SecondsFromLastPhase > TimeSpan.FromHours(1).TotalSeconds && TimeSpan.FromSeconds(p.SecondsFromLastPhase).TotalDays <= 40)
+            .OrderBy(p => p.SecondsFromLastPhase)
             .ToList();
 
-        var currentDate = from.Date;
+        var currentDate = from;
         to = to.Date;
 
-        var maxCardsToRepeat = 115;
+        const int maxCardsToRepeat = 115;
+        const int maxCardCanBeLearnedForDay = 30;
+        
         var result = new Dictionary<DateTime, int>();
 
-        while (currentDate <= to.Date)
+        while (currentDate.Date <= to.Date)
         {
-            var cardsToLearn = 0;
+            var cardsToLearn = maxCardCanBeLearnedForDay;
             
-            foreach (var phase in phases.OrderBy(p => p.SecondsFromLastPhase))
+            foreach (var phase in orderedPhasesWithoutRepetitions)
             {
                 var date = currentDate.AddSeconds(phase.SecondsFromLastPhase);
-                var cardsToRepeat = dateToRepetitionsCount.TryGetValue(date.Date, out var r) 
-                    ? r 
+                var cardsToRepeat = dateToRepetitionsCount.TryGetValue(GetUserLocalDate(date, timezoneOffset), out var repetionsCount) 
+                    ? repetionsCount 
                     : 0;
 
                 cardsToLearn = Math.Min(cardsToLearn, Math.Max(maxCardsToRepeat - cardsToRepeat, 0));
             }
-            
-            result.Add(currentDate.Date, cardsToLearn);
 
+            result.Add(currentDate.Date, cardsToLearn);
             currentDate = currentDate.AddDays(1);
         }
 
@@ -129,7 +145,8 @@ public class StatisticsService
         long scheduleUserId,
         long scheduleId,
         DateTime from,
-        DateTime to)
+        DateTime to,
+        TimeSpan timezoneOffset)
     {
         var repetitions = db.Queue
             .Where(q =>
@@ -142,7 +159,7 @@ public class StatisticsService
             .ToList();
 
         return repetitions
-            .GroupBy(d => d.Date.Date)
+            .GroupBy(d => GetUserLocalDate(d.Date, timezoneOffset))
             .ToDictionary(d => d.Key, g => g.Count());
     }
 
@@ -185,7 +202,10 @@ public class StatisticsService
     private static List<RememberEntity> FilterRepeatedRemembers(CardEntity card)
     {
         var learnedDate = GetLearnedDate(card);
-        return card.Remembers.Where(r => r.RepeatedDate.Date != learnedDate.Date).ToList();
+        return card.Remembers
+            .Where(r => r.RepeatedDate.Date != learnedDate.Date)
+            .DistinctBy(r => r.RepeatedDate.Date)
+            .ToList();
     }
 
     private static DateTime GetLearnedDate(CardEntity card)
