@@ -4,16 +4,17 @@ using Bogus;
 using IntervalLearningApi.IntegrationTests.Common.Constants;
 using IntervalLearningApi.IntegrationTests.Common.Fakers;
 using IntervalLearningApi.Models.ByUser;
+using Microsoft.AspNetCore.Mvc.Testing;
 
 namespace IntervalLearningApi.IntegrationTests.Common.TestScopes;
 
 public class BaseApiTests : IAsyncLifetime
 {
-    private readonly IntervalLearningApiFactory apiFactory;
+    private readonly WebApplicationFactory<Program> apiFactory;
     private string HostPath = "";
     private Uri? BaseAddress = null;
     
-    public BaseApiTests(IntervalLearningApiFactory apiFactory)
+    public BaseApiTests(WebApplicationFactory<Program> apiFactory)
     {
         this.apiFactory = apiFactory;
     }

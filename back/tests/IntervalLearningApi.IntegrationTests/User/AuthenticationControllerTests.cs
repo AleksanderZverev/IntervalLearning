@@ -3,7 +3,7 @@ namespace IntervalLearningApi.IntegrationTests.User;
 [UseBasePath(ApiRoutes.Accounts.BasePath)]
 public class AuthenticationControllerTests : ScopeApiTests
 {
-    public AuthenticationControllerTests(IntervalLearningApiFactory apiFactory) 
+    public AuthenticationControllerTests(DockerIntervalLearningApiFactory apiFactory) 
         : base(apiFactory)
     {
     }

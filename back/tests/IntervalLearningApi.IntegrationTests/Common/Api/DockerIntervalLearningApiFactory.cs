@@ -12,7 +12,7 @@ using Testcontainers.PostgreSql;
 
 namespace IntervalLearningApi.IntegrationTests.Common.Api;
 
-public class IntervalLearningApiFactory : WebApplicationFactory<Program>, IAsyncLifetime
+public class DockerIntervalLearningApiFactory : WebApplicationFactory<Program>, IAsyncLifetime
 {
     private PostgreSqlContainer _container = new PostgreSqlBuilder().Build();
 

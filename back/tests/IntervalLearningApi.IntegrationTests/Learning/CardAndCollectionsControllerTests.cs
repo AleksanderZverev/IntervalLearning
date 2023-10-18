@@ -29,7 +29,7 @@ public class CardAndCollectionsControllerTests : SharedApiTests
     private const float ForgottenWeight = 0f;
     private const float UnknownWeight = 0.5f;
     
-    public CardAndCollectionsControllerTests(SharedIntervalLearningApiFactory apiFactory) : base(apiFactory)
+    public CardAndCollectionsControllerTests(SharedDockerIntervalLearningApiFactory apiFactory) : base(apiFactory)
     {
     }
     

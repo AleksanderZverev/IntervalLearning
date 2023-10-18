@@ -1,8 +1,8 @@
 namespace IntervalLearningApi.IntegrationTests.Common.TestScopes;
 
-public class ScopeApiTests : BaseApiTests, IClassFixture<IntervalLearningApiFactory>, IAsyncLifetime
+public class ScopeApiTests : BaseApiTests, IClassFixture<DockerIntervalLearningApiFactory>, IAsyncLifetime
 {
-    public ScopeApiTests(IntervalLearningApiFactory apiFactory) : base(apiFactory)
+    public ScopeApiTests(DockerIntervalLearningApiFactory apiFactory) : base(apiFactory)
     {
     }
     
