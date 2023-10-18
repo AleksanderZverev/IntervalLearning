@@ -1,0 +1,55 @@
+.calendarBody {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr 1fr 1fr 1fr 1fr;
+}
+
+.dayBody {
+    padding: 8px 4px;
+
+    min-height: 148px;
+    border: 1px solid gainsboro;
+
+    display: flex;
+    flex-direction: column;
+
+    position: relative;
+}
+
+.dayOfWeek {
+}
+
+.disabledDay {
+    background-color: #f2f2f2;
+}
+
+.date {
+    align-self: flex-end;
+
+    font-size: 20px;
+    line-height: 24px;
+}
+
+.learned {
+    color: #13a918;
+}
+
+.repeated {
+    color: #dfa22d;
+}
+
+.waitingToRepeat {
+    color: #8b8888;
+}
+
+.recommendation {
+    position: absolute;
+    right: 4px;
+    bottom: 4px;
+
+    color: white;
+    border-radius: 50px;
+    background-color: #29b9cc;
+    width: 26px;
+    height: 26px;
+    text-align: center;
+}
