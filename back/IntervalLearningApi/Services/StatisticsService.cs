@@ -33,7 +33,11 @@ public class StatisticsService
         TimeSpan timezoneOffset)
     {
         var rangeRemembers = await db.Remembers
-            .Where(r => r.ParentUserId == userId && r.RepeatedDate >= from && r.RepeatedDate <= to)
+            .Where(r => r.ParentUserId == userId 
+                        && r.ParentRepeatsScheduleUserId == scheduleUserId 
+                        && r.ParentRepeatsScheduleId == scheduleId 
+                        && r.RepeatedDate >= from 
+                        && r.RepeatedDate <= to)
             .ToListAsync();
 
         var cardToRemembers = rangeRemembers.GroupBy(r => (r.ParentCollectionId, r.ParentCardId));
