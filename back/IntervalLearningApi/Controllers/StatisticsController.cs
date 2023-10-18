@@ -27,4 +27,30 @@ public class StatisticsController : ControllerBase
             RepeatedCards: statistic.RepeatedCards,
             LearnedCards: statistic.LearnedCards);
     }
+    
+    [HttpGet(ApiRoutes.Statistics.Get_DetailedCalendarStatistic)]
+    public async Task<ActionResult<CalendarLearningStatisticModel>> GetStatisticWithRecommendation(
+        long scheduleUserId,
+        long scheduleId,
+        DateTime from,
+        DateTime to,
+        int timezoneOffsetInMinutes)
+    {
+        var statistic = await statisticsService.GetLearningStatistic(
+            HttpContext.GetUserId(),
+            scheduleUserId,
+            scheduleId,
+            from,
+            to,
+            TimeSpan.FromMinutes(timezoneOffsetInMinutes));
+
+        if (statistic == null)
+            return BadRequest();
+
+        return new CalendarLearningStatisticModel(
+            DateToLearnedCards: statistic.DateToLearnedCards,
+            DateQueueCards: statistic.DateQueueCards,
+            DateToRepeatedCards: statistic.DateToRepeatedCards,
+            DateToRecommendationToLearn: statistic.DateToRecommendationToLearn);
+    }
 }

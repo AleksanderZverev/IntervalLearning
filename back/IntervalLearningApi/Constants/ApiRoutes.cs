@@ -92,5 +92,6 @@ public static class ApiRoutes
         public const string BasePath = "api/statistics";
 
         public const string Get_LearningStatistic = "learning";
+        public const string Get_DetailedCalendarStatistic = "calendar/detailed";
     }
 }
