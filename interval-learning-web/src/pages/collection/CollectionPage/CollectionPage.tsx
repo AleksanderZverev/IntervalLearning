@@ -66,7 +66,7 @@ const CollectionPageContent: FC = () => {
         request: { page, count: cardsCountPerPage },
     });
 
-    const { isError: isSearchError, data: searchedCards } = useSearchCardsQuery(
+    const { isError: isSearchError, data: foundCards } = useSearchCardsQuery(
         {
             collectionId,
             userId,
@@ -85,6 +85,13 @@ const CollectionPageContent: FC = () => {
     const collection = useRequiredTypedSelector((state) => selectCollectionById(state, userId, collectionId));
     const theme = useRequiredTypedSelector((state) => selectTheme(state, collection.themeId));
     const storageCards = useTypedSelector((state) => selectCards(state, collection?.userId, collection?.id));
+
+    //for the case when card updates it should be updated in the list
+    const searchedCards = (foundCards ?? []).map((c) => {
+        const cardFromStorage = storageCards.find((sc) => sc.id === c.id);
+        if (!cardFromStorage) throw new Error();
+        return cardFromStorage;
+    });
 
     useDocumentTitle(collection?.title, '📘');
 

@@ -255,7 +255,13 @@ export const cardsApi = api.injectEndpoints({
                 url: `/collections/${collectionId}/cards/search`,
                 method: 'GET',
                 params: request,
+                onSuccess: async (dispatch, data) => {
+                    const cards = data as Card[];
+                    dispatch(addManyCards(cards));
+                },
             }),
+            providesTags: (result, error, arg) =>
+                result ? [...result.map((c) => ({ type: tagTypes.card, id: getCardUniqueKey(c) }))] : [],
         }),
     }),
 });
