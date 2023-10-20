@@ -67,7 +67,11 @@ export const withQueryResolver =
     (
         props: PrivateResolverProps &
             ResolverProps<TQueryArg> &
-            Omit<TComponentProps, keyof (WithQueryResolverData<typeof useQuery> & TQueryArg)>
+            Omit<
+                TComponentProps,
+                | keyof (WithQueryResolverData<typeof useQuery> & TQueryArg)
+                | keyof (WithOtherQueryResolverData<typeof useQuery> & TQueryArg)
+            >
     ) => {
         const { queryArg, containsError, disableLoading, containsFetching, extendedData, onRefetch, ...otherProps } =
             props;
