@@ -126,18 +126,20 @@ public class StatisticsService
         while (currentDate.Date <= to.Date)
         {
             var cardsToLearn = maxCardCanBeLearnedForDay;
-            
+
+            var phaseDate = currentDate;
             foreach (var phase in orderedPhasesWithoutRepetitions)
             {
-                var date = currentDate.AddSeconds(phase.SecondsFromLastPhase);
-                var cardsToRepeat = dateToRepetitionsCount.TryGetValue(GetUserLocalDate(date, timezoneOffset), out var repetionsCount) 
+                phaseDate = phaseDate.AddSeconds(phase.SecondsFromLastPhase);
+                
+                var cardsToRepeat = dateToRepetitionsCount.TryGetValue(GetUserLocalDate(phaseDate, timezoneOffset), out var repetionsCount) 
                     ? repetionsCount 
                     : 0;
 
                 cardsToLearn = Math.Min(cardsToLearn, Math.Max(maxCardsToRepeat - cardsToRepeat, 0));
             }
 
-            result.Add(currentDate.Date, cardsToLearn);
+            result.Add(GetUserLocalDate(currentDate, timezoneOffset), cardsToLearn);
             currentDate = currentDate.AddDays(1);
         }
 
