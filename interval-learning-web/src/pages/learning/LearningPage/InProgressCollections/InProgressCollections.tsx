@@ -165,7 +165,7 @@ const InProgressCollectionsContent: FC<InProgressCollectionsProps> = ({ queryDat
 
     const wordByThemes = CountWordsByThemes(schedule, dateToCollectionsQueue);
 
-    console.log('q', queryData);
+    const hasStatistic = Boolean(extendedData?.learnedCards) || Boolean(extendedData?.repeatedCards);
 
     return (
         <div style={{ display: 'grid', gridTemplateRows: 'auto 1fr' }}>
@@ -185,10 +185,16 @@ const InProgressCollectionsContent: FC<InProgressCollectionsProps> = ({ queryDat
                     <SelectTheme value={theme} onChange={setTheme} />
                 </div>
             )}
-            <div>
-                Learned: {extendedData.learnedCards}
-                Repeated: {extendedData.repeatedCards}
-            </div>
+            {hasStatistic && (
+                <div className={styles.statisticRow}>
+                    {extendedData.learnedCards && (
+                        <span className={styles.learned}>Изучено {extendedData.learnedCards}</span>
+                    )}
+                    {extendedData.repeatedCards && (
+                        <span className={styles.repeated}>Повторено {extendedData.repeatedCards}</span>
+                    )}
+                </div>
+            )}
             <Table>
                 <TableHead>
                     <TableHeaderCell></TableHeaderCell>
