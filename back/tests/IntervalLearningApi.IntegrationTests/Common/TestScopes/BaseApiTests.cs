@@ -99,20 +99,27 @@ public class BaseApiTests : IAsyncLifetime
                 SuggestLanguageId = TestConstants.Language.TestId,
             });
 
+        await AuthorizeClientAsync(client, testUserInfo.Email, testUserInfo.Password);
+        return new Scope(client, testUserInfo);
+    }
+    
+    protected async Task<AuthenticateResponse> AuthorizeClientAsync(HttpClient client, string email, string password)
+    {
         var authResponse = await client.PostAsJsonAsync(
             AbsoluteQuery(ApiRoutes.Accounts.BasePath, ApiRoutes.Accounts.Authenticate),
             new AuthenticateRequest()
             {
-                Email = testUserInfo.Email,
-                Password = testUserInfo.Password,
+                Email = email,
+                Password = password,
             });
 
         var auth = authResponse.ToResponseDto<AuthenticateResponse>();
+        
         if (auth == null || string.IsNullOrEmpty(auth.JwtToken))
             throw new InvalidOperationException("Unable to authenticate test user");
         
         client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", auth.JwtToken);
-        return new Scope(client, testUserInfo);
+        return auth;
     }
 
     protected async Task<HttpResponseMessage> RegisterUserAsync(HttpClient client, string email, string password)
