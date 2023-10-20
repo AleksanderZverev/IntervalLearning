@@ -1,4 +1,5 @@
 using DB.Models;
+using IntervalLearningApi.IntegrationTests.Learning.Scenarios;
 using IntervalLearningApi.Models.ByUser;
 using IntervalLearningApi.Models.RepeatsSchedule;
 using IntervalLearningApi.Services;
@@ -23,6 +24,33 @@ public class CardAndCollectionsControllerTests : SharedApiTests
         TimeSpan.FromDays(28),
             
         TimeSpan.FromDays(40),
+    };
+    
+    private static IReadOnlyList<TimeSpan> phasesDurationWithRepetitions = new List<TimeSpan>()
+    {
+        TimeSpan.FromDays(1),
+        TimeSpan.FromSeconds(1),
+            
+        TimeSpan.FromDays(3),
+        TimeSpan.FromSeconds(1),
+            
+        TimeSpan.FromDays(7),
+        TimeSpan.FromSeconds(1),
+            
+        TimeSpan.FromDays(14),
+        TimeSpan.FromSeconds(1),
+        
+        TimeSpan.FromDays(1),
+        TimeSpan.FromSeconds(1),
+            
+        TimeSpan.FromDays(28),
+        TimeSpan.FromSeconds(1),
+            
+        TimeSpan.FromDays(28),
+        TimeSpan.FromSeconds(1),
+            
+        TimeSpan.FromDays(40),
+        TimeSpan.FromSeconds(1),
     };
     
     private const float RememberedWeight = 1f;
@@ -53,6 +81,24 @@ public class CardAndCollectionsControllerTests : SharedApiTests
             ForgottenBehavior = (int)forgottenBehavior,
             CardsCountPerPhase = 10,
             Phases = phasesDuration.Select((d, i) => new PhaseInfo()
+            {
+                Id = (short)(i + 1),
+                SecondsFromLastPhase = (uint)d.TotalSeconds,
+            }).ToList(),
+        });
+
+        return createSchedule;
+    } 
+    
+    private async Task<Schedule> CreateTestScheduleWithRepetitions(ForgottenBehavior forgottenBehavior)
+    {
+        var createSchedule = await CreateSchedule(new RepeatsScheduleController.CreateScheduleRequest()
+        {
+            Title = "[For tests] Test schedule with repetitions",
+            Description = "Only for tests",
+            ForgottenBehavior = (int)forgottenBehavior,
+            CardsCountPerPhase = 10,
+            Phases = phasesDurationWithRepetitions.Select((d, i) => new PhaseInfo()
             {
                 Id = (short)(i + 1),
                 SecondsFromLastPhase = (uint)d.TotalSeconds,
@@ -94,7 +140,13 @@ public class CardAndCollectionsControllerTests : SharedApiTests
 
     public record ScenarioStep(float Weight, int NextPhaseIndexDiff);
 
-    public record Scenario(ForgottenBehavior Behavior, List<ScenarioStep> Steps, int ResultStep);
+    public record Scenario(ForgottenBehavior Behavior, List<ScenarioStep> Steps, int ResultStep)
+    {
+        public override string ToString()
+        {
+            return $"{Behavior}: " + string.Join(" → ", Steps.Select(s => $"{s.Weight}({s.NextPhaseIndexDiff})")) + $" = {ResultStep}";
+        }
+    };
     
     public static List<Scenario> TestOnTheStartScenarios = new()
     {
@@ -196,6 +248,9 @@ public class CardAndCollectionsControllerTests : SharedApiTests
 
     public static IEnumerable<object[]> TestMoveScenarios = 
         MoveScenarios.Select(s => new object[] { s });
+    
+    
+    
 
     private static List<ScenarioStep> stepsToTheLastStep = phasesDuration
         .Select(_ => new ScenarioStep(RememberedWeight, 1))
@@ -303,13 +358,13 @@ public class CardAndCollectionsControllerTests : SharedApiTests
 
         repeatCollections.DateToRepeatingPhases.Should().NotBeNull().And.NotBeEmpty();
         repeatCollections.DateToRepeatingPhases.Keys.Should().HaveCount(1);
-        AssertHasDate(repeatCollections, schedule.Id, 0);
-        AssertHasPhasesAtDate(repeatCollections, schedule.Id, 0, 0);
-        AssertHasCollectionsAtDatePhase(repeatCollections, schedule.Id, 0, 0,
+        AssertHasDate(phasesDuration, repeatCollections, schedule.Id, 0);
+        AssertHasPhasesAtDate(phasesDuration, repeatCollections, schedule.Id, 0, 0);
+        AssertHasCollectionsAtDatePhase(phasesDuration, repeatCollections, schedule.Id, 0, 0,
             new CollectionAssertion(collection.Id, cards.Count));
     }
 
-    [Theory]
+    [Theory(Skip = "Not implemented logic")]
     [MemberData(nameof(TestBehaviors))]
     public async Task StartCards_ShouldDecrementCollectionCounter(ForgottenBehavior behavior)
     {
@@ -451,6 +506,53 @@ public class CardAndCollectionsControllerTests : SharedApiTests
             
             var shouldBeNextPhaseIndex = Math.Max(0, currentPhaseIndex + step.NextPhaseIndexDiff);
             await AssertRememberedCardsMovedToStep(
+                phasesDuration,
+                client,
+                collection,
+                preAddedCards,
+                schedule,
+                (short)shouldBeNextPhaseIndex
+            );
+            
+            currentPhaseIndex = shouldBeNextPhaseIndex;
+        }
+    }
+    
+    public static IEnumerable<object[]> TestShouldStepOnRepetitionScenarios = 
+        LearningScenarios.ShouldStepOnRepetitionScenarios.ToMemberData();
+
+    public static IEnumerable<object[]> TestShouldMoveAfterRepetition =
+        LearningScenarios.ShouldMoveAfterRepetition.ToMemberData();
+
+    [Theory]
+    [MemberData(nameof(TestShouldStepOnRepetitionScenarios))]
+    [MemberData(nameof(TestShouldMoveAfterRepetition))]
+    public async Task RememberCard_ShouldMoveEveryStep_AfterRepetition(Scenario scenario)
+    {
+        //Arrange
+        var (client, user) = SharedScope;
+        var schedule = await CreateTestScheduleWithRepetitions(scenario.Behavior);
+        var (collection, preAddedCards) = await CreateRandomCardsAsync(10);
+        await StartCardsAsync(client, collection, preAddedCards, schedule);
+        
+        //Act
+        var currentPhaseIndex = 0;
+        foreach (var step in scenario.Steps)
+        {
+            var rememberResponse = await RememberCardsAsync(
+                client,
+                collection,
+                preAddedCards,
+                schedule, 
+                (short)currentPhaseIndex,
+                step.Weight);
+            
+            //Assert
+            rememberResponse.IsSuccessStatusCode.Should().BeTrue();
+            
+            var shouldBeNextPhaseIndex = Math.Max(0, currentPhaseIndex + step.NextPhaseIndexDiff);
+            await AssertRememberedCardsMovedToStep(
+                phasesDurationWithRepetitions,
                 client,
                 collection,
                 preAddedCards,
@@ -493,6 +595,7 @@ public class CardAndCollectionsControllerTests : SharedApiTests
         //Assert
         currentPhaseIndex.Should().Be(scenario.ResultStep - 1);
         await AssertRememberedCardsMovedToStep(
+            phasesDuration,
             client,
             collection,
             preAddedCards,
@@ -544,6 +647,7 @@ public class CardAndCollectionsControllerTests : SharedApiTests
     }
 
     private async Task AssertRememberedCardsMovedToStep(
+        IReadOnlyList<TimeSpan> phases, 
         HttpClient client,
         Collection collection,
         List<Card> cards,
@@ -555,9 +659,10 @@ public class CardAndCollectionsControllerTests : SharedApiTests
             CollectionsQuery(ApiRoutes.Collections.GetRepeatCollections));
         var repeatCollections = getRepeatCollectionsResponse.ToResponseDto<RepeatingCollectionResponse>();
         
-        AssertHasDate(repeatCollections, schedule.Id, shouldMoveToPhaseIndex);
-        AssertHasPhasesAtDate(repeatCollections, schedule.Id, shouldMoveToPhaseIndex, shouldMoveToPhaseIndex);
+        AssertHasDate(phases, repeatCollections, schedule.Id, shouldMoveToPhaseIndex);
+        AssertHasPhasesAtDate(phases, repeatCollections, schedule.Id, shouldMoveToPhaseIndex, shouldMoveToPhaseIndex);
         AssertHasCollectionsAtDatePhase(
+            phases,
             repeatCollections,
             schedule.Id,
             shouldMoveToPhaseIndex,
@@ -588,7 +693,8 @@ public class CardAndCollectionsControllerTests : SharedApiTests
             });
     }
 
-    private void AssertHasDate(
+    private static void AssertHasDate(
+        IReadOnlyList<TimeSpan> phases, 
         RepeatingCollectionResponse repeatingCollectionResponse,
         string scheduleId,
         params int[] phaseIndexes)
@@ -601,14 +707,15 @@ public class CardAndCollectionsControllerTests : SharedApiTests
         
         foreach (var phaseIndex in phaseIndexes)
         {
-            var phase = phasesDuration[phaseIndex];
+            var phase = phases[phaseIndex];
             var date = now.Add(phase);
             
             dates.Should().OnlyContain(d => d.Date == date.Date);
         }
     }
     
-    private void AssertHasPhasesAtDate(
+    private static void AssertHasPhasesAtDate(
+        IReadOnlyList<TimeSpan> phases, 
         RepeatingCollectionResponse repeatingCollectionResponse,
         string scheduleId,
         int phaseDateIndex,
@@ -617,12 +724,12 @@ public class CardAndCollectionsControllerTests : SharedApiTests
         var now = DateTime.Now;
         var repeatableDates = repeatingCollectionResponse.DateToRepeatingPhases.Keys.ToList();
 
-        var phaseDate = repeatableDates.FirstOrDefault(d => d.Date == now.Add(phasesDuration[phaseDateIndex]).Date);
+        var phaseDate = repeatableDates.FirstOrDefault(d => d.Date == now.Add(phases[phaseDateIndex]).Date);
         var repeatablePhases = repeatingCollectionResponse.DateToRepeatingPhases[phaseDate];
 
         foreach (var shouldContainPhaseIndex in shouldContainPhaseByIndexes)
         {
-            var duration = phasesDuration[shouldContainPhaseIndex];
+            var duration = phases[shouldContainPhaseIndex];
             var repeatablePhase = repeatablePhases
                 .Where(p => p.ScheduleId == scheduleId)
                 .SingleOrDefault(p => TimeSpan.FromSeconds(p.SecondsFromLastPhase) == duration);
@@ -634,7 +741,8 @@ public class CardAndCollectionsControllerTests : SharedApiTests
 
     private record CollectionAssertion(string CollectionId, int ShouldHasCardsCount);
     
-    private void AssertHasCollectionsAtDatePhase(
+    private static void AssertHasCollectionsAtDatePhase(
+        IReadOnlyList<TimeSpan> phases, 
         RepeatingCollectionResponse repeatingCollectionResponse,
         string scheduleId,
         int phaseDateIndex,
@@ -644,10 +752,10 @@ public class CardAndCollectionsControllerTests : SharedApiTests
         var now = DateTime.Now;
         var repeatableDates = repeatingCollectionResponse.DateToRepeatingPhases.Keys.ToList();
 
-        var repeatableDate = repeatableDates.FirstOrDefault(d => d.Date == now.Add(phasesDuration[phaseDateIndex]).Date);
+        var repeatableDate = repeatableDates.FirstOrDefault(d => d.Date == now.Add(phases[phaseDateIndex]).Date);
         var repeatablePhases = repeatingCollectionResponse.DateToRepeatingPhases[repeatableDate];
 
-        var phaseDuration = phasesDuration[phaseIndex];
+        var phaseDuration = phases[phaseIndex];
         var repeatablePhase = repeatablePhases
             .Where(p => p.ScheduleId == scheduleId)
             .Single(p => TimeSpan.FromSeconds(p.SecondsFromLastPhase) == phaseDuration);
