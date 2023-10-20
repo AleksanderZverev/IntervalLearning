@@ -102,17 +102,39 @@ public class CardAndCollectionsControllerTests : SharedApiTests
         {
             new(ForgottenWeight, 1),
         }, ResultStep: 2),
+        new Scenario(ForgottenBehavior.MoveToNextStep, new List<ScenarioStep>()
+        {
+            new(UnknownWeight, 1),
+        }, ResultStep: 2),
+        
+        
         new Scenario(ForgottenBehavior.MoveToPreviousStep, new List<ScenarioStep>()
         {
             new(ForgottenWeight, -1),
         }, ResultStep: 1),
+        new Scenario(ForgottenBehavior.MoveToPreviousStep, new List<ScenarioStep>()
+        {
+            new(UnknownWeight, 0),
+        }, ResultStep: 1),
+        
+        
         new Scenario(ForgottenBehavior.StartFromFirstStep, new List<ScenarioStep>()
         {
             new(ForgottenWeight, -99),
         }, ResultStep: 1),
+        new Scenario(ForgottenBehavior.StartFromFirstStep, new List<ScenarioStep>()
+        {
+            new(UnknownWeight, 0),
+        }, ResultStep: 1),
+        
+        
         new Scenario(ForgottenBehavior.StayOnCurrentStep, new List<ScenarioStep>()
         {
             new(ForgottenWeight, 0),
+        }, ResultStep: 1),
+        new Scenario(ForgottenBehavior.StayOnCurrentStep, new List<ScenarioStep>()
+        {
+            new(UnknownWeight, 0),
         }, ResultStep: 1),
     };
     
@@ -128,23 +150,47 @@ public class CardAndCollectionsControllerTests : SharedApiTests
             new(UnknownWeight, 1),
             new(ForgottenWeight, 1),
         }, ResultStep: 4),
+        
+        
         new Scenario(ForgottenBehavior.MoveToPreviousStep, new List<ScenarioStep>()
         {
             new(RememberedWeight, 1),
-            new(UnknownWeight, 1),
+            new(RememberedWeight, 1),
             new(ForgottenWeight, -1),
         }, ResultStep: 2),
+        new Scenario(ForgottenBehavior.MoveToPreviousStep, new List<ScenarioStep>()
+        {
+            new(RememberedWeight, 1),
+            new(RememberedWeight, 1),
+            new(UnknownWeight, 0),
+        }, ResultStep: 3),
+        
+        
         new Scenario(ForgottenBehavior.StartFromFirstStep, new List<ScenarioStep>()
         {
             new(RememberedWeight, 1),
-            new(UnknownWeight, 1),
+            new(RememberedWeight, 1),
             new(ForgottenWeight, -99),
         }, ResultStep: 1),
+        new Scenario(ForgottenBehavior.StartFromFirstStep, new List<ScenarioStep>()
+        {
+            new(RememberedWeight, 1),
+            new(RememberedWeight, 1),
+            new(UnknownWeight, 0),
+        }, ResultStep: 3),
+        
+        
         new Scenario(ForgottenBehavior.StayOnCurrentStep, new List<ScenarioStep>()
         {
             new(RememberedWeight, 1),
-            new(UnknownWeight, 1),
+            new(RememberedWeight, 1),
             new(ForgottenWeight, 0),
+        }, ResultStep: 3),
+        new Scenario(ForgottenBehavior.StayOnCurrentStep, new List<ScenarioStep>()
+        {
+            new(RememberedWeight, 1),
+            new(RememberedWeight, 1),
+            new(UnknownWeight, 0),
         }, ResultStep: 3),
     };
 
@@ -162,13 +208,29 @@ public class CardAndCollectionsControllerTests : SharedApiTests
         {
             new(ForgottenWeight, -1),
         }, ResultStep: phasesDuration.Count - 1),
+        new Scenario(ForgottenBehavior.MoveToPreviousStep, new List<ScenarioStep>(stepsToTheLastStep)
+        {
+            new(UnknownWeight, 0),
+        }, ResultStep: phasesDuration.Count),
+        
+        
         new Scenario(ForgottenBehavior.StartFromFirstStep, new List<ScenarioStep>(stepsToTheLastStep)
         {
             new(ForgottenWeight, -99),
         }, ResultStep: 1),
+        new Scenario(ForgottenBehavior.StartFromFirstStep, new List<ScenarioStep>(stepsToTheLastStep)
+        {
+            new(UnknownWeight, 0),
+        }, ResultStep: phasesDuration.Count),
+        
+        
         new Scenario(ForgottenBehavior.StayOnCurrentStep, new List<ScenarioStep>(stepsToTheLastStep)
         {
             new(ForgottenWeight, 0),
+        }, ResultStep: phasesDuration.Count),
+        new Scenario(ForgottenBehavior.StayOnCurrentStep, new List<ScenarioStep>(stepsToTheLastStep)
+        {
+            new(UnknownWeight, 0),
         }, ResultStep: phasesDuration.Count),
     };
     
