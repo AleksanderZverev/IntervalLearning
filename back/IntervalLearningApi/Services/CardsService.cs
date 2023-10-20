@@ -566,7 +566,7 @@ public class CardsService
 
         if (nextPhaseIsRepeatPhase)
         {
-            if (remember.Weight >= 0.49f)
+            if (remember.Weight >= 0.70f)
             {
                 nextPhaseIndex++;
                 nextPhase = nextPhaseIndex >= 0 && nextPhaseIndex < sortedPhases.Count 
