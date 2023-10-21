@@ -6,6 +6,19 @@
     color: #05c953 !important;
 }
 
+.statisticRow {
+    display: flex;
+    column-gap: 8px;
+}
+
+.learned {
+    color: #13a918;
+}
+
+.repeated {
+    color: #dfa22d;
+}
+
 .subLabel {
     color: #b7b7b7;
     padding-bottom: 4px;

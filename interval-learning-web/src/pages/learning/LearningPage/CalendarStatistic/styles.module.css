@@ -1,0 +1,66 @@
+.calendarBody {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr 1fr 1fr 1fr 1fr;
+    row-gap: 1px;
+    column-gap: 1px;
+}
+
+.dayBody {
+    padding: 8px 4px;
+
+    min-height: 148px;
+    outline: 1px solid gainsboro;
+
+    display: flex;
+    flex-direction: column;
+
+    position: relative;
+}
+
+.today {
+    border: 1px solid #1599c5;
+    border-radius: 50%;
+}
+
+.dayOfWeek {
+}
+
+.disabledDay {
+    background-color: #f2f2f2;
+}
+
+.date {
+    align-self: flex-end;
+
+    font-size: 20px;
+    line-height: 24px;
+
+    width: 28px;
+    height: 28px;
+    text-align: center;
+}
+
+.learned {
+    color: #13a918;
+}
+
+.repeated {
+    color: #dfa22d;
+}
+
+.waitingToRepeat {
+    color: #8b8888;
+}
+
+.recommendation {
+    position: absolute;
+    right: 4px;
+    bottom: 4px;
+
+    color: white;
+    border-radius: 50%;
+    /* background-color: #29b9cc; */
+    width: 26px;
+    height: 26px;
+    text-align: center;
+}

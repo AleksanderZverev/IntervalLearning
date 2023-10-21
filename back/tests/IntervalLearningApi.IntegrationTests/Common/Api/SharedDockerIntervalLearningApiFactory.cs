@@ -1,13 +1,13 @@
 namespace IntervalLearningApi.IntegrationTests.Common.Api;
 
-public class SharedIntervalLearningApiFactory : IAsyncLifetime
+public class SharedDockerIntervalLearningApiFactory : IAsyncLifetime
 {
-    private static IntervalLearningApiFactory sharedApplicationFactory = new();
+    private static DockerIntervalLearningApiFactory sharedApplicationFactory = new();
     private static int subscribers;
     private static bool initialized;
     private static SemaphoreSlim semaphore = new(1, 1);
 
-    public IntervalLearningApiFactory SharedFactory => sharedApplicationFactory;
+    public DockerIntervalLearningApiFactory SharedFactory => sharedApplicationFactory;
 
     public async Task InitializeAsync()
     {

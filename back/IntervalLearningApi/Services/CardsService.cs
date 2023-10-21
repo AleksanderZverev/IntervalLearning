@@ -4,9 +4,15 @@ using DB;
 using DB.Models;
 using Infrastructure;
 using IntervalLearningApi.Models;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 namespace IntervalLearningApi.Services;
+
+public record LearningStatistic(
+    int RepeatedCards,
+    int LearnedCards
+);
 
 public class CardsService
 {
@@ -560,7 +566,7 @@ public class CardsService
 
         if (nextPhaseIsRepeatPhase)
         {
-            if (remember.Weight >= 0.49f)
+            if (remember.Weight >= 0.70f)
             {
                 nextPhaseIndex++;
                 nextPhase = nextPhaseIndex >= 0 && nextPhaseIndex < sortedPhases.Count 
@@ -595,9 +601,21 @@ public class CardsService
             }
         }
 
-        if (remember.Weight >= 0.49f)
+        if (remember.Weight >= 0.70f)
         {
             return (nextPhaseIndex, nextPhase);
+        }
+
+        if (remember.Weight >= 0.40f && remember.Weight < 0.70f)
+        {
+            return schedule.ForgottenBehavior switch
+            {
+                ForgottenBehavior.MoveToNextStep => (nextPhaseIndex, nextPhase),
+                ForgottenBehavior.MoveToPreviousStep => (currentPhaseIndex, currentPhase),
+                ForgottenBehavior.StartFromFirstStep => (currentPhaseIndex, currentPhase),
+                ForgottenBehavior.StayOnCurrentStep => (currentPhaseIndex, currentPhase),
+                _ => throw new ArgumentOutOfRangeException("Unknown forgotten behaviour " + schedule.ForgottenBehavior),
+            };
         }
 
         switch (schedule.ForgottenBehavior)
@@ -626,7 +644,7 @@ public class CardsService
                 
                 return (previousPhaseIndex, previousPhase);
             }
-            default: throw new InvalidOperationException("Unknown forgotten behaviour " + schedule.ForgottenBehavior);
+            default: throw new ArgumentOutOfRangeException("Unknown forgotten behaviour " + schedule.ForgottenBehavior);
         };
     }
 

@@ -48,3 +48,16 @@ export interface Remember {
     phaseId: number;
     repeatedDate: string;
 }
+
+export interface LearningStatistic {
+    repeatedCards: number;
+    learnedCards: number;
+}
+
+export interface CalendarLearningStatisticModel {
+    learnedCards: number;
+    dateToLearnedCards: Record<string, number>;
+    dateToRepeatedCards: Record<string, number>;
+    dateQueueCards: Record<string, number>;
+    dateToRecommendationToLearn: Record<string, number>;
+}

@@ -6,16 +6,22 @@ import { ScheduleKey, SelectSchedule } from '../../../../controls/SelectSchedule
 import { Table, TableBody, TableCell, TableHead, TableHeaderCell, TableRow } from '../../../../controls/Table/Table';
 import { DateHelper } from '../../../../helpers/DateHelper';
 import { LocalStorageHelper } from '../../../../helpers/localStorageHelper';
-import { withQueryResolver, WithQueryResolverData } from '../../../../hoc/withQueryResolver';
+import {
+    withOtherQueryResolver,
+    WithOtherQueryResolverData,
+    withQueryResolver,
+    WithQueryResolverData,
+} from '../../../../hoc/withQueryResolver';
 import { useLocalStorageValue } from '../../../../hooks/useLocalStorageValue';
 import { RepeatingPhaseDto, useGetQueueCollectionsQuery } from '../../../../redux/collectionApi';
 import { Schedule } from '../../../../types/schedule';
 import { CollectionRow } from './CollectionRow/CollectionRow';
 import styles from './styles.module.css';
-import { SelectTheme, SelectThemeControl } from '../../../../controls/SelectTheme/SelectTheme';
+import { SelectTheme } from '../../../../controls/SelectTheme/SelectTheme';
 import { Theme } from '../../../../types/global';
 import useTypedSelector from '../../../../hooks/useTypedSelector';
 import { selectThemes } from '../../../../redux/slices/themeSlice';
+import { useGetStatisticQuery } from '../../../../redux/api/statisticsApi';
 
 export const getRepeatingNavigationLink = (
     collectionUserId: string,
@@ -95,14 +101,17 @@ function CountWordsByThemes(
     return result;
 }
 
-interface InProgressCollectionsProps extends WithQueryResolverData<typeof useGetQueueCollectionsQuery> {}
+type WithResolvers = WithQueryResolverData<typeof useGetQueueCollectionsQuery> &
+    WithOtherQueryResolverData<typeof useGetStatisticQuery>;
+
+interface InProgressCollectionsProps extends WithResolvers {}
 
 interface LocalStorageState {
     schedule: Schedule | undefined;
     theme: Theme | null;
 }
 
-const InProgressCollectionsContent: FC<InProgressCollectionsProps> = ({ queryData }) => {
+const InProgressCollectionsContent: FC<InProgressCollectionsProps> = ({ queryData, extendedData }) => {
     const navigate = useNavigate();
     const dateToCollectionsQueue = Object.entries(queryData.dateToRepeatingPhases);
     const now = dayjs();
@@ -156,6 +165,8 @@ const InProgressCollectionsContent: FC<InProgressCollectionsProps> = ({ queryDat
 
     const wordByThemes = CountWordsByThemes(schedule, dateToCollectionsQueue);
 
+    const hasStatistic = Boolean(extendedData?.learnedCards) || Boolean(extendedData?.repeatedCards);
+
     return (
         <div style={{ display: 'grid', gridTemplateRows: 'auto 1fr' }}>
             {availableScheduleKeys.length > 0 && (
@@ -172,6 +183,16 @@ const InProgressCollectionsContent: FC<InProgressCollectionsProps> = ({ queryDat
                     />
                     <label>Тема:</label>
                     <SelectTheme value={theme} onChange={setTheme} />
+                </div>
+            )}
+            {hasStatistic && (
+                <div className={styles.statisticRow}>
+                    {extendedData?.learnedCards !== undefined && extendedData.learnedCards > 0 && (
+                        <span className={styles.learned}>Изучено {extendedData.learnedCards}</span>
+                    )}
+                    {extendedData?.repeatedCards !== undefined && extendedData.repeatedCards > 0 && (
+                        <span className={styles.repeated}>Повторено {extendedData.repeatedCards}</span>
+                    )}
                 </div>
             )}
             <Table>
@@ -353,7 +374,8 @@ const InProgressCollectionsContent: FC<InProgressCollectionsProps> = ({ queryDat
 };
 
 const ConnectedInProgressCollections = withQueryResolver(useGetQueueCollectionsQuery)(InProgressCollectionsContent);
+const ConnectedStatisticsData = withOtherQueryResolver(useGetStatisticQuery)(ConnectedInProgressCollections);
 
 export const InProgressCollections: FC = () => {
-    return <ConnectedInProgressCollections queryArg={undefined} />;
+    return <ConnectedStatisticsData queryArg={{ date: dayjs().toISOString() }} />;
 };

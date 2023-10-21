@@ -1,1 +1,1 @@
-Start-Process powershell.exe -ArgumentList "yarn", "dev" -NoNewWindow -Wait
+Start-Process powershell.exe -ArgumentList "-noexit", "yarn", "dev" -NoNewWindow

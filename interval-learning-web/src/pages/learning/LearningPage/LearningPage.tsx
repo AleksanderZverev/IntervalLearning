@@ -5,9 +5,16 @@ import { ToggleButton, ToggleButtonGroup } from '@mui/material';
 import { InProgressCollections } from './InProgressCollections/InProgressCollections';
 import { CanStartCollections } from './CanStartCollections/CanStartCollections';
 import Head from 'next/head';
+import { CalendarStatisticPage } from './CalendarStatistic/CalendarStatistic';
+
+enum PageType {
+    Learning = 1,
+    Repeating = 2,
+    Statistic = 3,
+}
 
 export const LearningPage: FC = () => {
-    const [isInProcess, setIsInProcess] = useState(true);
+    const [page, setPage] = useState(PageType.Repeating);
 
     return (
         <>
@@ -20,20 +27,23 @@ export const LearningPage: FC = () => {
                     subMenu={
                         <ToggleButtonGroup
                             color="primary"
-                            value={isInProcess}
-                            onChange={(e, v: boolean) => {
-                                setIsInProcess(v ?? false);
+                            value={page}
+                            onChange={(e, v: PageType | null | undefined) => {
+                                if (v === undefined || v === null) return;
+                                setPage(v);
                             }}
                             exclusive
                         >
-                            <ToggleButton value={true}>Повторить</ToggleButton>
-                            <ToggleButton value={false}>Изучить</ToggleButton>
+                            <ToggleButton value={PageType.Repeating}>Повторить</ToggleButton>
+                            <ToggleButton value={PageType.Learning}>Изучить</ToggleButton>
+                            <ToggleButton value={PageType.Statistic}>Статистика</ToggleButton>
                         </ToggleButtonGroup>
                     }
                 />
                 <div>
-                    {isInProcess && <InProgressCollections />}
-                    {!isInProcess && <CanStartCollections />}
+                    {page === PageType.Repeating && <InProgressCollections />}
+                    {page === PageType.Learning && <CanStartCollections />}
+                    {page === PageType.Statistic && <CalendarStatisticPage />}
                 </div>
             </PageContainer>
         </>
