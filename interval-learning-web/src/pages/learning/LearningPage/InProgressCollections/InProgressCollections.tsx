@@ -187,10 +187,10 @@ const InProgressCollectionsContent: FC<InProgressCollectionsProps> = ({ queryDat
             )}
             {hasStatistic && (
                 <div className={styles.statisticRow}>
-                    {extendedData.learnedCards && (
+                    {extendedData?.learnedCards !== undefined && extendedData.learnedCards > 0 && (
                         <span className={styles.learned}>Изучено {extendedData.learnedCards}</span>
                     )}
-                    {extendedData.repeatedCards && (
+                    {extendedData?.repeatedCards !== undefined && extendedData.repeatedCards > 0 && (
                         <span className={styles.repeated}>Повторено {extendedData.repeatedCards}</span>
                     )}
                 </div>

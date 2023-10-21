@@ -48,6 +48,7 @@ public class StatisticsController : ControllerBase
             return BadRequest();
 
         return new CalendarLearningStatisticModel(
+            LearnedCards: statistic.LearnedCards,
             DateToLearnedCards: statistic.DateToLearnedCards,
             DateQueueCards: statistic.DateQueueCards,
             DateToRepeatedCards: statistic.DateToRepeatedCards,

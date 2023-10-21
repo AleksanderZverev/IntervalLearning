@@ -55,6 +55,7 @@ export interface LearningStatistic {
 }
 
 export interface CalendarLearningStatisticModel {
+    learnedCards: number;
     dateToLearnedCards: Record<string, number>;
     dateToRepeatedCards: Record<string, number>;
     dateQueueCards: Record<string, number>;

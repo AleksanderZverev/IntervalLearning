@@ -53,82 +53,87 @@ const StatisticCalendarContent: FC<Props> = ({ month, queryData }) => {
 
     const daysTillStart = GetDateOfWeekBefore(dates[0], 1);
     return (
-        <div className={styles.calendarBody}>
-            <div key={'monday'} className={styles.dayOfWeek}>
-                Пн
-            </div>
-            <div key={'tuesday'} className={styles.dayOfWeek}>
-                Вт
-            </div>
-            <div key={'wednesday'} className={styles.dayOfWeek}>
-                Ср
-            </div>
-            <div key={'thursday'} className={styles.dayOfWeek}>
-                Чт
-            </div>
-            <div key={'friday'} className={styles.dayOfWeek}>
-                Пт
-            </div>
-            <div key={'saturday'} className={styles.dayOfWeek}>
-                Сб
-            </div>
-            <div key={'sunday'} className={styles.dayOfWeek}>
-                Вс
-            </div>
+        <div>
+            <div className={styles.learned}>Всего изучено {queryData.learnedCards}</div>
+            <div className={styles.calendarBody}>
+                <div key={'monday'} className={styles.dayOfWeek}>
+                    Пн
+                </div>
+                <div key={'tuesday'} className={styles.dayOfWeek}>
+                    Вт
+                </div>
+                <div key={'wednesday'} className={styles.dayOfWeek}>
+                    Ср
+                </div>
+                <div key={'thursday'} className={styles.dayOfWeek}>
+                    Чт
+                </div>
+                <div key={'friday'} className={styles.dayOfWeek}>
+                    Пт
+                </div>
+                <div key={'saturday'} className={styles.dayOfWeek}>
+                    Сб
+                </div>
+                <div key={'sunday'} className={styles.dayOfWeek}>
+                    Вс
+                </div>
 
-            {daysTillStart.map((d) => {
-                const dateIso = d.toISOString();
+                {daysTillStart.map((d) => {
+                    const dateIso = d.toISOString();
 
-                return (
-                    <div className={classNames(styles.dayBody, styles.disabledDay)} key={dateIso}>
-                        <span className={styles.date}>{d.format('D')}</span>
-                    </div>
-                );
-            })}
+                    return (
+                        <div className={classNames(styles.dayBody, styles.disabledDay)} key={dateIso}>
+                            <span className={styles.date}>{d.format('D')}</span>
+                        </div>
+                    );
+                })}
 
-            {dates.map((d) => {
-                const dateIso = d.toISOString();
-                const now = dayjs();
-                const isToday = d.isSame(now, 'date');
-                const isPassed = d.isBefore(now, 'date');
+                {dates.map((d) => {
+                    const dateIso = d.toISOString();
+                    const now = dayjs();
+                    const isToday = d.isSame(now, 'date');
+                    const isPassed = d.isBefore(now, 'date');
 
-                const queuedCards = getQueryDataByDate(d, queryData.dateQueueCards);
-                const learnCards = getQueryDataByDate(d, queryData.dateToLearnedCards);
-                const recToLearn = getQueryDataByDate(d, queryData.dateToRecommendationToLearn);
-                const repeatedCards = getQueryDataByDate(d, queryData.dateToRepeatedCards);
+                    const queuedCards = getQueryDataByDate(d, queryData.dateQueueCards);
+                    const learnCards = getQueryDataByDate(d, queryData.dateToLearnedCards);
+                    const recToLearn = getQueryDataByDate(d, queryData.dateToRecommendationToLearn);
+                    const repeatedCards = getQueryDataByDate(d, queryData.dateToRepeatedCards);
 
-                let recommendationColor: string | undefined = undefined;
+                    let recommendationColor: string | undefined = undefined;
 
-                if (recToLearn !== undefined) {
-                    if (recToLearn < 8) {
-                        recommendationColor = '#dc5d5d';
-                    } else if (recToLearn < 14) {
-                        recommendationColor = '#dfa22d';
-                    } else {
-                        recommendationColor = '#4dab50';
+                    if (recToLearn !== undefined) {
+                        if (recToLearn < 8) {
+                            recommendationColor = '#dc5d5d';
+                        } else if (recToLearn < 14) {
+                            recommendationColor = '#dfa22d';
+                        } else {
+                            recommendationColor = '#4dab50';
+                        }
                     }
-                }
 
-                return (
-                    <div className={classNames(styles.dayBody)} key={dateIso}>
-                        <span className={classNames(styles.date, isToday && styles.today)}>{d.format('D')}</span>
+                    return (
+                        <div className={classNames(styles.dayBody)} key={dateIso}>
+                            <span className={classNames(styles.date, isToday && styles.today)}>{d.format('D')}</span>
 
-                        {queuedCards !== undefined && (
-                            <span className={styles.waitingToRepeat}>Заплан. {queuedCards}</span>
-                        )}
-                        {learnCards !== undefined && <span className={styles.learned}>Изучено {learnCards}</span>}
-                        {repeatedCards !== undefined && <span className={styles.repeated}>Пов. {repeatedCards}</span>}
-                        {recToLearn !== undefined && (
-                            <span
-                                className={styles.recommendation}
-                                style={{ backgroundColor: isPassed ? '#b7b7b7' : recommendationColor }}
-                            >
-                                {recToLearn}
-                            </span>
-                        )}
-                    </div>
-                );
-            })}
+                            {queuedCards !== undefined && (
+                                <span className={styles.waitingToRepeat}>Заплан. {queuedCards}</span>
+                            )}
+                            {learnCards !== undefined && <span className={styles.learned}>Изучено {learnCards}</span>}
+                            {repeatedCards !== undefined && (
+                                <span className={styles.repeated}>Пов. {repeatedCards}</span>
+                            )}
+                            {recToLearn !== undefined && (
+                                <span
+                                    className={styles.recommendation}
+                                    style={{ backgroundColor: isPassed ? '#b7b7b7' : recommendationColor }}
+                                >
+                                    {recToLearn}
+                                </span>
+                            )}
+                        </div>
+                    );
+                })}
+            </div>
         </div>
     );
 };

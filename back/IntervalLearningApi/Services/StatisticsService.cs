@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 namespace IntervalLearningApi.Services;
 
 public record CalendarLearningStatistic(
+    int LearnedCards,
     Dictionary<DateTime, int> DateToLearnedCards,
     Dictionary<DateTime, int> DateToRepeatedCards,
     Dictionary<DateTime, int> DateQueueCards,
@@ -42,6 +43,7 @@ public class StatisticsService
 
         var cardToRemembers = rangeRemembers.GroupBy(r => (r.ParentCollectionId, r.ParentCardId));
 
+        var totalLearnedCards = 0;
         var dateToLearnedCards = new Dictionary<DateTime, int>();
         var dateToRepeatedCards = new Dictionary<DateTime, int>();
 
@@ -54,7 +56,14 @@ public class StatisticsService
                     && c.ParentCollectionId == cardPair.Key.ParentCollectionId
                     && c.Id == cardPair.Key.ParentCardId);
 
-            AddOrIncrementDate(dateToLearnedCards, GetLearnedDate(card), timezoneOffset);
+            var learnedDate = GetLearnedDate(card);
+
+            if (learnedDate >= from && learnedDate <= to)
+            {
+                totalLearnedCards++;
+            }
+            
+            AddOrIncrementDate(dateToLearnedCards, learnedDate, timezoneOffset);
 
             foreach (var repeatedRemember in FilterRepeatedRemembers(card))
                 AddOrIncrementDate(dateToRepeatedCards, repeatedRemember.RepeatedDate, timezoneOffset);
@@ -72,6 +81,7 @@ public class StatisticsService
             dateToQueueCount);
 
         return new CalendarLearningStatistic(
+            totalLearnedCards,
             dateToLearnedCards,
             dateToRepeatedCards,
             dateToQueueCount,
