@@ -1,13 +1,15 @@
 .calendarBody {
     display: grid;
     grid-template-columns: 1fr 1fr 1fr 1fr 1fr 1fr 1fr;
+    row-gap: 1px;
+    column-gap: 1px;
 }
 
 .dayBody {
     padding: 8px 4px;
 
     min-height: 148px;
-    border: 1px solid gainsboro;
+    outline: 1px solid gainsboro;
 
     display: flex;
     flex-direction: column;
