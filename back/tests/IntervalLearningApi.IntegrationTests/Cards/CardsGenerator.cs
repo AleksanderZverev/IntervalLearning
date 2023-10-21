@@ -9,7 +9,7 @@ public class CardsGenerator : LocalApiTests
     {
     }
 
-    [Theory]
+    [Theory(Skip = "FOR CUSTOM USE ONLY")]
     [InlineData("test@mail.ru", "test123", "Junk", 100)]
     public async Task GenerateCards(string email, string password, string collectionName, int amount)
     {
