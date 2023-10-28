@@ -1,6 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using Domain.Language;
+using Domain.Language.ValueObjects;
 
 namespace DB.Models.Dictionary;
 
@@ -10,7 +11,7 @@ public class TranslationEntity
     public int WordId { get; set; }
     public WordEntity? Word { get; set; }
 
-    public short LanguageId { get; set; }
+    public LanguageId LanguageId { get; set; }
     public Language? Language { get; set; }
 
     [DatabaseGenerated(DatabaseGeneratedOption.None)]

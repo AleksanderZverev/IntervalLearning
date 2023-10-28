@@ -1,6 +1,7 @@
 ﻿using DB.Models;
 using DB.Models.Dictionary;
 using DB.Models.Store;
+using Domain.Language;
 using Microsoft.EntityFrameworkCore;
 
 namespace DB
@@ -34,7 +35,7 @@ namespace DB
         //Dictionary
 
         public DbSet<WordEntity> Words { get; set; }
-        public DbSet<LanguageEntity> Languages { get; set; }
+        public DbSet<Language> Languages { get; set; }
         public DbSet<TranslationEntity> Translations { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)

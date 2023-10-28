@@ -18,7 +18,7 @@ namespace DB.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "6.0.2")
+                .HasAnnotation("ProductVersion", "7.0.9")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
@@ -37,12 +37,6 @@ namespace DB.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<short>("Id"));
 
-                    b.Property<string>("BackSideText")
-                        .IsRequired()
-                        .HasMaxLength(255)
-                        .HasColumnType("character varying(255)")
-                        .HasColumnName("MeaningText");
-
                     b.Property<DateTime>("CreatedDate")
                         .HasColumnType("timestamp with time zone");
 
@@ -54,13 +48,17 @@ namespace DB.Migrations
                         .HasMaxLength(255)
                         .HasColumnType("text[]");
 
-                    b.Property<string>("FrontSideText")
+                    b.Property<string>("MeaningText")
                         .IsRequired()
                         .HasMaxLength(255)
-                        .HasColumnType("character varying(255)")
-                        .HasColumnName("RememberingText");
+                        .HasColumnType("character varying(255)");
 
                     b.Property<string>("PromptText")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)");
+
+                    b.Property<string>("RememberingText")
                         .IsRequired()
                         .HasMaxLength(255)
                         .HasColumnType("character varying(255)");
@@ -144,56 +142,6 @@ namespace DB.Migrations
                     b.ToTable("Collections");
                 });
 
-            modelBuilder.Entity("DB.Models.Dictionary.LanguageEntity", b =>
-                {
-                    b.Property<short>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("smallint");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<short>("Id"));
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)");
-
-                    b.Property<string>("NativeLanguageName")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)");
-
-                    b.Property<string>("TranslationLink")
-                        .HasColumnType("text");
-
-                    b.Property<string>("TranslationLinkTitle")
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("Languages");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = (short)1,
-                            Name = "English",
-                            NativeLanguageName = "English"
-                        },
-                        new
-                        {
-                            Id = (short)2,
-                            Name = "Russian",
-                            NativeLanguageName = "Русский"
-                        },
-                        new
-                        {
-                            Id = (short)3,
-                            Name = "Japanese",
-                            NativeLanguageName = "日本語"
-                        });
-                });
-
             modelBuilder.Entity("DB.Models.Dictionary.TranslationEntity", b =>
                 {
                     b.Property<int>("WordId")
@@ -257,12 +205,11 @@ namespace DB.Migrations
                     b.Property<short>("Id")
                         .HasColumnType("smallint");
 
-                    b.Property<string>("Description")
-                        .HasColumnType("text")
-                        .HasColumnName("OnLearnDescription");
-
                     b.Property<bool>("IsDefaultValueSide")
                         .HasColumnType("boolean");
+
+                    b.Property<string>("OnLearnDescription")
+                        .HasColumnType("text");
 
                     b.Property<long>("SecondsFromLastPhase")
                         .HasColumnType("bigint");
@@ -414,10 +361,6 @@ namespace DB.Migrations
                         .HasMaxLength(200)
                         .HasColumnType("character varying(200)");
 
-                    b.Property<string>("Description")
-                        .HasColumnType("text")
-                        .HasColumnName("OnStartLearningDescription");
-
                     b.Property<int>("ForgottenBehavior")
                         .HasColumnType("integer");
 
@@ -426,6 +369,9 @@ namespace DB.Migrations
 
                     b.Property<bool>("IsRecommended")
                         .HasColumnType("boolean");
+
+                    b.Property<string>("OnStartLearningDescription")
+                        .HasColumnType("text");
 
                     b.Property<string>("ShortDescription")
                         .HasMaxLength(200)
@@ -594,6 +540,56 @@ namespace DB.Migrations
                     b.ToTable("UsersPasswords");
                 });
 
+            modelBuilder.Entity("Domain.Language.Language", b =>
+                {
+                    b.Property<short>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("smallint");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<short>("Id"));
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<string>("NativeLanguageName")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<string>("TranslationLink")
+                        .HasColumnType("text");
+
+                    b.Property<string>("TranslationLinkTitle")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Languages", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            Id = (short)1,
+                            Name = "English",
+                            NativeLanguageName = "English"
+                        },
+                        new
+                        {
+                            Id = (short)2,
+                            Name = "Russian",
+                            NativeLanguageName = "Русский"
+                        },
+                        new
+                        {
+                            Id = (short)3,
+                            Name = "Japanese",
+                            NativeLanguageName = "日本語"
+                        });
+                });
+
             modelBuilder.Entity("DB.Models.CardEntity", b =>
                 {
                     b.HasOne("DB.Models.UserEntity", "ParentUser")
@@ -669,7 +665,7 @@ namespace DB.Migrations
 
             modelBuilder.Entity("DB.Models.Dictionary.TranslationEntity", b =>
                 {
-                    b.HasOne("DB.Models.Dictionary.LanguageEntity", "Language")
+                    b.HasOne("Domain.Language.Language", "Language")
                         .WithMany()
                         .HasForeignKey("LanguageId")
                         .OnDelete(DeleteBehavior.NoAction)
@@ -688,7 +684,7 @@ namespace DB.Migrations
 
             modelBuilder.Entity("DB.Models.Dictionary.WordEntity", b =>
                 {
-                    b.HasOne("DB.Models.Dictionary.LanguageEntity", "Language")
+                    b.HasOne("Domain.Language.Language", "Language")
                         .WithMany()
                         .HasForeignKey("LanguageId")
                         .OnDelete(DeleteBehavior.NoAction)
@@ -864,7 +860,7 @@ namespace DB.Migrations
 
             modelBuilder.Entity("DB.Models.ThemeEntity", b =>
                 {
-                    b.HasOne("DB.Models.Dictionary.LanguageEntity", "Language")
+                    b.HasOne("Domain.Language.Language", "Language")
                         .WithMany()
                         .HasForeignKey("LanguageId")
                         .OnDelete(DeleteBehavior.NoAction);
@@ -880,7 +876,7 @@ namespace DB.Migrations
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
-                    b.HasOne("DB.Models.Dictionary.LanguageEntity", "SuggestTranslationLanguage")
+                    b.HasOne("Domain.Language.Language", "SuggestTranslationLanguage")
                         .WithMany()
                         .HasForeignKey("SuggestTranslationLanguageId")
                         .OnDelete(DeleteBehavior.NoAction)

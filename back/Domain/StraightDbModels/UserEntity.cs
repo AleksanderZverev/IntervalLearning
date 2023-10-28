@@ -2,6 +2,7 @@
 using System.Text.Json.Serialization;
 using DB.Models.Dictionary;
 using Domain.Language;
+using Domain.Language.ValueObjects;
 
 namespace DB.Models;
 
@@ -44,7 +45,7 @@ public class UserMetadataEntity : IParentUserReference
     public long ParentUserId { get; set; }
     public UserEntity? ParentUser { get; set; }
 
-    public short SuggestTranslationLanguageId { get; set; }
+    public LanguageId SuggestTranslationLanguageId { get; set; }
     public Language? SuggestTranslationLanguage { get; set; }
 
     public short NotStartedCollections { get; set; }
@@ -55,7 +56,7 @@ public class UserMetadataEntity : IParentUserReference
     public short StartedCards { get; set; }
     public short FinishedCards { get; set; }
 
-    public UserMetadataEntity(long parentUserId, short suggestTranslationLanguageId)
+    public UserMetadataEntity(long parentUserId, LanguageId suggestTranslationLanguageId)
     {
         ParentUserId = parentUserId;
         SuggestTranslationLanguageId = suggestTranslationLanguageId;

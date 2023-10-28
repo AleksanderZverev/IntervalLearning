@@ -1,6 +1,8 @@
 ﻿using System.Linq;
 using DB;
 using DB.Models.Dictionary;
+using Domain.Language;
+using Domain.Language.ValueObjects;
 using Infrastructure;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -98,7 +100,7 @@ namespace IntervalLearningApi.Services.Dictionary
                 { 
                     word = new WordEntity
                     {
-                        LanguageId = languageId,
+                        LanguageId = LanguageId.Create(languageId).Value,
                         Word = wordText,
                         Pronunciation = pronunciation
                     };
@@ -163,7 +165,7 @@ namespace IntervalLearningApi.Services.Dictionary
                     var translation = new TranslationEntity()
                     {
                         Id = id,
-                        LanguageId = translationLanguageId,
+                        LanguageId = LanguageId.Create(translationLanguageId).Value,
                         Translation = lowerTranslation,
                         WordId = word.Id,
                     };
@@ -189,7 +191,7 @@ namespace IntervalLearningApi.Services.Dictionary
             return (string.Join("\n\n", errors), null);
         }
 
-        public async Task<List<LanguageEntity>> GetLanguages()
+        public async Task<List<Language>> GetLanguages()
         {
             return await db.Languages.ToListAsync();
         }

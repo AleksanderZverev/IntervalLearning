@@ -2,6 +2,7 @@ using DB;
 using DB.DependencyInjection;
 using DB.Models;
 using DB.Models.Dictionary;
+using Domain.Language;
 using IntervalLearningApi.IntegrationTests.Common.Constants;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -51,11 +52,8 @@ public class DockerIntervalLearningApiFactory : WebApplicationFactory<Program>, 
     
     private async Task SetupDatabaseAsync(ApplicationContext db)
     {
-        var languageEntry = db.Languages.Add(new LanguageEntity()
-        {
-            Name = "Test English",
-            NativeLanguageName = "Test English",
-        });
+        var languageEntry = db.Languages.Add(
+            Language.CreateNew("Test English", "Test English").Value);
         await db.SaveChangesAsync();
         TestConstants.Language.TestId = languageEntry.Entity.Id;
 

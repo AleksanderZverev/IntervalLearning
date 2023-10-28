@@ -1,6 +1,7 @@
 ﻿using DB.Models;
 using DB.Models.Dictionary;
 using DB.Models.Store;
+using Domain.Language;
 using IntervalLearningApi.Constants;
 using IntervalLearningApi.Extensions;
 using IntervalLearningApi.Models.ByUser;
@@ -250,13 +251,13 @@ namespace IntervalLearningApi.Controllers
                 word.LanguageId);
         }
 
-        public static LanguageDto ToLanguage(LanguageEntity language)
+        public static LanguageDto ToLanguage(Language language)
         {
             return new LanguageDto(
-                language.Id,
-                language.Name,
-                language.NativeLanguageName,
-                language.TranslationLinkTitle,
+                language.Id.Value,
+                language.Name.Value,
+                language.NativeLanguageName.Value,
+                language.TranslationLinkTitle.Value,
                 language.TranslationLink);
         }
 
@@ -274,7 +275,7 @@ namespace IntervalLearningApi.Controllers
 
         public GetRandomWordResponse(
             List<WordEntity> words, 
-            LanguageEntity language)
+            Language language)
         {
             Words = words.Select(CollectionsController.ToWord).ToList();
             Language = CollectionsController.ToLanguage(language);

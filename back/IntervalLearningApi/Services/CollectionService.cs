@@ -3,6 +3,7 @@ using DB;
 using DB.Models;
 using DB.Models.Dictionary;
 using DB.Models.Store;
+using Domain.Language;
 using Infrastructure;
 using Microsoft.EntityFrameworkCore;
 
@@ -326,7 +327,7 @@ public class CollectionService
         return (movedCard, null);
     }
 
-    public async Task<(List<WordEntity>? words, LanguageEntity? language, string? error)> GetRandomWords(
+    public async Task<(List<WordEntity>? words, Language? language, string? error)> GetRandomWords(
         long userId, 
         short collectionId)
     {

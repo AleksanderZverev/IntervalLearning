@@ -1,0 +1,69 @@
+using Domain.Common.ValueObjects;
+using Domain.Language.ValueObjects;
+using FluentResults;
+
+namespace Domain.Language;
+
+//[Table("Languages")]
+public class Language
+{
+    private Language()
+    {
+        //for EF
+    }
+    
+    protected Language(
+        LanguageId id,
+        ShortString name,
+        ShortString nativeLanguageName,
+        ShortString? translationLinkTitle,
+        string? translationLink)
+    {
+        Id = id;
+        Name = name;
+        NativeLanguageName = nativeLanguageName;
+        TranslationLinkTitle = translationLinkTitle;
+        TranslationLink = translationLink;
+    }
+
+    // [Key]
+    // [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+    public LanguageId Id { get; private set; }
+
+    // [Required]
+    // [StringLength(50)]
+    public ShortString Name { get; private set; }
+
+    // [Required]
+    // [StringLength(50)]
+    public ShortString NativeLanguageName { get;  private set; }
+
+    // [StringLength(50)]
+    public ShortString? TranslationLinkTitle { get;  private set; }
+    public string? TranslationLink { get;  private set; }
+    
+    public static Result<Language> CreateNew(string name, string nativeLanguageName)
+    {
+        var nameResult = ShortString.Create(name);
+        if (nameResult.IsFailed) return nameResult.ToResult();
+        
+        var nativeLanguageNameResult = ShortString.Create(nativeLanguageName);
+        if (nativeLanguageNameResult.IsFailed) return nativeLanguageNameResult.ToResult();
+        
+        return new Language(LanguageId.CreateEmpty(), nameResult.Value, nativeLanguageNameResult.Value, null, null);
+    }
+
+    public static Result<Language> Create(short id, string name, string nativeLanguageName)
+    {
+        var idResult = LanguageId.Create(id);
+        if (idResult.IsFailed) return idResult.ToResult();
+            
+        var nameResult = ShortString.Create(name);
+        if (nameResult.IsFailed) return nameResult.ToResult();
+        
+        var nativeLanguageNameResult = ShortString.Create(nativeLanguageName);
+        if (nativeLanguageNameResult.IsFailed) return nativeLanguageNameResult.ToResult();
+        
+        return new Language(idResult.Value, nameResult.Value, nativeLanguageNameResult.Value, null, null);
+    }
+}

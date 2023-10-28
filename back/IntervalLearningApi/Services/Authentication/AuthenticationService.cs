@@ -1,6 +1,7 @@
 ﻿using System.Globalization;
 using DB;
 using DB.Models;
+using Domain.Language.ValueObjects;
 using IntervalLearningApi.Models;
 using IntervalLearningApi.Models.Common;
 using IntervalLearningApi.Services.Jwt;
@@ -56,7 +57,7 @@ public class AuthenticationService : IAuthenticationService
             db.Users.Add(user);
             db.SaveChanges();
 
-            var metadata = new UserMetadataEntity(user.Id, request.SuggestLanguageId);
+            var metadata = new UserMetadataEntity(user.Id, LanguageId.Create(request.SuggestLanguageId).Value);
             db.Entry(metadata).State = EntityState.Added;
 
             db.SaveChanges();

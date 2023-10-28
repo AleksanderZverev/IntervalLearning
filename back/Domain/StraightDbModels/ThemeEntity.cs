@@ -2,6 +2,7 @@
 using System.ComponentModel.DataAnnotations.Schema;
 using DB.Models.Dictionary;
 using Domain.Language;
+using Domain.Language.ValueObjects;
 
 namespace DB.Models;
 
@@ -15,7 +16,7 @@ public class ThemeEntity
     [StringLength(100)]
     public string Name { get; set; }
 
-    public short? LanguageId { get; set; }
+    public LanguageId? LanguageId { get; set; }
     public Language? Language { get; set; }
 
     public ThemeEntity(string name)
