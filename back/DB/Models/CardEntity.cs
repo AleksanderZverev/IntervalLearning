@@ -11,9 +11,9 @@ public interface IParentCardReference : IParentCollectionReference
 
 public interface ICreateOrPatchCard
 {
-    public string FrontSideText { get; }
+    public string RememberingText { get; }
     public string PromptText { get; }
-    public string BackSideText { get; }
+    public string MeaningText { get; }
     public string? Description { get; }
     public List<string>? Examples { get; }
 
@@ -30,16 +30,14 @@ public class CardEntity : ICreateOrPatchCard, IParentCollectionReference
 
     [Required]
     [StringLength(255)]
-    [Column("RememberingText")]
-    public string FrontSideText { get; set; }
+    public string RememberingText { get; set; }
 
     [StringLength(255)]
     public string PromptText { get; set; }
 
     [Required]
     [StringLength(255)]
-    [Column("MeaningText")]
-    public string BackSideText { get; set; }
+    public string MeaningText { get; set; }
 
     [Required]
     public DateTime CreatedDate { get; set; } = DateTime.UtcNow;

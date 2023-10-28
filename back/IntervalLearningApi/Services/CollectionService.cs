@@ -85,7 +85,7 @@ public class CollectionService
                     queueItem.ParentRepeatsScheduleId,
                     queueItem.PhaseIndex,
                     phase.SecondsFromLastPhase,
-                    phase.Description);
+                    phase.OnLearnDescription);
 
                 repeatingPhasesList.Add(repeatingPhase);
             }
@@ -363,7 +363,7 @@ public class CollectionService
 
         var resultWords = words
             .Where(w => !cards
-                .Exists(c => string.Equals(c.FrontSideText, w.Word, StringComparison.InvariantCultureIgnoreCase)))
+                .Exists(c => string.Equals(c.RememberingText, w.Word, StringComparison.InvariantCultureIgnoreCase)))
             .Take(30)
             .ToList();
 
@@ -460,11 +460,11 @@ public class CollectionService
         }
 
         var myCards = checkUnique ? await cardsService.GetAllCards(myUserId, myCollection.Id) : new List<CardEntity>();
-        var myCardsSet = new HashSet<string>(myCards.Select(c => c.FrontSideText));
+        var myCardsSet = new HashSet<string>(myCards.Select(c => c.RememberingText));
 
         foreach (var publicCard in publicCards)
         {
-            if (checkUnique && myCardsSet.Contains(publicCard.FrontSideText))
+            if (checkUnique && myCardsSet.Contains(publicCard.RememberingText))
             {
                 continue;
             }
@@ -473,9 +473,9 @@ public class CollectionService
                 myUserId,
                 myCollection.Id,
                 null,
-                publicCard.FrontSideText,
+                publicCard.RememberingText,
                 publicCard.PromptText,
-                publicCard.BackSideText,
+                publicCard.MeaningText,
                 publicCard.Description,
                 publicCard.Examples,
                 true);

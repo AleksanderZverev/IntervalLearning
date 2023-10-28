@@ -14,7 +14,7 @@ public interface IPatchRepeatsSchedule
 {
     public string Title { get; }
     public string? ShortDescription { get; }
-    public string? Description { get; }
+    public string? OnStartLearningDescription { get; }
     public short CardsCountPerPhase { get; }
     public string? DefaultPhaseShortDescription { get; }
     public string? DefaultPhaseDescription { get; }
@@ -32,7 +32,7 @@ public class PatchRepeatsSchedule : IPatchRepeatsSchedule
 {
     public string Title { get; }
     public string? ShortDescription { get;  }
-    public string? Description { get;  }
+    public string? OnStartLearningDescription { get;  }
     public short CardsCountPerPhase { get;  }
     public string? DefaultPhaseShortDescription { get;  }
     public string? DefaultPhaseDescription { get;  }
@@ -52,7 +52,7 @@ public class PatchRepeatsSchedule : IPatchRepeatsSchedule
         CardsCountPerPhase = cardsCountPerPhase;
         Title = TextMaster.RemoveWhiteSpaces(title, true);
         ShortDescription = TextMaster.RemoveWhiteSpaces(shortDescription);
-        Description = TextMaster.RemoveWhiteSpacesExceptNewLines(description);
+        OnStartLearningDescription = TextMaster.RemoveWhiteSpacesExceptNewLines(description);
         DefaultPhaseShortDescription = TextMaster.RemoveWhiteSpaces(defaultPhaseShortDescription);
         DefaultPhaseDescription = TextMaster.RemoveWhiteSpacesExceptNewLines(defaultPhaseDescription);
         DefaultRepeatPhaseShortDescription = TextMaster.RemoveWhiteSpaces(defaultRepeatPhaseShortDescription);
@@ -108,8 +108,7 @@ public class RepeatsScheduleEntity : IParentUserReference, ICreateRepeatsSchedul
     [StringLength(ShortDescriptionLength)]
     public string? ShortDescription { get; set; }
 
-    [Column("OnStartLearningDescription")]
-    public string? Description { get; set; }
+    public string? OnStartLearningDescription { get; set; }
 
     [StringLength(ShortDescriptionLength)]
     public string? DefaultPhaseShortDescription { get; set; }

@@ -115,7 +115,7 @@ public class CardsService
             SearchFieldType.RememberingText => await GetCards(c =>
                 c.ParentUserId == userId
                 && c.ParentCollectionId == collectionId
-                && c.FrontSideText.ToLower().StartsWith(searchValue), skip, count),
+                && c.RememberingText.ToLower().StartsWith(searchValue), skip, count),
             SearchFieldType.PromptText => await GetCards(c =>
                 c.ParentUserId == userId
                 && c.ParentCollectionId == collectionId
@@ -123,7 +123,7 @@ public class CardsService
             SearchFieldType.MeaningText => await GetCards(c =>
                 c.ParentUserId == userId
                 && c.ParentCollectionId == collectionId
-                && c.BackSideText.ToLower().StartsWith(searchValue), skip, count),
+                && c.MeaningText.ToLower().StartsWith(searchValue), skip, count),
             _ => throw new ArgumentOutOfRangeException(nameof(fieldType), fieldType, null)
         };
     }
@@ -158,9 +158,9 @@ public class CardsService
         {
             ParentUserId = userId,
             ParentCollectionId = destinationCollectionId,
-            FrontSideText = card.FrontSideText,
+            RememberingText = card.RememberingText,
             PromptText = card.PromptText,
-            BackSideText = card.BackSideText,
+            MeaningText = card.MeaningText,
             Description = card.Description,
             Examples = card.Examples?.ToList(),
             CreatedDate = card.CreatedDate,
@@ -650,9 +650,9 @@ public class CardsService
 
     public class CreateOrPatchCard : ICreateOrPatchCard
     {
-        public string FrontSideText { get; }
+        public string RememberingText { get; }
         public string PromptText { get; }
-        public string BackSideText { get; }
+        public string MeaningText { get; }
         public string? Description { get; }
         public List<string>? Examples { get; }
         public long ParentUserId { get; }
@@ -670,8 +670,8 @@ public class CardsService
             ParentUserId = parentUserId;
             ParentCollectionId = parentCollectionId;
             PromptText = promptText;
-            FrontSideText = TextMaster.RemoveWhiteSpaces(frontSideText, true);
-            BackSideText = TextMaster.RemoveWhiteSpaces(backSideText, true);
+            RememberingText = TextMaster.RemoveWhiteSpaces(frontSideText, true);
+            MeaningText = TextMaster.RemoveWhiteSpaces(backSideText, true);
             Description = TextMaster.RemoveWhiteSpaces(description);
             Examples = examples?
                 .Select(e => TextMaster.RemoveWhiteSpaces(e))

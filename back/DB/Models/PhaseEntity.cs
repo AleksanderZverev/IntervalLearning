@@ -70,8 +70,7 @@ public class PhaseEntity : IParentRepeatsScheduleReference
 
     [StringLength(ShortDescriptionLength)]
     public string? ShortDescription { get; set; }
-    [Column("OnLearnDescription")]
-    public string? Description { get; set; }
+    public string? OnLearnDescription { get; set; }
 
     public bool IsDefaultValueSide { get; set; }
 

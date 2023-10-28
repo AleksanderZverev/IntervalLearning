@@ -118,7 +118,7 @@ namespace IntervalLearningApi.Controllers
                 schedule.Title,
                 schedule.CardsCountPerPhase,
                 schedule.ShortDescription,
-                schedule.Description,
+                schedule.OnStartLearningDescription,
                 schedule.ForgottenBehavior,
                 schedule.IsRecommended,
                 schedule.Phases.Select(ToPhase).ToList(),
@@ -136,7 +136,7 @@ namespace IntervalLearningApi.Controllers
                 phase.Id,
                 phase.SecondsFromLastPhase,
                 phase.ShortDescription,
-                phase.Description,
+                phase.OnLearnDescription,
                 phase.IsDefaultValueSide);
         }
     }
