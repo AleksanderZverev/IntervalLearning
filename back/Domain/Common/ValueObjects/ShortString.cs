@@ -2,13 +2,10 @@ using FluentResults;
 
 namespace Domain.Common.ValueObjects;
 
-public class ShortString
+public class ShortString : SingleValueObject<string>
 {
-    public string Value { get; }
-
-    protected ShortString(string value)
+    private ShortString(string value) : base(value)
     {
-        Value = value;
     }
 
     public static Result<ShortString> Create(string name)

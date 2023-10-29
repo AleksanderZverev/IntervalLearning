@@ -18,6 +18,8 @@ public abstract class SingleValueObject<TValue> : ValueObject
         yield return Value;
     }
 
-    public static implicit operator TValue(SingleValueObject<TValue> valueObject) 
-        => valueObject.Value;
+    public static implicit operator TValue?(SingleValueObject<TValue>? valueObject) 
+        => ReferenceEquals(valueObject, null) 
+            ? default 
+            : valueObject.Value;
 }

@@ -257,7 +257,7 @@ namespace IntervalLearningApi.Controllers
                 language.Id.Value,
                 language.Name.Value,
                 language.NativeLanguageName.Value,
-                language.TranslationLinkTitle.Value,
+                language.TranslationLinkTitle?.Value,
                 language.TranslationLink);
         }
 

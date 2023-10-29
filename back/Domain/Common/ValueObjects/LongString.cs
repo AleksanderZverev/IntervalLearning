@@ -2,13 +2,10 @@ using FluentResults;
 
 namespace Domain.Common.ValueObjects;
 
-public class LongString
+public class LongString : SingleValueObject<string>
 {
-    public string Value { get; }
-
-    private LongString(string value)
+    private LongString(string value) : base(value)
     {
-        Value = value;
     }
 
     public static Result<LongString> Create(string name)

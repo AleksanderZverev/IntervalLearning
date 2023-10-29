@@ -2,13 +2,10 @@ using FluentResults;
 
 namespace Domain.Common.ValueObjects;
 
-public class MediumString
+public class MediumString : SingleValueObject<string>
 {
-    public string Value { get; }
-
-    private MediumString(string value)
+    private MediumString(string value) : base(value)
     {
-        Value = value;
     }
 
     public static Result<MediumString> Create(string name)
