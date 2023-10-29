@@ -14,7 +14,6 @@
   <ItemGroup>
     <Folder Include="Card\Entities\" />
     <Folder Include="Collection\Entities\" />
-    <Folder Include="User\Entities\" />
   </ItemGroup>
 
   <ItemGroup>

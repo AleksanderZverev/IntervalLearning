@@ -4,7 +4,6 @@ using FluentResults;
 
 namespace Domain.Language;
 
-//[Table("Languages")]
 public class Language
 {
     private Language()
@@ -25,20 +24,11 @@ public class Language
         TranslationLinkTitle = translationLinkTitle;
         TranslationLink = translationLink;
     }
-
-    // [Key]
-    // [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+    
     public LanguageId Id { get; private set; }
-
-    // [Required]
-    // [StringLength(50)]
     public ShortString Name { get; private set; }
-
-    // [Required]
-    // [StringLength(50)]
     public ShortString NativeLanguageName { get;  private set; }
-
-    // [StringLength(50)]
+    
     public ShortString? TranslationLinkTitle { get;  private set; }
     public string? TranslationLink { get;  private set; }
     

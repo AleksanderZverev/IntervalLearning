@@ -17,15 +17,18 @@ public class LanguageConfiguration : IEntityTypeConfiguration<Language>
 
         builder.Property(l => l.Id)
             .HasConversion(id => id.Value, id => LanguageId.Create(id).Value)
-            .ValueGeneratedOnAdd();
+            .ValueGeneratedOnAdd()
+            .IsRequired();
 
         builder.Property(l => l.Name)
             .HasConversion(l => l.Value, value => ShortString.Create(value).Value)
-            .HasMaxLength(50);
+            .HasMaxLength(50)
+            .IsRequired();
         
         builder.Property(l => l.NativeLanguageName)
             .HasConversion(l => l.Value, value => ShortString.Create(value).Value)
-            .HasMaxLength(50);
+            .HasMaxLength(50)
+            .IsRequired();
         
         builder.Property(l => l.TranslationLinkTitle)
             .HasConversion(l => l.Value, value => ShortString.Create(value).Value)
