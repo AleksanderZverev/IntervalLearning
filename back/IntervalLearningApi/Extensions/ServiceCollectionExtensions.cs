@@ -1,5 +1,5 @@
-﻿using DB;
-using DB.DependencyInjection;
+﻿using System.Reflection;
+using DB;
 using IntervalLearningApi.Controllers;
 using IntervalLearningApi.Models;
 using IntervalLearningApi.Models.Common;
@@ -7,6 +7,8 @@ using IntervalLearningApi.Services;
 using IntervalLearningApi.Services.Authentication;
 using IntervalLearningApi.Services.Dictionary;
 using IntervalLearningApi.Services.Jwt;
+using Mapster;
+using MapsterMapper;
 using Newtonsoft.Json.Serialization;
 using NodaTime;
 using NodaTime.Serialization.JsonNet;
@@ -38,6 +40,8 @@ public static class ServiceCollectionExtensions
         services.AddScoped(typeof(Repository<>));
 
         services.AddSingleton(config.JwtSettings);
+        
+        services.AddWebMapper();
 
         // services.AddScoped<SessionUser>(provider =>
         // {
@@ -56,6 +60,14 @@ public static class ServiceCollectionExtensions
                 {NamingStrategy = new CamelCaseNamingStrategy()};
             opts.SerializerSettings.ConfigureForNodaTime(DateTimeZoneProviders.Tzdb);
         });
+    }
 
+    private static void AddWebMapper(this IServiceCollection services)
+    {
+        var config = TypeAdapterConfig.GlobalSettings;
+        config.Scan(Assembly.GetExecutingAssembly());
+
+        services.AddSingleton(config);
+        services.AddScoped<IMapper, ServiceMapper>();
     }
 }

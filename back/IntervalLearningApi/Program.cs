@@ -3,12 +3,8 @@ using IntervalLearningApi;
 using IntervalLearningApi.Extensions;
 using Microsoft.AspNetCore.HttpLogging;
 using Microsoft.EntityFrameworkCore;
-using Newtonsoft.Json.Serialization;
-using NodaTime;
-using NodaTime.Serialization.JsonNet;
 using DB.DependencyInjection;
 using IntervalLearningApi.Models;
-using Newtonsoft.Json;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -91,7 +87,6 @@ builder.Services.AddSwaggerGen(options =>
         }
     });
 });
-
 
 var app = builder.Build();
 
