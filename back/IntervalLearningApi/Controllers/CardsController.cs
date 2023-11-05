@@ -5,6 +5,7 @@ using IntervalLearningApi.Models;
 using IntervalLearningApi.Models.ByUser;
 using IntervalLearningApi.Models.RepeatsSchedule;
 using IntervalLearningApi.Services;
+using MapsterMapper;
 using Microsoft.AspNetCore.Mvc;
 
 namespace IntervalLearningApi.Controllers
@@ -14,11 +15,15 @@ namespace IntervalLearningApi.Controllers
     [ApiController]
     public class CardsController : ControllerBase
     {
+        private readonly IMapper mapper;
         private readonly CardsService cardsService;
         private readonly CollectionService collectionService;
 
-        public CardsController(CardsService cardsService, CollectionService collectionService)
+        public CardsController(
+            IMapper mapper,
+            CardsService cardsService, CollectionService collectionService)
         {
+            this.mapper = mapper;
             this.cardsService = cardsService;
             this.collectionService = collectionService;
         }
@@ -29,8 +34,8 @@ namespace IntervalLearningApi.Controllers
             var userId = HttpContext.GetUserId();
             var card = await cardsService.FindCard(userId, collectionId, cardId);
             return card == null 
-                ? NotFound() 
-                : CollectionsController.ToCard(card);
+                ? NotFound()
+                : mapper.Map<Card>(card);
         }
 
         [HttpGet(ApiRoutes.Cards.Get_GetAll)]
@@ -38,7 +43,7 @@ namespace IntervalLearningApi.Controllers
         {
             var userId = HttpContext.GetUserId();
             var cards = await cardsService.GetCards(userId, collectionId, page, count);
-            return cards.Select(CollectionsController.ToCard).ToList();
+            return mapper.Map<List<Card>>(cards);
         }
 
         [HttpGet(ApiRoutes.Cards.Get_GetCardQueue)]
@@ -51,7 +56,7 @@ namespace IntervalLearningApi.Controllers
         {
             var userId = HttpContext.GetUserId();
             var cards = await cardsService.GetCardsQueue(userId, collectionId, scheduleUserId, scheduleId, phaseIndex, date);
-            return cards.Select(CollectionsController.ToCard).ToList();
+            return mapper.Map<List<Card>>(cards);
         }
 
         [HttpGet(ApiRoutes.Cards.Get_GetNotStartedCards)]
@@ -63,7 +68,9 @@ namespace IntervalLearningApi.Controllers
         {
             var userId = HttpContext.GetUserId();
             var (cards, error) = await cardsService.GetNotStartedCards(scheduleUserId, scheduleId, userId, collectionId, count);
-            return cards == null ? BadRequest(error) : cards.Select(CollectionsController.ToCard).ToList();
+            return cards == null 
+                ? BadRequest(error) 
+                : mapper.Map<List<Card>>(cards);
         }
 
         [HttpPost(ApiRoutes.Cards.Post_CreateCard)]
@@ -87,7 +94,7 @@ namespace IntervalLearningApi.Controllers
                 item.Examples);
 
             return card != null
-                ? CollectionsController.ToCard(card)
+                ? mapper.Map<Card>(card)
                 : BadRequest(error);
         }
 
@@ -96,7 +103,9 @@ namespace IntervalLearningApi.Controllers
         {
             var userId = HttpContext.GetUserId();
             var (cardEntity, error) = await collectionService.DeleteCard(userId, collectionId, cardId);
-            return cardEntity != null ? CollectionsController.ToCard(cardEntity) : BadRequest(error);
+            return cardEntity != null 
+                ? mapper.Map<Card>(cardEntity)
+                : BadRequest(error);
         }
 
         [HttpPost(ApiRoutes.Cards.Post_MoveCard)]
@@ -104,7 +113,9 @@ namespace IntervalLearningApi.Controllers
         {
             var userId = HttpContext.GetUserId();
             var (cardEntity, error) = await collectionService.MoveCard(userId, collectionId, request.DestinationCollectionId, request.CardId);
-            return cardEntity != null ? CollectionsController.ToCard(cardEntity) : BadRequest(error);
+            return cardEntity != null 
+                ? mapper.Map<Card>(cardEntity) 
+                : BadRequest(error);
         }
 
         [HttpGet(ApiRoutes.Cards.Get_SearchCard)]
@@ -117,7 +128,7 @@ namespace IntervalLearningApi.Controllers
         {
             var userId = HttpContext.GetUserId();
             var cardEntities = await cardsService.Search(userId, collectionId, searchValue.ToLower(), fieldType, page, count);
-            return cardEntities.Select(CollectionsController.ToCard).ToList();
+            return mapper.Map<List<Card>>(cardEntities);
         }
 
         [HttpPost(ApiRoutes.Cards.Post_StartCards)]
@@ -130,7 +141,7 @@ namespace IntervalLearningApi.Controllers
                     closestRepeatInfo.NextRepeatDate,
                     closestRepeatInfo.NextPhase == null 
                         ? null 
-                        : RepeatsScheduleController.ToPhase(closestRepeatInfo.NextPhase),
+                        : mapper.Map<Phase>(closestRepeatInfo.NextPhase),
                     closestRepeatInfo.NextPhaseIndex) 
                 : BadRequest(error);
         }
@@ -154,7 +165,7 @@ namespace IntervalLearningApi.Controllers
                     closestRepeatInfo.NextRepeatDate,
                     closestRepeatInfo.NextPhase == null
                         ? null
-                        : RepeatsScheduleController.ToPhase(closestRepeatInfo.NextPhase),
+                        : mapper.Map<Phase>(closestRepeatInfo.NextPhase),
                     closestRepeatInfo.NextPhaseIndex)
                 : BadRequest(error);
         }

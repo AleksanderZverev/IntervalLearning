@@ -18,39 +18,8 @@ public class StoreCollectionRegister : IRegister
 
 public class StoreCollection : Collection
 {
-    public UserInfo OwnerUser { get; }
-    public bool IsLiked { get; }
-    public bool IsDisliked { get; }
-    public bool IsAdded { get; }
-
-    public StoreCollection(
-        UserInfo owner,
-        long userId,
-        short id,
-        string title,
-        DateTime createdAt,
-        short themeId,
-        short cardsCount,
-        short notStartedCards,
-        bool isPublic,
-        CollectionPublication? publication, 
-        bool isLiked,
-        bool isDisliked, 
-        bool isAdded)
-        : base(
-            userId,
-            id,
-            title,
-            createdAt,
-            themeId,
-            cardsCount,
-            notStartedCards,
-            isPublic,
-            publication)
-    {
-        OwnerUser = owner;
-        IsLiked = isLiked;
-        IsDisliked = isDisliked;
-        IsAdded = isAdded;
-    }
+    public UserInfo OwnerUser { get; set; }
+    public bool IsLiked { get; set; }
+    public bool IsDisliked { get; set; }
+    public bool IsAdded { get; set; }
 }

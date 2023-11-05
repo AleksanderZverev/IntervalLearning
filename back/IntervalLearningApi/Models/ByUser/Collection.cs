@@ -1,6 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using DB.Models;
-using DB.Models.Store;
 using Mapster;
 using Newtonsoft.Json;
 
@@ -18,38 +17,16 @@ public class CollectionsRegister : IRegister
 public class Collection
 {
     [JsonProperty("userId")] 
-    public string ParentUserId { get; }
-    public string Id { get; }
-    public string Title { get; }
-    public DateTime CreatedAt { get; }
-    public short ThemeId { get; }
+    public string ParentUserId { get; set; }
+    public string Id { get; set; }
+    public string Title { get; set; }
+    public DateTime CreatedAt { get; set; }
+    public short ThemeId { get; set; }
 
-    public short CardsCount { get; }
+    public short CardsCount { get; set; }
     public short NotStartedCards { get; set; }
-    public bool IsPublic { get; }
-    public CollectionPublication? Publication { get; }
-
-    public Collection(
-        long parentUserId,
-        short id,
-        string title,
-        DateTime createdAt,
-        short themeId,
-        short cardsCount,
-        short notStartedCards,
-        bool isPublic,
-        CollectionPublication? publication)
-    {
-        ParentUserId = parentUserId.ToString();
-        Id = id.ToString();
-        Title = title;
-        CreatedAt = createdAt;
-        ThemeId = themeId;
-        CardsCount = cardsCount;
-        NotStartedCards = notStartedCards;
-        IsPublic = isPublic;
-        Publication = publication;
-    }
+    public bool IsPublic { get; set; }
+    public CollectionPublication? Publication { get; set; }
 }
 
 public class CreateCollectionItem
@@ -65,8 +42,8 @@ public class CreateCollectionItem
 
 public class GetNotFinishedResponse
 {
-    public int TotalCollections { get; }
-    public List<Collection> CanStartCollections { get; }
+    public int TotalCollections { get; set; }
+    public List<Collection> CanStartCollections { get; set; }
 
     public GetNotFinishedResponse(int totalCollections, List<Collection> canStartCollections)
     {
@@ -77,7 +54,7 @@ public class GetNotFinishedResponse
 
 public class RepeatingCollectionResponse
 {
-    public Dictionary<DateTime, List<RepeatingPhaseDto>> DateToRepeatingPhases { get; }
+    public Dictionary<DateTime, List<RepeatingPhaseDto>> DateToRepeatingPhases { get; set; }
 
     public RepeatingCollectionResponse(Dictionary<DateTime, List<RepeatingPhaseDto>> dateToRepeatingPhases)
     {

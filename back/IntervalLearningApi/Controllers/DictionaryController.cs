@@ -2,8 +2,8 @@
 using IntervalLearningApi.Extensions;
 using IntervalLearningApi.Models.Dictionary;
 using IntervalLearningApi.Services.Dictionary;
+using MapsterMapper;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace IntervalLearningApi.Controllers
@@ -13,10 +13,12 @@ namespace IntervalLearningApi.Controllers
     [ApiController]
     public class DictionaryController : ControllerBase
     {
+        private readonly IMapper mapper;
         private readonly DictionaryService dictionaryService;
 
-        public DictionaryController(DictionaryService dictionaryService)
+        public DictionaryController(IMapper mapper, DictionaryService dictionaryService)
         {
+            this.mapper = mapper;
             this.dictionaryService = dictionaryService;
         }
 
@@ -45,8 +47,10 @@ namespace IntervalLearningApi.Controllers
             {
                 foundWords = await dictionaryService.FindWordByPronunciation(pronunciation);
             }
-
-            return foundWords?.Select(CollectionsController.ToWord).ToList() ?? new List<WordDto>();
+            
+            return foundWords is not { Count: > 0 }
+                ? new List<WordDto>()
+                : mapper.Map<List<WordDto>>(foundWords);
         }
 
 
@@ -55,7 +59,7 @@ namespace IntervalLearningApi.Controllers
         public async Task<ActionResult<List<LanguageDto>>> GetLanguages()
         {
             var languages = await dictionaryService.GetLanguages();
-            return languages.Select(CollectionsController.ToLanguage).ToList();
+            return mapper.Map<List<LanguageDto>>(languages);
         }
 
         [HttpPost("translations")]
@@ -73,7 +77,7 @@ namespace IntervalLearningApi.Controllers
             var (translations, error) = await dictionaryService.GetTranslations(userId, word);
             return translations == null
                 ? BadRequest(error)
-                : translations.Select(CollectionsController.ToTranslation).ToList();
+                : mapper.Map<List<TranslationDto>>(translations);
         }
 
         public class AddTranslationsRequest
