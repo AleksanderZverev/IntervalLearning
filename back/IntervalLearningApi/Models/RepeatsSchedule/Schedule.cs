@@ -16,50 +16,18 @@ public class ScheduleRegister : IRegister
 public class Schedule
 {
     [JsonProperty("userId")]
-    public string ParentUserId { get; }
-    public string Id { get; }
-    public string Title { get; }
-    public short CardsCountPerPhase { get; }
-
+    public string ParentUserId { get; set; }
+    public string Id { get; set; }
+    public string Title { get; set; }
+    public short CardsCountPerPhase { get; set; }
     public string? ShortDescription { get; set; }
+    
     public string? Description { get; set; }
     public string? DefaultPhaseShortDescription { get; set; }
     public string? DefaultPhaseDescription { get; set; }
     public string? DefaultRepeatPhaseShortDescription { get; set; }
     public string? DefaultRepeatPhaseDescription { get; set; }
-
-    public bool IsRecommended { get; }
-    public int ForgottenBehavior { get; }
-    
-    public List<Phase> Phases { get; }
-
-    public Schedule(
-        long parentUserId,
-        short id,
-        string title,
-        short cardsCountPerPhase,
-        string? shortDescription,
-        string? description,
-        ForgottenBehavior forgottenBehavior,
-        bool isRecommended,
-        List<Phase> phases,
-        string? defaultPhaseShortDescription,
-        string? defaultPhaseDescription,
-        string? defaultRepeatPhaseShortDescription,
-        string? defaultRepeatPhaseDescription)
-    {
-        ParentUserId = parentUserId.ToString();
-        Id = id.ToString();
-        Title = title;
-        CardsCountPerPhase = cardsCountPerPhase;
-        Description = description;
-        IsRecommended = isRecommended;
-        ForgottenBehavior = (int)forgottenBehavior;
-        Phases = phases;
-        ShortDescription = shortDescription;
-        DefaultPhaseShortDescription = defaultPhaseShortDescription;
-        DefaultPhaseDescription = defaultPhaseDescription;
-        DefaultRepeatPhaseShortDescription = defaultRepeatPhaseShortDescription;
-        DefaultRepeatPhaseDescription = defaultRepeatPhaseDescription;
-    }
+    public bool IsRecommended { get; set; }
+    public int ForgottenBehavior { get; set; }
+    public List<Phase> Phases { get; set; }
 }

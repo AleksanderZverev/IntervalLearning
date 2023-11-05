@@ -10,7 +10,9 @@ public class CollectionsRegister : IRegister
     public void Register(TypeAdapterConfig config)
     {
         config.NewConfig<CollectionEntity, Collection>()
-            .Map(d => d.Publication, s => s.CollectionPublicationEntity);
+            .Map(d => d.Publication, s => s.CollectionPublicationEntity)
+            .Map(d => d.CreatedAt, s => s.CreatedDate)
+            .Map(d => d.NotStartedCards, s => s.NotStartedCardsCount);
     }
 }
 

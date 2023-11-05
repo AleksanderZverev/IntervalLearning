@@ -13,6 +13,11 @@ public abstract class SingleValueObject<TValue> : ValueObject
 
     public TValue Value { get; }
 
+    public override string ToString()
+    {
+        return Value.ToString();
+    }
+
     public override IEnumerable<object> GetEqualityComponents()
     {
         yield return Value;

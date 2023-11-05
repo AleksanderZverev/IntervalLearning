@@ -65,9 +65,16 @@ public static class ServiceCollectionExtensions
     private static void AddWebMapper(this IServiceCollection services)
     {
         var config = TypeAdapterConfig.GlobalSettings;
+        config.RequireExplicitMapping = true;
+        config.RequireDestinationMemberSource = true;
+
         config.Scan(Assembly.GetExecutingAssembly());
 
         services.AddSingleton(config);
         services.AddScoped<IMapper, ServiceMapper>();
+
+#if DEBUG
+        config.Compile();
+#endif
     }
 }

@@ -10,8 +10,7 @@ public class CardRegister : IRegister
     {
         config.NewConfig<CardEntity, Card>()
             .Map(d => d.BackSideText, s => s.MeaningText)
-            .Map(d => d.FrontSideText, s => s.RememberingText)
-            .TwoWays();
+            .Map(d => d.FrontSideText, s => s.RememberingText);
     }
 }
 
