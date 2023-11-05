@@ -1,7 +1,17 @@
 ﻿using DB.Models;
+using Mapster;
 using Newtonsoft.Json;
 
 namespace IntervalLearningApi.Models.RepeatsSchedule;
+
+public class ScheduleRegister : IRegister
+{
+    public void Register(TypeAdapterConfig config)
+    {
+        config.NewConfig<RepeatsScheduleEntity, Schedule>()
+            .Map(d => d.Description, s => s.OnStartLearningDescription);
+    }
+}
 
 public class Schedule
 {

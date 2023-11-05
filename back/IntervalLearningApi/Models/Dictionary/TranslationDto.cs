@@ -1,15 +1,19 @@
-﻿namespace IntervalLearningApi.Models.Dictionary;
+﻿using DB.Models.Dictionary;
+using Mapster;
+
+namespace IntervalLearningApi.Models.Dictionary;
+
+public class TranslationRegister : IRegister
+{
+    public void Register(TypeAdapterConfig config)
+    {
+        config.NewConfig<TranslationEntity, TranslationDto>();
+    }
+}
 
 public class TranslationDto
 {
-    public string LanguageId { get; }
-    public string Id { get; }
-    public string Translation { get; }
-
-    public TranslationDto(short languageId, short id, string translation)
-    {
-        LanguageId = languageId.ToString();
-        Id = id.ToString();
-        Translation = translation;
-    }
+    public string LanguageId { get; set; }
+    public string Id { get; set; }
+    public string Translation { get; set; }
 }

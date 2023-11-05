@@ -1,34 +1,28 @@
-﻿using Newtonsoft.Json;
+﻿using DB.Models;
+using Mapster;
+using Newtonsoft.Json;
 
 namespace IntervalLearningApi.Models.RepeatsSchedule;
+
+public class PhaseRegister : IRegister
+{
+    public void Register(TypeAdapterConfig config)
+    {
+        config.NewConfig<PhaseEntity, Phase>()
+            .Map(d => d.Description, s => s.OnLearnDescription);
+    }
+}
 
 public class Phase
 {
     [JsonProperty("userId")]
-    public string ParentUserId { get; }
+    public string ParentUserId { get; set; }
 
     [JsonProperty("scheduleId")]
-    public string ParentRepeatsScheduleId { get; }
-    public string Id { get; }
-    public uint SecondsFromLastPhase { get; }
-    public string? ShortDescription { get; }
-    public string? Description { get; }
-    public bool IsDefaultValueSide { get; }
-
-    public Phase(long parentUserId,
-        short parentRepeatsScheduleId,
-        short id,
-        uint secondsFromLastPhase,
-        string? shortDescription,
-        string? description, 
-        bool isDefaultValueSide)
-    {
-        ParentUserId = parentUserId.ToString();
-        ParentRepeatsScheduleId = parentRepeatsScheduleId.ToString();
-        Id = id.ToString();
-        SecondsFromLastPhase = secondsFromLastPhase;
-        ShortDescription = shortDescription;
-        Description = description;
-        IsDefaultValueSide = isDefaultValueSide;
-    }
+    public string ParentRepeatsScheduleId { get; set; }
+    public string Id { get; set; }
+    public uint SecondsFromLastPhase { get; set; }
+    public string? ShortDescription { get; set; }
+    public string? Description { get; set; }
+    public bool IsDefaultValueSide { get; set; }
 }

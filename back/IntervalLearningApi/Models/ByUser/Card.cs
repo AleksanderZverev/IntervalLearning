@@ -1,42 +1,32 @@
-﻿using Newtonsoft.Json;
+﻿using DB.Models;
+using Mapster;
+using Newtonsoft.Json;
 
 namespace IntervalLearningApi.Models.ByUser;
+
+public class CardRegister : IRegister
+{
+    public void Register(TypeAdapterConfig config)
+    {
+        config.NewConfig<CardEntity, Card>()
+            .Map(d => d.BackSideText, s => s.MeaningText)
+            .Map(d => d.FrontSideText, s => s.RememberingText)
+            .TwoWays();
+    }
+}
 
 public class Card
 {
     [JsonProperty("userId")]
-    public string ParentUserId { get; }
+    public string ParentUserId { get; set; }
     [JsonProperty("collectionId")]
-    public string ParentCollectionId { get; }
-    public string Id { get; }
-    public string BackSideText { get; }
-    public string PromptText { get; }
-    public string FrontSideText { get; }
-    public DateTime CreatedDate { get; }
-    public string? Description { get; }
-    public List<string>? Examples { get; }
-    public List<Remember>? Remembers { get; }
-
-    public Card(long parentUserId,
-        short parentCollectionId,
-        short id,
-        string backSideText,
-        string promptText,
-        string frontSideText,
-        DateTime createdDate,
-        string? description,
-        List<string>? examples,
-        List<Remember>? remembers)
-    {
-        ParentUserId = parentUserId.ToString();
-        ParentCollectionId = parentCollectionId.ToString();
-        Id = id.ToString();
-        BackSideText = backSideText;
-        PromptText = promptText;
-        FrontSideText = frontSideText;
-        CreatedDate = createdDate;
-        Description = description;
-        Examples = examples;
-        Remembers = remembers;
-    }
+    public string ParentCollectionId { get; set; }
+    public string Id { get; set; }
+    public string BackSideText { get; set; }
+    public string PromptText { get; set; }
+    public string FrontSideText { get; set; }
+    public DateTime CreatedDate { get; set; }
+    public string? Description { get; set; }
+    public List<string>? Examples { get; set; }
+    public List<Remember>? Remembers { get; set; }
 }
