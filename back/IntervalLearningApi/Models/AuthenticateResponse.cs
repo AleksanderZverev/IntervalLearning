@@ -1,5 +1,6 @@
 ﻿using System.Text.Json.Serialization;
 using DB.Models;
+using Domain.Language.ValueObjects;
 
 namespace IntervalLearningApi.Models;
 
@@ -13,4 +14,6 @@ public class AuthenticateResponse
 
     [JsonIgnore] // refresh token is returned in http only cookie
     public string RefreshToken { get; set; }
+
+    public string SuggestTranslationLanguageId { get; set; }
 }

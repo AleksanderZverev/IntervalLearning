@@ -43,6 +43,7 @@ public class AuthenticationControllerTests : ScopeApiTests
         responseModel.Email.Should().BeEquivalentTo(email);
         responseModel.JwtToken.Should().NotBeEmpty();
         responseModel.RefreshToken.Should().NotBeEmpty();
+        responseModel.SuggestTranslationLanguageId.Should().NotBeEmpty();
     }
     
     [Fact]

@@ -73,7 +73,11 @@ public class AuthenticationService : IAuthenticationService
 
     public (AuthenticateResponse? response, string? errorMessage) Authenticate(AuthenticateRequest req, string ipAddress)
     {
-        var user = db.Users.Include(u => u.PasswordHash).Include(u => u.RefreshTokens).SingleOrDefault(x => x.Email == req.Email.ToLower());
+        var user = db.Users
+            .Include(u => u.PasswordHash)
+            .Include(u => u.RefreshTokens)
+            .Include(u => u.Metadata)
+            .SingleOrDefault(x => x.Email == req.Email.ToLower());
 
         if (user is {PasswordHash: null})
             return (null, "Not signed up user!");
@@ -91,7 +95,10 @@ public class AuthenticationService : IAuthenticationService
         if (userId == null)
             return null;
 
-        var user = db.Users.Single(u => u.Id == userId);
+        var user = db.Users
+            .Include(u => u.Metadata)
+            .Single(u => u.Id == userId);
+        
         return ToAuthenticationResponse(user, jwtToken, refreshToken);
     }
 
@@ -148,6 +155,7 @@ public class AuthenticationService : IAuthenticationService
             Email = userEntity.Email,
             JwtToken = jwtToken,
             RefreshToken = refreshToken,
+            SuggestTranslationLanguageId = userEntity.Metadata.SuggestTranslationLanguageId.ToString(),
         };
     }
 
@@ -173,7 +181,10 @@ public class AuthenticationService : IAuthenticationService
 
     private (UserEntity? user, string? error) GetUserByRefreshToken(string token)
     {
-        var user = db.Users.Include(u => u.RefreshTokens).SingleOrDefault(u => u.RefreshTokens.Any(t => t.Token == token));
+        var user = db.Users
+            .Include(u => u.RefreshTokens)
+            .Include(u => u.Metadata)
+            .SingleOrDefault(u => u.RefreshTokens.Any(t => t.Token == token));
         return (user, user == null ? "Invalid token" : null);
     }
 
