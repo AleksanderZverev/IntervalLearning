@@ -144,7 +144,7 @@ public class CardAndCollectionsControllerTests : SharedApiTests
     {
         public override string ToString()
         {
-            return $"{Behavior}: " + string.Join(" → ", Steps.Select(s => $"{s.Weight}({s.NextPhaseIndexDiff})")) + $" = {ResultStep}";
+            return $"{Behavior}: " + string.Join(" → ", Steps.Select(s => $"w:{s.Weight}({s.NextPhaseIndexDiff})")) + $" = {ResultStep}";
         }
     };
     
@@ -710,7 +710,7 @@ public class CardAndCollectionsControllerTests : SharedApiTests
             var phase = phases[phaseIndex];
             var date = now.Add(phase);
             
-            dates.Should().OnlyContain(d => d.Date == date.Date);
+            dates.Should().OnlyContain(d => d.Date == date.Date, "next date is {0}", date.Date);
         }
     }
     
@@ -733,9 +733,10 @@ public class CardAndCollectionsControllerTests : SharedApiTests
             var repeatablePhase = repeatablePhases
                 .Where(p => p.ScheduleId == scheduleId)
                 .SingleOrDefault(p => TimeSpan.FromSeconds(p.SecondsFromLastPhase) == duration);
-            
-            repeatablePhase.Should().NotBeNull();
-            repeatablePhase.RepeatingCollections.Should().NotBeEmpty();
+
+            var because = $"should contain {phaseDate}";
+            repeatablePhase.Should().NotBeNull(because);
+            repeatablePhase.RepeatingCollections.Should().NotBeEmpty(because);
         }
     }
 

@@ -142,13 +142,12 @@ public class RepeatsScheduleEntity : IParentUserReference, ICreateRepeatsSchedul
         var nextPhaseIndex = FindNextPhaseIndex(currentPhaseIndex);
         var nextPhase = FindPhase(nextPhaseIndex);
 
-        if (remember.IsRemembered())
+        if (nextPhase != null && nextPhase.IsRepeat())
         {
-            if (nextPhase != null && nextPhase.IsRepeat())
+            if (remember.IsRemembered())
             {
                 nextPhaseIndex++;
                 nextPhase = FindPhase(nextPhaseIndex);
-                return (nextPhaseIndex, nextPhase);
             }
             
             return (nextPhaseIndex, nextPhase);
@@ -164,6 +163,11 @@ public class RepeatsScheduleEntity : IParentUserReference, ICreateRepeatsSchedul
                 currentPhase = FindPhase(currentPhaseIndex);
                 remember = previousRemember;
             }
+        }
+
+        if (remember.IsRemembered())
+        {
+            return (nextPhaseIndex, nextPhase);
         }
 
         if (remember.IsNotClearRemember())
@@ -217,7 +221,7 @@ public class RepeatsScheduleEntity : IParentUserReference, ICreateRepeatsSchedul
 
     public PhaseEntity? FindPhase(int phaseIndex)
     {
-        if (phaseIndex >= 0 && phaseIndex < Phases.Count)
+        if (phaseIndex < 0 || phaseIndex >= Phases.Count)
             return null;
         
         var sortedPhases = Phases.OrderBy(p => p.Id).ToList();
@@ -226,7 +230,7 @@ public class RepeatsScheduleEntity : IParentUserReference, ICreateRepeatsSchedul
 
     public PhaseEntity GetPhase(int phaseIndex)
     {
-        if (phaseIndex >= 0 && phaseIndex < Phases.Count)
+        if (phaseIndex < 0 || phaseIndex >= Phases.Count)
             throw new ArgumentOutOfRangeException();
         
         var sortedPhases = Phases.OrderBy(p => p.Id).ToList();
