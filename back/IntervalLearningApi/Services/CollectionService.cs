@@ -65,7 +65,7 @@ public class CollectionService
         {
             var date = queueItem.Date.Date;
             var schedule = queueItem.ParentRepeatsSchedule;
-            var phase = schedule.Phases.OrderBy(p => p.Id).Skip(queueItem.PhaseIndex).First();
+            var phase = schedule.GetPhase(queueItem.PhaseIndex);
 
             if (!result.ContainsKey(date))
             {

@@ -177,8 +177,7 @@ public class CardsService
                 await db.Database.RollbackTransactionAsync();
             return (null, "Unable to create card", false);
         }
-
-
+        
         var remembers = card.Remembers.Select(r => new RememberEntity(
             r.ParentRepeatsScheduleUserId,
             r.ParentRepeatsScheduleId,
@@ -190,8 +189,7 @@ public class CardsService
             r.RepeatedDate)).ToList();
         
         await db.Remembers.AddRangeAsync(remembers);
-
-
+        
         if (!db.SoftSaveChanges())
         {
             return (null, "Unable to save remember entities", false);
@@ -371,27 +369,17 @@ public class CardsService
 
         foreach (var card in cards)
         {
-            var lastRemember = card.Remembers.MaxBy(c => c.Id);
+            var lastRemember = card.FindLastRemember();
             var nextPhaseIndex = lastRemember == null ? 0 : lastRemember.PhaseIndex + 1;
-            var nextPhase = scheduleWithPhases.Phases
-                .OrderBy(p => p.Id)
-                .Skip(nextPhaseIndex)
-                .FirstOrDefault();
+            var nextPhase = scheduleWithPhases.FindPhase(nextPhaseIndex);
 
             if (nextPhase == null)
             {
                 Debug.Fail("nextPhase == null");
-                return (null, "Error in algorithm work");
+                return (null, "An error in algorithm work");
             }
 
-            var nextRepeatDate = DateTime.UtcNow.AddSeconds(nextPhase.SecondsFromLastPhase);
-
-            if (nextRepeatDate <= closestRepeatDate)
-            {
-                closestRepeatDate = nextRepeatDate;
-                closestPhaseInfo = nextPhase;
-                closestPhaseIndex = nextPhaseIndex;
-            }
+            var nextRepeatDate = nextPhase.GetNextDate(DateTime.UtcNow);
 
             var queueItem = new CardRepeatQueueEntity(
                 scheduleWithPhases.ParentUserId,
@@ -404,6 +392,13 @@ public class CardsService
             );
 
             queueItems.Add(queueItem);
+            
+            if (nextRepeatDate <= closestRepeatDate)
+            {
+                closestRepeatDate = nextRepeatDate;
+                closestPhaseInfo = nextPhase;
+                closestPhaseIndex = nextPhaseIndex;
+            }
         }
 
         queueItems.ForEach(q => db.Entry(q).State = EntityState.Added);

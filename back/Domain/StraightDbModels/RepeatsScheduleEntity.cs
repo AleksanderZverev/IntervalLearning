@@ -156,7 +156,7 @@ public class RepeatsScheduleEntity : IParentUserReference, ICreateRepeatsSchedul
 
         if (currentPhase.IsRepeat() && currentPhaseIndex > 0)
         {
-            var previousRemember = cardEntity.Remembers.MaxBy(r => r.Id);
+            var previousRemember = cardEntity.FindLastRemember();
 
             if (previousRemember != null)
             {
@@ -215,7 +215,7 @@ public class RepeatsScheduleEntity : IParentUserReference, ICreateRepeatsSchedul
             : -1;
     }
 
-    private PhaseEntity? FindPhase(int phaseIndex)
+    public PhaseEntity? FindPhase(int phaseIndex)
     {
         if (phaseIndex >= 0 && phaseIndex < Phases.Count)
             return null;

@@ -88,4 +88,7 @@ public class PhaseEntity : IParentRepeatsScheduleReference
 
     public DateTime GetNextDate(DateTime from)
         => from.AddSeconds(SecondsFromLastPhase);
+
+    public TimeSpan GetDurationToNextPhase()
+        => TimeSpan.FromSeconds(SecondsFromLastPhase);
 }

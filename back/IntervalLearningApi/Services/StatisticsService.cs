@@ -56,7 +56,7 @@ public class StatisticsService
                     && c.ParentCollectionId == cardPair.Key.ParentCollectionId
                     && c.Id == cardPair.Key.ParentCardId);
 
-            var learnedDate = GetLearnedDate(card);
+            var learnedDate = card.GetLearnedDate();
 
             if (learnedDate >= from && learnedDate <= to)
             {
@@ -65,7 +65,7 @@ public class StatisticsService
             
             AddOrIncrementDate(dateToLearnedCards, learnedDate, timezoneOffset);
 
-            foreach (var repeatedRemember in FilterRepeatedRemembers(card))
+            foreach (var repeatedRemember in card.GetRepeatingRemembers().DistinctBy(r => r.RepeatedDate.Date))
                 AddOrIncrementDate(dateToRepeatedCards, repeatedRemember.RepeatedDate, timezoneOffset);
         }
 
@@ -121,7 +121,7 @@ public class StatisticsService
             .SingleAsync(s => s.Id == scheduleId && s.ParentUserId == scheduleUserId);
         
         var orderedPhasesWithoutRepetitions = schedule.Phases
-            .Where(p => p.SecondsFromLastPhase > TimeSpan.FromHours(1).TotalSeconds && TimeSpan.FromSeconds(p.SecondsFromLastPhase).TotalDays <= 40)
+            .Where(p => p.GetDurationToNextPhase() > TimeSpan.FromHours(1) && p.GetDurationToNextPhase().TotalDays <= 40)
             .OrderBy(p => p.SecondsFromLastPhase)
             .ToList();
 
@@ -140,10 +140,10 @@ public class StatisticsService
             var phaseDate = currentDate;
             foreach (var phase in orderedPhasesWithoutRepetitions)
             {
-                phaseDate = phaseDate.AddSeconds(phase.SecondsFromLastPhase);
+                phaseDate = phase.GetNextDate(phaseDate);
                 
-                var cardsToRepeat = dateToRepetitionsCount.TryGetValue(GetUserLocalDate(phaseDate, timezoneOffset), out var repetionsCount) 
-                    ? repetionsCount 
+                var cardsToRepeat = dateToRepetitionsCount.TryGetValue(GetUserLocalDate(phaseDate, timezoneOffset), out var repetitionsCount) 
+                    ? repetitionsCount 
                     : 0;
 
                 cardsToLearn = Math.Min(cardsToLearn, Math.Max(maxCardsToRepeat - cardsToRepeat, 0));
@@ -199,7 +199,7 @@ public class StatisticsService
         
         foreach (var card in cards)
         {
-            var startedDate = GetLearnedDate(card);
+            var startedDate = card.GetLearnedDate();
             if (startedDate.Date == date)
             {
                 learnedCards++;
@@ -213,22 +213,5 @@ public class StatisticsService
             RepeatedCards: repeatedCards,
             LearnedCards: learnedCards
         );
-    }
-    
-    private static List<RememberEntity> FilterRepeatedRemembers(CardEntity card)
-    {
-        var learnedDate = GetLearnedDate(card);
-        return card.Remembers
-            .Where(r => r.RepeatedDate.Date != learnedDate.Date)
-            .DistinctBy(r => r.RepeatedDate.Date)
-            .ToList();
-    }
-
-    private static DateTime GetLearnedDate(CardEntity card)
-    {
-        return card.Remembers
-            .OrderBy(r => r.RepeatedDate)
-            .First()
-            .RepeatedDate;
     }
 }

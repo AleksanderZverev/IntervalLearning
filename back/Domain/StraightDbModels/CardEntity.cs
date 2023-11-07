@@ -56,4 +56,23 @@ public class CardEntity : ICreateOrPatchCard, IParentCollectionReference
 
     public short ParentCollectionId { get; set; }
     public CollectionEntity? ParentCollection { get; set; }
+
+    public RememberEntity? FindLastRemember() 
+        => Remembers.MaxBy(c => c.Id);
+    
+    public DateTime GetLearnedDate()
+    {
+        return Remembers
+            .OrderBy(r => r.RepeatedDate)
+            .First()
+            .RepeatedDate;
+    }
+    
+    public List<RememberEntity> GetRepeatingRemembers()
+    {
+        var learnedDate = GetLearnedDate();
+        return Remembers
+            .Where(r => r.RepeatedDate.Date != learnedDate.Date)
+            .ToList();
+    }
 }
