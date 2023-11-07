@@ -11,5 +11,9 @@ public class UserConfiguration : IEntityTypeConfiguration<UserEntity>
         builder.HasMany<CollectionEntity>()
             .WithOne(c => c.ParentUser)
             .HasForeignKey(c => c.ParentUserId);
+
+        builder.HasOne(c => c.Metadata)
+            .WithOne(m => m.ParentUser)
+            .HasForeignKey<UserMetadataEntity>(m => m.ParentUserId);
     }
 }

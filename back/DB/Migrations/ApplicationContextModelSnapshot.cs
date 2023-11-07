@@ -871,7 +871,7 @@ namespace DB.Migrations
             modelBuilder.Entity("DB.Models.UserMetadataEntity", b =>
                 {
                     b.HasOne("DB.Models.UserEntity", "ParentUser")
-                        .WithOne()
+                        .WithOne("Metadata")
                         .HasForeignKey("DB.Models.UserMetadataEntity", "ParentUserId")
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
@@ -923,6 +923,9 @@ namespace DB.Migrations
             modelBuilder.Entity("DB.Models.UserEntity", b =>
                 {
                     b.Navigation("Collections");
+
+                    b.Navigation("Metadata")
+                        .IsRequired();
 
                     b.Navigation("PasswordHash");
 

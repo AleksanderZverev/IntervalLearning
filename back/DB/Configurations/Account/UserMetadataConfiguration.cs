@@ -11,7 +11,7 @@ public class UserMetadataConfiguration : IEntityTypeConfiguration<UserMetadataEn
         builder.HasKey(c => c.ParentUserId);
 
         builder.HasOne(m => m.ParentUser)
-            .WithOne()
+            .WithOne(u => u.Metadata)
             .HasForeignKey<UserMetadataEntity>(m => m.ParentUserId)
             .OnDelete(DeleteBehavior.NoAction);
 
