@@ -56,4 +56,14 @@ public class RememberEntity : IParentCardReference
     public long ParentRepeatsScheduleUserId { get; set; }
     public short ParentRepeatsScheduleId { get; set; }
     public RepeatsScheduleEntity? ParentRepeatsSchedule { get; set; }
+
+    public bool IsRemembered()
+    {
+        return Weight >= 0.70f;
+    }
+
+    public bool IsNotClearRemember()
+    {
+        return Weight >= 0.40f && Weight < 0.70f;
+    }
 }

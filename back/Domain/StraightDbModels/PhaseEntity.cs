@@ -80,4 +80,12 @@ public class PhaseEntity : IParentRepeatsScheduleReference
 
     public long ParentUserId { get; set; }
     public UserEntity? ParentUser { get; set; }
+
+    public bool IsRepeat()
+    {
+        return SecondsFromLastPhase < 10;
+    }
+
+    public DateTime GetNextDate(DateTime from)
+        => from.AddSeconds(SecondsFromLastPhase);
 }

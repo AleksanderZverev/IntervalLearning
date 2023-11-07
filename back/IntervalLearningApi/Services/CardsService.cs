@@ -38,7 +38,10 @@ public class CardsService
 
     public Task<CardEntity?> FindCard(long userId, short collectionId, short cardId)
     {
-        return db.Cards.FindAsync(userId, collectionId, cardId).AsTask();
+        return db.Cards
+            .Include(r => r.Remembers)
+            .AsSplitQuery()
+            .SingleOrDefaultAsync(c => c.ParentUserId == userId && c.ParentCollectionId == collectionId && c.Id == cardId);
     }
 
     public Task<List<CardEntity>> GetCards(long userId, short collectionId, int page, int count)
@@ -461,11 +464,12 @@ public class CardsService
             return (null, "Schedule not found");
         }
         
+        await using var transaction = await db.Database.BeginTransactionAsync();
+        
         var closestRepeatDate = DateTime.MaxValue;
         var closestPhaseIndex = -1;
         PhaseEntity? closestPhaseInfo = null;
 
-        await using var transaction = await db.Database.BeginTransactionAsync();
         var forbidDate = DateTime.UtcNow.Date.AddDays(1);
 
         foreach (var rememberItem in rememberItems)
@@ -494,10 +498,7 @@ public class CardsService
 
             db.Entry(remember).State = EntityState.Added;
 
-            var currentPhase = schedule.Phases
-                .OrderBy(p => p.Id)
-                .Skip(queueItem.PhaseIndex)
-                .First();
+            var currentPhase = schedule.GetPhase(queueItem.PhaseIndex);
 
             var phaseRemember = new PhaseRememberEntity(
                 schedule.ParentUserId,
@@ -509,19 +510,19 @@ public class CardsService
             db.Entry(phaseRemember).State = EntityState.Added;
             db.Entry(queueItem).State = EntityState.Deleted;
 
-            var (nextPhaseIndex, nextPhase) = GetNextPhaseIndex(schedule, remember);
+            var card = await FindCard(userId, collectionId, cardId);
+
+            if (card == null)
+            {
+                return (null, "Internal error, card not found");
+            }
+            
+            var (nextPhaseIndex, nextPhase) = schedule.GetNextPhaseIndex(card, remember);
 
             if (nextPhase == null)
                 continue;
 
-            var nextRepeatDate = now.AddSeconds(nextPhase.SecondsFromLastPhase);
-
-            if (nextRepeatDate < closestRepeatDate)
-            {
-                closestRepeatDate = nextRepeatDate;
-                closestPhaseInfo = nextPhase;
-                closestPhaseIndex = nextPhaseIndex;
-            }
+            var nextRepeatDate = nextPhase.GetNextDate(now);
 
             var newQueueItem = new CardRepeatQueueEntity(
                 schedule.ParentUserId,
@@ -533,6 +534,13 @@ public class CardsService
                 nextRepeatDate);
 
             db.Entry(newQueueItem).State = EntityState.Added;
+            
+            if (nextRepeatDate < closestRepeatDate)
+            {
+                closestRepeatDate = nextRepeatDate;
+                closestPhaseInfo = nextPhase;
+                closestPhaseIndex = nextPhaseIndex;
+            }
         }
 
         var isOk = db.SoftSaveChanges();
@@ -546,106 +554,6 @@ public class CardsService
             closestRepeatDate == DateTime.MaxValue ? null : closestRepeatDate,
             closestPhaseInfo,
             closestPhaseIndex), null);
-    }
-
-    private (int nextPhaseIndex, PhaseEntity? nextPhase) GetNextPhaseIndex(RepeatsScheduleEntity schedule, RememberEntity remember)
-    {
-        var sortedPhases = schedule.Phases.OrderBy(p => p.Id).ToList();
-
-        var currentPhaseIndex = remember.PhaseIndex;
-        
-        var nextPhaseIndex = currentPhaseIndex + 1 < sortedPhases.Count
-            ? currentPhaseIndex + 1
-            : -1;
-        
-        var nextPhase = nextPhaseIndex >= 0 && nextPhaseIndex < sortedPhases.Count
-            ? sortedPhases[nextPhaseIndex]
-            : null;
-
-        var nextPhaseIsRepeatPhase = nextPhase != null && nextPhase.SecondsFromLastPhase < 10;
-
-        if (nextPhaseIsRepeatPhase)
-        {
-            if (remember.Weight >= 0.70f)
-            {
-                nextPhaseIndex++;
-                nextPhase = nextPhaseIndex >= 0 && nextPhaseIndex < sortedPhases.Count 
-                    ? sortedPhases[nextPhaseIndex] 
-                    : null;
-            }
-
-            return (nextPhaseIndex, nextPhase);
-        }
-
-        var currentPhase = sortedPhases[currentPhaseIndex];
-        var isCurrentPhaseRepeatPhase = currentPhase.SecondsFromLastPhase < 10;
-
-        if (isCurrentPhaseRepeatPhase && currentPhaseIndex > 0)
-        {
-            var previousRemembers = db.Remembers
-                .Where(r => r.ParentUserId == remember.ParentUserId
-                            && r.ParentCollectionId == remember.ParentCollectionId
-                            && r.ParentCardId == remember.ParentCardId
-                            && r.ParentRepeatsScheduleUserId == remember.ParentRepeatsScheduleUserId
-                            && r.ParentRepeatsScheduleId == remember.ParentRepeatsScheduleId
-                            && r.PhaseIndex == remember.PhaseIndex - 1)
-                .ToList();
-
-            var previousRemember = previousRemembers.MaxBy(r => r.Id);
-
-            if (previousRemember != null)
-            {
-                currentPhaseIndex = previousRemember.PhaseIndex;
-                currentPhase = sortedPhases[currentPhaseIndex];
-                remember = previousRemember;
-            }
-        }
-
-        if (remember.Weight >= 0.70f)
-        {
-            return (nextPhaseIndex, nextPhase);
-        }
-
-        if (remember.Weight >= 0.40f && remember.Weight < 0.70f)
-        {
-            return schedule.ForgottenBehavior switch
-            {
-                ForgottenBehavior.MoveToNextStep => (nextPhaseIndex, nextPhase),
-                ForgottenBehavior.MoveToPreviousStep => (currentPhaseIndex, currentPhase),
-                ForgottenBehavior.StartFromFirstStep => (currentPhaseIndex, currentPhase),
-                ForgottenBehavior.StayOnCurrentStep => (currentPhaseIndex, currentPhase),
-                _ => throw new ArgumentOutOfRangeException("Unknown forgotten behaviour " + schedule.ForgottenBehavior),
-            };
-        }
-
-        switch (schedule.ForgottenBehavior)
-        {
-            case ForgottenBehavior.MoveToNextStep:
-                return (nextPhaseIndex, nextPhase);
-            case ForgottenBehavior.StayOnCurrentStep:
-                return (currentPhaseIndex, currentPhase);
-            case ForgottenBehavior.StartFromFirstStep:
-                return (0, sortedPhases[0]);
-            case ForgottenBehavior.MoveToPreviousStep:
-            {
-                if (currentPhaseIndex == 0)
-                    return (0, sortedPhases[0]);
-
-                var previousPhaseIndex = currentPhaseIndex - 1;
-                var previousPhase = sortedPhases[previousPhaseIndex];
-
-                var isPreviousPhaseRepeatPhase = previousPhase.SecondsFromLastPhase < 10;
-
-                if (isPreviousPhaseRepeatPhase && previousPhaseIndex > 0)
-                {
-                    previousPhase = sortedPhases[previousPhaseIndex - 1];
-                    previousPhaseIndex -= 1;
-                }
-                
-                return (previousPhaseIndex, previousPhase);
-            }
-            default: throw new ArgumentOutOfRangeException("Unknown forgotten behaviour " + schedule.ForgottenBehavior);
-        };
     }
 
     public class CreateOrPatchCard : ICreateOrPatchCard
