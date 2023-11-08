@@ -1,5 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using Domain.User;
+using Domain.User.ValueObjects;
 
 namespace DB.Models;
 
@@ -17,7 +19,7 @@ public interface ICreateOrPatchCard
     public string? Description { get; }
     public List<string>? Examples { get; }
 
-    public long ParentUserId { get; }
+    public UserId ParentUserId { get; }
     public short ParentCollectionId { get; }
 }
 
@@ -51,8 +53,8 @@ public class CardEntity : ICreateOrPatchCard, IParentCollectionReference
 
     public virtual List<RememberEntity> Remembers { get; set; } = new();
 
-    public long ParentUserId { get; set; }
-    public UserEntity? ParentUser { get; set; }
+    public UserId ParentUserId { get; set; }
+    public User? ParentUser { get; set; }
 
     public short ParentCollectionId { get; set; }
     public CollectionEntity? ParentCollection { get; set; }

@@ -1,5 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using Domain.User;
+using Domain.User.ValueObjects;
 using Infrastructure;
 
 namespace DB.Models;
@@ -24,7 +26,7 @@ public interface IPatchRepeatsSchedule
 
 public interface ICreateRepeatsSchedule : IPatchRepeatsSchedule
 {
-    public long ParentUserId { get; }
+    public UserId ParentUserId { get; }
     public ForgottenBehavior ForgottenBehavior { get; }
 }
 
@@ -62,11 +64,11 @@ public class PatchRepeatsSchedule : IPatchRepeatsSchedule
 
 public class CreateScheduleItem : PatchRepeatsSchedule, ICreateRepeatsSchedule
 {
-    public long ParentUserId { get; set; }
+    public UserId ParentUserId { get; set; }
     public ForgottenBehavior ForgottenBehavior { get; }
 
     public CreateScheduleItem(
-        long parentUserId,
+        UserId parentUserId,
         short cardsCountPerPhase,
         ForgottenBehavior forgottenBehavior,
         string title,
@@ -131,8 +133,8 @@ public class RepeatsScheduleEntity : IParentUserReference, ICreateRepeatsSchedul
     public bool IsArchived { get; set; }
     public bool IsRecommended { get; set; }
 
-    public long ParentUserId { get; set; }
-    public UserEntity? ParentUser { get; set; }
+    public UserId ParentUserId { get; set; }
+    public User? ParentUser { get; set; }
 
     public (int nextPhaseIndex, PhaseEntity? nextPhase) GetNextPhaseIndex(CardEntity cardEntity, RememberEntity remember)
     {

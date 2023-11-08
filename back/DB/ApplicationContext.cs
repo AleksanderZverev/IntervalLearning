@@ -2,6 +2,7 @@
 using DB.Models.Dictionary;
 using DB.Models.Store;
 using Domain.Language;
+using Domain.User;
 using Microsoft.EntityFrameworkCore;
 
 namespace DB
@@ -11,7 +12,7 @@ namespace DB
         public ApplicationContext(DbContextOptions<ApplicationContext> options) : base(options) { }
         protected ApplicationContext(DbContextOptions options) : base(options) { }
 
-        public DbSet<UserEntity> Users { get; set; }
+        public DbSet<User> Users { get; set; }
         public DbSet<UserPasswordsEntity> UsersPasswords { get; set; }
         public DbSet<RefreshTokenEntity> RefreshTokens { get; set; }
 

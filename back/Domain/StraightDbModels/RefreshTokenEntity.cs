@@ -1,9 +1,10 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.Text.Json.Serialization;
+using Domain.User;
 
 namespace DB.Models;
 
-public class RefreshTokenEntity : IParentUserReference
+public class RefreshTokenEntity
 {
     [JsonIgnore]
     public short Id { get; set; }
@@ -25,5 +26,5 @@ public class RefreshTokenEntity : IParentUserReference
     [JsonIgnore]
     public long ParentUserId { get; set; }
     [JsonIgnore]
-    public UserEntity? ParentUser { get; set; }
+    public User? ParentUser { get; set; }
 }

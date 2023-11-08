@@ -1,13 +1,39 @@
 using DB.Models;
+using Domain.User;
+using Domain.User.ValueObjects;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace DB.Configurations.Account;
 
-public class UserConfiguration : IEntityTypeConfiguration<UserEntity>
+public class UserConfiguration : IEntityTypeConfiguration<User>
 {
-    public void Configure(EntityTypeBuilder<UserEntity> builder)
+    public void Configure(EntityTypeBuilder<User> builder)
     {
+        builder.HasKey(u => u.Id);
+        builder.Property(u => u.Id)
+            .HasConversion(u => u.Value, userId => UserId.Create(userId).Value);
+
+        builder.OwnsOne(u => u.UserName, b =>
+        {
+            b.Property(u => u.FirstName)
+                .HasConversion(n => n.Value, firstName => PartedName.Create(firstName).Value)
+                .HasMaxLength(50)
+                .IsRequired()
+                .HasColumnName("FirstName");
+
+            b.Property(u => u.LastName)
+                .HasConversion(n => n.Value, lastName => PartedName.Create(lastName).Value)
+                .HasMaxLength(50)
+                .IsRequired()
+                .HasColumnName("LastName");
+        });
+
+        builder.Property(u => u.Email)
+            .HasConversion(e => e.Value, email => EmailAddress.Create(email).Value)
+            .HasMaxLength(255)
+            .IsRequired();
+
         builder.HasMany<CollectionEntity>()
             .WithOne(c => c.ParentUser)
             .HasForeignKey(c => c.ParentUserId);

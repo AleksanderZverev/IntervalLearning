@@ -1,19 +1,21 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using Domain.User;
+using Domain.User.ValueObjects;
 
 namespace DB.Models.Store;
 
 public interface ICreateCollectionPublication
 {
-    public long ParentUserId { get; }
+    public UserId ParentUserId { get; }
     public short ParentCollectionId { get; }
 }
 
 [Table("CollectionPublications")]
 public class CollectionPublicationEntity : IParentCollectionReference, ICreateCollectionPublication
 {
-    public long ParentUserId { get; set; }
-    public UserEntity? ParentUser { get; set; }
+    public UserId ParentUserId { get; set; }
+    public User? ParentUser { get; set; }
     public short ParentCollectionId { get; set; }
     public CollectionEntity? ParentCollection { get; set; }
 
@@ -29,10 +31,10 @@ public class CollectionPublicationEntity : IParentCollectionReference, ICreateCo
 
 public class CreateCollectionPublication : ICreateCollectionPublication
 {
-    public long ParentUserId { get; }
+    public UserId ParentUserId { get; }
     public short ParentCollectionId { get; }
 
-    public CreateCollectionPublication(long parentUserId, short parentCollectionId)
+    public CreateCollectionPublication(UserId parentUserId, short parentCollectionId)
     {
         ParentUserId = parentUserId;
         ParentCollectionId = parentCollectionId;

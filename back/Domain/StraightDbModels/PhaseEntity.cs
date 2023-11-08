@@ -1,5 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using Domain.User;
+using Domain.User.ValueObjects;
 using Infrastructure;
 
 namespace DB.Models;
@@ -78,8 +80,8 @@ public class PhaseEntity : IParentRepeatsScheduleReference
     public RepeatsScheduleEntity? ParentRepeatsSchedule { get; set; }
 
 
-    public long ParentUserId { get; set; }
-    public UserEntity? ParentUser { get; set; }
+    public UserId ParentUserId { get; set; }
+    public User? ParentUser { get; set; }
 
     public bool IsRepeat()
     {

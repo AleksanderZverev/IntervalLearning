@@ -1,26 +1,28 @@
 ﻿using System.ComponentModel.DataAnnotations.Schema;
+using Domain.User;
+using Domain.User.ValueObjects;
 
 namespace DB.Models.Store;
 
 interface ICreatePublicCollectionSubscriberItem
 {
-    public long ParentUserId { get; }
+    public UserId ParentUserId { get; }
     public short ParentCollectionId { get; }
-    public long SubscriberUserId { get; }
+    public UserId SubscriberUserId { get; }
 }
 
 [Table("PublicCollectionSubscriber")]
 public class PublicCollectionSubscriber : IParentCollectionReference, ICreatePublicCollectionSubscriberItem
 {
-    public long ParentUserId { get; set; }
-    public UserEntity? ParentUser { get; set; }
+    public UserId ParentUserId { get; set; }
+    public User? ParentUser { get; set; }
     public short ParentCollectionId { get; set; }
     public CollectionEntity? ParentCollection { get; set; }
 
     public CollectionPublicationEntity? CollectionPublication { get; set; }
 
-    public long SubscriberUserId { get; set; }
-    public UserEntity? SubscriberUser { get; set; }
+    public UserId SubscriberUserId { get; set; }
+    public User? SubscriberUser { get; set; }
 
     public bool IsLiked { get; set; }
     public bool IsDisliked { get; set; }
@@ -29,11 +31,11 @@ public class PublicCollectionSubscriber : IParentCollectionReference, ICreatePub
 
 public class CreatePublicCollectionSubscriber : ICreatePublicCollectionSubscriberItem
 {
-    public long ParentUserId { get; }
+    public UserId ParentUserId { get; }
     public short ParentCollectionId { get; }
-    public long SubscriberUserId { get; }
+    public UserId SubscriberUserId { get; }
 
-    public CreatePublicCollectionSubscriber(long parentUserId, short parentCollectionId, long subscriberUserId)
+    public CreatePublicCollectionSubscriber(UserId parentUserId, short parentCollectionId, UserId subscriberUserId)
     {
         ParentUserId = parentUserId;
         ParentCollectionId = parentCollectionId;

@@ -1,13 +1,15 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Text.Json.Serialization;
+using Domain.User;
+using Domain.User.ValueObjects;
 
 namespace DB.Models
 {
     public class UserPasswordsEntity : IParentUserReference
     {
-        public long ParentUserId { get; set; }
-        public UserEntity? ParentUser { get; set; }
+        public UserId ParentUserId { get; set; }
+        public User? ParentUser { get; set; }
 
         [MaxLength(60)]
         [Column(TypeName = "varchar(60)")]

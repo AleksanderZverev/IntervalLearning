@@ -1,6 +1,8 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using DB.Models.Store;
+using Domain.User;
+using Domain.User.ValueObjects;
 
 namespace DB.Models;
 
@@ -15,7 +17,7 @@ public interface ICreateOrEditModel
     public string Title { get; }
     public bool IsDefaultBackSide { get; }
     public short ThemeId { get; }
-    public long ParentUserId { get; }
+    public UserId ParentUserId { get; }
 }
 
 [Table("Collections")]
@@ -44,8 +46,8 @@ public class CollectionEntity : IParentUserReference, ICreateOrEditModel
 
     public virtual List<CardEntity> Cards { get; set; } = new();
 
-    public long ParentUserId { get; set; }
-    public virtual UserEntity? ParentUser { get; set; }
+    public UserId ParentUserId { get; set; }
+    public virtual User? ParentUser { get; set; }
 
     public bool IsPublic { get; set; }
 
