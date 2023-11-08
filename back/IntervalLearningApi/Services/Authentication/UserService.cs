@@ -1,5 +1,6 @@
 ﻿using DB;
 using DB.Models;
+using Domain.User;
 using IntervalLearningApi.Models;
 using IntervalLearningApi.Services.Jwt;
 using Microsoft.Extensions.Options;
@@ -22,12 +23,12 @@ public class UserService
         _jwtSettings = appSettings;
     }
 
-    public IEnumerable<UserEntity> GetAll()
+    public IEnumerable<User> GetAll()
     {
-        return db.Users;
+        return db.Users.AsEnumerable();
     }
 
-    public UserEntity GetById(int id)
+    public User GetById(int id)
     {
         var user = db.Users.Find(id);
         if (user == null) throw new KeyNotFoundException("UserEntity not found");

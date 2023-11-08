@@ -4,6 +4,7 @@ using DB.Models;
 using DB.Models.Dictionary;
 using DB.Models.Store;
 using Domain.Language;
+using Domain.User.ValueObjects;
 using Infrastructure;
 using Microsoft.EntityFrameworkCore;
 
@@ -158,13 +159,13 @@ public class CollectionService
 
     public class CreateOrPatchCollection : ICreateOrEditModel
     {
-        public long ParentUserId { get; }
+        public UserId ParentUserId { get; }
         public short ThemeId { get; }
         public string Title { get;  }
         public bool IsDefaultBackSide { get; }
 
         public CreateOrPatchCollection(
-            long parentUserId, 
+            UserId parentUserId, 
             string title, 
             bool isDefaultBackSide,
             short themeId)
@@ -202,7 +203,8 @@ public class CollectionService
         }
     }
 
-    public (CardEntity? card, string? error) CreateOrEditCard(long userId,
+    public (CardEntity? card, string? error) CreateOrEditCard(
+        UserId userId,
         short collectionId,
         short? cardId,
         string frontText,
@@ -285,7 +287,7 @@ public class CollectionService
     }
 
     public async Task<(CardEntity? card, string? error)> MoveCard(
-        long userId,
+        UserId userId,
         short sourceCollectionId,
         short destinationCollectionId,
         short cardId)
@@ -371,7 +373,7 @@ public class CollectionService
         return (resultWords, language, null);
     }
 
-    public async Task<(CollectionEntity? collection, string? error)> MakePublic(long userId, short collectionId)
+    public async Task<(CollectionEntity? collection, string? error)> MakePublic(UserId userId, short collectionId)
     {
         var collection = await db.Collections.FindAsync(userId, collectionId);
 
@@ -406,9 +408,9 @@ public class CollectionService
     }
 
     public async Task<(CollectionEntity? collection, string? error)> AddCardsToMyCollection(
-        long publicCollectionUserId,
+        UserId publicCollectionUserId,
         short publicCollectionId,
-        long myUserId,
+        UserId myUserId,
         short? myCollectionId, 
         string? newCollectionName,
         bool checkUnique)

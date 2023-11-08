@@ -1,5 +1,6 @@
 ﻿using DB;
 using DB.Models;
+using Domain.User.ValueObjects;
 
 namespace IntervalLearningApi.Services
 {
@@ -12,7 +13,7 @@ namespace IntervalLearningApi.Services
             this.db = db;
         }
 
-        public UserMetadataEntity GetMetadata(long userId)
+        public UserMetadataEntity GetMetadata(UserId userId)
         {
             var metadata = db.UserMetadata.Single(m => m.ParentUserId == userId);
             return metadata;

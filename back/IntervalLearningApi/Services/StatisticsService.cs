@@ -1,5 +1,6 @@
 using DB;
 using DB.Models;
+using Domain.User.ValueObjects;
 using Microsoft.EntityFrameworkCore;
 
 namespace IntervalLearningApi.Services;
@@ -26,8 +27,9 @@ public class StatisticsService
         this.db = db;
     }
 
-    public async Task<CalendarLearningStatistic?> GetLearningStatistic(long userId,
-        long scheduleUserId,
+    public async Task<CalendarLearningStatistic?> GetLearningStatistic(
+        UserId userId,
+        UserId scheduleUserId,
         long scheduleId,
         DateTime from,
         DateTime to, 
@@ -157,8 +159,8 @@ public class StatisticsService
     }
     
     private async Task<Dictionary<DateTime, int>> GetDateToQueueCount(
-        long userId,
-        long scheduleUserId,
+        UserId userId,
+        UserId scheduleUserId,
         long scheduleId,
         DateTime from,
         DateTime to,
@@ -179,7 +181,7 @@ public class StatisticsService
             .ToDictionary(d => d.Key, g => g.Count());
     }
 
-    public async Task<LearningStatistic> GetStatistic(long userId, DateTime dateTime)
+    public async Task<LearningStatistic> GetStatistic(UserId userId, DateTime dateTime)
     {
         var date = dateTime.Date;
 

@@ -1,6 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using DB;
 using DB.Models;
+using Domain.User.ValueObjects;
 using IntervalLearningApi.Controllers;
 using Microsoft.EntityFrameworkCore;
 
@@ -95,7 +96,7 @@ public class RepeatsScheduleService
     }
 
     public async Task<(RepeatsScheduleEntity? schedule, string? error)> Create(
-        long userId, 
+        UserId userId, 
         RepeatsScheduleController.CreateScheduleRequest request)
     {
         await db.Database.BeginTransactionAsync();

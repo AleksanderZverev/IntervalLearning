@@ -3,6 +3,7 @@ using DB;
 using DB.Models.Dictionary;
 using Domain.Language;
 using Domain.Language.ValueObjects;
+using Domain.User.ValueObjects;
 using Infrastructure;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -19,7 +20,7 @@ namespace IntervalLearningApi.Services.Dictionary
             this.db = db;
         }
 
-        public async Task<(List<TranslationEntity>? translations, string? error)> GetTranslations(long userId, string word)
+        public async Task<(List<TranslationEntity>? translations, string? error)> GetTranslations(UserId userId, string word)
         {
             var metadata = await db.UserMetadata.FindAsync(userId);
 
@@ -47,14 +48,14 @@ namespace IntervalLearningApi.Services.Dictionary
         }
 
         public async Task<(string? okText, string? error)> ParseWordsWithTranslations(
-            long userId, 
+            UserId userId, 
             short languageId, 
             short translationLanguageId, 
             string text)
         {
             var user = await db.Users.FindAsync(userId);
 
-            if (user is not {Email: "sam998980@mail.ru"})
+            if (user is not {Email.Value: "sam998980@mail.ru"})
                 return (null, "Forbidden");
 
             var lines = text.Split("\n", StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);

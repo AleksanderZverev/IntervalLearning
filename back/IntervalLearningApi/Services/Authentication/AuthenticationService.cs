@@ -2,6 +2,8 @@
 using DB;
 using DB.Models;
 using Domain.Language.ValueObjects;
+using Domain.User;
+using Domain.User.ValueObjects;
 using IntervalLearningApi.Models;
 using IntervalLearningApi.Models.Common;
 using IntervalLearningApi.Services.Jwt;
@@ -39,15 +41,13 @@ public class AuthenticationService : IAuthenticationService
 
         var passwordHash = BCrypt.Net.BCrypt.HashPassword(request.Password);
 
-        var user = new UserEntity
+        //TODO: validation
+        var user = User.Create(UserId.CreateEmpty(), EmailAddress.Create(emailLower).Value,
+            UserName.Create(request.FirstName, request.LastName).Value).Value;
+        
+        user.PasswordHash = new UserPasswordsEntity()
         {
-            Email = emailLower,
-            PasswordHash = new UserPasswordsEntity()
-            {
-                PasswordHash = passwordHash,
-            },
-            FirstName = request.FirstName,
-            LastName = request.LastName ?? "",
+            PasswordHash = passwordHash,
         };
         
         try
@@ -57,6 +57,7 @@ public class AuthenticationService : IAuthenticationService
             db.Users.Add(user);
             db.SaveChanges();
 
+            //TODO: validation
             var metadata = new UserMetadataEntity(user.Id, LanguageId.Create(request.SuggestLanguageId).Value);
             db.Entry(metadata).State = EntityState.Added;
 
@@ -102,7 +103,7 @@ public class AuthenticationService : IAuthenticationService
         return ToAuthenticationResponse(user, jwtToken, refreshToken);
     }
 
-    private AuthenticateResponse Authenticate(UserEntity user, string ipAddress)
+    private AuthenticateResponse Authenticate(User user, string ipAddress)
     {
         var jwtToken = jwtService.GenerateJwtToken(user);
         var refreshToken = jwtService.GenerateRefreshToken(user, ipAddress);
@@ -145,13 +146,13 @@ public class AuthenticationService : IAuthenticationService
         return (ToAuthenticationResponse(user, jwtToken, newRefreshToken.Token), null);
     }
 
-    private AuthenticateResponse ToAuthenticationResponse(UserEntity userEntity, string jwtToken, string refreshToken)
+    private AuthenticateResponse ToAuthenticationResponse(User userEntity, string jwtToken, string refreshToken)
     {
         return new AuthenticateResponse()
         {
             Id = userEntity.Id.ToString(),
-            FirstName = userEntity.FirstName,
-            LastName = userEntity.LastName,
+            FirstName = userEntity.UserName.FirstName,
+            LastName = userEntity.UserName.LastName,
             Email = userEntity.Email,
             JwtToken = jwtToken,
             RefreshToken = refreshToken,
@@ -179,7 +180,7 @@ public class AuthenticationService : IAuthenticationService
         return (true, null);
     }
 
-    private (UserEntity? user, string? error) GetUserByRefreshToken(string token)
+    private (User? user, string? error) GetUserByRefreshToken(string token)
     {
         var user = db.Users
             .Include(u => u.RefreshTokens)
@@ -188,14 +189,14 @@ public class AuthenticationService : IAuthenticationService
         return (user, user == null ? "Invalid token" : null);
     }
 
-    private RefreshTokenEntity ReplaceOldRefreshToken(UserEntity user, RefreshTokenEntity tokenToRevoke, string ipAddress)
+    private RefreshTokenEntity ReplaceOldRefreshToken(User user, RefreshTokenEntity tokenToRevoke, string ipAddress)
     {
         var newRefreshToken = jwtService.GenerateRefreshToken(user, ipAddress);
         RevokeRefreshToken(tokenToRevoke, ipAddress, "Replaced by new token", newRefreshToken.Token);
         return newRefreshToken;
     }
 
-    private void RemoveOldRefreshTokens(UserEntity userEntity)
+    private void RemoveOldRefreshTokens(User userEntity)
     {
         var now = dateTimeProvider.UtcNow;
 
@@ -209,7 +210,7 @@ public class AuthenticationService : IAuthenticationService
         }
     }
 
-    private void RevokeDescendantRefreshTokens(RefreshTokenEntity refreshTokenEntity, UserEntity userEntity, string ipAddress, string reason)
+    private void RevokeDescendantRefreshTokens(RefreshTokenEntity refreshTokenEntity, User userEntity, string ipAddress, string reason)
     {
         if (string.IsNullOrEmpty(refreshTokenEntity.ReplacedByToken))
             return;

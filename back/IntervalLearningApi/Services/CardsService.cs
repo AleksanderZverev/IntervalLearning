@@ -2,6 +2,7 @@
 using System.Linq.Expressions;
 using DB;
 using DB.Models;
+using Domain.User.ValueObjects;
 using Infrastructure;
 using IntervalLearningApi.Models;
 using Microsoft.AspNetCore.Mvc;
@@ -142,7 +143,7 @@ public class CardsService
     }
 
     public async Task<(CardEntity? card, string? error, bool isMoved)> MoveCard(
-        long userId,
+        UserId userId,
         short sourceCollectionId,
         short destinationCollectionId,
         short cardId,
@@ -290,7 +291,8 @@ public class CardsService
         return cards;
     }
 
-    public (NextRepeatInfo? closestRepeatInfo, string? reason) Start(long userId,
+    public (NextRepeatInfo? closestRepeatInfo, string? reason) Start(
+        UserId userId,
         short collectionId,
         long scheduleUserId,
         short scheduleId, 
@@ -357,7 +359,7 @@ public class CardsService
     }
 
     private (NextRepeatInfo? closestRepeatInfo, string? reason) AddToQueue(
-        long userId, 
+        UserId userId, 
         short collectionId, 
         List<CardEntity> cards,
         RepeatsScheduleEntity scheduleWithPhases)
@@ -421,7 +423,8 @@ public class CardsService
         return (new NextRepeatInfo(closestRepeatDate, closestPhaseInfo, closestPhaseIndex), null);
     }
 
-    public async Task<(NextRepeatInfo? closestRepeatInfo, string? reason)> Remember(long userId,
+    public async Task<(NextRepeatInfo? closestRepeatInfo, string? reason)> Remember(
+        UserId userId,
         short collectionId,
         long scheduleUserId,
         short scheduleId,
@@ -558,11 +561,11 @@ public class CardsService
         public string MeaningText { get; }
         public string? Description { get; }
         public List<string>? Examples { get; }
-        public long ParentUserId { get; }
+        public UserId ParentUserId { get; }
         public short ParentCollectionId { get; }
 
         public CreateOrPatchCard(
-            long parentUserId,
+            UserId parentUserId,
             short parentCollectionId,
             string frontSideText,
             string promptText,

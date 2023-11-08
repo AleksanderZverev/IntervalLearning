@@ -4,6 +4,7 @@ using System.Security.Cryptography;
 using System.Text;
 using DB;
 using DB.Models;
+using Domain.User;
 using IntervalLearningApi.Models;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
@@ -24,7 +25,7 @@ public class JwtService : IJwtService
         jwtSettings = appSettings;
     }
 
-    public string GenerateJwtToken(UserEntity userEntity)
+    public string GenerateJwtToken(User userEntity)
     {
 
         var tokenHandler = new JwtSecurityTokenHandler();
@@ -76,7 +77,7 @@ public class JwtService : IJwtService
         }
     }
 
-    public RefreshTokenEntity GenerateRefreshToken(UserEntity user, string ipAddress)
+    public RefreshTokenEntity GenerateRefreshToken(User user, string ipAddress)
     {
         var now = DateTime.UtcNow; // SystemClock.Instance.GetCurrentInstant();
 
@@ -106,7 +107,7 @@ public class JwtService : IJwtService
         }
     }
 
-    public static IEnumerable<Claim> GetClaims(UserEntity user)
+    public static IEnumerable<Claim> GetClaims(User user)
     {
         var claims = new Claim[]
         {
