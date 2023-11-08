@@ -1,3 +1,4 @@
+using Domain.User.ValueObjects;
 using IntervalLearningApi.Constants;
 using IntervalLearningApi.Extensions;
 using IntervalLearningApi.Models.ByUser;
@@ -21,7 +22,12 @@ public class StatisticsController : ControllerBase
     [HttpGet(ApiRoutes.Statistics.Get_LearningStatistic)]
     public async Task<ActionResult<LearningStatisticModel>> GetLearningStatistic([FromQuery(Name = "date")] DateTime dateTime)
     {
-        var statistic = await statisticsService.GetStatistic(HttpContext.GetUserId(), dateTime);
+        var userId = HttpContext.GetUserId();
+
+        if (userId.IsFailed)
+            return BadRequest();
+        
+        var statistic = await statisticsService.GetStatistic(userId.Value, dateTime);
 
         return new LearningStatisticModel(
             RepeatedCards: statistic.RepeatedCards,
@@ -36,9 +42,14 @@ public class StatisticsController : ControllerBase
         DateTime to,
         int timezoneOffsetInMinutes)
     {
+        var userId = HttpContext.GetUserId();
+
+        if (userId.IsFailed)
+            return BadRequest();
+
         var statistic = await statisticsService.GetLearningStatistic(
-            HttpContext.GetUserId(),
-            scheduleUserId,
+            userId.Value,
+            UserId.Create(scheduleUserId).Value,
             scheduleId,
             from,
             to,

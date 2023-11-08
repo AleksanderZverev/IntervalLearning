@@ -2,6 +2,7 @@
 using DB.Models.Dictionary;
 using DB.Models.Store;
 using Domain.Language;
+using Domain.User.ValueObjects;
 using IntervalLearningApi.Constants;
 using IntervalLearningApi.Extensions;
 using IntervalLearningApi.Models.ByUser;
@@ -34,9 +35,12 @@ namespace IntervalLearningApi.Controllers
         {
             var userId = HttpContext.GetUserId();
 
+            if (userId.IsFailed)
+                return BadRequest();
+
             var (collection, error) = collectionService.CreateOrEdit(
                 new CollectionService.CreateOrPatchCollection(
-                    userId,
+                    userId.Value,
                     item.Title,
                     item.IsDefaultBackSide,
                     item.ThemeId
@@ -52,7 +56,11 @@ namespace IntervalLearningApi.Controllers
         public async Task<ActionResult<List<StoreCollection>>> SearchPublicCollection(short themeId, string? searchName = null, int page = 1, int count = 10)
         {
             var userId = HttpContext.GetUserId();
-            var collections = await collectionService.SearchPublicCollections(userId, themeId, searchName ?? "", page, count);
+
+            if (userId.IsFailed)
+                return BadRequest();
+
+            var collections = await collectionService.SearchPublicCollections(userId.Value, themeId, searchName ?? "", page, count);
             return mapper.Map<List<StoreCollection>>(collections.Select((t) => (t.collection, t.subscriber)));
         }
 
@@ -60,7 +68,11 @@ namespace IntervalLearningApi.Controllers
         public async Task<ActionResult<List<Collection>>> SearchCollection(short themeId, string? searchName = null, int page = 1, int count = 10)
         {
             var userId = HttpContext.GetUserId();
-            var collections = await collectionService.SearchCollections(userId, themeId, searchName ?? "", page, count);
+
+            if (userId.IsFailed)
+                return BadRequest();
+
+            var collections = await collectionService.SearchCollections(userId.Value, themeId, searchName ?? "", page, count);
             return mapper.Map<List<Collection>>(collections);
         }
 
@@ -78,7 +90,11 @@ namespace IntervalLearningApi.Controllers
         public async Task<ActionResult<List<Collection>>> GetAll()
         {
             var userId = HttpContext.GetUserId();
-            var collections = await collectionService.GetAllByUserId(userId);
+
+            if (userId.IsFailed)
+                return BadRequest();
+
+            var collections = await collectionService.GetAllByUserId(userId.Value);
             return mapper.Map<List<Collection>>(collections);
         }
 
@@ -86,7 +102,11 @@ namespace IntervalLearningApi.Controllers
         public async Task<ActionResult<GetRandomWordResponse>> GetRandomWords([FromQuery]short collectionId)
         {
             var userId = HttpContext.GetUserId();
-            var (words, language, error) = await collectionService.GetRandomWords(userId, collectionId);
+
+            if (userId.IsFailed)
+                return BadRequest();
+
+            var (words, language, error) = await collectionService.GetRandomWords(userId.Value, collectionId);
 
             return words == null || language == null
                 ? BadRequest(error)
@@ -99,7 +119,11 @@ namespace IntervalLearningApi.Controllers
         public async Task<ActionResult<RepeatingCollectionResponse>> GetRepeatCollections()
         {
             var userId = HttpContext.GetUserId();
-            var dateToRepeatingCollections = await collectionService.GetRepeatCollections(userId);
+
+            if (userId.IsFailed)
+                return BadRequest();
+
+            var dateToRepeatingCollections = await collectionService.GetRepeatCollections(userId.Value);
 
             return new RepeatingCollectionResponse(dateToRepeatingCollections
                 .ToDictionary(
@@ -115,7 +139,11 @@ namespace IntervalLearningApi.Controllers
             int count = 30)
         {
             var userId = HttpContext.GetUserId();
-            var (totalCollections, canStartCollections) = await collectionService.GetCanStart(userId, scheduleUserId, scheduleId, page, count);
+
+            if (userId.IsFailed)
+                return BadRequest();
+
+            var (totalCollections, canStartCollections) = await collectionService.GetCanStart(userId.Value, scheduleUserId, scheduleId, page, count);
             return new GetNotFinishedResponse(
                 totalCollections,
                 mapper.Map<List<Collection>>(canStartCollections));
@@ -125,7 +153,11 @@ namespace IntervalLearningApi.Controllers
         public async Task<ActionResult<Collection>> Get(short collectionId)
         {
             var userId = HttpContext.GetUserId();
-            var collection = await collectionService.Find(userId, collectionId).ConfigureAwait(false);
+
+            if (userId.IsFailed)
+                return BadRequest();
+
+            var collection = await collectionService.Find(userId.Value, collectionId).ConfigureAwait(false);
             return collection != null 
                 ? mapper.Map<Collection>(collection)
                 : NotFound();
@@ -135,7 +167,11 @@ namespace IntervalLearningApi.Controllers
         public async Task<ActionResult<Collection>> MakePublic(short collectionId)
         {
             var userId = HttpContext.GetUserId();
-            var (collection, error) = await collectionService.MakePublic(userId, collectionId).ConfigureAwait(false);
+
+            if (userId.IsFailed)
+                return BadRequest();
+
+            var (collection, error) = await collectionService.MakePublic(userId.Value, collectionId).ConfigureAwait(false);
             return collection != null 
                 ? mapper.Map<Collection>(collection) 
                 : BadRequest(error);
@@ -148,10 +184,14 @@ namespace IntervalLearningApi.Controllers
             [FromBody] AddCollectionsRequest request)
         {
             var userId = HttpContext.GetUserId();
+
+            if (userId.IsFailed)
+                return BadRequest();
+
             var (collection, error) = await collectionService.AddCardsToMyCollection(
-                collectionUserId,
+                UserId.Create(collectionUserId).Value,
                 collectionId,
-                userId,
+                userId.Value,
                 request.MyCollectionId,
                 request.NewCollectionName,
                 request.CheckUnique);

@@ -66,7 +66,11 @@ namespace IntervalLearningApi.Controllers
         public async Task<ActionResult<string>> AddTranslations([FromBody] AddTranslationsRequest req)
         {
             var userId = HttpContext.GetUserId();
-            var (ok, error) = await dictionaryService.ParseWordsWithTranslations(userId, req.LanguageId, req.TranslationLanguageId, req.Text);
+
+            if (userId.IsFailed)
+                return BadRequest();
+
+            var (ok, error) = await dictionaryService.ParseWordsWithTranslations(userId.Value, req.LanguageId, req.TranslationLanguageId, req.Text);
             return ok != null ? ok : BadRequest(error);
         }
 
@@ -74,7 +78,11 @@ namespace IntervalLearningApi.Controllers
         public async Task<ActionResult<List<TranslationDto>>> GetTranslation(string word)
         {
             var userId = HttpContext.GetUserId();
-            var (translations, error) = await dictionaryService.GetTranslations(userId, word);
+
+            if (userId.IsFailed)
+                return BadRequest();
+
+            var (translations, error) = await dictionaryService.GetTranslations(userId.Value, word);
             return translations == null
                 ? BadRequest(error)
                 : mapper.Map<List<TranslationDto>>(translations);

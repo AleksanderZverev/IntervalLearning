@@ -1,4 +1,5 @@
 using DB.Models;
+using Domain.User;
 using Mapster;
 
 namespace IntervalLearningApi.Models.ByUser;
@@ -7,7 +8,9 @@ public class UserInfoRegister : IRegister
 {
     public void Register(TypeAdapterConfig config)
     {
-        config.NewConfig<UserEntity, UserInfo>()
+        config.NewConfig<User, UserInfo>()
+            .Map(d => d.FirstName, s => s.UserName.FirstName)
+            .Map(d => d.LastName, s => s.UserName.LastName)
             .MapToConstructor(true);
     }
 }

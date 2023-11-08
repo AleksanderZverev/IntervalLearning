@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using DB.Models;
+using Domain.User.ValueObjects;
 using IntervalLearningApi.Constants;
 using IntervalLearningApi.Extensions;
 using IntervalLearningApi.Models.RepeatsSchedule;
@@ -26,17 +27,21 @@ namespace IntervalLearningApi.Controllers
         }
 
         [HttpGet(ApiRoutes.Schedule.Get_GetAll)]
-        public List<Schedule> GetAll()
+        public ActionResult<List<Schedule>> GetAll()
         {
             var userId = HttpContext.GetUserId();
-            var schedules = repeatsScheduleService.GetAll(userId);
+
+            if (userId.IsFailed)
+                return BadRequest();
+
+            var schedules = repeatsScheduleService.GetAll(userId.Value);
             return mapper.Map<List<Schedule>>(schedules);
         }
 
         [HttpGet(ApiRoutes.Schedule.Get_GetUserSchedule)]
         public ActionResult<Schedule> GetSchedule(long userId, short scheduleId)
         {
-            var schedule = repeatsScheduleService.Find(userId, scheduleId);
+            var schedule = repeatsScheduleService.Find(UserId.Create(userId).Value, scheduleId);
             return schedule == null ? NotFound() : mapper.Map<Schedule>(schedule);
         }
 
@@ -44,7 +49,11 @@ namespace IntervalLearningApi.Controllers
         public ActionResult<Schedule> GetSchedule(short scheduleId)
         {
             var userId = HttpContext.GetUserId();
-            var schedule = repeatsScheduleService.Find(userId, scheduleId);
+
+            if (userId.IsFailed)
+                return BadRequest();
+
+            var schedule = repeatsScheduleService.Find(userId.Value, scheduleId);
             return schedule == null ? NotFound() :  mapper.Map<Schedule>(schedule);
         }
 
@@ -52,7 +61,11 @@ namespace IntervalLearningApi.Controllers
         public async Task<ActionResult<Schedule>> EditSchedule(short scheduleId, [FromBody] UpdateScheduleRequest request)
         {
             var userId = HttpContext.GetUserId();
-            var (schedule, error) = await repeatsScheduleService.PatchSchedule(userId, scheduleId, request);
+
+            if (userId.IsFailed)
+                return BadRequest();
+
+            var (schedule, error) = await repeatsScheduleService.PatchSchedule(userId.Value, scheduleId, request);
             return schedule != null ?  mapper.Map<Schedule>(schedule) : BadRequest(error);
         }
 
@@ -60,7 +73,11 @@ namespace IntervalLearningApi.Controllers
         public async Task<ActionResult<Schedule>> CreateSchedule([FromBody] CreateScheduleRequest request)
         {
             var userId = HttpContext.GetUserId();
-            var (schedule, error) = await repeatsScheduleService.Create(userId, request);
+
+            if (userId.IsFailed)
+                return BadRequest();
+
+            var (schedule, error) = await repeatsScheduleService.Create(userId.Value, request);
             return schedule != null ? mapper.Map<Schedule>(schedule) : BadRequest(error);
         }
 

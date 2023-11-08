@@ -1,17 +1,24 @@
 ﻿using System.Security.Claims;
+using Domain.User.ValueObjects;
+using FluentResults;
 
 namespace IntervalLearningApi.Extensions
 {
     public static class HttpContextExtensions
     {
-        public static long GetUserId(this HttpContext context)
+        public static Result<UserId> GetUserId(this HttpContext context)
         {
-            var userId = context.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var userIdString = context.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
-            if (string.IsNullOrEmpty(userId))
-                   throw new NotSupportedException("UserId not found");
+            if (string.IsNullOrEmpty(userIdString))
+            {
+                return Result.Fail("User Id not found");
+            }
 
-            return long.Parse(userId);
+            if (!long.TryParse(userIdString, out var userId))
+                return Result.Fail("Incorrect user Id");
+
+            return UserId.Create(userId);
         }
     }
 }

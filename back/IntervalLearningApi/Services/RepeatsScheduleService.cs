@@ -30,7 +30,9 @@ public class RepeatsScheduleService
             .AsSplitQuery()
             .ToList();
 
-    public async Task<(RepeatsScheduleEntity? schedule, string? error)> PatchSchedule(long userId, short scheduleId,
+    public async Task<(RepeatsScheduleEntity? schedule, string? error)> PatchSchedule(
+        UserId userId, 
+        short scheduleId,
         RepeatsScheduleController.UpdateScheduleRequest request)
     {
         var originSchedule = Find(userId, scheduleId);
@@ -149,7 +151,7 @@ public class RepeatsScheduleService
         }
     }
 
-    public RepeatsScheduleEntity? Find(long userId, short scheduleId)
+    public RepeatsScheduleEntity? Find(UserId userId, short scheduleId)
     {
         return db.RepeatsSchedules
             .Include(s => s.Phases)
