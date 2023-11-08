@@ -1,4 +1,5 @@
 using DB.Models;
+using Domain.User.ValueObjects;
 using IntervalLearningApi.IntegrationTests.Learning.Scenarios;
 using IntervalLearningApi.Models.ByUser;
 using IntervalLearningApi.Models.RepeatsSchedule;
@@ -131,7 +132,7 @@ public class CardAndCollectionsControllerTests : SharedApiTests
             {
                 CardIds = cards.Select(c => short.Parse(c.Id)).ToList(),
                 ScheduleId = short.Parse(schedule.Id),
-                ScheduleUserId = long.Parse(schedule.ParentUserId),
+                ScheduleUserId = UserId.Create(long.Parse(schedule.ParentUserId)).Value,
             }
         );
         var startCards = startCardsResponse.ToResponseDto<StartCardResponse>();
@@ -684,7 +685,7 @@ public class CardAndCollectionsControllerTests : SharedApiTests
             {
                 PhaseIndex = rememberPhaseIndex,
                 ScheduleId = short.Parse(schedule.Id),
-                ScheduleUserId = long.Parse(schedule.ParentUserId),
+                ScheduleUserId = UserId.Create(long.Parse(schedule.ParentUserId)).Value,
                 RememberItems = cards.Select(c => new RememberItem()
                 {
                     CardId = short.Parse(c.Id),

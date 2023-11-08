@@ -31,13 +31,13 @@ public class PatchPhaseItem
 
 public class CreatePhaseItem : PatchPhaseItem
 {
-    public long ParentUserId { get; set; }
+    public UserId ParentUserId { get; set; }
     public short ParentRepeatsScheduleId { get; set; }
     public short Id { get; set; }
     public uint SecondsFromLastPhase { get; set; }
 
     public CreatePhaseItem(
-        long parentUserId,
+        UserId parentUserId,
         short id,
         short parentRepeatsScheduleId,
         uint secondsFromLastPhase,

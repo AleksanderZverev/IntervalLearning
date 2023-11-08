@@ -103,8 +103,8 @@ public class StatisticsService
     }
 
     private async Task<Dictionary<DateTime, int>> GetDateToRecommendationToLearn(
-        long userId,
-        long scheduleUserId,
+        UserId userId,
+        UserId scheduleUserId,
         long scheduleId,
         DateTime from,
         DateTime to,

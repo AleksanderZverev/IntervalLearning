@@ -26,10 +26,9 @@ public class RememberEntity : IParentCardReference
     /// Remembered or repeated date
     /// </summary>
     public DateTime RepeatedDate { get; set; }
-
-
+    
     public RememberEntity(
-        long parentRepeatsScheduleUserId, 
+        UserId parentRepeatsScheduleUserId, 
         short parentRepeatsScheduleId,
         UserId parentUserId,
         short parentCollectionId,
@@ -55,7 +54,7 @@ public class RememberEntity : IParentCardReference
     public short ParentCardId { get; set; }
     public CardEntity? ParentCard { get; set; }
 
-    public long ParentRepeatsScheduleUserId { get; set; }
+    public UserId ParentRepeatsScheduleUserId { get; set; }
     public short ParentRepeatsScheduleId { get; set; }
     public RepeatsScheduleEntity? ParentRepeatsSchedule { get; set; }
 

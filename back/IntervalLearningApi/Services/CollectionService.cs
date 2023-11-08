@@ -111,8 +111,8 @@ public class CollectionService
     }
 
     public async Task<(int totalCollections, List<CollectionEntity> canStartCollections)> GetCanStart(
-        long userId,
-        long scheduleUserId,
+        UserId userId,
+        UserId scheduleUserId,
         short scheduleId,
         int page = 1,
         int count = 30)
@@ -530,7 +530,7 @@ public class CollectionService
     }
 
     public async Task<List<(CollectionEntity collection, PublicCollectionSubscriber? subscriber)>> SearchPublicCollections(
-        long myUserId,
+        UserId myUserId,
         short themeId, 
         string searchName, 
         int page, 
@@ -599,7 +599,7 @@ public class CollectionService
 
     public class RepeatingPhase
     {
-        public long ScheduleUserId { get; }
+        public UserId ScheduleUserId { get; }
         public short ScheduleId { get;  }
         public short PhaseIndex { get;  }
         public uint SecondsFromLastPhase { get; }
@@ -608,7 +608,7 @@ public class CollectionService
         public List<RepeatingCollection> RepeatingCollections { get; set; } = new();
 
         public RepeatingPhase(
-            long scheduleUserId,
+            UserId scheduleUserId,
             short scheduleId,
             short phaseIndex,
             uint secondsFromLastPhase,

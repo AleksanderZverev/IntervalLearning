@@ -69,7 +69,7 @@ namespace IntervalLearningApi.Controllers
             if (userId.IsFailed)
                 return BadRequest();
 
-            var cards = await cardsService.GetCardsQueue(userId.Value, collectionId, scheduleUserId, scheduleId, phaseIndex, date);
+            var cards = await cardsService.GetCardsQueue(userId.Value, collectionId, UserId.Create(scheduleUserId).Value, scheduleId, phaseIndex, date);
             return mapper.Map<List<Card>>(cards);
         }
 
@@ -85,7 +85,7 @@ namespace IntervalLearningApi.Controllers
             if (userId.IsFailed)
                 return BadRequest();
             
-            var (cards, error) = await cardsService.GetNotStartedCards(scheduleUserId, scheduleId, userId.Value, collectionId, count);
+            var (cards, error) = await cardsService.GetNotStartedCards(UserId.Create(scheduleUserId).Value, scheduleId, userId.Value, collectionId, count);
             return cards == null 
                 ? BadRequest(error) 
                 : mapper.Map<List<Card>>(cards);
@@ -173,7 +173,7 @@ namespace IntervalLearningApi.Controllers
             if (userId.IsFailed)
                 return BadRequest();
 
-            var (closestRepeatInfo, error) = cardsService.Start(userId.Value, collectionId, item.ScheduleUserId, item.ScheduleId, item.CardIds);
+            var (closestRepeatInfo, error) = cardsService.Start(userId.Value, collectionId, UserId.Create(item.ScheduleUserId).Value, item.ScheduleId, item.CardIds);
             return closestRepeatInfo != null
                 ? new StartCardResponse(
                     closestRepeatInfo.NextRepeatDate,
@@ -195,7 +195,7 @@ namespace IntervalLearningApi.Controllers
             var (closestRepeatInfo, error) = await cardsService.Remember(
                 userId.Value,
                 collectionId,
-                request.ScheduleUserId,
+                UserId.Create(request.ScheduleUserId).Value,
                 request.ScheduleId,
                 request.PhaseIndex,
                 ToCardServiceRememberItems(request.RememberItems)

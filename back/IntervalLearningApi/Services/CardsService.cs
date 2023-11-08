@@ -209,9 +209,10 @@ public class CardsService
         return (movedCard, null, true);
     }
 
-    public async Task<(List<CardEntity>? cards, string? error)> GetNotStartedCards(long scheduleUserId,
+    public async Task<(List<CardEntity>? cards, string? error)> GetNotStartedCards(
+        UserId scheduleUserId,
         short scheduleId,
-        long userId,
+        UserId userId,
         short collectionId, 
         int count)
     {
@@ -243,7 +244,7 @@ public class CardsService
 
     public async Task<List<CardEntity>> GetCardsQueue(long userId,
         short collectionId,
-        long scheduleUserId,
+        UserId scheduleUserId,
         short scheduleId,
         short phaseIndex, 
         DateTime dateTime)
@@ -294,7 +295,7 @@ public class CardsService
     public (NextRepeatInfo? closestRepeatInfo, string? reason) Start(
         UserId userId,
         short collectionId,
-        long scheduleUserId,
+        UserId scheduleUserId,
         short scheduleId, 
         List<short> cardIds)
     {
@@ -426,7 +427,7 @@ public class CardsService
     public async Task<(NextRepeatInfo? closestRepeatInfo, string? reason)> Remember(
         UserId userId,
         short collectionId,
-        long scheduleUserId,
+        UserId scheduleUserId,
         short scheduleId,
         short phaseIndex,
         List<RememberItem> rememberItems)

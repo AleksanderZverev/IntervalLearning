@@ -14,7 +14,7 @@ public class CardRepeatQueueEntity : IParentCardReference
     public DateTime Date { get; set; }
 
     public CardRepeatQueueEntity(
-        long parentRepeatsScheduleUserId,
+        UserId parentRepeatsScheduleUserId,
         short parentRepeatsScheduleId,
         UserId parentUserId, 
         short parentCollectionId, 
@@ -43,7 +43,7 @@ public class CardRepeatQueueEntity : IParentCardReference
 
     public CardEntity? ParentCard { get; set; }
 
-    public long ParentRepeatsScheduleUserId { get; set; }
+    public UserId ParentRepeatsScheduleUserId { get; set; }
     public short ParentRepeatsScheduleId { get; set; }
     public RepeatsScheduleEntity? ParentRepeatsSchedule { get; set; }
 }

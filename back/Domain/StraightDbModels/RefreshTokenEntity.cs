@@ -1,6 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.Text.Json.Serialization;
 using Domain.User;
+using Domain.User.ValueObjects;
 
 namespace DB.Models;
 
@@ -24,7 +25,7 @@ public class RefreshTokenEntity
     public bool IsActive => !IsRevoked && !IsExpired;
 
     [JsonIgnore]
-    public long ParentUserId { get; set; }
+    public UserId ParentUserId { get; set; }
     [JsonIgnore]
     public User? ParentUser { get; set; }
 }
