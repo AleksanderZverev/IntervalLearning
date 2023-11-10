@@ -22,7 +22,7 @@ public class CardsGenerator : LocalApiTests
                 .Add("themeId", "1")
                 .Add("searchName", collectionName));
 
-        var collections = collectionsResponse.ToResponseDto<List<Collection>>();
+        var collections = collectionsResponse.ToResponseDto<List<CollectionDto>>();
 
         if (collections == null || collections.Count == 0)
         {

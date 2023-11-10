@@ -1,5 +1,6 @@
 using DB.Models;
 using DB.Models.Store;
+using Domain.Collection;
 using Mapster;
 
 namespace IntervalLearningApi.Models.ByUser;
@@ -8,7 +9,7 @@ public class StoreCollectionRegister : IRegister
 {
     public void Register(TypeAdapterConfig config)
     {
-        config.NewConfig<(CollectionEntity, PublicCollectionSubscriber?), StoreCollection>()
+        config.NewConfig<(Collection, PublicCollectionSubscriber?), StoreCollection>()
             .Map(d => d, s => s.Item1)
             .Map(d => d.CreatedAt, s => s.Item1.CreatedDate)
             .Map(d => d.NotStartedCards, s => s.Item1.NotStartedCardsCount)
@@ -19,7 +20,7 @@ public class StoreCollectionRegister : IRegister
     }
 }
 
-public class StoreCollection : Collection
+public class StoreCollection : CollectionDto
 {
     public UserInfo OwnerUser { get; set; }
     public bool IsLiked { get; set; }

@@ -31,7 +31,7 @@ namespace IntervalLearningApi.Controllers
         }
 
         [HttpPost(ApiRoutes.Collections.Create)]
-        public ActionResult<Collection> CreateCollection([FromBody]CreateCollectionItem item)
+        public ActionResult<CollectionDto> CreateCollection([FromBody]CreateCollectionItem item)
         {
             var userId = HttpContext.GetUserId();
 
@@ -48,7 +48,7 @@ namespace IntervalLearningApi.Controllers
                 item.CollectionId);
 
             return collection != null
-                ? mapper.Map<Collection>(collection)
+                ? mapper.Map<CollectionDto>(collection)
                 : BadRequest(error);
         }
         
@@ -65,7 +65,7 @@ namespace IntervalLearningApi.Controllers
         }
 
         [HttpGet(ApiRoutes.Collections.SearchPrivate)]
-        public async Task<ActionResult<List<Collection>>> SearchCollection(short themeId, string? searchName = null, int page = 1, int count = 10)
+        public async Task<ActionResult<List<CollectionDto>>> SearchCollection(short themeId, string? searchName = null, int page = 1, int count = 10)
         {
             var userId = HttpContext.GetUserId();
 
@@ -73,21 +73,21 @@ namespace IntervalLearningApi.Controllers
                 return BadRequest();
 
             var collections = await collectionService.SearchCollections(userId.Value, themeId, searchName ?? "", page, count);
-            return mapper.Map<List<Collection>>(collections);
+            return mapper.Map<List<CollectionDto>>(collections);
         }
 
         [AllowAnonymous]
         [HttpGet(ApiRoutes.Collections.GetPublicCollection)]
-        public async Task<ActionResult<Collection>> GetPublicCollection(long userId, short collectionId)
+        public async Task<ActionResult<CollectionDto>> GetPublicCollection(long userId, short collectionId)
         {
             var collection = await collectionService.FindPublicCollection(UserId.Create(userId).Value, collectionId);
             return collection == null 
                 ? NotFound() 
-                : mapper.Map<Collection>(collection);
+                : mapper.Map<CollectionDto>(collection);
         }
 
         [HttpGet(ApiRoutes.Collections.GetAll)]
-        public async Task<ActionResult<List<Collection>>> GetAll()
+        public async Task<ActionResult<List<CollectionDto>>> GetAll()
         {
             var userId = HttpContext.GetUserId();
 
@@ -95,7 +95,7 @@ namespace IntervalLearningApi.Controllers
                 return BadRequest();
 
             var collections = await collectionService.GetAllByUserId(userId.Value);
-            return mapper.Map<List<Collection>>(collections);
+            return mapper.Map<List<CollectionDto>>(collections);
         }
 
         [HttpGet(ApiRoutes.Collections.GetRandomWords)]
@@ -146,11 +146,11 @@ namespace IntervalLearningApi.Controllers
             var (totalCollections, canStartCollections) = await collectionService.GetCanStart(userId.Value, UserId.Create(scheduleUserId).Value, scheduleId, page, count);
             return new GetNotFinishedResponse(
                 totalCollections,
-                mapper.Map<List<Collection>>(canStartCollections));
+                mapper.Map<List<CollectionDto>>(canStartCollections));
         }
 
         [HttpGet(ApiRoutes.Collections.GetCollection)]
-        public async Task<ActionResult<Collection>> Get(short collectionId)
+        public async Task<ActionResult<CollectionDto>> Get(short collectionId)
         {
             var userId = HttpContext.GetUserId();
 
@@ -159,12 +159,12 @@ namespace IntervalLearningApi.Controllers
 
             var collection = await collectionService.Find(userId.Value, collectionId).ConfigureAwait(false);
             return collection != null 
-                ? mapper.Map<Collection>(collection)
+                ? mapper.Map<CollectionDto>(collection)
                 : NotFound();
         }
 
         [HttpPost(ApiRoutes.Collections.MakePublic)]
-        public async Task<ActionResult<Collection>> MakePublic(short collectionId)
+        public async Task<ActionResult<CollectionDto>> MakePublic(short collectionId)
         {
             var userId = HttpContext.GetUserId();
 
@@ -173,12 +173,12 @@ namespace IntervalLearningApi.Controllers
 
             var (collection, error) = await collectionService.MakePublic(userId.Value, collectionId).ConfigureAwait(false);
             return collection != null 
-                ? mapper.Map<Collection>(collection) 
+                ? mapper.Map<CollectionDto>(collection) 
                 : BadRequest(error);
         }
 
         [HttpPost(ApiRoutes.Collections.AddCardsToMyCollection)]
-        public async Task<ActionResult<Collection>> AddCardsToMyCollection(
+        public async Task<ActionResult<CollectionDto>> AddCardsToMyCollection(
             long collectionUserId,
             short collectionId,
             [FromBody] AddCollectionsRequest request)
@@ -197,7 +197,7 @@ namespace IntervalLearningApi.Controllers
                 request.CheckUnique);
             
             return collection != null 
-                ? mapper.Map<Collection>(collection)
+                ? mapper.Map<CollectionDto>(collection)
                 : BadRequest(error);
         }
     }

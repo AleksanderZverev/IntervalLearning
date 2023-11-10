@@ -25,7 +25,7 @@ public class RepeatingPhaseDto
 
 public class RepeatingCollectionDto
 {
-    public Collection Collection { get; set; }
+    public CollectionDto Collection { get; set; }
 
     public int CardsToRepeatCount { get; set; }
 }

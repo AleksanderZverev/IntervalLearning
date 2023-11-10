@@ -15,7 +15,7 @@ public class CardsControllerTests : SharedApiTests
 
     private async Task<List<Card>?> GetCardsPageAsync(
         HttpClient client,
-        Collection collection,
+        CollectionDto collection,
         int pageNumber,
         int countPerPage)
     {

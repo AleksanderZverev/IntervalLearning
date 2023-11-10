@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using DB.Models;
+using Domain.Collection;
 using Mapster;
 using Newtonsoft.Json;
 
@@ -9,14 +10,14 @@ public class CollectionsRegister : IRegister
 {
     public void Register(TypeAdapterConfig config)
     {
-        config.NewConfig<CollectionEntity, Collection>()
+        config.NewConfig<Collection, CollectionDto>()
             .Map(d => d.Publication, s => s.CollectionPublicationEntity)
             .Map(d => d.CreatedAt, s => s.CreatedDate)
             .Map(d => d.NotStartedCards, s => s.NotStartedCardsCount);
     }
 }
 
-public class Collection
+public class CollectionDto
 {
     [JsonProperty("userId")] 
     public string ParentUserId { get; set; }
@@ -45,9 +46,9 @@ public class CreateCollectionItem
 public class GetNotFinishedResponse
 {
     public int TotalCollections { get; set; }
-    public List<Collection> CanStartCollections { get; set; }
+    public List<CollectionDto> CanStartCollections { get; set; }
 
-    public GetNotFinishedResponse(int totalCollections, List<Collection> canStartCollections)
+    public GetNotFinishedResponse(int totalCollections, List<CollectionDto> canStartCollections)
     {
         this.TotalCollections = totalCollections;
         CanStartCollections = canStartCollections;

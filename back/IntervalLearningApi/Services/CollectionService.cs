@@ -3,6 +3,7 @@ using DB;
 using DB.Models;
 using DB.Models.Dictionary;
 using DB.Models.Store;
+using Domain.Collection;
 using Domain.Language;
 using Domain.User.ValueObjects;
 using Infrastructure;
@@ -26,14 +27,14 @@ public class CollectionService
         this.metadataService = metadataService;
     }
 
-    public Task<CollectionEntity?> Find(UserId userId, short collectionId)
+    public Task<Collection?> Find(UserId userId, short collectionId)
     {
         return db.Collections
             .Include(c => c.CollectionPublicationEntity)
             .SingleOrDefaultAsync(c => c.ParentUserId == userId && c.Id == collectionId);
     }
 
-    public Task<List<CollectionEntity>> GetAllByUserId(UserId userId)
+    public Task<List<Collection>> GetAllByUserId(UserId userId)
     {
         var collections = db.Collections
             .Where(c => c.ParentUserId == userId)
@@ -110,7 +111,7 @@ public class CollectionService
         return result;
     }
 
-    public async Task<(int totalCollections, List<CollectionEntity> canStartCollections)> GetCanStart(
+    public async Task<(int totalCollections, List<Collection> canStartCollections)> GetCanStart(
         UserId userId,
         UserId scheduleUserId,
         short scheduleId,
@@ -177,10 +178,10 @@ public class CollectionService
         }
     }
 
-    public (CollectionEntity? collection, string? error) CreateOrEdit(CreateOrPatchCollection item, short? collectionId)
+    public (Collection? collection, string? error) CreateOrEdit(CreateOrPatchCollection item, short? collectionId)
     {
         var collection = collectionId == null
-            ? new CollectionEntity()
+            ? new Collection()
             : db.Collections.Find(item.ParentUserId, collectionId);
 
         if (collection == null)
@@ -373,7 +374,7 @@ public class CollectionService
         return (resultWords, language, null);
     }
 
-    public async Task<(CollectionEntity? collection, string? error)> MakePublic(UserId userId, short collectionId)
+    public async Task<(Collection? collection, string? error)> MakePublic(UserId userId, short collectionId)
     {
         var collection = await db.Collections.FindAsync(userId, collectionId);
 
@@ -407,7 +408,7 @@ public class CollectionService
         return (collection, null);
     }
 
-    public async Task<(CollectionEntity? collection, string? error)> AddCardsToMyCollection(
+    public async Task<(Collection? collection, string? error)> AddCardsToMyCollection(
         UserId publicCollectionUserId,
         short publicCollectionId,
         UserId myUserId,
@@ -429,7 +430,7 @@ public class CollectionService
 
         var myCollection = myCollectionId != null
             ? await db.Collections.FindAsync(myUserId, myCollectionId.Value)
-            : db.CreateByProperties<CollectionEntity>(new CreateOrPatchCollection(
+            : db.CreateByProperties<Collection>(new CreateOrPatchCollection(
                 myUserId,
                 newCollectionName,
                 false,
@@ -529,7 +530,7 @@ public class CollectionService
         return (myCollection, null);
     }
 
-    public async Task<List<(CollectionEntity collection, PublicCollectionSubscriber? subscriber)>> SearchPublicCollections(
+    public async Task<List<(Collection collection, PublicCollectionSubscriber? subscriber)>> SearchPublicCollections(
         UserId myUserId,
         short themeId, 
         string searchName, 
@@ -540,7 +541,7 @@ public class CollectionService
 
         if (theme == null)
         {
-            return new List<(CollectionEntity, PublicCollectionSubscriber?)>();
+            return new List<(Collection, PublicCollectionSubscriber?)>();
         }
 
         var lowerSearchName = searchName.ToLowerInvariant();
@@ -571,7 +572,7 @@ public class CollectionService
         return result;
     }
     
-    public async Task<List<CollectionEntity>> SearchCollections(
+    public async Task<List<Collection>> SearchCollections(
         UserId userId,
         short themeId, 
         string searchName, 
@@ -581,7 +582,7 @@ public class CollectionService
         var theme = await db.Themes.FindAsync(themeId);
 
         if (theme == null)
-            return new List<CollectionEntity>();
+            return new List<Collection>();
 
         var lowerSearchName = searchName.ToLowerInvariant();
 
@@ -624,17 +625,17 @@ public class CollectionService
 
     public class RepeatingCollection
     {
-        public CollectionEntity Collection { get; }
+        public Collection Collection { get; }
 
         public int CardsToRepeatCount { get; set; }
 
-        public RepeatingCollection(CollectionEntity collection)
+        public RepeatingCollection(Collection collection)
         {
             Collection = collection;
         }
     }
 
-    public async Task<CollectionEntity?> FindPublicCollection(UserId userId, short collectionId)
+    public async Task<Collection?> FindPublicCollection(UserId userId, short collectionId)
     {
         var collection = await db.Collections
             .Include(c => c.CollectionPublicationEntity)

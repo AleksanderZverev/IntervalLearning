@@ -21,19 +21,19 @@ public class SharedApiTests : BaseApiTests, IClassFixture<SharedDockerIntervalLe
         SharedScope = await GetRandomUserScope();
     }
     
-    protected async Task<List<Collection>?> GetAllCollectionsAsync()
+    protected async Task<List<CollectionDto>?> GetAllCollectionsAsync()
     {
         var getAllResponse = await sharedClient.GetAsync(
             AbsoluteQuery(ApiRoutes.Collections.BasePath, ApiRoutes.Collections.GetAll));
-        var allCollections = getAllResponse.ToResponseDto<List<Collection>>();
+        var allCollections = getAllResponse.ToResponseDto<List<CollectionDto>>();
         return allCollections;
     }
     
-    protected async Task<Collection?> GetCollectionAsync(string collectionId)
+    protected async Task<CollectionDto?> GetCollectionAsync(string collectionId)
     {
         var getCollectionResponse = await sharedClient.GetAsync(
             AbsoluteQuery(ApiRoutes.Collections.BasePath, ApiRoutes.Collections.GetCollectionPath(int.Parse(collectionId))));
-        var collection = getCollectionResponse.ToResponseDto<Collection>();
+        var collection = getCollectionResponse.ToResponseDto<CollectionDto>();
         return collection;
     }
 
@@ -73,13 +73,13 @@ public class SharedApiTests : BaseApiTests, IClassFixture<SharedDockerIntervalLe
         return cards;
     }
 
-    protected async Task<(Collection Collection, Card Card)> CreateRandomCardAsync()
+    protected async Task<(CollectionDto Collection, Card Card)> CreateRandomCardAsync()
     {
         var (collection, cards) = await CreateRandomCardsAsync(1);
         return (collection, cards.Single());
     }
 
-    protected async Task<(Collection Collection, List<Card> Cards)> CreateRandomCardsAsync(int count)
+    protected async Task<(CollectionDto Collection, List<Card> Cards)> CreateRandomCardsAsync(int count)
     {
         var collection = await CreateRandomCollectionAsync();
         var cards = await AddRandomCardsToCollection(collection.Id, count);
@@ -99,14 +99,14 @@ public class SharedApiTests : BaseApiTests, IClassFixture<SharedDockerIntervalLe
         return createdCard;
     }
 
-    protected async Task<Collection> CreateRandomCollectionAsync()
+    protected async Task<CollectionDto> CreateRandomCollectionAsync()
         => (await CreateRandomCollectionsAsync(1)).Single(); 
     
-    protected async Task<List<Collection>> CreateRandomCollectionsAsync(int count)
+    protected async Task<List<CollectionDto>> CreateRandomCollectionsAsync(int count)
     {
         var randomCollections = new CollectionFaker().Generate(count);
 
-        var result = new List<Collection>(count);
+        var result = new List<CollectionDto>(count);
         foreach (var randomCollection in randomCollections)
         {
             var createdCollection = await CreateCollectionAsync(new CreateCollectionItem()
@@ -125,7 +125,7 @@ public class SharedApiTests : BaseApiTests, IClassFixture<SharedDockerIntervalLe
         return result;
     }
 
-    protected Task<Collection?> CreateCollectionAsync(string collectionName)
+    protected Task<CollectionDto?> CreateCollectionAsync(string collectionName)
     {
         return CreateCollectionAsync(new CreateCollectionItem()
         {
@@ -136,14 +136,14 @@ public class SharedApiTests : BaseApiTests, IClassFixture<SharedDockerIntervalLe
     }
     
 
-    private async Task<Collection?> CreateCollectionAsync(CreateCollectionItem createCollectionItem)
+    private async Task<CollectionDto?> CreateCollectionAsync(CreateCollectionItem createCollectionItem)
     {
         var createCollectionResponse = await sharedClient.PostAsJsonAsync(
             AbsoluteQuery(ApiRoutes.Collections.BasePath, ApiRoutes.Collections.Create),
             createCollectionItem);
         if (!createCollectionResponse.IsSuccessStatusCode)
             return null;
-        var createdCollection = createCollectionResponse.ToResponseDto<Collection>();
+        var createdCollection = createCollectionResponse.ToResponseDto<CollectionDto>();
         return createdCollection;
     }
 
