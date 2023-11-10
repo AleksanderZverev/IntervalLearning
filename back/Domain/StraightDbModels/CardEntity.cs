@@ -1,5 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using Domain.Collection;
+using Domain.Collection.ValueObjects;
 using Domain.User;
 using Domain.User.ValueObjects;
 
@@ -20,7 +22,7 @@ public interface ICreateOrPatchCard
     public List<string>? Examples { get; }
 
     public UserId ParentUserId { get; }
-    public short ParentCollectionId { get; }
+    public CollectionId ParentCollectionId { get; }
 }
 
 
@@ -56,8 +58,8 @@ public class CardEntity : ICreateOrPatchCard, IParentCollectionReference
     public UserId ParentUserId { get; set; }
     public User? ParentUser { get; set; }
 
-    public short ParentCollectionId { get; set; }
-    public CollectionEntity? ParentCollection { get; set; }
+    public CollectionId ParentCollectionId { get; set; }
+    public Collection? ParentCollection { get; set; }
 
     public RememberEntity? FindLastRemember() 
         => Remembers.MaxBy(c => c.Id);

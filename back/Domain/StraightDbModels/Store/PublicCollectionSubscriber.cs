@@ -1,4 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations.Schema;
+using Domain.Collection;
+using Domain.Collection.ValueObjects;
 using Domain.User;
 using Domain.User.ValueObjects;
 
@@ -7,7 +9,7 @@ namespace DB.Models.Store;
 interface ICreatePublicCollectionSubscriberItem
 {
     public UserId ParentUserId { get; }
-    public short ParentCollectionId { get; }
+    public CollectionId ParentCollectionId { get; }
     public UserId SubscriberUserId { get; }
 }
 
@@ -16,8 +18,8 @@ public class PublicCollectionSubscriber : IParentCollectionReference, ICreatePub
 {
     public UserId ParentUserId { get; set; }
     public User? ParentUser { get; set; }
-    public short ParentCollectionId { get; set; }
-    public CollectionEntity? ParentCollection { get; set; }
+    public CollectionId ParentCollectionId { get; set; }
+    public Collection? ParentCollection { get; set; }
 
     public CollectionPublicationEntity? CollectionPublication { get; set; }
 
@@ -32,10 +34,10 @@ public class PublicCollectionSubscriber : IParentCollectionReference, ICreatePub
 public class CreatePublicCollectionSubscriber : ICreatePublicCollectionSubscriberItem
 {
     public UserId ParentUserId { get; }
-    public short ParentCollectionId { get; }
+    public CollectionId ParentCollectionId { get; }
     public UserId SubscriberUserId { get; }
 
-    public CreatePublicCollectionSubscriber(UserId parentUserId, short parentCollectionId, UserId subscriberUserId)
+    public CreatePublicCollectionSubscriber(UserId parentUserId, CollectionId parentCollectionId, UserId subscriberUserId)
     {
         ParentUserId = parentUserId;
         ParentCollectionId = parentCollectionId;

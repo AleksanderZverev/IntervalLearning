@@ -1,5 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using Domain.Collection;
+using Domain.Collection.ValueObjects;
 using Domain.User;
 using Domain.User.ValueObjects;
 
@@ -8,7 +10,7 @@ namespace DB.Models.Store;
 public interface ICreateCollectionPublication
 {
     public UserId ParentUserId { get; }
-    public short ParentCollectionId { get; }
+    public CollectionId ParentCollectionId { get; }
 }
 
 [Table("CollectionPublications")]
@@ -16,8 +18,8 @@ public class CollectionPublicationEntity : IParentCollectionReference, ICreateCo
 {
     public UserId ParentUserId { get; set; }
     public User? ParentUser { get; set; }
-    public short ParentCollectionId { get; set; }
-    public CollectionEntity? ParentCollection { get; set; }
+    public CollectionId ParentCollectionId { get; set; }
+    public Collection? ParentCollection { get; set; }
 
     [Required] 
     public DateOnly PublishDate { get; set; } = DateOnly.FromDateTime(DateTime.UtcNow);
@@ -32,9 +34,11 @@ public class CollectionPublicationEntity : IParentCollectionReference, ICreateCo
 public class CreateCollectionPublication : ICreateCollectionPublication
 {
     public UserId ParentUserId { get; }
-    public short ParentCollectionId { get; }
+    public CollectionId ParentCollectionId { get; }
 
-    public CreateCollectionPublication(UserId parentUserId, short parentCollectionId)
+    public CreateCollectionPublication(
+        UserId parentUserId,
+        CollectionId parentCollectionId)
     {
         ParentUserId = parentUserId;
         ParentCollectionId = parentCollectionId;

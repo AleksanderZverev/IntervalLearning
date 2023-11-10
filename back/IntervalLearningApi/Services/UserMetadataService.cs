@@ -1,5 +1,6 @@
 ﻿using DB;
 using DB.Models;
+using Domain.Collection;
 using Domain.User.ValueObjects;
 
 namespace IntervalLearningApi.Services
@@ -19,7 +20,7 @@ namespace IntervalLearningApi.Services
             return metadata;
         }
 
-        public void CardStateChanged(UserMetadataEntity metadata, CollectionEntity collection, bool? lastState, bool? newState)
+        public void CardStateChanged(UserMetadataEntity metadata, Collection collection, bool? lastState, bool? newState)
         {
             var prevState = ToState(lastState);
             var nextState = ToState(newState);

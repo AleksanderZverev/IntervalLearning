@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using Domain.Collection.ValueObjects;
 using Domain.User.ValueObjects;
 using IntervalLearningApi.Constants;
 using IntervalLearningApi.Extensions;
@@ -37,7 +38,7 @@ namespace IntervalLearningApi.Controllers
             if (userId.IsFailed)
                 return BadRequest();
 
-            var card = await cardsService.FindCard(userId.Value, collectionId, cardId);
+            var card = await cardsService.FindCard(userId.Value, CollectionId.Create(collectionId).Value, cardId);
             return card == null 
                 ? NotFound()
                 : mapper.Map<Card>(card);
@@ -52,7 +53,7 @@ namespace IntervalLearningApi.Controllers
                 return BadRequest();
 
 
-            var cards = await cardsService.GetCards(userId.Value, collectionId, page, count);
+            var cards = await cardsService.GetCards(userId.Value, CollectionId.Create(collectionId).Value, page, count);
             return mapper.Map<List<Card>>(cards);
         }
 
@@ -69,7 +70,7 @@ namespace IntervalLearningApi.Controllers
             if (userId.IsFailed)
                 return BadRequest();
 
-            var cards = await cardsService.GetCardsQueue(userId.Value, collectionId, UserId.Create(scheduleUserId).Value, scheduleId, phaseIndex, date);
+            var cards = await cardsService.GetCardsQueue(userId.Value, CollectionId.Create(collectionId).Value, UserId.Create(scheduleUserId).Value, scheduleId, phaseIndex, date);
             return mapper.Map<List<Card>>(cards);
         }
 
@@ -85,7 +86,7 @@ namespace IntervalLearningApi.Controllers
             if (userId.IsFailed)
                 return BadRequest();
             
-            var (cards, error) = await cardsService.GetNotStartedCards(UserId.Create(scheduleUserId).Value, scheduleId, userId.Value, collectionId, count);
+            var (cards, error) = await cardsService.GetNotStartedCards(UserId.Create(scheduleUserId).Value, scheduleId, userId.Value, CollectionId.Create(collectionId).Value, count);
             return cards == null 
                 ? BadRequest(error) 
                 : mapper.Map<List<Card>>(cards);
@@ -107,7 +108,7 @@ namespace IntervalLearningApi.Controllers
 
             var (card, error) = collectionService.CreateOrEditCard(
                 userId.Value,
-                collectionId,
+                CollectionId.Create(collectionId).Value,
                 item.CardId,
                 item.FrontText,
                 item.PromptText ?? string.Empty,
@@ -128,7 +129,7 @@ namespace IntervalLearningApi.Controllers
             if (userId.IsFailed)
                 return BadRequest();
 
-            var (cardEntity, error) = await collectionService.DeleteCard(userId.Value, collectionId, cardId);
+            var (cardEntity, error) = await collectionService.DeleteCard(userId.Value, CollectionId.Create(collectionId).Value, cardId);
             return cardEntity != null 
                 ? mapper.Map<Card>(cardEntity)
                 : BadRequest(error);
@@ -142,7 +143,7 @@ namespace IntervalLearningApi.Controllers
             if (userId.IsFailed)
                 return BadRequest();
 
-            var (cardEntity, error) = await collectionService.MoveCard(userId.Value, collectionId, request.DestinationCollectionId, request.CardId);
+            var (cardEntity, error) = await collectionService.MoveCard(userId.Value, CollectionId.Create(collectionId).Value, CollectionId.Create(request.DestinationCollectionId).Value, request.CardId);
             return cardEntity != null 
                 ? mapper.Map<Card>(cardEntity) 
                 : BadRequest(error);
@@ -161,7 +162,7 @@ namespace IntervalLearningApi.Controllers
             if (userId.IsFailed)
                 return BadRequest();
 
-            var cardEntities = await cardsService.Search(userId.Value, collectionId, searchValue.ToLower(), fieldType, page, count);
+            var cardEntities = await cardsService.Search(userId.Value, CollectionId.Create(collectionId).Value, searchValue.ToLower(), fieldType, page, count);
             return mapper.Map<List<Card>>(cardEntities);
         }
 
@@ -173,7 +174,7 @@ namespace IntervalLearningApi.Controllers
             if (userId.IsFailed)
                 return BadRequest();
 
-            var (closestRepeatInfo, error) = cardsService.Start(userId.Value, collectionId, UserId.Create(item.ScheduleUserId).Value, item.ScheduleId, item.CardIds);
+            var (closestRepeatInfo, error) = cardsService.Start(userId.Value, CollectionId.Create(collectionId).Value, UserId.Create(item.ScheduleUserId).Value, item.ScheduleId, item.CardIds);
             return closestRepeatInfo != null
                 ? new StartCardResponse(
                     closestRepeatInfo.NextRepeatDate,
@@ -194,7 +195,7 @@ namespace IntervalLearningApi.Controllers
             
             var (closestRepeatInfo, error) = await cardsService.Remember(
                 userId.Value,
-                collectionId,
+                CollectionId.Create(collectionId).Value,
                 UserId.Create(request.ScheduleUserId).Value,
                 request.ScheduleId,
                 request.PhaseIndex,

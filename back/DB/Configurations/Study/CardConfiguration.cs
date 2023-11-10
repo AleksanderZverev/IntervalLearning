@@ -16,7 +16,7 @@ public class CardConfiguration  : IEntityTypeConfiguration<CardEntity>
             .OnDelete(DeleteBehavior.NoAction);
 
         builder.HasOne(c => c.ParentCollection)
-            .WithMany(c => c.Cards)
+            .WithMany() //c => c.Cards
             .HasForeignKey(c => new {c.ParentUserId, c.ParentCollectionId})
             .OnDelete(DeleteBehavior.NoAction);
     }

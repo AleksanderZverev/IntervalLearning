@@ -1,5 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using Domain.Collection;
+using Domain.Collection.ValueObjects;
 using Domain.User;
 using Domain.User.ValueObjects;
 
@@ -31,7 +33,7 @@ public class RememberEntity : IParentCardReference
         UserId parentRepeatsScheduleUserId, 
         short parentRepeatsScheduleId,
         UserId parentUserId,
-        short parentCollectionId,
+        CollectionId parentCollectionId,
         short parentCardId,
         float weight,
         short phaseIndex,
@@ -49,8 +51,8 @@ public class RememberEntity : IParentCardReference
 
     public UserId ParentUserId { get; set; } 
     public User? ParentUser { get; set; }
-    public short ParentCollectionId { get; set; }
-    public CollectionEntity? ParentCollection { get; set; }
+    public CollectionId ParentCollectionId { get; set; }
+    public Collection? ParentCollection { get; set; }
     public short ParentCardId { get; set; }
     public CardEntity? ParentCard { get; set; }
 

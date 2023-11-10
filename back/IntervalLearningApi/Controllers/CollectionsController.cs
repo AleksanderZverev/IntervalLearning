@@ -1,6 +1,7 @@
 ﻿using DB.Models;
 using DB.Models.Dictionary;
 using DB.Models.Store;
+using Domain.Collection.ValueObjects;
 using Domain.Language;
 using Domain.User.ValueObjects;
 using IntervalLearningApi.Constants;
@@ -45,7 +46,7 @@ namespace IntervalLearningApi.Controllers
                     item.IsDefaultBackSide,
                     item.ThemeId
                 ),
-                item.CollectionId);
+                ComplexCollectionId.Create(userId.Value, CollectionId.Create(item.CollectionId.Value).Value).Value);
 
             return collection != null
                 ? mapper.Map<CollectionDto>(collection)
@@ -80,7 +81,7 @@ namespace IntervalLearningApi.Controllers
         [HttpGet(ApiRoutes.Collections.GetPublicCollection)]
         public async Task<ActionResult<CollectionDto>> GetPublicCollection(long userId, short collectionId)
         {
-            var collection = await collectionService.FindPublicCollection(UserId.Create(userId).Value, collectionId);
+            var collection = await collectionService.FindPublicCollection(UserId.Create(userId).Value, CollectionId.Create(collectionId).Value);
             return collection == null 
                 ? NotFound() 
                 : mapper.Map<CollectionDto>(collection);
@@ -106,7 +107,7 @@ namespace IntervalLearningApi.Controllers
             if (userId.IsFailed)
                 return BadRequest();
 
-            var (words, language, error) = await collectionService.GetRandomWords(userId.Value, collectionId);
+            var (words, language, error) = await collectionService.GetRandomWords(userId.Value, CollectionId.Create(collectionId).Value);
 
             return words == null || language == null
                 ? BadRequest(error)
@@ -157,7 +158,7 @@ namespace IntervalLearningApi.Controllers
             if (userId.IsFailed)
                 return BadRequest();
 
-            var collection = await collectionService.Find(userId.Value, collectionId).ConfigureAwait(false);
+            var collection = await collectionService.Find(userId.Value, CollectionId.Create(collectionId).Value).ConfigureAwait(false);
             return collection != null 
                 ? mapper.Map<CollectionDto>(collection)
                 : NotFound();
@@ -171,7 +172,7 @@ namespace IntervalLearningApi.Controllers
             if (userId.IsFailed)
                 return BadRequest();
 
-            var (collection, error) = await collectionService.MakePublic(userId.Value, collectionId).ConfigureAwait(false);
+            var (collection, error) = await collectionService.MakePublic(userId.Value, CollectionId.Create(collectionId).Value).ConfigureAwait(false);
             return collection != null 
                 ? mapper.Map<CollectionDto>(collection) 
                 : BadRequest(error);
@@ -190,10 +191,11 @@ namespace IntervalLearningApi.Controllers
 
             var (collection, error) = await collectionService.AddCardsToMyCollection(
                 UserId.Create(collectionUserId).Value,
-                collectionId,
+                CollectionId.Create(collectionId).Value,
                 userId.Value,
-                request.MyCollectionId,
-                request.NewCollectionName,
+                //todo: check null
+                CollectionId.Create(request.MyCollectionId.Value).Value,
+            request.NewCollectionName,
                 request.CheckUnique);
             
             return collection != null 

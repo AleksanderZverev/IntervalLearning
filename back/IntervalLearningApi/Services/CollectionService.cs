@@ -4,6 +4,8 @@ using DB.Models;
 using DB.Models.Dictionary;
 using DB.Models.Store;
 using Domain.Collection;
+using Domain.Collection.ValueObjects;
+using Domain.Common.ValueObjects;
 using Domain.Language;
 using Domain.User.ValueObjects;
 using Infrastructure;
@@ -27,7 +29,7 @@ public class CollectionService
         this.metadataService = metadataService;
     }
 
-    public Task<Collection?> Find(UserId userId, short collectionId)
+    public Task<Collection?> Find(UserId userId, CollectionId collectionId)
     {
         return db.Collections
             .Include(c => c.CollectionPublicationEntity)
@@ -152,7 +154,7 @@ public class CollectionService
         foreach (var collection in canStartCollections)
         {
             var notStartedCards = collectionToCardsCount[collection.Id];
-            collection.NotStartedCardsCount = (short)notStartedCards;
+            collection.NotStartedCardsCount = Counter.Create(notStartedCards).Value;
         }
 
         return (totalCollections, canStartCollections);
@@ -178,10 +180,10 @@ public class CollectionService
         }
     }
 
-    public (Collection? collection, string? error) CreateOrEdit(CreateOrPatchCollection item, short? collectionId)
+    public (Collection? collection, string? error) CreateOrEdit(CreateOrPatchCollection item, ComplexCollectionId? collectionId)
     {
         var collection = collectionId == null
-            ? new Collection()
+            ? Collection.Create(collectionId.UserId, collectionId.Id).Value
             : db.Collections.Find(item.ParentUserId, collectionId);
 
         if (collection == null)
@@ -206,7 +208,7 @@ public class CollectionService
 
     public (CardEntity? card, string? error) CreateOrEditCard(
         UserId userId,
-        short collectionId,
+        CollectionId collectionId,
         short? cardId,
         string frontText,
         string promptText,
@@ -243,7 +245,7 @@ public class CollectionService
 
         if (isCreated)
         {
-            collection.CardsCount++;
+            collection.CardsCount.Increment();
         }
 
         db.SaveChanges();
@@ -256,7 +258,7 @@ public class CollectionService
     
     public async Task<(CardEntity? card, string? error)> DeleteCard(
         UserId userId,
-        short collectionId,
+        CollectionId collectionId,
         short cardId,
         bool disableTransaction = false)
     {
@@ -277,7 +279,7 @@ public class CollectionService
             return (card, error);
         }
 
-        collection.CardsCount--;
+        collection.CardsCount.Decrement();
 
         await db.SaveChangesAsync();
 
@@ -289,8 +291,8 @@ public class CollectionService
 
     public async Task<(CardEntity? card, string? error)> MoveCard(
         UserId userId,
-        short sourceCollectionId,
-        short destinationCollectionId,
+        CollectionId sourceCollectionId,
+        CollectionId destinationCollectionId,
         short cardId)
     {
         var sourceCollection = await db.Collections.FindAsync(userId, sourceCollectionId);
@@ -317,14 +319,13 @@ public class CollectionService
             return (null, movingError);
         }
 
-        sourceCollection.CardsCount--;
-        destinationCollection.CardsCount++;
+        sourceCollection.CardsCount.Decrement();
+        destinationCollection.CardsCount.Increment();
 
         if (!db.SoftSaveChanges())
         {
             return (null, "Unable to increase cards count");
         }
-
         
         await db.Database.CommitTransactionAsync();
         return (movedCard, null);
@@ -332,7 +333,7 @@ public class CollectionService
 
     public async Task<(List<WordEntity>? words, Language? language, string? error)> GetRandomWords(
         UserId userId, 
-        short collectionId)
+        CollectionId collectionId)
     {
         var collection = await db.Collections.FindAsync(userId, collectionId);
 
@@ -374,7 +375,7 @@ public class CollectionService
         return (resultWords, language, null);
     }
 
-    public async Task<(Collection? collection, string? error)> MakePublic(UserId userId, short collectionId)
+    public async Task<(Collection? collection, string? error)> MakePublic(UserId userId, CollectionId collectionId)
     {
         var collection = await db.Collections.FindAsync(userId, collectionId);
 
@@ -410,9 +411,9 @@ public class CollectionService
 
     public async Task<(Collection? collection, string? error)> AddCardsToMyCollection(
         UserId publicCollectionUserId,
-        short publicCollectionId,
+        CollectionId publicCollectionId,
         UserId myUserId,
-        short? myCollectionId, 
+        CollectionId? myCollectionId, 
         string? newCollectionName,
         bool checkUnique)
     {
@@ -430,11 +431,12 @@ public class CollectionService
 
         var myCollection = myCollectionId != null
             ? await db.Collections.FindAsync(myUserId, myCollectionId.Value)
-            : db.CreateByProperties<Collection>(new CreateOrPatchCollection(
-                myUserId,
-                newCollectionName,
-                false,
-                publicCollection.ThemeId));
+            : throw new NotImplementedException();
+            // : db.CreateByProperties<Collection>(new CreateOrPatchCollection(
+            //     myUserId,
+            //     newCollectionName,
+            //     false,
+            //     publicCollection.ThemeId));
 
         if (myCollectionId == null && myCollection != null)
         {
@@ -549,7 +551,7 @@ public class CollectionService
         var toSkip = (page - 1) * count;
 
         var foundCollections = await db.Collections
-            .Where(c => c.ThemeId == themeId && c.IsPublic && c.Title.ToLower().StartsWith(lowerSearchName))
+            .Where(c => c.ThemeId == themeId && c.IsPublic && EF.Property<string>(c, nameof(c.Title)).ToLower().StartsWith(lowerSearchName))
             .Include(c => c.CollectionPublicationEntity)
             .Include(c => c.ParentUser)
             .AsSplitQuery()
@@ -592,7 +594,7 @@ public class CollectionService
             .Where(c => 
                 c.ParentUserId == userId
                 && c.ThemeId == themeId
-                && c.Title.ToLower().StartsWith(lowerSearchName))
+                && EF.Property<string>(c, nameof(c.Title)).ToLower().StartsWith(lowerSearchName))
             .Skip(toSkip)
             .Take(count)
             .ToListAsync();
@@ -635,7 +637,7 @@ public class CollectionService
         }
     }
 
-    public async Task<Collection?> FindPublicCollection(UserId userId, short collectionId)
+    public async Task<Collection?> FindPublicCollection(UserId userId, CollectionId collectionId)
     {
         var collection = await db.Collections
             .Include(c => c.CollectionPublicationEntity)

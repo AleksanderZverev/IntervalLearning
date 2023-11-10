@@ -3,6 +3,7 @@ using DB.Models.Store;
 using Domain.Collection.ValueObjects;
 using Domain.Common.ValueObjects;
 using Domain.User.ValueObjects;
+using FluentResults;
 
 namespace Domain.Collection;
 
@@ -41,21 +42,15 @@ public class Collection : Entity<ComplexCollectionId>
     public UserId ParentUserId { get; set; }
     public virtual User.User? ParentUser { get; set; }
 
-    protected Collection(UserId parentUserId, CollectionId id, CollectionTitle title) 
+    protected Collection(UserId parentUserId, CollectionId id) 
         : base(ComplexCollectionId.Create(parentUserId, id).Value)
     {
-        Title = title;
     }
 
-    // public static Result<Collection> CreateNew(UserId userId, CollectionTitle title)
-    // {
-    //     var idResult = CollectionId.CreateUnique(userId);
-    //
-    //     if (idResult.IsFailed)
-    //         return idResult.ToResult();
-    //     
-    //     return new Collection(idResult.Value, title);
-    // }
+    public static Result<Collection> Create(UserId userId, CollectionId id)
+    {
+        return new Collection(userId, id);
+    }
     //
     // public void AddCard(Card.Card card)
     // {

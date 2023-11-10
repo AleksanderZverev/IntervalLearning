@@ -2,6 +2,7 @@
 using System.Linq.Expressions;
 using DB;
 using DB.Models;
+using Domain.Collection.ValueObjects;
 using Domain.User.ValueObjects;
 using Infrastructure;
 using IntervalLearningApi.Models;
@@ -30,14 +31,14 @@ public class CardsService
         this.db = db;
     }
 
-    public Task<List<CardEntity>> GetAllCards(UserId userId, short collectionId)
+    public Task<List<CardEntity>> GetAllCards(UserId userId, CollectionId collectionId)
     {
         return db.Cards
             .Where(c => c.ParentUserId == userId && c.ParentCollectionId == collectionId)
             .ToListAsync();
     }
 
-    public Task<CardEntity?> FindCard(UserId userId, short collectionId, short cardId)
+    public Task<CardEntity?> FindCard(UserId userId, CollectionId collectionId, short cardId)
     {
         return db.Cards
             .Include(r => r.Remembers)
@@ -45,7 +46,7 @@ public class CardsService
             .SingleOrDefaultAsync(c => c.ParentUserId == userId && c.ParentCollectionId == collectionId && c.Id == cardId);
     }
 
-    public Task<List<CardEntity>> GetCards(UserId userId, short collectionId, int page, int count)
+    public Task<List<CardEntity>> GetCards(UserId userId, CollectionId collectionId, int page, int count)
     {
         var toSkip = (page - 1) * count;
 
@@ -85,7 +86,7 @@ public class CardsService
         }
     }
     
-    public async Task<(CardEntity? card, string? error)> Delete(UserId userId, short collectionId, short cardId)
+    public async Task<(CardEntity? card, string? error)> Delete(UserId userId, CollectionId collectionId, short cardId)
     {
         var card = await db.Cards.FindAsync(userId, collectionId, cardId);
 
@@ -106,7 +107,7 @@ public class CardsService
 
     public async Task<List<CardEntity>> Search(
         UserId userId,
-        short collectionId,
+        CollectionId collectionId,
         string searchValue,
         SearchFieldType fieldType,
         int page,
@@ -144,8 +145,8 @@ public class CardsService
 
     public async Task<(CardEntity? card, string? error, bool isMoved)> MoveCard(
         UserId userId,
-        short sourceCollectionId,
-        short destinationCollectionId,
+        CollectionId sourceCollectionId,
+        CollectionId destinationCollectionId,
         short cardId,
         bool disableTransaction = false)
     {
@@ -213,7 +214,7 @@ public class CardsService
         UserId scheduleUserId,
         short scheduleId,
         UserId userId,
-        short collectionId, 
+        CollectionId collectionId, 
         int count)
     {
         var schedule = await db.RepeatsSchedules.FindAsync(scheduleUserId, scheduleId);
@@ -244,7 +245,7 @@ public class CardsService
 
     public async Task<List<CardEntity>> GetCardsQueue(
         UserId userId,
-        short collectionId,
+        CollectionId collectionId,
         UserId scheduleUserId,
         short scheduleId,
         short phaseIndex, 
@@ -295,7 +296,7 @@ public class CardsService
 
     public (NextRepeatInfo? closestRepeatInfo, string? reason) Start(
         UserId userId,
-        short collectionId,
+        CollectionId collectionId,
         UserId scheduleUserId,
         short scheduleId, 
         List<short> cardIds)
@@ -362,7 +363,7 @@ public class CardsService
 
     private (NextRepeatInfo? closestRepeatInfo, string? reason) AddToQueue(
         UserId userId, 
-        short collectionId, 
+        CollectionId collectionId, 
         List<CardEntity> cards,
         RepeatsScheduleEntity scheduleWithPhases)
     {
@@ -427,7 +428,7 @@ public class CardsService
 
     public async Task<(NextRepeatInfo? closestRepeatInfo, string? reason)> Remember(
         UserId userId,
-        short collectionId,
+        CollectionId collectionId,
         UserId scheduleUserId,
         short scheduleId,
         short phaseIndex,
@@ -564,11 +565,11 @@ public class CardsService
         public string? Description { get; }
         public List<string>? Examples { get; }
         public UserId ParentUserId { get; }
-        public short ParentCollectionId { get; }
+        public CollectionId ParentCollectionId { get; }
 
         public CreateOrPatchCard(
             UserId parentUserId,
-            short parentCollectionId,
+            CollectionId parentCollectionId,
             string frontSideText,
             string promptText,
             string backSideText,
