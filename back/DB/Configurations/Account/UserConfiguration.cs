@@ -1,4 +1,5 @@
 using DB.Models;
+using Domain.Collection;
 using Domain.User;
 using Domain.User.ValueObjects;
 using Microsoft.EntityFrameworkCore;
@@ -39,7 +40,11 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
             .HasMaxLength(255)
             .IsRequired();
 
-        builder.HasMany<CollectionEntity>()
+        // builder.Property(u => u.Collections)
+        //     .HasField("collections")
+        //     .UsePropertyAccessMode(PropertyAccessMode.Field);
+
+        builder.HasMany<Collection>()
             .WithOne(c => c.ParentUser)
             .HasForeignKey(c => c.ParentUserId);
 

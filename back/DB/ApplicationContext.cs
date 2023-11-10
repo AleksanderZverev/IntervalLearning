@@ -1,6 +1,7 @@
 ﻿using DB.Models;
 using DB.Models.Dictionary;
 using DB.Models.Store;
+using Domain.Collection;
 using Domain.Language;
 using Domain.User;
 using Microsoft.EntityFrameworkCore;
@@ -16,7 +17,7 @@ namespace DB
         public DbSet<UserPasswordsEntity> UsersPasswords { get; set; }
         public DbSet<RefreshTokenEntity> RefreshTokens { get; set; }
 
-        public DbSet<CollectionEntity> Collections { get; set; }
+        public DbSet<Collection> Collections { get; set; }
         public DbSet<CardEntity> Cards { get; set; }
         public DbSet<RememberEntity> Remembers { get; set; }
         public DbSet<PhaseRememberEntity> PhaseRememberEntities { get; set; }
