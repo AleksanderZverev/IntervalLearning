@@ -43,5 +43,23 @@ namespace DB
         {
             modelBuilder.ApplyConfigurationsFromAssembly(GetType().Assembly);
         }
+
+        public long GetSequenceNextValue(string sequenceName)
+        {
+            //do not dispose connection
+            var connection = Database.GetDbConnection();
+            
+            using var command = connection.CreateCommand();
+            command.CommandText = $"select nextval('{sequenceName}')";
+            
+            connection.Open();
+            
+            using var reader = command.ExecuteReader();
+            reader.Read();
+            var nextValue = reader.GetInt64(0);
+            
+            connection.Close();
+            return nextValue;
+        }
     }
 }

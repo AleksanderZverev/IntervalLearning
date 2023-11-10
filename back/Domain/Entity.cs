@@ -54,13 +54,24 @@ public class Entity<TId> : IEquatable<Entity<TId>>
         return Id.Equals(other.Id);
     }
 
-    public static bool operator ==(Entity<TId> first, Entity<TId> second)
+    public static bool operator ==(Entity<TId>? first, Entity<TId>? second)
     {
-        return first.IsEntitiesEqual(second);
+        return Equals(first, second);
     }
 
-    public static bool operator !=(Entity<TId> first, Entity<TId> second)
+    public static bool operator !=(Entity<TId>? first, Entity<TId>? second)
     {
-        return !first.IsEntitiesEqual(second);
+        return !Equals(first, second);
+    }
+
+    private static bool Equals(Entity<TId>? first, Entity<TId>? second)
+    {
+        if (ReferenceEquals(first, second))
+            return true;
+        
+        if (ReferenceEquals(first, null) || ReferenceEquals(second, null))
+            return false;
+
+        return first.IsEntitiesEqual(second);
     }
 }

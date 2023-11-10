@@ -8,11 +8,16 @@ namespace DB.Configurations.Account;
 
 public class UserConfiguration : IEntityTypeConfiguration<User>
 {
+    public const string IdSequence = "user_id_sequence";
+    
     public void Configure(EntityTypeBuilder<User> builder)
     {
-        builder.HasKey(u => u.Id);
-        builder.Property(u => u.Id)
-            .HasConversion(u => u.Value, userId => UserId.Create(userId).Value);
+        builder.HasKey(p => p.Id);
+        
+        builder.Property(p => p.Id)
+            .IsRequired()
+            .UseSequence(IdSequence)
+            .HasConversion(Converters.UserId);
 
         builder.OwnsOne(u => u.UserName, b =>
         {

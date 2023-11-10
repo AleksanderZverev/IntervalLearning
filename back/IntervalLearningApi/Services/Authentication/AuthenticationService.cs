@@ -1,5 +1,5 @@
-﻿using System.Globalization;
-using DB;
+﻿using DB;
+using DB.BusinessExtensions;
 using DB.Models;
 using Domain.Language.ValueObjects;
 using Domain.User;
@@ -8,7 +8,6 @@ using IntervalLearningApi.Models;
 using IntervalLearningApi.Models.Common;
 using IntervalLearningApi.Services.Jwt;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Options;
 
 namespace IntervalLearningApi.Services.Authentication;
 
@@ -41,8 +40,12 @@ public class AuthenticationService : IAuthenticationService
 
         var passwordHash = BCrypt.Net.BCrypt.HashPassword(request.Password);
 
+        var userIdResult = db.GetUniqueUserId();
+        if (userIdResult.IsFailed)
+            return (false, "Failure on creating user id");
+        
         //TODO: validation
-        var user = User.Create(UserId.CreateEmpty(), EmailAddress.Create(emailLower).Value,
+        var user = User.Create(userIdResult.Value, EmailAddress.Create(emailLower).Value,
             UserName.Create(request.FirstName, request.LastName).Value).Value;
         
         user.PasswordHash = new UserPasswordsEntity()
