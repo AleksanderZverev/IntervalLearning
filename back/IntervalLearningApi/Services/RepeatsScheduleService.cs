@@ -23,7 +23,7 @@ public class RepeatsScheduleService
         this.db = db;
     }
 
-    public List<RepeatsScheduleEntity> GetAll(long userId) 
+    public List<RepeatsScheduleEntity> GetAll(UserId userId) 
         => db.RepeatsSchedules
             .Where(s => s.ParentUserId == userId || s.IsRecommended)
             .Include(s => s.Phases)

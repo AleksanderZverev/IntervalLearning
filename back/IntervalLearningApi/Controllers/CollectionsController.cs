@@ -80,7 +80,7 @@ namespace IntervalLearningApi.Controllers
         [HttpGet(ApiRoutes.Collections.GetPublicCollection)]
         public async Task<ActionResult<Collection>> GetPublicCollection(long userId, short collectionId)
         {
-            var collection = await collectionService.FindPublicCollection(userId, collectionId);
+            var collection = await collectionService.FindPublicCollection(UserId.Create(userId).Value, collectionId);
             return collection == null 
                 ? NotFound() 
                 : mapper.Map<Collection>(collection);

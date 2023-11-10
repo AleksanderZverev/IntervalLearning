@@ -1,4 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
+using Domain.User.ValueObjects;
 
 namespace IntervalLearningApi.Constants;
 
@@ -23,7 +24,7 @@ public static class ApiRoutes
         public const string SearchPrivate = "search/private";
         
         public const string GetPublicCollection = "public/{userId:long}-{collectionId}";
-        public static string GetPublicCollectionPath(long userId, long collectionId)
+        public static string GetPublicCollectionPath(UserId userId, long collectionId)
             => $"public/{userId}-{collectionId}";
 
         public const string GetAll = "";
@@ -40,7 +41,7 @@ public static class ApiRoutes
             => $"{collectionId}/public";
         
         public const string AddCardsToMyCollection = "{collectionUserId}-{collectionId}/add";
-        public static string AddCardsToMyCollectionPath(long userId, int collectionId)  
+        public static string AddCardsToMyCollectionPath(UserId userId, int collectionId)  
             => $"{userId}-{collectionId}/add";
     }
     
@@ -73,7 +74,7 @@ public static class ApiRoutes
         public const string Get_GetAll = "";
         
         public const string Get_GetUserSchedule = "{userId}/{scheduleId}";
-        public static string GetGetUserSchedulePath(long userId, short scheduleId)
+        public static string GetGetUserSchedulePath(UserId userId, short scheduleId)
             => $"{userId}/{scheduleId}";
         
         public const string Get_GetMySchedule = "my/{scheduleId}";

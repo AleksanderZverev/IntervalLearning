@@ -26,14 +26,14 @@ public class CollectionService
         this.metadataService = metadataService;
     }
 
-    public Task<CollectionEntity?> Find(long userId, short collectionId)
+    public Task<CollectionEntity?> Find(UserId userId, short collectionId)
     {
         return db.Collections
             .Include(c => c.CollectionPublicationEntity)
             .SingleOrDefaultAsync(c => c.ParentUserId == userId && c.Id == collectionId);
     }
 
-    public Task<List<CollectionEntity>> GetAllByUserId(long userId)
+    public Task<List<CollectionEntity>> GetAllByUserId(UserId userId)
     {
         var collections = db.Collections
             .Where(c => c.ParentUserId == userId)
@@ -43,7 +43,7 @@ public class CollectionService
         return collections;
     }
 
-    public async Task<Dictionary<DateTime, List<RepeatingPhase>>> GetRepeatCollections(long userId)
+    public async Task<Dictionary<DateTime, List<RepeatingPhase>>> GetRepeatCollections(UserId userId)
     {
         var queueItems = await db.Queue
             .Where(q => q.ParentUserId == userId)
@@ -254,7 +254,7 @@ public class CollectionService
     }
     
     public async Task<(CardEntity? card, string? error)> DeleteCard(
-        long userId,
+        UserId userId,
         short collectionId,
         short cardId,
         bool disableTransaction = false)
@@ -330,7 +330,7 @@ public class CollectionService
     }
 
     public async Task<(List<WordEntity>? words, Language? language, string? error)> GetRandomWords(
-        long userId, 
+        UserId userId, 
         short collectionId)
     {
         var collection = await db.Collections.FindAsync(userId, collectionId);
@@ -572,7 +572,7 @@ public class CollectionService
     }
     
     public async Task<List<CollectionEntity>> SearchCollections(
-        long userId,
+        UserId userId,
         short themeId, 
         string searchName, 
         int page, 
@@ -634,7 +634,7 @@ public class CollectionService
         }
     }
 
-    public async Task<CollectionEntity?> FindPublicCollection(long userId, short collectionId)
+    public async Task<CollectionEntity?> FindPublicCollection(UserId userId, short collectionId)
     {
         var collection = await db.Collections
             .Include(c => c.CollectionPublicationEntity)

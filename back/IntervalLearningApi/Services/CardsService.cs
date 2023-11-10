@@ -30,14 +30,14 @@ public class CardsService
         this.db = db;
     }
 
-    public Task<List<CardEntity>> GetAllCards(long userId, short collectionId)
+    public Task<List<CardEntity>> GetAllCards(UserId userId, short collectionId)
     {
         return db.Cards
             .Where(c => c.ParentUserId == userId && c.ParentCollectionId == collectionId)
             .ToListAsync();
     }
 
-    public Task<CardEntity?> FindCard(long userId, short collectionId, short cardId)
+    public Task<CardEntity?> FindCard(UserId userId, short collectionId, short cardId)
     {
         return db.Cards
             .Include(r => r.Remembers)
@@ -45,7 +45,7 @@ public class CardsService
             .SingleOrDefaultAsync(c => c.ParentUserId == userId && c.ParentCollectionId == collectionId && c.Id == cardId);
     }
 
-    public Task<List<CardEntity>> GetCards(long userId, short collectionId, int page, int count)
+    public Task<List<CardEntity>> GetCards(UserId userId, short collectionId, int page, int count)
     {
         var toSkip = (page - 1) * count;
 
@@ -85,7 +85,7 @@ public class CardsService
         }
     }
     
-    public async Task<(CardEntity? card, string? error)> Delete(long userId, short collectionId, short cardId)
+    public async Task<(CardEntity? card, string? error)> Delete(UserId userId, short collectionId, short cardId)
     {
         var card = await db.Cards.FindAsync(userId, collectionId, cardId);
 
@@ -105,7 +105,7 @@ public class CardsService
     }
 
     public async Task<List<CardEntity>> Search(
-        long userId,
+        UserId userId,
         short collectionId,
         string searchValue,
         SearchFieldType fieldType,
@@ -242,7 +242,8 @@ public class CardsService
         return (canStartCards, null);
     }
 
-    public async Task<List<CardEntity>> GetCardsQueue(long userId,
+    public async Task<List<CardEntity>> GetCardsQueue(
+        UserId userId,
         short collectionId,
         UserId scheduleUserId,
         short scheduleId,

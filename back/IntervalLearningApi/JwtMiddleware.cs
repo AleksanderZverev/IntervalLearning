@@ -1,5 +1,6 @@
 ﻿using System.Security.Claims;
 using DB;
+using Domain.User.ValueObjects;
 using IntervalLearningApi.Models;
 using IntervalLearningApi.Services.Jwt;
 using Microsoft.AspNetCore.Authorization;
@@ -57,7 +58,7 @@ public class JwtMiddleware
         if (userId == null)
             return null;
 
-        var user = await db.Users.FindAsync(userId);
+        var user = await db.Users.FindAsync(UserId.Create(userId.Value).Value);
 
         if (user == null)
             return null;
