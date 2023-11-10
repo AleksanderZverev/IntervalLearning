@@ -9,11 +9,6 @@ public class UserId : SingleValueObject<long>
     {
     }
 
-    public static UserId CreateEmpty()
-    {
-        return new UserId(0);
-    }
-
     public static Result<UserId> Create(long id)
     {
         return new UserId(id);
