@@ -122,7 +122,7 @@ public class CardAndCollectionsControllerTests : SharedApiTests
 
     private async Task<StartCardResponse?> StartCardsAsync(
         HttpClient client,
-        Collection collection,
+        CollectionDto collection,
         List<Card> cards, 
         Schedule schedule)
     {
@@ -650,7 +650,7 @@ public class CardAndCollectionsControllerTests : SharedApiTests
     private async Task AssertRememberedCardsMovedToStep(
         IReadOnlyList<TimeSpan> phases, 
         HttpClient client,
-        Collection collection,
+        CollectionDto collection,
         List<Card> cards,
         Schedule schedule,
         short shouldMoveToPhaseIndex)
@@ -673,7 +673,7 @@ public class CardAndCollectionsControllerTests : SharedApiTests
 
     private async Task<HttpResponseMessage> RememberCardsAsync(
         HttpClient client,
-        Collection collection,
+        CollectionDto collection,
         List<Card> cards,
         Schedule schedule,
         short rememberPhaseIndex,

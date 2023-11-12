@@ -9,15 +9,15 @@ namespace DB.Configurations.Account;
 
 public class UserConfiguration : IEntityTypeConfiguration<User>
 {
-    public const string IdSequence = "user_id_sequence";
-    
+    public static string GetIdSequence() => "user_id_sequence";
+
     public void Configure(EntityTypeBuilder<User> builder)
     {
         builder.HasKey(p => p.Id);
         
         builder.Property(p => p.Id)
             .IsRequired()
-            .UseSequence(IdSequence)
+            .UseSequence(GetIdSequence())
             .HasConversion(Converters.UserId);
 
         builder.OwnsOne(u => u.UserName, b =>

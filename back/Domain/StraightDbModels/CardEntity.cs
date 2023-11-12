@@ -59,7 +59,7 @@ public class CardEntity : ICreateOrPatchCard, IParentCollectionReference
     public User? ParentUser { get; set; }
 
     public CollectionId ParentCollectionId { get; set; }
-    public Collection? ParentCollection { get; set; }
+    public virtual Collection? ParentCollection { get; set; }
 
     public RememberEntity? FindLastRemember() 
         => Remembers.MaxBy(c => c.Id);

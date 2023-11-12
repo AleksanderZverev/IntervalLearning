@@ -46,7 +46,7 @@ namespace IntervalLearningApi.Controllers
                     item.IsDefaultBackSide,
                     item.ThemeId
                 ),
-                ComplexCollectionId.Create(userId.Value, CollectionId.Create(item.CollectionId.Value).Value).Value);
+                item.CollectionId == null ? null : CollectionId.Create(item.CollectionId.Value).Value);
 
             return collection != null
                 ? mapper.Map<CollectionDto>(collection)

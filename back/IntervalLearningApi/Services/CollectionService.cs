@@ -1,5 +1,6 @@
 ﻿using System.Diagnostics;
 using DB;
+using DB.Configurations.Study;
 using DB.Models;
 using DB.Models.Dictionary;
 using DB.Models.Store;
@@ -160,7 +161,7 @@ public class CollectionService
         return (totalCollections, canStartCollections);
     }
 
-    public class CreateOrPatchCollection : ICreateOrEditModel
+    public class CreateOrPatchCollection
     {
         public UserId ParentUserId { get; }
         public short ThemeId { get; }
@@ -180,25 +181,62 @@ public class CollectionService
         }
     }
 
-    public (Collection? collection, string? error) CreateOrEdit(CreateOrPatchCollection item, ComplexCollectionId? collectionId)
+    public (Collection? collection, string? error) CreateOrEdit(
+        CreateOrPatchCollection item, 
+        CollectionId? collectionId)
     {
-        var collection = collectionId == null
-            ? Collection.Create(collectionId.UserId, collectionId.Id).Value
-            : db.Collections.Find(item.ParentUserId, collectionId);
+        return collectionId == null 
+            ? Create(item) 
+            : Edit(item, collectionId);
+    }
+
+    private (Collection? collection, string? error) Edit(CreateOrPatchCollection item, CollectionId collectionId)
+    {
+        var collection = db.Collections.Find(item.ParentUserId, collectionId);
 
         if (collection == null)
             return (null, "Collection not found");
-
-        var entry = db.Entry(collection);
-        entry.CurrentValues.SetValues(item);
+        
+        collection.Title = CollectionTitle.Create(item.Title).Value;
+        collection.ThemeId = item.ThemeId;
+        collection.IsDefaultBackSide = item.IsDefaultBackSide;
 
         try
         {
-            if (collectionId == null)
-                entry.State = EntityState.Added;
-
             db.SaveChanges();
             return (collection, null);
+        }
+        catch
+        {
+            return (null, "Unknown error");
+        }
+    }
+
+    private (Collection? collection, string? error) Create(CreateOrPatchCollection item)
+    {
+        var sequenceName = CollectionConfiguration.GetSequenceName(item.ParentUserId);
+        
+        db.CreateSequence(sequenceName);
+        var collectionNextId = db.GetSequenceNextValue16(sequenceName);
+        var collectionId = CollectionId.Create(collectionNextId).Value;
+
+        var newCollectionResult = Collection.Create(
+            item.ParentUserId,
+            collectionId,
+            CollectionTitle.Create(item.Title).Value,
+            item.ThemeId);
+
+        if (newCollectionResult.IsFailed)
+            return (null, "Creation error");
+
+        var newCollection = newCollectionResult.Value;
+        newCollection.IsDefaultBackSide = item.IsDefaultBackSide;
+        
+        try
+        {
+            db.Add(newCollection);
+            db.SaveChanges();
+            return (newCollection, null);
         }
         catch
         {
@@ -246,6 +284,7 @@ public class CollectionService
         if (isCreated)
         {
             collection.CardsCount.Increment();
+            db.Update(collection);
         }
 
         db.SaveChanges();
@@ -280,6 +319,7 @@ public class CollectionService
         }
 
         collection.CardsCount.Decrement();
+        db.Update(collection);
 
         await db.SaveChangesAsync();
 
@@ -551,7 +591,7 @@ public class CollectionService
         var toSkip = (page - 1) * count;
 
         var foundCollections = await db.Collections
-            .Where(c => c.ThemeId == themeId && c.IsPublic && EF.Property<string>(c, nameof(c.Title)).ToLower().StartsWith(lowerSearchName))
+            .Where(c => c.ThemeId == themeId && c.IsPublic && EF.Functions.ILike(c.Title, $"{lowerSearchName}%"))
             .Include(c => c.CollectionPublicationEntity)
             .Include(c => c.ParentUser)
             .AsSplitQuery()
@@ -594,7 +634,7 @@ public class CollectionService
             .Where(c => 
                 c.ParentUserId == userId
                 && c.ThemeId == themeId
-                && EF.Property<string>(c, nameof(c.Title)).ToLower().StartsWith(lowerSearchName))
+                && EF.Functions.ILike(c.Title, $"{lowerSearchName}%"))
             .Skip(toSkip)
             .Take(count)
             .ToListAsync();

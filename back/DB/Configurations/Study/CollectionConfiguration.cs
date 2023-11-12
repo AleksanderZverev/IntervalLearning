@@ -3,6 +3,7 @@ using DB.Models.Store;
 using Domain.Collection;
 using Domain.Collection.ValueObjects;
 using Domain.Common.ValueObjects;
+using Domain.User.ValueObjects;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -10,6 +11,8 @@ namespace DB.Configurations.Study;
 
 public class CollectionConfiguration : IEntityTypeConfiguration<Collection>
 {
+    public static string GetSequenceName(UserId userId) =>$"collection_for_{userId.Value}";
+    
     public void Configure(EntityTypeBuilder<Collection> builder)
     {
         builder.ToTable("Collections");
@@ -21,15 +24,10 @@ public class CollectionConfiguration : IEntityTypeConfiguration<Collection>
             .HasForeignKey(c => c.ParentUserId)
             .OnDelete(DeleteBehavior.NoAction);
 
-        // builder.OwnsOne(c => c.Id, b =>
-        // {
-        //     b.Property(p => p.UserId)
-        //         .HasConversion(Converters.UserId)
-        //         .HasColumnName("ParentUserId");
-        //
-        //     b.Property(p => p.Id)
-        //         .HasColumnName("Id");
-        // });
+        builder.Property(c => c.Id)
+            .HasConversion(Converters.CollectionId)
+            .ValueGeneratedOnAdd()
+            .IsRequired();
 
         builder.Property(c => c.Title)
             .HasMaxLength(100)
@@ -44,8 +42,7 @@ public class CollectionConfiguration : IEntityTypeConfiguration<Collection>
         builder.Property(c => c.CardsCount)
             .HasConversion(Converters.Counter);
 
-        builder.Property(c => c.NotStartedCardsCount)
-            .HasConversion(Converters.Counter);
+        builder.Ignore(c => c.NotStartedCardsCount);
 
         // builder.Property(c => c.Cards)
         //     .HasField("cards")

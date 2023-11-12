@@ -1,4 +1,5 @@
-﻿using DB.Models;
+﻿using System.Numerics;
+using DB.Models;
 using DB.Models.Dictionary;
 using DB.Models.Store;
 using Domain.Collection;
@@ -45,15 +46,32 @@ namespace DB
             modelBuilder.ApplyConfigurationsFromAssembly(GetType().Assembly);
         }
 
-        public long GetSequenceNextValue(string sequenceName)
+        public void CreateSequence(string sequenceName)
+        {
+            var connection = Database.GetDbConnection();
+            connection.Open();
+
+            using var createSequenceCommand = connection.CreateCommand();
+            createSequenceCommand.CommandText = $"create sequence if not exists {sequenceName}";
+            createSequenceCommand.ExecuteNonQuery();
+            
+            connection.Close();
+        }
+
+        public short GetSequenceNextValue16(string sequenceName)
+            => (short)GetSequenceNextValue64(sequenceName); 
+        
+        public int GetSequenceNextValue32(string sequenceName)
+            => (int)GetSequenceNextValue64(sequenceName); 
+
+        public long GetSequenceNextValue64(string sequenceName)
         {
             //do not dispose connection
             var connection = Database.GetDbConnection();
-            
+            connection.Open();
+
             using var command = connection.CreateCommand();
             command.CommandText = $"select nextval('{sequenceName}')";
-            
-            connection.Open();
             
             using var reader = command.ExecuteReader();
             reader.Read();

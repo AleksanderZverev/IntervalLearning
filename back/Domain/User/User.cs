@@ -25,8 +25,8 @@ public class User : AggregateRoot<UserId>
     public List<RefreshTokenEntity> RefreshTokens { get; set; } = new();
     
     
-    private readonly List<CollectionEntity> collections = new();
-    public IReadOnlyCollection<CollectionEntity> Collections => collections.AsReadOnly();
+    // private readonly List<Collection.Collection> collections = new();
+    // public IReadOnlyCollection<Collection.Collection> Collections => collections.AsReadOnly();
     
 
     public static Result<User> Create(UserId userId, EmailAddress email, UserName userName)

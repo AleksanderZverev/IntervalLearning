@@ -8,7 +8,7 @@ public static class BusinessExtensions
 {
     public static Result<UserId> GetUniqueUserId(this ApplicationContext db)
     {
-        var newId = db.GetSequenceNextValue(UserConfiguration.IdSequence);
+        var newId = db.GetSequenceNextValue64(UserConfiguration.GetIdSequence());
 
         if (newId == default)
             return Result.Fail("Failure on getting next sequence value");

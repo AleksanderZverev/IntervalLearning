@@ -25,8 +25,8 @@ public class Collection : Entity<ComplexCollectionId>
     // [Required]
     public DateTime CreatedDate { get; set; } = DateTime.UtcNow;
 
-    public Counter CardsCount { get; set; }
-    public Counter NotStartedCardsCount { get; set; }
+    public Counter CardsCount { get; set; } = Counter.CreateEmpty();
+    public Counter NotStartedCardsCount { get; set; } = Counter.CreateEmpty();
     // public Counter StartedCards { get; set; }
     // public Counter FinishedCards { get; set; }
 
@@ -45,11 +45,17 @@ public class Collection : Entity<ComplexCollectionId>
     protected Collection(UserId parentUserId, CollectionId id) 
         : base(ComplexCollectionId.Create(parentUserId, id).Value)
     {
+        ParentUserId = parentUserId;
+        Id = id;
     }
 
-    public static Result<Collection> Create(UserId userId, CollectionId id)
+    public static Result<Collection> Create(UserId userId, CollectionId id, CollectionTitle title, short themeId)
     {
-        return new Collection(userId, id);
+        return new Collection(userId, id)
+        {
+            Title = title,
+            ThemeId = themeId
+        };
     }
     //
     // public void AddCard(Card.Card card)

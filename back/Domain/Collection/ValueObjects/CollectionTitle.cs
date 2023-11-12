@@ -1,14 +1,12 @@
+using Domain.Common.ValueObjects;
 using FluentResults;
 
 namespace Domain.Collection.ValueObjects;
 
-public class CollectionTitle
+public class CollectionTitle : SingleValueObject<string>
 {
-    public string Value { get; }
-
-    private CollectionTitle(string value)
+    private CollectionTitle(string value) : base(value)
     {
-        Value = value;
     }
 
     public static Result<CollectionTitle> Create(string collectionName)
