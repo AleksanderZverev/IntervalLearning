@@ -4,6 +4,13 @@ public abstract class ValueObject : IEquatable<ValueObject>
 {
     public abstract IEnumerable<object> GetEqualityComponents();
 
+    public override int GetHashCode()
+    {
+        return GetEqualityComponents()
+            .Select(c => c.GetHashCode())
+            .Aggregate((f, s) => f ^ s);
+    }
+
     bool IEquatable<ValueObject>.Equals(ValueObject? other)
     {
         if (ReferenceEquals(other, null))
@@ -26,20 +33,24 @@ public abstract class ValueObject : IEquatable<ValueObject>
         return GetEqualityComponents().SequenceEqual(other.GetEqualityComponents());
     }
 
-    public override int GetHashCode()
+    public static bool operator ==(ValueObject? first, ValueObject? second)
     {
-        return GetEqualityComponents()
-            .Select(c => c.GetHashCode())
-            .Aggregate((f, s) => f ^ s);
+        return Equals(first, second);
     }
 
-    public static bool operator ==(ValueObject first, ValueObject second)
+    public static bool operator !=(ValueObject? first, ValueObject? second)
     {
+        return !Equals(first, second);
+    }
+    
+    private static bool Equals(ValueObject? first, ValueObject? second)
+    {
+        if (ReferenceEquals(first, second))
+            return true;
+        
+        if (ReferenceEquals(first, null) || ReferenceEquals(second, null))
+            return false;
+
         return first.Equals(second);
-    }
-
-    public static bool operator !=(ValueObject first, ValueObject second)
-    {
-        return !first.Equals(second);
     }
 }
