@@ -8,13 +8,13 @@ public class CardRegister : IRegister
 {
     public void Register(TypeAdapterConfig config)
     {
-        config.NewConfig<CardEntity, Card>()
+        config.NewConfig<CardEntity, CardDto>()
             .Map(d => d.BackSideText, s => s.MeaningText)
             .Map(d => d.FrontSideText, s => s.RememberingText);
     }
 }
 
-public class Card
+public class CardDto
 {
     [JsonProperty("userId")]
     public string ParentUserId { get; set; }

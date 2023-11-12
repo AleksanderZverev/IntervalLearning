@@ -13,7 +13,7 @@ public class CardsControllerTests : SharedApiTests
     private string Query(string collectionId, string path)
         => AbsoluteQuery(ApiRoutes.Cards.GetBasePath(short.Parse(collectionId)), path);
 
-    private async Task<List<Card>?> GetCardsPageAsync(
+    private async Task<List<CardDto>?> GetCardsPageAsync(
         HttpClient client,
         CollectionDto collection,
         int pageNumber,
@@ -25,7 +25,7 @@ public class CardsControllerTests : SharedApiTests
                 .Add("collectionId", collection.Id)
                 .Add("page", pageNumber.ToString())
                 .Add("count", countPerPage.ToString()));
-        var pageCards = pageCardsResponse.ToResponseDto<List<Card>>();
+        var pageCards = pageCardsResponse.ToResponseDto<List<CardDto>>();
         return pageCards;
     }
 
@@ -53,7 +53,7 @@ public class CardsControllerTests : SharedApiTests
         var (collection, preAddedCards) = await CreateRandomCardsAsync(pages * countPerPage);
 
         //Act
-        var pageToCards = new List<(int Page, List<Card>? Cards)>(pages);
+        var pageToCards = new List<(int Page, List<CardDto>? Cards)>(pages);
         for (var i = 0; i < pages; i++)
         {
             var pageNumber = i + 1;
@@ -292,7 +292,7 @@ public class CardsControllerTests : SharedApiTests
         //Act
         var deleteCardResponse = await client.DeleteAsync(
             Query(collection.Id, ApiRoutes.Cards.GetDeleteCardPath(short.Parse(createdCard.Id))));
-        var deletedCard = deleteCardResponse.ToResponseDto<Card>();
+        var deletedCard = deleteCardResponse.ToResponseDto<CardDto>();
 
         //Assert
         deletedCard.Should().NotBeNull();
@@ -315,7 +315,7 @@ public class CardsControllerTests : SharedApiTests
         //Act
         var deleteCardResponse = await client.DeleteAsync(
             Query(collection.Id, ApiRoutes.Cards.GetDeleteCardPath(short.Parse(createdCard.Id))));
-        var deletedCard = deleteCardResponse.ToResponseDto<Card>();
+        var deletedCard = deleteCardResponse.ToResponseDto<CardDto>();
 
         //Assert
         deletedCard.Should().NotBeNull();
@@ -378,7 +378,7 @@ public class CardsControllerTests : SharedApiTests
                 CardId = short.Parse(createdCard.Id),
                 DestinationCollectionId = short.Parse(otherCollection.Id),
             });
-        var movedCard = moveCardResponse.ToResponseDto<Card>();
+        var movedCard = moveCardResponse.ToResponseDto<CardDto>();
 
         //Assert
         movedCard.Should().NotBeNull();
@@ -508,7 +508,7 @@ public class CardsControllerTests : SharedApiTests
         //Arrange
         var (client, user) = SharedScope;
         var collection = await CreateRandomCollectionAsync();
-        var cards = new List<Card>(fieldTypePossibleValues.Length);
+        var cards = new List<CardDto>(fieldTypePossibleValues.Length);
         foreach (var fieldValue in fieldTypePossibleValues)
         {
             var fakeCardData = new CardFaker().Generate();
@@ -529,7 +529,7 @@ public class CardsControllerTests : SharedApiTests
             new QueryString()
                 .Add("searchValue", searchInput)
                 .Add("fieldType", SearchFieldType.RememberingText.ToString("G")));
-        var searchResult = searchResponse.ToResponseDto<List<Card>>();
+        var searchResult = searchResponse.ToResponseDto<List<CardDto>>();
 
         //Assert
         searchResult.Should().NotBeNullOrEmpty();
@@ -553,7 +553,7 @@ public class CardsControllerTests : SharedApiTests
         //Arrange
         var (client, user) = SharedScope;
         var collection = await CreateRandomCollectionAsync();
-        var cards = new List<Card>(fieldTypePossibleValues.Length);
+        var cards = new List<CardDto>(fieldTypePossibleValues.Length);
         foreach (var fieldValue in fieldTypePossibleValues)
         {
             var fakeCardData = new CardFaker().Generate();
@@ -593,7 +593,7 @@ public class CardsControllerTests : SharedApiTests
             new QueryString()
                 .Add("searchValue", searchInput)
                 .Add("fieldType", searchFieldType.ToString("G")));
-        var searchResult = searchResponse.ToResponseDto<List<Card>>();
+        var searchResult = searchResponse.ToResponseDto<List<CardDto>>();
 
         //Assert
         searchResult.Should().NotBeNullOrEmpty();
@@ -630,7 +630,7 @@ public class CardsControllerTests : SharedApiTests
         //Arrange
         var (client, user) = SharedScope;
         var collection = await CreateRandomCollectionAsync();
-        var preAddedCards = new List<Card>(possibleValues.Length);
+        var preAddedCards = new List<CardDto>(possibleValues.Length);
         foreach (var fieldValue in possibleValues)
         {
             var fakeCardData = new CardFaker().Generate();
@@ -646,7 +646,7 @@ public class CardsControllerTests : SharedApiTests
         }
         
         //Act
-        var pageToCards = new List<(int Page, List<Card>? Cards)>();
+        var pageToCards = new List<(int Page, List<CardDto>? Cards)>();
         for (var pageNumber = 1; pageNumber <= pages; pageNumber++)
         {
             var searchResponse = await client.GetAsync(
@@ -656,7 +656,7 @@ public class CardsControllerTests : SharedApiTests
                     .Add("fieldType", SearchFieldType.RememberingText.ToString("G"))
                     .Add("page", pageNumber.ToString())
                     .Add("count", countPerPage.ToString()));
-            var searchResult = searchResponse.ToResponseDto<List<Card>>();
+            var searchResult = searchResponse.ToResponseDto<List<CardDto>>();
 
             pageToCards.Add((pageNumber, searchResult));
         }
@@ -695,7 +695,7 @@ public class CardsControllerTests : SharedApiTests
         //Arrange
         var (client, user) = SharedScope;
         var collection = await CreateRandomCollectionAsync();
-        var preAddedCards = new List<Card>(possibleValues.Length);
+        var preAddedCards = new List<CardDto>(possibleValues.Length);
         foreach (var fieldValue in possibleValues)
         {
             var fakeCardData = new CardFaker().Generate();
@@ -719,7 +719,7 @@ public class CardsControllerTests : SharedApiTests
                 .Add("fieldType", SearchFieldType.RememberingText.ToString("G"))
                 .Add("page", randomPageNumber.ToString())
                 .Add("count", countPerPage.ToString()));
-        var firstCardsPage = firstCardsPageResponse.ToResponseDto<List<Card>>();
+        var firstCardsPage = firstCardsPageResponse.ToResponseDto<List<CardDto>>();
         
         var secondCardsPageResponse = await client.GetAsync(
             Query(collection.Id, ApiRoutes.Cards.Get_SearchCard) +
@@ -728,7 +728,7 @@ public class CardsControllerTests : SharedApiTests
                 .Add("fieldType", SearchFieldType.RememberingText.ToString("G"))
                 .Add("page", randomPageNumber.ToString())
                 .Add("count", countPerPage.ToString()));
-        var secondCardsPage = secondCardsPageResponse.ToResponseDto<List<Card>>();
+        var secondCardsPage = secondCardsPageResponse.ToResponseDto<List<CardDto>>();
         
         //Assert
         firstCardsPage.Should().NotBeNullOrEmpty();
@@ -764,7 +764,7 @@ public class CardsControllerTests : SharedApiTests
         //Arrange
         var (client, user) = SharedScope;
         var collection = await CreateRandomCollectionAsync();
-        var cards = new List<Card>(fieldTypePossibleValues.Length);
+        var cards = new List<CardDto>(fieldTypePossibleValues.Length);
         foreach (var fieldValue in fieldTypePossibleValues)
         {
             var fakeCardData = new CardFaker().Generate();
@@ -785,7 +785,7 @@ public class CardsControllerTests : SharedApiTests
             new QueryString()
                 .Add("searchValue", searchInput)
                 .Add("fieldType", SearchFieldType.RememberingText.ToString("G")));
-        var searchResult = searchResponse.ToResponseDto<List<Card>>();
+        var searchResult = searchResponse.ToResponseDto<List<CardDto>>();
 
         //Assert
         searchResult.Should().BeEmpty();

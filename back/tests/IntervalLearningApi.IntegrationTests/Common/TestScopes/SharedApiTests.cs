@@ -47,9 +47,9 @@ public class SharedApiTests : BaseApiTests, IClassFixture<SharedDockerIntervalLe
         return schedule ?? throw new InvalidOperationException();
     }
 
-    protected async Task<List<Card>> AddRandomCardsToCollection(string collectionId, int count)
+    protected async Task<List<CardDto>> AddRandomCardsToCollection(string collectionId, int count)
     {
-        var cards = new List<Card>(count);
+        var cards = new List<CardDto>(count);
         for (var i = 0; i < count; i++)
         {
             var fakeCard = new CardFaker().Generate();
@@ -73,20 +73,20 @@ public class SharedApiTests : BaseApiTests, IClassFixture<SharedDockerIntervalLe
         return cards;
     }
 
-    protected async Task<(CollectionDto Collection, Card Card)> CreateRandomCardAsync()
+    protected async Task<(CollectionDto Collection, CardDto Card)> CreateRandomCardAsync()
     {
         var (collection, cards) = await CreateRandomCardsAsync(1);
         return (collection, cards.Single());
     }
 
-    protected async Task<(CollectionDto Collection, List<Card> Cards)> CreateRandomCardsAsync(int count)
+    protected async Task<(CollectionDto Collection, List<CardDto> Cards)> CreateRandomCardsAsync(int count)
     {
         var collection = await CreateRandomCollectionAsync();
         var cards = await AddRandomCardsToCollection(collection.Id, count);
         return (collection, cards);
     }
 
-    protected async Task<Card?> CreateCardAsync(short collectionId, CreateCardItem card)
+    protected async Task<CardDto?> CreateCardAsync(short collectionId, CreateCardItem card)
     {
         var createCardResponse = await sharedClient.PostAsJsonAsync(
             AbsoluteQuery(ApiRoutes.Cards.GetBasePath(collectionId), ApiRoutes.Cards.Post_CreateCard),
@@ -95,7 +95,7 @@ public class SharedApiTests : BaseApiTests, IClassFixture<SharedDockerIntervalLe
         if (!createCardResponse.IsSuccessStatusCode)
             return null;
         
-        var createdCard = createCardResponse.ToResponseDto<Card>();
+        var createdCard = createCardResponse.ToResponseDto<CardDto>();
         return createdCard;
     }
 

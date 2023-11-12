@@ -31,7 +31,7 @@ namespace IntervalLearningApi.Controllers
         }
 
         [HttpGet(ApiRoutes.Cards.Get_Card)]
-        public async Task<ActionResult<Card>> GetCard(short collectionId, short cardId)
+        public async Task<ActionResult<CardDto>> GetCard(short collectionId, short cardId)
         {
             var userId = HttpContext.GetUserId();
 
@@ -41,11 +41,11 @@ namespace IntervalLearningApi.Controllers
             var card = await cardsService.FindCard(userId.Value, CollectionId.Create(collectionId).Value, cardId);
             return card == null 
                 ? NotFound()
-                : mapper.Map<Card>(card);
+                : mapper.Map<CardDto>(card);
         }
 
         [HttpGet(ApiRoutes.Cards.Get_GetAll)]
-        public async Task<ActionResult<IList<Card>>> GetCards(short collectionId, [FromQuery] int page = 1, [FromQuery] int count = 10)
+        public async Task<ActionResult<IList<CardDto>>> GetCards(short collectionId, [FromQuery] int page = 1, [FromQuery] int count = 10)
         {
             var userId = HttpContext.GetUserId();
 
@@ -54,11 +54,11 @@ namespace IntervalLearningApi.Controllers
 
 
             var cards = await cardsService.GetCards(userId.Value, CollectionId.Create(collectionId).Value, page, count);
-            return mapper.Map<List<Card>>(cards);
+            return mapper.Map<List<CardDto>>(cards);
         }
 
         [HttpGet(ApiRoutes.Cards.Get_GetCardQueue)]
-        public async Task<ActionResult<List<Card>>> GetCardsQueue(
+        public async Task<ActionResult<List<CardDto>>> GetCardsQueue(
             short collectionId,
             [FromQuery] long scheduleUserId,
             [FromQuery] short scheduleId,
@@ -71,11 +71,11 @@ namespace IntervalLearningApi.Controllers
                 return BadRequest();
 
             var cards = await cardsService.GetCardsQueue(userId.Value, CollectionId.Create(collectionId).Value, UserId.Create(scheduleUserId).Value, scheduleId, phaseIndex, date);
-            return mapper.Map<List<Card>>(cards);
+            return mapper.Map<List<CardDto>>(cards);
         }
 
         [HttpGet(ApiRoutes.Cards.Get_GetNotStartedCards)]
-        public async Task<ActionResult<List<Card>>> GetNotStartedCards(
+        public async Task<ActionResult<List<CardDto>>> GetNotStartedCards(
             short collectionId,
             long scheduleUserId,
             short scheduleId,
@@ -89,11 +89,11 @@ namespace IntervalLearningApi.Controllers
             var (cards, error) = await cardsService.GetNotStartedCards(UserId.Create(scheduleUserId).Value, scheduleId, userId.Value, CollectionId.Create(collectionId).Value, count);
             return cards == null 
                 ? BadRequest(error) 
-                : mapper.Map<List<Card>>(cards);
+                : mapper.Map<List<CardDto>>(cards);
         }
 
         [HttpPost(ApiRoutes.Cards.Post_CreateCard)]
-        public ActionResult<Card> CreateCard(short collectionId, [FromBody]CreateCardItem item)
+        public ActionResult<CardDto> CreateCard(short collectionId, [FromBody]CreateCardItem item)
         {
             if (item.Examples != null && item.Examples.Any(e => e.Length > 255))
             {
@@ -117,12 +117,12 @@ namespace IntervalLearningApi.Controllers
                 item.Examples);
 
             return card != null
-                ? mapper.Map<Card>(card)
+                ? mapper.Map<CardDto>(card)
                 : BadRequest(error);
         }
 
         [HttpDelete(ApiRoutes.Cards.Delete_DeleteCard)]
-        public async Task<ActionResult<Card>> DeleteCard(short collectionId, short cardId)
+        public async Task<ActionResult<CardDto>> DeleteCard(short collectionId, short cardId)
         {
             var userId = HttpContext.GetUserId();
 
@@ -131,12 +131,12 @@ namespace IntervalLearningApi.Controllers
 
             var (cardEntity, error) = await collectionService.DeleteCard(userId.Value, CollectionId.Create(collectionId).Value, cardId);
             return cardEntity != null 
-                ? mapper.Map<Card>(cardEntity)
+                ? mapper.Map<CardDto>(cardEntity)
                 : BadRequest(error);
         }
 
         [HttpPost(ApiRoutes.Cards.Post_MoveCard)]
-        public async Task<ActionResult<Card>> MoveCard(short collectionId, [FromBody] MoveRequest request)
+        public async Task<ActionResult<CardDto>> MoveCard(short collectionId, [FromBody] MoveRequest request)
         {
             var userId = HttpContext.GetUserId();
 
@@ -145,12 +145,12 @@ namespace IntervalLearningApi.Controllers
 
             var (cardEntity, error) = await collectionService.MoveCard(userId.Value, CollectionId.Create(collectionId).Value, CollectionId.Create(request.DestinationCollectionId).Value, request.CardId);
             return cardEntity != null 
-                ? mapper.Map<Card>(cardEntity) 
+                ? mapper.Map<CardDto>(cardEntity) 
                 : BadRequest(error);
         }
 
         [HttpGet(ApiRoutes.Cards.Get_SearchCard)]
-        public async Task<ActionResult<List<Card>>> SearchCard(
+        public async Task<ActionResult<List<CardDto>>> SearchCard(
             short collectionId,
             [FromQuery] string searchValue,
             [FromQuery] SearchFieldType fieldType,
@@ -163,7 +163,7 @@ namespace IntervalLearningApi.Controllers
                 return BadRequest();
 
             var cardEntities = await cardsService.Search(userId.Value, CollectionId.Create(collectionId).Value, searchValue.ToLower(), fieldType, page, count);
-            return mapper.Map<List<Card>>(cardEntities);
+            return mapper.Map<List<CardDto>>(cardEntities);
         }
 
         [HttpPost(ApiRoutes.Cards.Post_StartCards)]

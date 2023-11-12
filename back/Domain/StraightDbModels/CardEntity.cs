@@ -56,7 +56,7 @@ public class CardEntity : ICreateOrPatchCard, IParentCollectionReference
     public virtual List<RememberEntity> Remembers { get; set; } = new();
 
     public UserId ParentUserId { get; set; }
-    public User? ParentUser { get; set; }
+    public virtual User? ParentUser { get; set; }
 
     public CollectionId ParentCollectionId { get; set; }
     public virtual Collection? ParentCollection { get; set; }

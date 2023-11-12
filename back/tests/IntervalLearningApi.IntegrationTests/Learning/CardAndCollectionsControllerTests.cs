@@ -123,7 +123,7 @@ public class CardAndCollectionsControllerTests : SharedApiTests
     private async Task<StartCardResponse?> StartCardsAsync(
         HttpClient client,
         CollectionDto collection,
-        List<Card> cards, 
+        List<CardDto> cards, 
         Schedule schedule)
     {
         var startCardsResponse = await client.PostAsJsonAsync(
@@ -651,7 +651,7 @@ public class CardAndCollectionsControllerTests : SharedApiTests
         IReadOnlyList<TimeSpan> phases, 
         HttpClient client,
         CollectionDto collection,
-        List<Card> cards,
+        List<CardDto> cards,
         Schedule schedule,
         short shouldMoveToPhaseIndex)
     {
@@ -674,7 +674,7 @@ public class CardAndCollectionsControllerTests : SharedApiTests
     private async Task<HttpResponseMessage> RememberCardsAsync(
         HttpClient client,
         CollectionDto collection,
-        List<Card> cards,
+        List<CardDto> cards,
         Schedule schedule,
         short rememberPhaseIndex,
         float rememberWeight)
