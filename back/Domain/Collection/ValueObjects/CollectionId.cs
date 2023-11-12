@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using Domain.Common.ValueObjects;
 using Domain.User.ValueObjects;
 using FluentResults;
@@ -12,6 +13,12 @@ public class CollectionId : SingleValueObject<short>
     
     public static Result<CollectionId> Create(short id)
     {
+        if (id == default)
+        {
+            Debug.Fail("Default value passed");
+            return Result.Fail("Collection Id is not specified");
+        }
+        
         return new CollectionId(id);
     }
 }

@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using Domain.Common.ValueObjects;
 using FluentResults;
 
@@ -11,6 +12,12 @@ public class UserId : SingleValueObject<long>
 
     public static Result<UserId> Create(long id)
     {
+        if (id == default)
+        {
+            Debug.Fail("Default value passed");
+            return Result.Fail("User Id is not specified");
+        }
+        
         return new UserId(id);
     }
 }
