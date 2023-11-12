@@ -106,44 +106,6 @@ namespace DB.Migrations
                     b.ToTable("Queue");
                 });
 
-            modelBuilder.Entity("DB.Models.CollectionEntity", b =>
-                {
-                    b.Property<long>("ParentUserId")
-                        .HasColumnType("bigint");
-
-                    b.Property<short>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("smallint");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<short>("Id"));
-
-                    b.Property<short>("CardsCount")
-                        .HasColumnType("smallint");
-
-                    b.Property<DateTime>("CreatedDate")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<bool>("IsDefaultBackSide")
-                        .HasColumnType("boolean");
-
-                    b.Property<bool>("IsPublic")
-                        .HasColumnType("boolean");
-
-                    b.Property<short>("ThemeId")
-                        .HasColumnType("smallint");
-
-                    b.Property<string>("Title")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
-
-                    b.HasKey("ParentUserId", "Id");
-
-                    b.HasIndex("ThemeId");
-
-                    b.ToTable("Collections");
-                });
-
             modelBuilder.Entity("DB.Models.Dictionary.TranslationEntity", b =>
                 {
                     b.Property<int>("WordId")
@@ -511,6 +473,44 @@ namespace DB.Migrations
                     b.ToTable("UsersPasswords");
                 });
 
+            modelBuilder.Entity("Domain.Collection.Collection", b =>
+                {
+                    b.Property<long>("ParentUserId")
+                        .HasColumnType("bigint");
+
+                    b.Property<short>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("smallint");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<short>("Id"));
+
+                    b.Property<short>("CardsCount")
+                        .HasColumnType("smallint");
+
+                    b.Property<DateTime>("CreatedDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<bool>("IsDefaultBackSide")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("IsPublic")
+                        .HasColumnType("boolean");
+
+                    b.Property<short>("ThemeId")
+                        .HasColumnType("smallint");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.HasKey("ParentUserId", "Id");
+
+                    b.HasIndex("ThemeId");
+
+                    b.ToTable("Collections", (string)null);
+                });
+
             modelBuilder.Entity("Domain.Language.Language", b =>
                 {
                     b.Property<short>("Id")
@@ -591,8 +591,8 @@ namespace DB.Migrations
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
-                    b.HasOne("DB.Models.CollectionEntity", "ParentCollection")
-                        .WithMany("Cards")
+                    b.HasOne("Domain.Collection.Collection", "ParentCollection")
+                        .WithMany()
                         .HasForeignKey("ParentUserId", "ParentCollectionId")
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
@@ -616,7 +616,7 @@ namespace DB.Migrations
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
-                    b.HasOne("DB.Models.CollectionEntity", "ParentCollection")
+                    b.HasOne("Domain.Collection.Collection", "ParentCollection")
                         .WithMany()
                         .HasForeignKey("ParentUserId", "ParentCollectionId")
                         .OnDelete(DeleteBehavior.NoAction)
@@ -635,25 +635,6 @@ namespace DB.Migrations
                     b.Navigation("ParentRepeatsSchedule");
 
                     b.Navigation("ParentUser");
-                });
-
-            modelBuilder.Entity("DB.Models.CollectionEntity", b =>
-                {
-                    b.HasOne("Domain.User.User", "ParentUser")
-                        .WithMany("Collections")
-                        .HasForeignKey("ParentUserId")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired();
-
-                    b.HasOne("DB.Models.ThemeEntity", "Theme")
-                        .WithMany()
-                        .HasForeignKey("ThemeId")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired();
-
-                    b.Navigation("ParentUser");
-
-                    b.Navigation("Theme");
                 });
 
             modelBuilder.Entity("DB.Models.Dictionary.TranslationEntity", b =>
@@ -765,7 +746,7 @@ namespace DB.Migrations
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
-                    b.HasOne("DB.Models.CollectionEntity", "ParentCollection")
+                    b.HasOne("Domain.Collection.Collection", "ParentCollection")
                         .WithMany()
                         .HasForeignKey("ParentUserId", "ParentCollectionId")
                         .OnDelete(DeleteBehavior.NoAction)
@@ -805,7 +786,7 @@ namespace DB.Migrations
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
-                    b.HasOne("DB.Models.CollectionEntity", "ParentCollection")
+                    b.HasOne("Domain.Collection.Collection", "ParentCollection")
                         .WithOne("CollectionPublicationEntity")
                         .HasForeignKey("DB.Models.Store.CollectionPublicationEntity", "ParentUserId", "ParentCollectionId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -830,7 +811,7 @@ namespace DB.Migrations
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
-                    b.HasOne("DB.Models.CollectionEntity", "ParentCollection")
+                    b.HasOne("Domain.Collection.Collection", "ParentCollection")
                         .WithMany()
                         .HasForeignKey("ParentUserId", "ParentCollectionId")
                         .OnDelete(DeleteBehavior.NoAction)
@@ -891,6 +872,25 @@ namespace DB.Migrations
                     b.Navigation("ParentUser");
                 });
 
+            modelBuilder.Entity("Domain.Collection.Collection", b =>
+                {
+                    b.HasOne("Domain.User.User", "ParentUser")
+                        .WithMany()
+                        .HasForeignKey("ParentUserId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.HasOne("DB.Models.ThemeEntity", "Theme")
+                        .WithMany()
+                        .HasForeignKey("ThemeId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.Navigation("ParentUser");
+
+                    b.Navigation("Theme");
+                });
+
             modelBuilder.Entity("Domain.User.User", b =>
                 {
                     b.OwnsOne("Domain.User.ValueObjects.UserName", "UserName", b1 =>
@@ -927,13 +927,6 @@ namespace DB.Migrations
                     b.Navigation("Remembers");
                 });
 
-            modelBuilder.Entity("DB.Models.CollectionEntity", b =>
-                {
-                    b.Navigation("Cards");
-
-                    b.Navigation("CollectionPublicationEntity");
-                });
-
             modelBuilder.Entity("DB.Models.RepeatsScheduleEntity", b =>
                 {
                     b.Navigation("Phases");
@@ -944,10 +937,13 @@ namespace DB.Migrations
                     b.Navigation("Subscribers");
                 });
 
+            modelBuilder.Entity("Domain.Collection.Collection", b =>
+                {
+                    b.Navigation("CollectionPublicationEntity");
+                });
+
             modelBuilder.Entity("Domain.User.User", b =>
                 {
-                    b.Navigation("Collections");
-
                     b.Navigation("Metadata")
                         .IsRequired();
 
