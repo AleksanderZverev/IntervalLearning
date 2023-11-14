@@ -1,12 +1,13 @@
 ﻿using System.Diagnostics;
 using System.Linq.Expressions;
 using DB;
+using DB.Configurations.Study;
 using DB.Models;
+using Domain.Card;
+using Domain.Card.ValueObjects;
 using Domain.Collection.ValueObjects;
 using Domain.User.ValueObjects;
-using Infrastructure;
 using IntervalLearningApi.Models;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 namespace IntervalLearningApi.Services;
@@ -31,14 +32,14 @@ public class CardsService
         this.db = db;
     }
 
-    public Task<List<CardEntity>> GetAllCards(UserId userId, CollectionId collectionId)
+    public Task<List<Card>> GetAllCards(UserId userId, CollectionId collectionId)
     {
         return db.Cards
             .Where(c => c.ParentUserId == userId && c.ParentCollectionId == collectionId)
             .ToListAsync();
     }
 
-    public Task<CardEntity?> FindCard(UserId userId, CollectionId collectionId, short cardId)
+    public Task<Card?> FindCard(UserId userId, CollectionId collectionId, CardId cardId)
     {
         return db.Cards
             .Include(r => r.Remembers)
@@ -46,7 +47,7 @@ public class CardsService
             .SingleOrDefaultAsync(c => c.ParentUserId == userId && c.ParentCollectionId == collectionId && c.Id == cardId);
     }
 
-    public Task<List<CardEntity>> GetCards(UserId userId, CollectionId collectionId, int page, int count)
+    public Task<List<Card>> GetCards(UserId userId, CollectionId collectionId, int page, int count)
     {
         var toSkip = (page - 1) * count;
 
@@ -58,27 +59,35 @@ public class CardsService
             .ToListAsync();
     }
 
-    public (CardEntity? card, string? error, bool isCreated) CreateOrEdit(CreateOrPatchCard item, short? cardId)
+    public (Card? card, string? error, bool isCreated) CreateOrEdit(CreateOrPatchCard item, CardId? cardId)
     {
-        var card = cardId == null
-            ? new CardEntity()
-            : db.Cards.Find(item.ParentUserId, item.ParentCollectionId, cardId);
+        return cardId == null
+            ? Create(item)
+            : Edit(item, cardId);
+    }
+    
+    public (Card? card, string? error, bool isCreated) Edit(CreateOrPatchCard item, CardId cardId)
+    {
+        var card = db.Cards.Find(item.ParentUserId, item.ParentCollectionId, cardId);
 
         if (card == null)
             return (null, "Card not found", false);
-
-        var entry = db.Entry(card);
-        entry.CurrentValues.SetValues(item);
+        
+        card.MeaningText = item.MeaningText;
+        card.RememberingText = item.RememberingText;
+        card.PromptText = item.PromptText;
+        card.Description = item.Description;
+        
+        if (item.Examples is { Count: > 0 })
+        {
+            card.Examples = item.Examples;
+        }
 
         try
         {
-            var isCreating = cardId == null;
-
-            if (isCreating)
-                entry.State = EntityState.Added;
-
+            db.Update(card);
             db.SaveChanges();
-            return (card, null, isCreating);
+            return (card, null, false);
         }
         catch
         {
@@ -86,7 +95,41 @@ public class CardsService
         }
     }
     
-    public async Task<(CardEntity? card, string? error)> Delete(UserId userId, CollectionId collectionId, short cardId)
+    public (Card? card, string? error, bool isCreated) Create(CreateOrPatchCard item)
+    {
+        var sequenceName = CardConfiguration.GetSequenceName(
+            item.ParentUserId,
+            item.ParentCollectionId);
+        
+        db.EnsureSequenceCreated(sequenceName);
+        var nextCardId = db.GetSequenceNextValue16(sequenceName);
+        var cardId = CardId.Create(nextCardId).Value;
+        var card = new Card(item.ParentUserId, item.ParentCollectionId, cardId)
+        {
+            MeaningText = item.MeaningText,
+            RememberingText = item.RememberingText,
+            PromptText = item.PromptText,
+            Description = item.Description,
+        };
+        
+        if (item.Examples is { Count: > 0 })
+        {
+            card.Examples = item.Examples;
+        }
+
+        try
+        {
+            db.Add(card);
+            db.SaveChanges();
+            return (card, null, true);
+        }
+        catch
+        {
+            return (null, "Unknown error", false);
+        }
+    }
+    
+    public async Task<(Card? card, string? error)> Delete(UserId userId, CollectionId collectionId, CardId cardId)
     {
         var card = await db.Cards.FindAsync(userId, collectionId, cardId);
 
@@ -105,7 +148,7 @@ public class CardsService
         }
     }
 
-    public async Task<List<CardEntity>> Search(
+    public async Task<List<Card>> Search(
         UserId userId,
         CollectionId collectionId,
         string searchValue,
@@ -120,20 +163,20 @@ public class CardsService
             SearchFieldType.RememberingText => await GetCards(c =>
                 c.ParentUserId == userId
                 && c.ParentCollectionId == collectionId
-                && c.RememberingText.ToLower().StartsWith(searchValue), skip, count),
+                && EF.Functions.ILike(c.RememberingText, $"{searchValue}%"), skip, count),
             SearchFieldType.PromptText => await GetCards(c =>
                 c.ParentUserId == userId
                 && c.ParentCollectionId == collectionId
-                && c.PromptText.ToLower().StartsWith(searchValue), skip, count),
+                && EF.Functions.ILike(c.PromptText, $"{searchValue}%"), skip, count),
             SearchFieldType.MeaningText => await GetCards(c =>
                 c.ParentUserId == userId
                 && c.ParentCollectionId == collectionId
-                && c.MeaningText.ToLower().StartsWith(searchValue), skip, count),
+                && EF.Functions.ILike(c.MeaningText, $"{searchValue}%"), skip, count),
             _ => throw new ArgumentOutOfRangeException(nameof(fieldType), fieldType, null)
         };
     }
 
-    private async Task<List<CardEntity>> GetCards(Expression<Func<CardEntity, bool>> condition, int skip, int take)
+    private async Task<List<Card>> GetCards(Expression<Func<Card, bool>> condition, int skip, int take)
     {
         return await db.Cards
             .Where(condition)
@@ -143,11 +186,11 @@ public class CardsService
             .ToListAsync();
     }
 
-    public async Task<(CardEntity? card, string? error, bool isMoved)> MoveCard(
+    public async Task<(Card? card, string? error, bool isMoved)> MoveCard(
         UserId userId,
         CollectionId sourceCollectionId,
         CollectionId destinationCollectionId,
-        short cardId,
+        CardId cardId,
         bool disableTransaction = false)
     {
         var card = await db.Cards
@@ -155,19 +198,19 @@ public class CardsService
             .AsSplitQuery()
             .SingleOrDefaultAsync(c =>
                 c.ParentUserId == userId && c.ParentCollectionId == sourceCollectionId && c.Id == cardId);
-
+        
         if (!disableTransaction)
             await db.Database.BeginTransactionAsync();
 
-        var movedCard = new CardEntity
+        var movedCard = new Card(userId, destinationCollectionId, cardId)
         {
-            ParentUserId = userId,
-            ParentCollectionId = destinationCollectionId,
             RememberingText = card.RememberingText,
             PromptText = card.PromptText,
             MeaningText = card.MeaningText,
             Description = card.Description,
-            Examples = card.Examples?.ToList(),
+            Examples = card.Examples is {Count: >0} 
+                ? card.Examples.ToList() 
+                : new List<CardExample>(),
             CreatedDate = card.CreatedDate,
         };
 
@@ -210,7 +253,7 @@ public class CardsService
         return (movedCard, null, true);
     }
 
-    public async Task<(List<CardEntity>? cards, string? error)> GetNotStartedCards(
+    public async Task<(List<Card>? cards, string? error)> GetNotStartedCards(
         UserId scheduleUserId,
         short scheduleId,
         UserId userId,
@@ -243,7 +286,7 @@ public class CardsService
         return (canStartCards, null);
     }
 
-    public async Task<List<CardEntity>> GetCardsQueue(
+    public async Task<List<Card>> GetCardsQueue(
         UserId userId,
         CollectionId collectionId,
         UserId scheduleUserId,
@@ -252,7 +295,7 @@ public class CardsService
         DateTime dateTime)
     {
         if (env.IsProduction() && dateTime.Date > DateTime.UtcNow.Date)
-            return new List<CardEntity>();
+            return new List<Card>();
 
         var queueItems = await db.Queue
             .Where(c => c.ParentUserId == userId 
@@ -264,7 +307,7 @@ public class CardsService
             .ToListAsync();
 
         if (queueItems.Count == 0)
-            return new List<CardEntity>(0);
+            return new List<Card>(0);
 
         var cardsIds = queueItems.Select(q => q.ParentCardId).ToList();
 
@@ -285,10 +328,10 @@ public class CardsService
             .GroupBy(r => r.ParentCardId)
             .ToDictionary(g => g.Key, g => g.ToList());
 
-        foreach (var cardEntity in cards)
+        foreach (var card in cards)
         {
-            var cardsRemembers = cardIdToRemember[cardEntity.Id];
-            cardEntity.Remembers = cardsRemembers;
+            var cardsRemembers = cardIdToRemember[card.Id];
+            card.Remembers = cardsRemembers;
         }
 
         return cards;
@@ -364,7 +407,7 @@ public class CardsService
     private (NextRepeatInfo? closestRepeatInfo, string? reason) AddToQueue(
         UserId userId, 
         CollectionId collectionId, 
-        List<CardEntity> cards,
+        List<Card> cards,
         RepeatsScheduleEntity scheduleWithPhases)
     {
         var closestRepeatDate = DateTime.MaxValue;
@@ -475,7 +518,7 @@ public class CardsService
 
         foreach (var rememberItem in rememberItems)
         {
-            var cardId = rememberItem.CardId;
+            var cardId = CardId.Create(rememberItem.CardId).Value;
             var weight = rememberItem.Weight;
 
             var queueItem = queueItems.Single(q => q.ParentCardId == cardId);
@@ -557,48 +600,21 @@ public class CardsService
             closestPhaseIndex), null);
     }
 
-    public class CreateOrPatchCard : ICreateOrPatchCard
+    public class CreateOrPatchCard
     {
-        public string RememberingText { get; }
-        public string PromptText { get; }
-        public string MeaningText { get; }
-        public string? Description { get; }
-        public List<string>? Examples { get; }
-        public UserId ParentUserId { get; }
-        public CollectionId ParentCollectionId { get; }
-
-        public CreateOrPatchCard(
-            UserId parentUserId,
-            CollectionId parentCollectionId,
-            string frontSideText,
-            string promptText,
-            string backSideText,
-            string? description,
-            List<string>? examples)
-        {
-            ParentUserId = parentUserId;
-            ParentCollectionId = parentCollectionId;
-            PromptText = promptText;
-            RememberingText = TextMaster.RemoveWhiteSpaces(frontSideText, true);
-            MeaningText = TextMaster.RemoveWhiteSpaces(backSideText, true);
-            Description = TextMaster.RemoveWhiteSpaces(description);
-            Examples = examples?
-                .Select(e => TextMaster.RemoveWhiteSpaces(e))
-                .Where(e => !string.IsNullOrEmpty(e))
-                .ToList();
-        }
+        public CardText RememberingText { get; init; }
+        public CardText? PromptText { get; init; }
+        public CardText MeaningText { get; init; }
+        public CardDescription? Description { get; init; }
+        public List<CardExample> Examples { get; init; }
+        public UserId ParentUserId { get; init; }
+        public CollectionId ParentCollectionId { get; init; }
     }
 
     public class RememberItem
     {
-        public short CardId { get; }
-        public float Weight { get; }
-
-        public RememberItem(short cardId, float weight)
-        {
-            CardId = cardId;
-            Weight = weight;
-        }
+        public required  CardId CardId { get; init; }
+        public required float Weight { get; init; }
     }
 
     public class NextRepeatInfo

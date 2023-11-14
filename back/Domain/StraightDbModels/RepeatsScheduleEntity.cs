@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using Domain.Card;
 using Domain.User;
 using Domain.User.ValueObjects;
 using Infrastructure;
@@ -136,7 +137,7 @@ public class RepeatsScheduleEntity : IParentUserReference, ICreateRepeatsSchedul
     public UserId ParentUserId { get; set; }
     public User? ParentUser { get; set; }
 
-    public (int nextPhaseIndex, PhaseEntity? nextPhase) GetNextPhaseIndex(CardEntity cardEntity, RememberEntity remember)
+    public (int nextPhaseIndex, PhaseEntity? nextPhase) GetNextPhaseIndex(Card cardEntity, RememberEntity remember)
     {
         var currentPhaseIndex = remember.PhaseIndex;
         var currentPhase = GetPhase(currentPhaseIndex);

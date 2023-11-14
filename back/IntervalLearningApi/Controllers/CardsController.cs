@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using Domain.Card.ValueObjects;
 using Domain.Collection.ValueObjects;
 using Domain.User.ValueObjects;
 using IntervalLearningApi.Constants;
@@ -38,7 +39,7 @@ namespace IntervalLearningApi.Controllers
             if (userId.IsFailed)
                 return BadRequest();
 
-            var card = await cardsService.FindCard(userId.Value, CollectionId.Create(collectionId).Value, cardId);
+            var card = await cardsService.FindCard(userId.Value, CollectionId.Create(collectionId).Value, CardId.Create(cardId).Value);
             return card == null 
                 ? NotFound()
                 : mapper.Map<CardDto>(card);
@@ -104,17 +105,19 @@ namespace IntervalLearningApi.Controllers
 
             if (userId.IsFailed)
                 return BadRequest();
-            
+
 
             var (card, error) = collectionService.CreateOrEditCard(
                 userId.Value,
                 CollectionId.Create(collectionId).Value,
-                item.CardId,
-                item.FrontText,
-                item.PromptText ?? string.Empty,
-                item.BackText,
-                item.Description,
-                item.Examples);
+                item.CardId == null ? null : CardId.Create(item.CardId.Value).Value,
+                CardText.Create(item.FrontText).Value,
+                item.PromptText == null ? null : CardText.Create(item.PromptText).Value,
+                CardText.Create(item.BackText).Value,
+                item.Description != null ? CardDescription.Create(item.Description).Value : null,
+                item.Examples != null
+                    ? item.Examples.Select(e => CardExample.Create(e).Value).ToList()
+                    : new List<CardExample>());
 
             return card != null
                 ? mapper.Map<CardDto>(card)
@@ -129,7 +132,7 @@ namespace IntervalLearningApi.Controllers
             if (userId.IsFailed)
                 return BadRequest();
 
-            var (cardEntity, error) = await collectionService.DeleteCard(userId.Value, CollectionId.Create(collectionId).Value, cardId);
+            var (cardEntity, error) = await collectionService.DeleteCard(userId.Value, CollectionId.Create(collectionId).Value, CardId.Create(cardId).Value);
             return cardEntity != null 
                 ? mapper.Map<CardDto>(cardEntity)
                 : BadRequest(error);
@@ -143,7 +146,12 @@ namespace IntervalLearningApi.Controllers
             if (userId.IsFailed)
                 return BadRequest();
 
-            var (cardEntity, error) = await collectionService.MoveCard(userId.Value, CollectionId.Create(collectionId).Value, CollectionId.Create(request.DestinationCollectionId).Value, request.CardId);
+            var (cardEntity, error) = await collectionService.MoveCard(
+                userId.Value,
+                CollectionId.Create(collectionId).Value,
+                CollectionId.Create(request.DestinationCollectionId).Value,
+                CardId.Create(request.CardId).Value);
+            
             return cardEntity != null 
                 ? mapper.Map<CardDto>(cardEntity) 
                 : BadRequest(error);
@@ -214,7 +222,11 @@ namespace IntervalLearningApi.Controllers
 
         private List<CardsService.RememberItem> ToCardServiceRememberItems(List<RememberItem> requestRememberItems)
         {
-            return requestRememberItems.Select(r => new CardsService.RememberItem(r.CardId, r.Weight)).ToList();
+            return requestRememberItems.Select(r => new CardsService.RememberItem
+            {
+                CardId = CardId.Create(r.CardId).Value,
+                Weight = r.Weight
+            }).ToList();
         }
     }
 

@@ -1,4 +1,5 @@
 ﻿using DB.Models;
+using Domain.Card;
 using Mapster;
 using Newtonsoft.Json;
 
@@ -8,7 +9,7 @@ public class CardRegister : IRegister
 {
     public void Register(TypeAdapterConfig config)
     {
-        config.NewConfig<CardEntity, CardDto>()
+        config.NewConfig<Card, CardDto>()
             .Map(d => d.BackSideText, s => s.MeaningText)
             .Map(d => d.FrontSideText, s => s.RememberingText);
     }

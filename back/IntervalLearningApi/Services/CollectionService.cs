@@ -4,6 +4,8 @@ using DB.Configurations.Study;
 using DB.Models;
 using DB.Models.Dictionary;
 using DB.Models.Store;
+using Domain.Card;
+using Domain.Card.ValueObjects;
 using Domain.Collection;
 using Domain.Collection.ValueObjects;
 using Domain.Common.ValueObjects;
@@ -216,7 +218,7 @@ public class CollectionService
     {
         var sequenceName = CollectionConfiguration.GetSequenceName(item.ParentUserId);
         
-        db.CreateSequence(sequenceName);
+        db.EnsureSequenceCreated(sequenceName);
         var collectionNextId = db.GetSequenceNextValue16(sequenceName);
         var collectionId = CollectionId.Create(collectionNextId).Value;
 
@@ -244,15 +246,15 @@ public class CollectionService
         }
     }
 
-    public (CardEntity? card, string? error) CreateOrEditCard(
+    public (Card? card, string? error) CreateOrEditCard(
         UserId userId,
         CollectionId collectionId,
-        short? cardId,
-        string frontText,
-        string promptText,
-        string backText,
-        string? description,
-        List<string>? examples,
+        CardId? cardId,
+        CardText frontText,
+        CardText? promptText,
+        CardText backText,
+        CardDescription? description,
+        List<CardExample> examples,
         bool disableTransaction = false)
     {
         var collection = db.Collections.Find(userId, collectionId);
@@ -264,14 +266,16 @@ public class CollectionService
             db.Database.BeginTransaction();
 
         var (card, error, isCreated) = cardsService.CreateOrEdit(
-            new CardsService.CreateOrPatchCard(
-                userId,
-                collectionId,
-                frontText,
-                promptText,
-                backText,
-                description,
-                examples),
+            new CardsService.CreateOrPatchCard
+            {
+                ParentUserId = userId,
+                ParentCollectionId = collectionId,
+                MeaningText = frontText,
+                RememberingText = backText,
+                PromptText = promptText,
+                Description = description,
+                Examples = examples
+            },
             cardId);
 
         if (error != null)
@@ -295,10 +299,10 @@ public class CollectionService
         return (card, null);
     }
     
-    public async Task<(CardEntity? card, string? error)> DeleteCard(
+    public async Task<(Card? card, string? error)> DeleteCard(
         UserId userId,
         CollectionId collectionId,
-        short cardId,
+        CardId cardId,
         bool disableTransaction = false)
     {
         var collection = await db.Collections.FindAsync(userId, collectionId);
@@ -329,11 +333,11 @@ public class CollectionService
         return (card, null);
     }
 
-    public async Task<(CardEntity? card, string? error)> MoveCard(
+    public async Task<(Card? card, string? error)> MoveCard(
         UserId userId,
         CollectionId sourceCollectionId,
         CollectionId destinationCollectionId,
-        short cardId)
+        CardId cardId)
     {
         var sourceCollection = await db.Collections.FindAsync(userId, sourceCollectionId);
         var destinationCollection = await db.Collections.FindAsync(userId, destinationCollectionId);
@@ -505,8 +509,11 @@ public class CollectionService
             return (myCollection, null);
         }
 
-        var myCards = checkUnique ? await cardsService.GetAllCards(myUserId, myCollection.Id) : new List<CardEntity>();
-        var myCardsSet = new HashSet<string>(myCards.Select(c => c.RememberingText));
+        var myCards = checkUnique ?
+            await cardsService.GetAllCards(myUserId, myCollection.Id) 
+            : new List<Card>();
+        
+        var myCardsSet = new HashSet<string>(myCards.Select(c => c.RememberingText.Value));
 
         foreach (var publicCard in publicCards)
         {
