@@ -1,4 +1,3 @@
-using DB.Models;
 using DB.Models.ValueObjects;
 using Domain.Theme;
 using Microsoft.EntityFrameworkCore;
@@ -8,6 +7,9 @@ namespace DB.Configurations.Study;
 
 public class ThemeConfiguration : IEntityTypeConfiguration<Theme>
 {
+    public static string GetSequenceName()
+        => $"themes_for_collection"; 
+
     public void Configure(EntityTypeBuilder<Theme> builder)
     {
         builder.HasKey(t => t.Id);

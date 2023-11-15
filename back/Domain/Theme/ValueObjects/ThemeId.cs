@@ -10,11 +10,6 @@ public class ThemeId : SingleValueObject<short>
     private ThemeId(short value) : base(value)
     {
     }
-    
-    public static ThemeId CreateEmpty()
-    {
-        return new ThemeId(0);
-    }
 
     public static Result<ThemeId> Create(short id)
     {

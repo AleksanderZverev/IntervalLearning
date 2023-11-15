@@ -1,4 +1,5 @@
 using DB.Models.ValueObjects;
+using Domain.Theme;
 using Mapster;
 
 namespace IntervalLearningApi.Models.ByUser;
@@ -9,6 +10,9 @@ public class ThemeRegister : IRegister
     {
         config.NewConfig<ThemeId, short>()
             .Map(d => d, s => s.Value);
+
+        config.NewConfig<Theme, ThemeDto>()
+            .Map(d => d.Id, s => s.Id.Value);
     }
 }
 

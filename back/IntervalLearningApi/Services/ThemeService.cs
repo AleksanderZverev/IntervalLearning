@@ -1,4 +1,5 @@
 ﻿using DB;
+using DB.Configurations.Study;
 using DB.Models;
 using DB.Models.ValueObjects;
 using Domain.Common.ValueObjects;
@@ -31,7 +32,11 @@ public class ThemeService
         if (containsSameTheme != null)
             return (false, "Conflict");
 
-        var theme = new Theme(ThemeId.CreateEmpty())
+        var seqName = ThemeConfiguration.GetSequenceName();
+        db.EnsureSequenceCreated(seqName);
+        var themeId = db.GetSequenceNextValue16(seqName);
+        
+        var theme = new Theme(ThemeId.Create(themeId).Value)
         {
             Name = themeTitle
         };
