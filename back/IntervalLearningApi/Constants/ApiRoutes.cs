@@ -95,4 +95,11 @@ public static class ApiRoutes
         public const string Get_LearningStatistic = "learning";
         public const string Get_DetailedCalendarStatistic = "calendar/detailed";
     }
+    
+    public class Themes
+    {
+        public const string BasePath = "api/themes";
+
+        public const string Get_GetAll = "";
+    }
 }

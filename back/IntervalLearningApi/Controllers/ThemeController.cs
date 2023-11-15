@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using IntervalLearningApi.Constants;
 using IntervalLearningApi.Models.ByUser;
 using IntervalLearningApi.Services;
 using MapsterMapper;
@@ -6,7 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace IntervalLearningApi.Controllers
 {
-    [Route("api/themes")]
+    [Route(ApiRoutes.Themes.BasePath)]
     [ApiController]
     public class ThemeController : ControllerBase
     {
@@ -19,7 +20,7 @@ namespace IntervalLearningApi.Controllers
             this.themeService = themeService;
         }
 
-        [HttpGet]
+        [HttpGet(ApiRoutes.Themes.Get_GetAll)]
         public List<ThemeDto> GetAll()
         {
             var themes = themeService.GetAll();
