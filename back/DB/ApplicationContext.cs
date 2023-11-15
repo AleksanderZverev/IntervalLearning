@@ -2,6 +2,7 @@
 using DB.Models;
 using DB.Models.Dictionary;
 using DB.Models.Store;
+using Domain.Card;
 using Domain.Collection;
 using Domain.Language;
 using Domain.User;
@@ -19,7 +20,7 @@ namespace DB
         public DbSet<RefreshTokenEntity> RefreshTokens { get; set; }
 
         public DbSet<Collection> Collections { get; set; }
-        public DbSet<CardEntity> Cards { get; set; }
+        public DbSet<Card> Cards { get; set; }
         public DbSet<RememberEntity> Remembers { get; set; }
         public DbSet<PhaseRememberEntity> PhaseRememberEntities { get; set; }
         public DbSet<ThemeEntity> Themes { get; set; }
@@ -46,7 +47,7 @@ namespace DB
             modelBuilder.ApplyConfigurationsFromAssembly(GetType().Assembly);
         }
 
-        public void CreateSequence(string sequenceName)
+        public void EnsureSequenceCreated(string sequenceName)
         {
             var connection = Database.GetDbConnection();
             connection.Open();

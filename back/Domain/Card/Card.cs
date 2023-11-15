@@ -2,7 +2,6 @@ using DB.Models;
 using Domain.Card.ValueObjects;
 using Domain.Collection.ValueObjects;
 using Domain.User.ValueObjects;
-using FluentResults;
 
 namespace Domain.Card;
 
@@ -43,13 +42,13 @@ public class Card : AggregateRoot<ComplexCardId>
     public virtual Collection.Collection? ParentCollection { get; set; }
 
     public Card(
-        UserId userId,
-        CollectionId collectionId,
+        UserId parentUserId,
+        CollectionId parentCollectionId,
         CardId id) 
-        : base(ComplexCardId.Create(userId, collectionId, id))
+        : base(ComplexCardId.Create(parentUserId, parentCollectionId, id))
     {
-        ParentUserId = userId;
-        ParentCollectionId = collectionId;
+        ParentUserId = parentUserId;
+        ParentCollectionId = parentCollectionId;
         Id = id;
     }
 
