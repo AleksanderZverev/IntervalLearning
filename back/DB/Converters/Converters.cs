@@ -1,3 +1,4 @@
+using DB.Models.ValueObjects;
 using Domain.Card.ValueObjects;
 using Domain.Collection.ValueObjects;
 using Domain.Common.ValueObjects;
@@ -38,9 +39,14 @@ internal static class Converters
         cardText => Domain.Card.ValueObjects.CardDescription.Create(cardText).Value
     );
 
-    public static ValueConverter<CardExample, string> CardExample= new(
+    public static ValueConverter<CardExample, string> CardExample = new(
         from => from.Value,
         cardText => Domain.Card.ValueObjects.CardExample.Create(cardText).Value
+    );
+
+    public static ValueConverter<ThemeId, short> ThemeId = new(
+        from => from.Value,
+        id => Models.ValueObjects.ThemeId.Create(id).Value
     );
 
     public static ValueConverter<TFrom?, TTo?> ToNullable<TFrom, TTo>(this ValueConverter<TFrom, TTo> converter)

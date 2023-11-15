@@ -358,29 +358,6 @@ namespace DB.Migrations
                     b.ToTable("PublicCollectionSubscriber");
                 });
 
-            modelBuilder.Entity("DB.Models.ThemeEntity", b =>
-                {
-                    b.Property<short>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("smallint");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<short>("Id"));
-
-                    b.Property<short?>("LanguageId")
-                        .HasColumnType("smallint");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("LanguageId");
-
-                    b.ToTable("Themes");
-                });
-
             modelBuilder.Entity("DB.Models.UserMetadataEntity", b =>
                 {
                     b.Property<long>("ParentUserId")
@@ -558,6 +535,29 @@ namespace DB.Migrations
                             Name = "Japanese",
                             NativeLanguageName = "日本語"
                         });
+                });
+
+            modelBuilder.Entity("Domain.Theme.Theme", b =>
+                {
+                    b.Property<short>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("smallint");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<short>("Id"));
+
+                    b.Property<short?>("LanguageId")
+                        .HasColumnType("smallint");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("LanguageId");
+
+                    b.ToTable("Themes");
                 });
 
             modelBuilder.Entity("Domain.User.User", b =>
@@ -812,16 +812,6 @@ namespace DB.Migrations
                     b.Navigation("SubscriberUser");
                 });
 
-            modelBuilder.Entity("DB.Models.ThemeEntity", b =>
-                {
-                    b.HasOne("Domain.Language.Language", "Language")
-                        .WithMany()
-                        .HasForeignKey("LanguageId")
-                        .OnDelete(DeleteBehavior.NoAction);
-
-                    b.Navigation("Language");
-                });
-
             modelBuilder.Entity("DB.Models.UserMetadataEntity", b =>
                 {
                     b.HasOne("Domain.User.User", "ParentUser")
@@ -879,7 +869,7 @@ namespace DB.Migrations
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
-                    b.HasOne("DB.Models.ThemeEntity", "Theme")
+                    b.HasOne("Domain.Theme.Theme", "Theme")
                         .WithMany()
                         .HasForeignKey("ThemeId")
                         .OnDelete(DeleteBehavior.NoAction)
@@ -888,6 +878,16 @@ namespace DB.Migrations
                     b.Navigation("ParentUser");
 
                     b.Navigation("Theme");
+                });
+
+            modelBuilder.Entity("Domain.Theme.Theme", b =>
+                {
+                    b.HasOne("Domain.Language.Language", "Language")
+                        .WithMany()
+                        .HasForeignKey("LanguageId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.Navigation("Language");
                 });
 
             modelBuilder.Entity("Domain.User.User", b =>

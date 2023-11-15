@@ -1,6 +1,7 @@
 ﻿using DB.Models;
 using DB.Models.Dictionary;
 using DB.Models.Store;
+using DB.Models.ValueObjects;
 using Domain.Collection.ValueObjects;
 using Domain.Language;
 using Domain.User.ValueObjects;
@@ -40,12 +41,13 @@ namespace IntervalLearningApi.Controllers
                 return BadRequest();
 
             var (collection, error) = collectionService.CreateOrEdit(
-                new CollectionService.CreateOrPatchCollection(
-                    userId.Value,
-                    item.Title,
-                    item.IsDefaultBackSide,
-                    item.ThemeId
-                ),
+                new CollectionService.CreateOrPatchCollection()
+                {
+                    ParentUserId = userId.Value,
+                    Title = ThemeTitle.Create(item.Title).Value,
+                    ThemeId = ThemeId.Create(item.ThemeId).Value, 
+                    IsDefaultBackSide = item.IsDefaultBackSide,
+                },
                 item.CollectionId == null ? null : CollectionId.Create(item.CollectionId.Value).Value);
 
             return collection != null
@@ -61,7 +63,7 @@ namespace IntervalLearningApi.Controllers
             if (userId.IsFailed)
                 return BadRequest();
 
-            var collections = await collectionService.SearchPublicCollections(userId.Value, themeId, searchName ?? "", page, count);
+            var collections = await collectionService.SearchPublicCollections(userId.Value, ThemeId.Create(themeId).Value, searchName ?? "", page, count);
             return mapper.Map<List<StoreCollection>>(collections.Select((t) => (t.collection, t.subscriber)));
         }
 
@@ -73,7 +75,7 @@ namespace IntervalLearningApi.Controllers
             if (userId.IsFailed)
                 return BadRequest();
 
-            var collections = await collectionService.SearchCollections(userId.Value, themeId, searchName ?? "", page, count);
+            var collections = await collectionService.SearchCollections(userId.Value, ThemeId.Create(themeId).Value, searchName ?? "", page, count);
             return mapper.Map<List<CollectionDto>>(collections);
         }
 

@@ -1,5 +1,6 @@
 using DB.Models;
 using DB.Models.Store;
+using DB.Models.ValueObjects;
 using Domain.Collection.ValueObjects;
 using Domain.Common.ValueObjects;
 using Domain.User.ValueObjects;
@@ -19,8 +20,8 @@ public class Collection : Entity<ComplexCollectionId>
 
     public bool IsDefaultBackSide { get; set; }
 
-    public short ThemeId { get; set; }
-    public virtual ThemeEntity? Theme { get; set; }
+    public ThemeId ThemeId { get; set; }
+    public virtual Theme.Theme? Theme { get; set; }
 
     // [Required]
     public DateTime CreatedDate { get; set; } = DateTime.UtcNow;
@@ -49,7 +50,7 @@ public class Collection : Entity<ComplexCollectionId>
         Id = id;
     }
 
-    public static Result<Collection> Create(UserId userId, CollectionId id, CollectionTitle title, short themeId)
+    public static Result<Collection> Create(UserId userId, CollectionId id, CollectionTitle title, ThemeId themeId)
     {
         return new Collection(userId, id)
         {

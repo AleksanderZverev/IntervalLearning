@@ -6,6 +6,7 @@ using DB.Models.Store;
 using Domain.Card;
 using Domain.Collection;
 using Domain.Language;
+using Domain.Theme;
 using Domain.User;
 using Microsoft.EntityFrameworkCore;
 
@@ -24,7 +25,7 @@ namespace DB
         public DbSet<Card> Cards { get; set; }
         public DbSet<RememberEntity> Remembers { get; set; }
         public DbSet<PhaseRememberEntity> PhaseRememberEntities { get; set; }
-        public DbSet<ThemeEntity> Themes { get; set; }
+        public DbSet<Theme> Themes { get; set; }
         public DbSet<RepeatsScheduleEntity> RepeatsSchedules { get; set; }
         public DbSet<PhaseEntity> Phases { get; set; }
 

@@ -4,6 +4,7 @@ using DB.Configurations.Study;
 using DB.Models;
 using DB.Models.Dictionary;
 using DB.Models.Store;
+using DB.Models.ValueObjects;
 using Domain.Card;
 using Domain.Card.ValueObjects;
 using Domain.Collection;
@@ -165,22 +166,10 @@ public class CollectionService
 
     public class CreateOrPatchCollection
     {
-        public UserId ParentUserId { get; }
-        public short ThemeId { get; }
-        public string Title { get;  }
-        public bool IsDefaultBackSide { get; }
-
-        public CreateOrPatchCollection(
-            UserId parentUserId, 
-            string title, 
-            bool isDefaultBackSide,
-            short themeId)
-        {
-            ParentUserId = parentUserId;
-            Title = TextMaster.RemoveWhiteSpaces(title, true);
-            IsDefaultBackSide = isDefaultBackSide;
-            ThemeId = themeId;
-        }
+        public required UserId ParentUserId { get; init; }
+        public required ThemeId ThemeId { get; init; }
+        public required ThemeTitle Title { get; init; }
+        public bool IsDefaultBackSide { get; init; }
     }
 
     public (Collection? collection, string? error) CreateOrEdit(
@@ -581,7 +570,7 @@ public class CollectionService
 
     public async Task<List<(Collection collection, PublicCollectionSubscriber? subscriber)>> SearchPublicCollections(
         UserId myUserId,
-        short themeId, 
+        ThemeId themeId, 
         string searchName, 
         int page, 
         int count)
@@ -623,7 +612,7 @@ public class CollectionService
     
     public async Task<List<Collection>> SearchCollections(
         UserId userId,
-        short themeId, 
+        ThemeId themeId, 
         string searchName, 
         int page, 
         int count)

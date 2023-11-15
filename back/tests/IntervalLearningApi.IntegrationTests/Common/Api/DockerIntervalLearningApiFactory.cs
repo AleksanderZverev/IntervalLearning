@@ -2,6 +2,7 @@ using DB;
 using DB.DependencyInjection;
 using DB.Models;
 using DB.Models.Dictionary;
+using DB.Models.ValueObjects;
 using Domain.Language;
 using IntervalLearningApi.IntegrationTests.Common.Constants;
 using Microsoft.AspNetCore.Hosting;
@@ -10,6 +11,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Testcontainers.PostgreSql;
+using Theme = Domain.Theme.Theme;
 
 namespace IntervalLearningApi.IntegrationTests.Common.Api;
 
@@ -57,8 +59,9 @@ public class DockerIntervalLearningApiFactory : WebApplicationFactory<Program>, 
         await db.SaveChangesAsync();
         TestConstants.Language.TestId = languageEntry.Entity.Id;
 
-        var themeEntry = db.Themes.Add(new ThemeEntity("Test English")
+        var themeEntry = db.Themes.Add(new Theme(ThemeId.CreateEmpty())
         {
+            Name = ThemeTitle.Create("Test English").Value,
             LanguageId = languageEntry.Entity.Id,
         });
         await db.SaveChangesAsync();

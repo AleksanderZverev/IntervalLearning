@@ -1,5 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using IntervalLearningApi.Models.ByUser;
 using IntervalLearningApi.Services;
+using MapsterMapper;
 using Microsoft.AspNetCore.Mvc;
 
 namespace IntervalLearningApi.Controllers
@@ -8,17 +10,23 @@ namespace IntervalLearningApi.Controllers
     [ApiController]
     public class ThemeController : ControllerBase
     {
+        private readonly IMapper mapper;
         private readonly ThemeService themeService;
 
-        public ThemeController(ThemeService themeService)
+        public ThemeController(IMapper mapper, ThemeService themeService)
         {
+            this.mapper = mapper;
             this.themeService = themeService;
         }
 
         [HttpGet]
-        public List<Theme> GetAll()
+        public List<ThemeDto> GetAll()
         {
-            return themeService.GetAll().Select(t => new Theme(t.Id, t.Name, t.LanguageId)).ToList();
+            var themes = themeService.GetAll();
+            
+            return themes is not { Count: > 0 }
+                ? new List<ThemeDto>()
+                : mapper.Map<List<ThemeDto>>(themes);
         }
 
         //[HttpPost]
@@ -27,20 +35,6 @@ namespace IntervalLearningApi.Controllers
         //    var (ok, error) = themeService.Create(themeItem.Name);
         //    return ok ? Ok() : BadRequest(error);
         //}
-    }
-
-    public class Theme
-    {
-        public short Id { get; }
-        public string Name { get; }
-        public string? LanguageId { get; }
-
-        public Theme(short id, string name, short? languageId)
-        {
-            Id = id;
-            Name = name;
-            LanguageId = languageId?.ToString();
-        }
     }
 
     public class CreateThemeItem
