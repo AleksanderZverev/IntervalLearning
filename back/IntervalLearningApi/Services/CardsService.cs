@@ -77,11 +77,7 @@ public class CardsService
         card.RememberingText = item.RememberingText;
         card.PromptText = item.PromptText;
         card.Description = item.Description;
-        
-        if (item.Examples is { Count: > 0 })
-        {
-            card.Examples = item.Examples;
-        }
+        card.Examples = item.Examples;
 
         try
         {

@@ -1,4 +1,5 @@
-﻿using System.Numerics;
+﻿using System.Data;
+using System.Numerics;
 using DB.Models;
 using DB.Models.Dictionary;
 using DB.Models.Store;
@@ -50,13 +51,21 @@ namespace DB
         public void EnsureSequenceCreated(string sequenceName)
         {
             var connection = Database.GetDbConnection();
-            connection.Open();
+            
+            var isConnectionOpened = connection.State is (ConnectionState.Open or ConnectionState.Fetching);
+            if (!isConnectionOpened)
+            {
+                connection.Open();
+            }
 
             using var createSequenceCommand = connection.CreateCommand();
             createSequenceCommand.CommandText = $"create sequence if not exists {sequenceName}";
             createSequenceCommand.ExecuteNonQuery();
-            
-            connection.Close();
+
+            if (!isConnectionOpened)
+            {
+                connection.Close();
+            }
         }
 
         public short GetSequenceNextValue16(string sequenceName)
@@ -69,7 +78,12 @@ namespace DB
         {
             //do not dispose connection
             var connection = Database.GetDbConnection();
-            connection.Open();
+
+            var isConnectionOpened = connection.State is ConnectionState.Open or ConnectionState.Fetching;
+            if (!isConnectionOpened)
+            {
+                connection.Open();
+            }
 
             using var command = connection.CreateCommand();
             command.CommandText = $"select nextval('{sequenceName}')";
@@ -78,7 +92,10 @@ namespace DB
             reader.Read();
             var nextValue = reader.GetInt64(0);
             
-            connection.Close();
+            if (!isConnectionOpened)
+            {
+                connection.Close();
+            }
             return nextValue;
         }
     }

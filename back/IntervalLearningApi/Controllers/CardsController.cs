@@ -110,11 +110,17 @@ namespace IntervalLearningApi.Controllers
             var (card, error) = collectionService.CreateOrEditCard(
                 userId.Value,
                 CollectionId.Create(collectionId).Value,
-                item.CardId == null ? null : CardId.Create(item.CardId.Value).Value,
+                item.CardId == null 
+                    ? null 
+                    : CardId.Create(item.CardId.Value).Value,
                 CardText.Create(item.FrontText).Value,
-                item.PromptText == null ? null : CardText.Create(item.PromptText).Value,
+                item.PromptText == null 
+                    ? null 
+                    : CardText.Create(item.PromptText).Value,
                 CardText.Create(item.BackText).Value,
-                item.Description != null ? CardDescription.Create(item.Description).Value : null,
+                item.Description != null 
+                    ? CardDescription.Create(item.Description).Value 
+                    : null,
                 item.Examples != null
                     ? item.Examples.Select(e => CardExample.Create(e).Value).ToList()
                     : new List<CardExample>());

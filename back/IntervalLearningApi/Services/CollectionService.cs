@@ -270,8 +270,8 @@ public class CollectionService
             {
                 ParentUserId = userId,
                 ParentCollectionId = collectionId,
-                MeaningText = frontText,
-                RememberingText = backText,
+                MeaningText = backText,
+                RememberingText = frontText,
                 PromptText = promptText,
                 Description = description,
                 Examples = examples

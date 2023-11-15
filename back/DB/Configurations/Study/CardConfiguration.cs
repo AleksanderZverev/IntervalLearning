@@ -31,8 +31,7 @@ public class CardConfiguration  : IEntityTypeConfiguration<Card>
 
         builder.Property(c => c.PromptText)
             .HasMaxLength(255)
-            .HasConversion(Converters.CardText.ToEmptyString())
-            .IsRequired();
+            .HasConversion(Converters.CardText.ToEmptyString());
 
         builder.Property(c => c.MeaningText)
             .HasMaxLength(255)
