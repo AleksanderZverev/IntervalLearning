@@ -1,12 +1,7 @@
-using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
-using DB.Models.Store;
-using Domain.Collection;
+using DB.Models;
 using Domain.Collection.ValueObjects;
-using Domain.User;
-using Domain.User.ValueObjects;
 
-namespace DB.Models;
+namespace Domain.Collection;
 
 public interface IParentCollectionReference : IParentUserReference
 {

@@ -1,7 +1,8 @@
-﻿using Domain.Card;
+﻿using DB.Models;
 using Domain.Card.ValueObjects;
+using Domain.Collection;
 
-namespace DB.Models;
+namespace Domain.Card;
 
 public interface IParentCardReference : IParentCollectionReference
 {
