@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations.Schema;
+using DB.Models.ValueObjects;
 using Domain.Card;
 using Domain.Card.ValueObjects;
 using Domain.Collection;
@@ -19,7 +20,7 @@ public class CardRepeatQueueEntity : IParentCardReference
 
     public CardRepeatQueueEntity(
         UserId parentRepeatsScheduleUserId,
-        short parentRepeatsScheduleId,
+        ScheduleId parentRepeatsScheduleId,
         UserId parentUserId, 
         CollectionId parentCollectionId, 
         CardId parentCardId,
@@ -46,6 +47,6 @@ public class CardRepeatQueueEntity : IParentCardReference
     public Card? ParentCard { get; set; }
 
     public UserId ParentRepeatsScheduleUserId { get; set; }
-    public short ParentRepeatsScheduleId { get; set; }
-    public RepeatsScheduleEntity? ParentRepeatsSchedule { get; set; }
+    public ScheduleId ParentRepeatsScheduleId { get; set; }
+    public RepeatsSchedule? ParentRepeatsSchedule { get; set; }
 }

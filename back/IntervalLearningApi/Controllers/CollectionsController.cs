@@ -146,7 +146,13 @@ namespace IntervalLearningApi.Controllers
             if (userId.IsFailed)
                 return BadRequest();
 
-            var (totalCollections, canStartCollections) = await collectionService.GetCanStart(userId.Value, UserId.Create(scheduleUserId).Value, scheduleId, page, count);
+            var (totalCollections, canStartCollections) = await collectionService.GetCanStart(
+                userId.Value,
+                UserId.Create(scheduleUserId).Value,
+                ScheduleId.Create(scheduleId).Value,
+                page,
+                count);
+            
             return new GetNotFinishedResponse(
                 totalCollections,
                 mapper.Map<List<CollectionDto>>(canStartCollections));

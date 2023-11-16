@@ -120,7 +120,7 @@ public class CollectionService
     public async Task<(int totalCollections, List<Collection> canStartCollections)> GetCanStart(
         UserId userId,
         UserId scheduleUserId,
-        short scheduleId,
+        ScheduleId scheduleId,
         int page = 1,
         int count = 30)
     {
@@ -639,7 +639,7 @@ public class CollectionService
     public class RepeatingPhase
     {
         public UserId ScheduleUserId { get; }
-        public short ScheduleId { get;  }
+        public ScheduleId ScheduleId { get;  }
         public short PhaseIndex { get;  }
         public uint SecondsFromLastPhase { get; }
         public string? Description { get; }
@@ -648,7 +648,7 @@ public class CollectionService
 
         public RepeatingPhase(
             UserId scheduleUserId,
-            short scheduleId,
+            ScheduleId scheduleId,
             short phaseIndex,
             uint secondsFromLastPhase,
             string? description)

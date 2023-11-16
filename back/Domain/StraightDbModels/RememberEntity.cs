@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using DB.Models.ValueObjects;
 using Domain.Card;
 using Domain.Card.ValueObjects;
 using Domain.Collection;
@@ -33,7 +34,7 @@ public class RememberEntity : IParentCardReference
     
     public RememberEntity(
         UserId parentRepeatsScheduleUserId, 
-        short parentRepeatsScheduleId,
+        ScheduleId parentRepeatsScheduleId,
         UserId parentUserId,
         CollectionId parentCollectionId,
         CardId parentCardId,
@@ -59,8 +60,8 @@ public class RememberEntity : IParentCardReference
     public Card? ParentCard { get; set; }
 
     public UserId ParentRepeatsScheduleUserId { get; set; }
-    public short ParentRepeatsScheduleId { get; set; }
-    public RepeatsScheduleEntity? ParentRepeatsSchedule { get; set; }
+    public ScheduleId ParentRepeatsScheduleId { get; set; }
+    public RepeatsSchedule? ParentRepeatsSchedule { get; set; }
 
     public bool IsRemembered()
     {

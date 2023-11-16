@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using DB.Models.ValueObjects;
 using Domain.User;
 using Domain.User.ValueObjects;
 using Infrastructure;
@@ -32,14 +33,14 @@ public class PatchPhaseItem
 public class CreatePhaseItem : PatchPhaseItem
 {
     public UserId ParentUserId { get; set; }
-    public short ParentRepeatsScheduleId { get; set; }
+    public ScheduleId ParentRepeatsScheduleId { get; set; }
     public short Id { get; set; }
     public uint SecondsFromLastPhase { get; set; }
 
     public CreatePhaseItem(
         UserId parentUserId,
         short id,
-        short parentRepeatsScheduleId,
+        ScheduleId parentRepeatsScheduleId,
         uint secondsFromLastPhase,
         string? shortDescription,
         string? description,
@@ -76,8 +77,8 @@ public class PhaseEntity : IParentRepeatsScheduleReference
 
     public bool IsDefaultValueSide { get; set; }
 
-    public short ParentRepeatsScheduleId { get; set; }
-    public RepeatsScheduleEntity? ParentRepeatsSchedule { get; set; }
+    public ScheduleId ParentRepeatsScheduleId { get; set; }
+    public RepeatsSchedule? ParentRepeatsSchedule { get; set; }
 
 
     public UserId ParentUserId { get; set; }

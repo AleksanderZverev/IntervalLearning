@@ -1,4 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
+using DB.Models.ValueObjects;
 using Domain.User.ValueObjects;
 
 namespace IntervalLearningApi.Constants;
@@ -74,15 +75,15 @@ public static class ApiRoutes
         public const string Get_GetAll = "";
         
         public const string Get_GetUserSchedule = "{userId}/{scheduleId}";
-        public static string GetGetUserSchedulePath(UserId userId, short scheduleId)
+        public static string GetGetUserSchedulePath(UserId userId, ScheduleId scheduleId)
             => $"{userId}/{scheduleId}";
         
         public const string Get_GetMySchedule = "my/{scheduleId}";
-        public static string GetGetMySchedulePath(short scheduleId)
+        public static string GetGetMySchedulePath(ScheduleId scheduleId)
             => $"my/{scheduleId}";
         
         public const string Patch_EditSchedule = "{scheduleId}";
-        public static string GetEditSchedulePath(short scheduleId)
+        public static string GetEditSchedulePath(ScheduleId scheduleId)
             => $"{scheduleId}";
         
         public const string Post_CreateSchedule = "";

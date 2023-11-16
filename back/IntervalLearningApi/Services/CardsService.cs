@@ -3,6 +3,7 @@ using System.Linq.Expressions;
 using DB;
 using DB.Configurations.Study;
 using DB.Models;
+using DB.Models.ValueObjects;
 using Domain.Card;
 using Domain.Card.ValueObjects;
 using Domain.Collection.ValueObjects;
@@ -251,7 +252,7 @@ public class CardsService
 
     public async Task<(List<Card>? cards, string? error)> GetNotStartedCards(
         UserId scheduleUserId,
-        short scheduleId,
+        ScheduleId scheduleId,
         UserId userId,
         CollectionId collectionId, 
         int count)
@@ -286,7 +287,7 @@ public class CardsService
         UserId userId,
         CollectionId collectionId,
         UserId scheduleUserId,
-        short scheduleId,
+        ScheduleId scheduleId,
         short phaseIndex, 
         DateTime dateTime)
     {
@@ -337,7 +338,7 @@ public class CardsService
         UserId userId,
         CollectionId collectionId,
         UserId scheduleUserId,
-        short scheduleId, 
+        ScheduleId scheduleId, 
         List<short> cardIds)
     {
         var schedule = db.RepeatsSchedules
@@ -404,7 +405,7 @@ public class CardsService
         UserId userId, 
         CollectionId collectionId, 
         List<Card> cards,
-        RepeatsScheduleEntity scheduleWithPhases)
+        RepeatsSchedule scheduleWithPhases)
     {
         var closestRepeatDate = DateTime.MaxValue;
         var closestPhaseIndex = -1;
@@ -469,7 +470,7 @@ public class CardsService
         UserId userId,
         CollectionId collectionId,
         UserId scheduleUserId,
-        short scheduleId,
+        ScheduleId scheduleId,
         short phaseIndex,
         List<RememberItem> rememberItems)
     {
