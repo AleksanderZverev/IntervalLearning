@@ -1,8 +1,8 @@
-﻿using System.ComponentModel.DataAnnotations;
-using DB.Models;
+﻿using DB.Models.ValueObjects;
 using Domain.User.ValueObjects;
 using IntervalLearningApi.Constants;
 using IntervalLearningApi.Extensions;
+using IntervalLearningApi.Models.ByUser;
 using IntervalLearningApi.Models.RepeatsSchedule;
 using IntervalLearningApi.Services;
 using MapsterMapper;
@@ -27,7 +27,7 @@ namespace IntervalLearningApi.Controllers
         }
 
         [HttpGet(ApiRoutes.Schedule.Get_GetAll)]
-        public ActionResult<List<Schedule>> GetAll()
+        public ActionResult<List<RepeatsScheduleDto>> GetAll()
         {
             var userId = HttpContext.GetUserId();
 
@@ -35,102 +35,76 @@ namespace IntervalLearningApi.Controllers
                 return BadRequest();
 
             var schedules = repeatsScheduleService.GetAll(userId.Value);
-            return mapper.Map<List<Schedule>>(schedules);
+            return mapper.Map<List<RepeatsScheduleDto>>(schedules);
         }
 
         [HttpGet(ApiRoutes.Schedule.Get_GetUserSchedule)]
-        public ActionResult<Schedule> GetSchedule(long userId, short scheduleId)
+        public ActionResult<RepeatsScheduleDto> GetSchedule(long userId, short scheduleId)
         {
-            var schedule = repeatsScheduleService.Find(UserId.Create(userId).Value, scheduleId);
-            return schedule == null ? NotFound() : mapper.Map<Schedule>(schedule);
+            var schedule = repeatsScheduleService.Find(UserId.Create(userId).Value, ScheduleId.Create(scheduleId).Value);
+            return schedule == null ? NotFound() : mapper.Map<RepeatsScheduleDto>(schedule);
         }
 
         [HttpGet(ApiRoutes.Schedule.Get_GetMySchedule)]
-        public ActionResult<Schedule> GetSchedule(short scheduleId)
+        public ActionResult<RepeatsScheduleDto> GetSchedule(short scheduleId)
         {
             var userId = HttpContext.GetUserId();
 
             if (userId.IsFailed)
                 return BadRequest();
 
-            var schedule = repeatsScheduleService.Find(userId.Value, scheduleId);
-            return schedule == null ? NotFound() :  mapper.Map<Schedule>(schedule);
+            var schedule = repeatsScheduleService.Find(userId.Value, ScheduleId.Create(scheduleId).Value);
+            return schedule == null ? NotFound() :  mapper.Map<RepeatsScheduleDto>(schedule);
         }
 
         [HttpPatch(ApiRoutes.Schedule.Patch_EditSchedule)]
-        public async Task<ActionResult<Schedule>> EditSchedule(short scheduleId, [FromBody] UpdateScheduleRequest request)
+        public async Task<ActionResult<RepeatsScheduleDto>> EditSchedule(short scheduleId, [FromBody] UpdateScheduleRequest request)
         {
             var userId = HttpContext.GetUserId();
 
             if (userId.IsFailed)
                 return BadRequest();
 
-            var (schedule, error) = await repeatsScheduleService.PatchSchedule(userId.Value, scheduleId, request);
-            return schedule != null ?  mapper.Map<Schedule>(schedule) : BadRequest(error);
+            var (schedule, error) = await repeatsScheduleService.PatchSchedule(userId.Value, ScheduleId.Create(scheduleId).Value, mapper.Map<PatchRepeatsSchedule>(request));
+            return schedule != null ?  mapper.Map<RepeatsScheduleDto>(schedule) : BadRequest(error);
         }
 
         [HttpPost(ApiRoutes.Schedule.Post_CreateSchedule)]
-        public async Task<ActionResult<Schedule>> CreateSchedule([FromBody] CreateScheduleRequest request)
+        public async Task<ActionResult<RepeatsScheduleDto>> CreateSchedule([FromBody] CreateScheduleRequest request)
         {
             var userId = HttpContext.GetUserId();
 
             if (userId.IsFailed)
                 return BadRequest();
 
-            var (schedule, error) = await repeatsScheduleService.Create(userId.Value, request);
-            return schedule != null ? mapper.Map<Schedule>(schedule) : BadRequest(error);
-        }
-
-        public class UpdateScheduleRequest
-        {
-            [Required]
-            public short CardsCountPerPhase { get; set; }
-            [Required]
-            public string Title { get; set; }
-
-            [StringLength(200)]
-            public string? ShortDescription { get; set; }
-
-            [StringLength(1000)]
-            public string? Description { get; set; }
-
-            public List<UpdatePhaseInfo>? Phases { get; set; }
-
-            [StringLength(200)]
-            public string? DefaultPhaseShortDescription { get; set; }
-            [StringLength(1000)]
-            public string? DefaultPhaseDescription { get; set; }
-            [StringLength(200)]
-            public string? DefaultRepeatPhaseShortDescription { get; set; }
-            [StringLength(1000)]
-            public string? DefaultRepeatPhaseDescription { get; set; }
-        }
-
-        public class CreateScheduleRequest
-        {
-            [Required]
-            public short CardsCountPerPhase { get; set; }
-            [Required]
-            public int ForgottenBehavior { get; set; }
-            [Required]
-            public string Title { get; set; }
-
-            [StringLength(200)]
-            public string? ShortDescription { get; set; }
-
-            [StringLength(1000)]
-            public string? Description { get; set; }
-            [Required]
-            public List<PhaseInfo> Phases { get; set; }
-
-            [StringLength(200)]
-            public string? DefaultPhaseShortDescription { get; set; }
-            [StringLength(1000)]
-            public string? DefaultPhaseDescription { get; set; }
-            [StringLength(200)]
-            public string? DefaultRepeatPhaseShortDescription { get; set; }
-            [StringLength(1000)]
-            public string? DefaultRepeatPhaseDescription { get; set; }
+            var (schedule, error) = await repeatsScheduleService.Create(userId.Value, mapper.Map<CreateScheduleItem>(request)
+                //     new CreateScheduleItem()
+            // {
+            //     ParentUserId = userId.Value,
+            //     
+            //     Title = ScheduleTitle.Create(request.Title).Value,
+            //     CardsCountPerPhase = request.CardsCountPerPhase,
+            //     ForgottenBehavior = (ForgottenBehavior)request.ForgottenBehavior,
+            //
+            //     ShortDescription = ScheduleShortDescription.Create(request.ShortDescription).Value,
+            //     DefaultPhaseShortDescription = ScheduleShortDescription.Create(request.DefaultPhaseShortDescription).Value,
+            //     DefaultRepeatPhaseShortDescription = ScheduleShortDescription.Create(request.DefaultRepeatPhaseShortDescription).Value,
+            //     
+            //     OnStartLearningDescription = ScheduleLongDescription.Create(request.Description).Value,
+            //     DefaultPhaseDescription = ScheduleLongDescription.Create(request.DefaultPhaseDescription).Value,
+            //     DefaultRepeatPhaseDescription= ScheduleLongDescription.Create(request.DefaultRepeatPhaseDescription).Value,
+            //     
+            //     Phases = request.Phases.Select(p => new PhaseInfo()
+            //     {
+            //         Id = p.Id,
+            //         ShortDescription = p.ShortDescription,
+            //         Description = p.Description,
+            //         IsDefaultValueSide = p.IsDefaultValueSide,
+            //         SecondsFromLastPhase = p.SecondsFromLastPhase,
+            //     })
+            // }
+                );
+            return schedule != null ? mapper.Map<RepeatsScheduleDto>(schedule) : BadRequest(error);
         }
     }
 }

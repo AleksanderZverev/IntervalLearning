@@ -1,60 +1,55 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using DB;
+using DB.Configurations.Study;
 using DB.Models;
+using DB.Models.ValueObjects;
 using Domain.User.ValueObjects;
-using IntervalLearningApi.Controllers;
 using Microsoft.EntityFrameworkCore;
 
 namespace IntervalLearningApi.Services;
 
 public class RepeatsScheduleService
 {
-    private readonly Repository<PhaseEntity> phasesRep;
-    private readonly Repository<RepeatsScheduleEntity> scheduleRep;
     private readonly ApplicationContext db;
 
-    public RepeatsScheduleService(
-        Repository<PhaseEntity> phasesRep,
-        Repository<RepeatsScheduleEntity> scheduleRep,
-        ApplicationContext db)
+    public RepeatsScheduleService(ApplicationContext db)
     {
-        this.phasesRep = phasesRep;
-        this.scheduleRep = scheduleRep;
         this.db = db;
     }
 
-    public List<RepeatsScheduleEntity> GetAll(UserId userId) 
+    public List<RepeatsSchedule> GetAll(UserId userId) 
         => db.RepeatsSchedules
             .Where(s => s.ParentUserId == userId || s.IsRecommended)
             .Include(s => s.Phases)
             .AsSplitQuery()
             .ToList();
 
-    public async Task<(RepeatsScheduleEntity? schedule, string? error)> PatchSchedule(
+    public async Task<(RepeatsSchedule? schedule, string? error)> PatchSchedule(
         UserId userId, 
-        short scheduleId,
-        RepeatsScheduleController.UpdateScheduleRequest request)
+        ScheduleId scheduleId,
+        PatchRepeatsSchedule item)
     {
-        var originSchedule = Find(userId, scheduleId);
+        var schedule = Find(userId, scheduleId);
 
-        if (originSchedule == null)
+        if (schedule == null)
             return (null, "not found");
             
         await db.Database.BeginTransactionAsync();
-
-        var schedule = db.UpdateByProperties<RepeatsScheduleEntity>(new PatchRepeatsSchedule(
-            request.CardsCountPerPhase,
-            request.Title,
-            request.ShortDescription,
-            request.Description,
-            request.DefaultPhaseShortDescription,
-            request.DefaultPhaseDescription,
-            request.DefaultRepeatPhaseShortDescription,
-            request.DefaultRepeatPhaseDescription
-        ), userId, scheduleId);
+        
+        schedule.Title = item.Title;
+        schedule.CardsCountPerPhase = item.CardsCountPerPhase;
+         
+        schedule.ShortDescription = item.ShortDescription;
+        schedule.DefaultPhaseShortDescription = item.DefaultPhaseShortDescription;
+        schedule.DefaultRepeatPhaseShortDescription = item.DefaultRepeatPhaseShortDescription;
+        
+        schedule.OnStartLearningDescription = item.OnStartLearningDescription;
+        schedule.DefaultPhaseDescription = item.DefaultPhaseDescription;
+        schedule.DefaultRepeatPhaseDescription = item.DefaultRepeatPhaseDescription;
 
         try
         {
+            db.Update(schedule);
             await db.SaveChangesAsync();
         }
         catch
@@ -63,16 +58,16 @@ public class RepeatsScheduleService
             return (null, "Unable to edit schedule");
         }
 
-        if (request.Phases == null || request.Phases.Count == 0)
+        //TODO: move upper
+        if (item.Phases is not {Count: >0})
         {
-            await db.SaveChangesAsync();
             await db.Database.CommitTransactionAsync();
             return (schedule, null);
         }
 
-        foreach (var updateItem in request.Phases)
+        foreach (var updateItem in item.Phases)
         {
-            var phaseEntity = originSchedule.Phases.SingleOrDefault(p => p.Id == updateItem.Id);
+            var phaseEntity = schedule.Phases.SingleOrDefault(p => p.Id == updateItem.Id);
 
             if (phaseEntity == null)
             {
@@ -97,27 +92,33 @@ public class RepeatsScheduleService
 
     }
 
-    public async Task<(RepeatsScheduleEntity? schedule, string? error)> Create(
+    public async Task<(RepeatsSchedule? schedule, string? error)> Create(
         UserId userId, 
-        RepeatsScheduleController.CreateScheduleRequest request)
+        CreateScheduleItem item)
     {
         await db.Database.BeginTransactionAsync();
 
-        var schedule = db.CreateByProperties<RepeatsScheduleEntity>(new CreateScheduleItem(
-            userId,
-            request.CardsCountPerPhase,
-            (ForgottenBehavior)request.ForgottenBehavior,
-            request.Title,
-            request.ShortDescription,
-            request.Description,
-            request.DefaultPhaseShortDescription,
-            request.DefaultPhaseDescription,
-            request.DefaultRepeatPhaseShortDescription,
-            request.DefaultRepeatPhaseDescription
-        ));
+        var seqName = RepeatScheduleConfiguration.GetSequenceName(userId);
+        db.EnsureSequenceCreated(seqName);
+        var nextId = db.GetSequenceNextValue16(seqName);
+        var scheduleId = ScheduleId.Create(nextId).Value;
+        
+        var newSchedule = new RepeatsSchedule(userId, scheduleId)
+        {
+            Title = item.Title,
+            ForgottenBehavior = item.ForgottenBehavior, // (ForgottenBehavior)request.ForgottenBehavior,
+            CardsCountPerPhase = item.CardsCountPerPhase,
+            ShortDescription = item.ShortDescription,
+            OnStartLearningDescription = item.OnStartLearningDescription, // request.Description,
+            DefaultPhaseShortDescription = item.DefaultPhaseShortDescription,
+            DefaultPhaseDescription = item.DefaultPhaseDescription,
+            DefaultRepeatPhaseShortDescription = item.DefaultRepeatPhaseShortDescription,
+            DefaultRepeatPhaseDescription = item.DefaultRepeatPhaseDescription,
+        };
 
         try
         {
+            db.RepeatsSchedules.Add(newSchedule);
             await db.SaveChangesAsync();
         }
         catch
@@ -126,12 +127,13 @@ public class RepeatsScheduleService
             return (null, "Unable to create schedule");
         }
 
-        var phaseEntities = request.Phases
+        //TODO: Upper in one operation
+        var phases = item.Phases
             .Select(phase => db.CreateByProperties<PhaseEntity>(
                 new CreatePhaseItem(
                     userId,
                     phase.Id,
-                    schedule.Id,
+                    newSchedule.Id,
                     phase.SecondsFromLastPhase,
                     phase.ShortDescription,
                     phase.Description,
@@ -142,7 +144,9 @@ public class RepeatsScheduleService
         {
             await db.SaveChangesAsync();
             await db.Database.CommitTransactionAsync();
-            return (schedule, null);
+            
+            newSchedule.Phases = phases;
+            return (newSchedule, null);
         }
         catch
         {
@@ -151,7 +155,7 @@ public class RepeatsScheduleService
         }
     }
 
-    public RepeatsScheduleEntity? Find(UserId userId, short scheduleId)
+    public RepeatsSchedule? Find(UserId userId, ScheduleId scheduleId)
     {
         return db.RepeatsSchedules
             .Include(s => s.Phases)
@@ -160,6 +164,26 @@ public class RepeatsScheduleService
     }
 }
 
+
+public class PatchRepeatsSchedule
+{
+    public required ScheduleTitle Title { get; set; }
+    public ScheduleShortDescription? ShortDescription { get; set; }
+    public ScheduleLongDescription? OnStartLearningDescription { get; set; }
+    public short CardsCountPerPhase { get; set; }
+    public ScheduleShortDescription? DefaultPhaseShortDescription { get; set; }
+    public ScheduleLongDescription? DefaultPhaseDescription { get; set; }
+    public ScheduleShortDescription? DefaultRepeatPhaseShortDescription { get; set; }
+    public ScheduleLongDescription? DefaultRepeatPhaseDescription { get; set; }
+    public List<UpdatePhaseInfo> Phases { get; set; }
+}
+
+public class CreateScheduleItem : PatchRepeatsSchedule
+{
+    public UserId ParentUserId { get; set; }
+    public ForgottenBehavior ForgottenBehavior { get; set; }
+    public List<PhaseInfo> Phases { get; set; }
+}
 
 public class UpdatePhaseInfo
 {
