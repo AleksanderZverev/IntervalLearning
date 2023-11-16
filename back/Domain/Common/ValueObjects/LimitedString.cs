@@ -2,13 +2,10 @@ using FluentResults;
 
 namespace Domain.Common.ValueObjects;
 
-public class LimitedString
+public class LimitedString : SingleValueObject<string>
 {
-    public string Value { get; }
-
-    protected LimitedString(string value)
+    private LimitedString(string value) : base(value)
     {
-        Value = value;
     }
 
     public static Result<LimitedString> Create(string text, int length)
