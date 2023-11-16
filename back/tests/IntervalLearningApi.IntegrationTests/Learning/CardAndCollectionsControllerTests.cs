@@ -73,9 +73,9 @@ public class CardAndCollectionsControllerTests : SharedApiTests
     public static IEnumerable<object[]> TestBehaviors =
         Behaviors.Select(behavior => new object[] { behavior });
 
-    private async Task<Schedule> CreateTestSchedule(ForgottenBehavior forgottenBehavior)
+    private async Task<RepeatsScheduleDto> CreateTestSchedule(ForgottenBehavior forgottenBehavior)
     {
-        var createSchedule = await CreateSchedule(new RepeatsScheduleController.CreateScheduleRequest()
+        var createSchedule = await CreateSchedule(new CreateScheduleRequest()
         {
             Title = "[For tests] Test schedule",
             Description = "Only for tests",
@@ -91,9 +91,9 @@ public class CardAndCollectionsControllerTests : SharedApiTests
         return createSchedule;
     } 
     
-    private async Task<Schedule> CreateTestScheduleWithRepetitions(ForgottenBehavior forgottenBehavior)
+    private async Task<RepeatsScheduleDto> CreateTestScheduleWithRepetitions(ForgottenBehavior forgottenBehavior)
     {
-        var createSchedule = await CreateSchedule(new RepeatsScheduleController.CreateScheduleRequest()
+        var createSchedule = await CreateSchedule(new CreateScheduleRequest()
         {
             Title = "[For tests] Test schedule with repetitions",
             Description = "Only for tests",
@@ -124,7 +124,7 @@ public class CardAndCollectionsControllerTests : SharedApiTests
         HttpClient client,
         CollectionDto collection,
         List<CardDto> cards, 
-        Schedule schedule)
+        RepeatsScheduleDto schedule)
     {
         var startCardsResponse = await client.PostAsJsonAsync(
             CardsQuery(collection.Id, ApiRoutes.Cards.Post_StartCards),
@@ -652,7 +652,7 @@ public class CardAndCollectionsControllerTests : SharedApiTests
         HttpClient client,
         CollectionDto collection,
         List<CardDto> cards,
-        Schedule schedule,
+        RepeatsScheduleDto schedule,
         short shouldMoveToPhaseIndex)
     {
         //ASSERT
@@ -675,7 +675,7 @@ public class CardAndCollectionsControllerTests : SharedApiTests
         HttpClient client,
         CollectionDto collection,
         List<CardDto> cards,
-        Schedule schedule,
+        RepeatsScheduleDto schedule,
         short rememberPhaseIndex,
         float rememberWeight)
     {

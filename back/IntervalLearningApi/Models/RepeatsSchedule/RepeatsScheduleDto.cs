@@ -1,4 +1,5 @@
 ﻿using DB.Models;
+using DB.Models.ValueObjects;
 using Mapster;
 using Newtonsoft.Json;
 
@@ -8,12 +9,17 @@ public class ScheduleRegister : IRegister
 {
     public void Register(TypeAdapterConfig config)
     {
-        config.NewConfig<RepeatsScheduleEntity, Schedule>()
+        config.NewConfig<ScheduleId, short>()
+            .Map(d => d, s => s.Value);
+        
+        config.NewConfig<DB.Models.RepeatsSchedule, RepeatsScheduleDto>()
             .Map(d => d.Description, s => s.OnStartLearningDescription);
+
+        config.NewConfig<PhaseEntity, PhaseDto>();
     }
 }
 
-public class Schedule
+public class RepeatsScheduleDto
 {
     [JsonProperty("userId")]
     public string ParentUserId { get; set; }
@@ -29,5 +35,5 @@ public class Schedule
     public string? DefaultRepeatPhaseDescription { get; set; }
     public bool IsRecommended { get; set; }
     public int ForgottenBehavior { get; set; }
-    public List<Phase> Phases { get; set; }
+    public List<PhaseDto> Phases { get; set; }
 }

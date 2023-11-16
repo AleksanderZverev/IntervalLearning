@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using DB.Models.ValueObjects;
 using Domain.Card.ValueObjects;
 using Domain.Collection.ValueObjects;
 using Domain.User.ValueObjects;
@@ -71,7 +72,14 @@ namespace IntervalLearningApi.Controllers
             if (userId.IsFailed)
                 return BadRequest();
 
-            var cards = await cardsService.GetCardsQueue(userId.Value, CollectionId.Create(collectionId).Value, UserId.Create(scheduleUserId).Value, scheduleId, phaseIndex, date);
+            var cards = await cardsService.GetCardsQueue(
+                userId.Value,
+                CollectionId.Create(collectionId).Value,
+                UserId.Create(scheduleUserId).Value,
+                ScheduleId.Create(scheduleId).Value,
+                phaseIndex,
+                date);
+            
             return mapper.Map<List<CardDto>>(cards);
         }
 
@@ -87,7 +95,13 @@ namespace IntervalLearningApi.Controllers
             if (userId.IsFailed)
                 return BadRequest();
             
-            var (cards, error) = await cardsService.GetNotStartedCards(UserId.Create(scheduleUserId).Value, scheduleId, userId.Value, CollectionId.Create(collectionId).Value, count);
+            var (cards, error) = await cardsService.GetNotStartedCards(
+                UserId.Create(scheduleUserId).Value,
+                ScheduleId.Create(scheduleId).Value,
+                userId.Value,
+                CollectionId.Create(collectionId).Value,
+                count);
+            
             return cards == null 
                 ? BadRequest(error) 
                 : mapper.Map<List<CardDto>>(cards);
@@ -188,13 +202,19 @@ namespace IntervalLearningApi.Controllers
             if (userId.IsFailed)
                 return BadRequest();
 
-            var (closestRepeatInfo, error) = cardsService.Start(userId.Value, CollectionId.Create(collectionId).Value, UserId.Create(item.ScheduleUserId).Value, item.ScheduleId, item.CardIds);
+            var (closestRepeatInfo, error) = cardsService.Start(
+                userId.Value,
+                CollectionId.Create(collectionId).Value,
+                UserId.Create(item.ScheduleUserId).Value,
+                ScheduleId.Create(item.ScheduleId).Value, 
+                item.CardIds);
+            
             return closestRepeatInfo != null
                 ? new StartCardResponse(
                     closestRepeatInfo.NextRepeatDate,
                     closestRepeatInfo.NextPhase == null 
                         ? null 
-                        : mapper.Map<Phase>(closestRepeatInfo.NextPhase),
+                        : mapper.Map<PhaseDto>(closestRepeatInfo.NextPhase),
                     closestRepeatInfo.NextPhaseIndex) 
                 : BadRequest(error);
         }
@@ -211,7 +231,7 @@ namespace IntervalLearningApi.Controllers
                 userId.Value,
                 CollectionId.Create(collectionId).Value,
                 UserId.Create(request.ScheduleUserId).Value,
-                request.ScheduleId,
+                ScheduleId.Create(request.ScheduleId).Value,
                 request.PhaseIndex,
                 ToCardServiceRememberItems(request.RememberItems)
             );
@@ -221,7 +241,7 @@ namespace IntervalLearningApi.Controllers
                     closestRepeatInfo.NextRepeatDate,
                     closestRepeatInfo.NextPhase == null
                         ? null
-                        : mapper.Map<Phase>(closestRepeatInfo.NextPhase),
+                        : mapper.Map<PhaseDto>(closestRepeatInfo.NextPhase),
                     closestRepeatInfo.NextPhaseIndex)
                 : BadRequest(error);
         }
@@ -239,10 +259,10 @@ namespace IntervalLearningApi.Controllers
     public class StartCardResponse
     {
         public DateTime? NextRepeatDate { get; }
-        public Phase? NextRepeatPhase { get; }
+        public PhaseDto? NextRepeatPhase { get; }
         public int NextPhaseIndex { get; }
 
-        public StartCardResponse(DateTime? nextRepeatDate, Phase? nextRepeatPhase, int nextPhaseIndex)
+        public StartCardResponse(DateTime? nextRepeatDate, PhaseDto? nextRepeatPhase, int nextPhaseIndex)
         {
             NextRepeatDate = nextRepeatDate;
             NextRepeatPhase = nextRepeatPhase;
@@ -253,10 +273,10 @@ namespace IntervalLearningApi.Controllers
     public class RememberCardResponse
     {
         public DateTime? NextRepeatDate { get; }
-        public Phase? NextRepeatPhase { get; }
+        public PhaseDto? NextRepeatPhase { get; }
         public int NextPhaseIndex { get; }
 
-        public RememberCardResponse(DateTime? nextRepeatDate, Phase? nextRepeatPhase, int nextPhaseIndex)
+        public RememberCardResponse(DateTime? nextRepeatDate, PhaseDto? nextRepeatPhase, int nextPhaseIndex)
         {
             NextRepeatDate = nextRepeatDate;
             NextRepeatPhase = nextRepeatPhase;

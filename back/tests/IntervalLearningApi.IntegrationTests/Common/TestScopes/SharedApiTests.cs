@@ -37,13 +37,13 @@ public class SharedApiTests : BaseApiTests, IClassFixture<SharedDockerIntervalLe
         return collection;
     }
 
-    protected async Task<Schedule> CreateSchedule(RepeatsScheduleController.CreateScheduleRequest createScheduleRequest)
+    protected async Task<RepeatsScheduleDto> CreateSchedule(CreateScheduleRequest createScheduleRequest)
     {
         var createScheduleResponse = await sharedClient.PostAsJsonAsync(
             AbsoluteQuery(ApiRoutes.Schedule.BasePath, ApiRoutes.Schedule.Post_CreateSchedule),
             createScheduleRequest);
 
-        var schedule = createScheduleResponse.ToResponseDto<Schedule>();
+        var schedule = createScheduleResponse.ToResponseDto<RepeatsScheduleDto>();
         return schedule ?? throw new InvalidOperationException();
     }
 

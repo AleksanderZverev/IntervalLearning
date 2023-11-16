@@ -8,12 +8,12 @@ public class PhaseRegister : IRegister
 {
     public void Register(TypeAdapterConfig config)
     {
-        config.NewConfig<PhaseEntity, Phase>()
+        config.NewConfig<PhaseEntity, PhaseDto>()
             .Map(d => d.Description, s => s.OnLearnDescription);
     }
 }
 
-public class Phase
+public class PhaseDto
 {
     [JsonProperty("userId")]
     public string ParentUserId { get; set; }
