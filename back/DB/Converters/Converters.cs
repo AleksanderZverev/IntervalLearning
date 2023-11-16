@@ -49,6 +49,19 @@ internal static class Converters
         id => Models.ValueObjects.ThemeId.Create(id).Value
     );
 
+    public static ValueConverter<ScheduleId, short> ScheduleId = new(
+        from => from.Value,
+        id => Models.ValueObjects.ScheduleId.Create(id).Value
+    );
+
+    public static ValueConverter<ScheduleShortDescription, string> ScheduleShortDescription = new(
+        d => d.Value,
+        s => Models.ValueObjects.ScheduleShortDescription.Create(s).Value);
+    
+    public static ValueConverter<ScheduleLongDescription, string> ScheduleLongDescription = new(
+        d => d.Value,
+        s => Models.ValueObjects.ScheduleLongDescription.Create(s).Value);
+
     public static ValueConverter<TFrom?, TTo?> ToNullable<TFrom, TTo>(this ValueConverter<TFrom, TTo> converter)
         where TFrom : class
         where TTo : class

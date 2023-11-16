@@ -252,7 +252,7 @@ namespace DB.Migrations
                     b.ToTable("RememberWeights");
                 });
 
-            modelBuilder.Entity("DB.Models.RepeatsScheduleEntity", b =>
+            modelBuilder.Entity("DB.Models.RepeatsSchedule", b =>
                 {
                     b.Property<long>("ParentUserId")
                         .HasColumnType("bigint");
@@ -303,7 +303,7 @@ namespace DB.Migrations
 
                     b.HasKey("ParentUserId", "Id");
 
-                    b.ToTable("RepeatsSchedules");
+                    b.ToTable("RepeatsSchedules", (string)null);
                 });
 
             modelBuilder.Entity("DB.Models.Store.CollectionPublicationEntity", b =>
@@ -590,7 +590,7 @@ namespace DB.Migrations
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
-                    b.HasOne("DB.Models.RepeatsScheduleEntity", "ParentRepeatsSchedule")
+                    b.HasOne("DB.Models.RepeatsSchedule", "ParentRepeatsSchedule")
                         .WithMany()
                         .HasForeignKey("ParentRepeatsScheduleUserId", "ParentRepeatsScheduleId")
                         .OnDelete(DeleteBehavior.NoAction)
@@ -655,7 +655,7 @@ namespace DB.Migrations
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
-                    b.HasOne("DB.Models.RepeatsScheduleEntity", "ParentRepeatsSchedule")
+                    b.HasOne("DB.Models.RepeatsSchedule", "ParentRepeatsSchedule")
                         .WithMany("Phases")
                         .HasForeignKey("ParentUserId", "ParentRepeatsScheduleId")
                         .OnDelete(DeleteBehavior.NoAction)
@@ -680,7 +680,7 @@ namespace DB.Migrations
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
-                    b.HasOne("DB.Models.RepeatsScheduleEntity", "ParentRepeatsSchedule")
+                    b.HasOne("DB.Models.RepeatsSchedule", "ParentRepeatsSchedule")
                         .WithMany()
                         .HasForeignKey("ParentUserId", "ParentRepeatsScheduleId")
                         .OnDelete(DeleteBehavior.NoAction)
@@ -720,7 +720,7 @@ namespace DB.Migrations
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
-                    b.HasOne("DB.Models.RepeatsScheduleEntity", "ParentRepeatsSchedule")
+                    b.HasOne("DB.Models.RepeatsSchedule", "ParentRepeatsSchedule")
                         .WithMany()
                         .HasForeignKey("ParentRepeatsScheduleUserId", "ParentRepeatsScheduleId")
                         .OnDelete(DeleteBehavior.NoAction)
@@ -747,7 +747,7 @@ namespace DB.Migrations
                     b.Navigation("ParentUser");
                 });
 
-            modelBuilder.Entity("DB.Models.RepeatsScheduleEntity", b =>
+            modelBuilder.Entity("DB.Models.RepeatsSchedule", b =>
                 {
                     b.HasOne("Domain.User.User", "ParentUser")
                         .WithMany()
@@ -921,7 +921,7 @@ namespace DB.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("DB.Models.RepeatsScheduleEntity", b =>
+            modelBuilder.Entity("DB.Models.RepeatsSchedule", b =>
                 {
                     b.Navigation("Phases");
                 });
