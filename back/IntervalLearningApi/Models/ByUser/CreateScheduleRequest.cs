@@ -11,25 +11,28 @@ public class CreteScheduleRegister : IRegister
     public void Register(TypeAdapterConfig config)
     {
         config.NewConfig<short, ScheduleId>()
-            .Map(d => d, s => ScheduleId.Create(s).Value);
+            .MapWith(id => ScheduleId.Create(id).Value);
         
         config.NewConfig<string, ScheduleTitle>()
-            .Map(d => d, s => ScheduleTitle.Create(s).Value);
+            .MapWith(s => ScheduleTitle.Create(s).Value);
         
         config.NewConfig<string, ScheduleShortDescription>()
-            .Map(d => d, s => ScheduleShortDescription.Create(s).Value);
+            .MapWith(s => ScheduleShortDescription.Create(s).Value);
         
         config.NewConfig<string, ScheduleLongDescription>()
-            .Map(d => d, s => ScheduleLongDescription.Create(s).Value);
+            .MapWith(s => ScheduleLongDescription.Create(s).Value);
 
         config.NewConfig<CreateScheduleRequest, CreateScheduleItem>()
             .Map(d => d.OnStartLearningDescription, s => s.Description);
 
         //Update Request
 
-        config.NewConfig<UpdateScheduleRequest, PatchRepeatsSchedule>();
+        config.NewConfig<UpdateScheduleRequest, UpdateScheduleItem>()
+            .Map(d => d.OnStartLearningDescription, s => s.Description);
 
-        config.NewConfig<UpdatePhaseInfo, PhaseInfo>();
+        //temp lol
+        config.NewConfig<PhaseInfo, PhaseInfo>();
+        config.NewConfig<UpdatePhaseInfo, UpdatePhaseInfo>();
     }
 }
 

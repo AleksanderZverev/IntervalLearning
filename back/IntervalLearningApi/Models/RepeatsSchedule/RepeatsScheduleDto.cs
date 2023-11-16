@@ -14,8 +14,6 @@ public class ScheduleRegister : IRegister
         
         config.NewConfig<DB.Models.RepeatsSchedule, RepeatsScheduleDto>()
             .Map(d => d.Description, s => s.OnStartLearningDescription);
-
-        config.NewConfig<PhaseEntity, PhaseDto>();
     }
 }
 

@@ -27,7 +27,7 @@ public class RepeatsScheduleService
     public async Task<(RepeatsSchedule? schedule, string? error)> PatchSchedule(
         UserId userId, 
         ScheduleId scheduleId,
-        PatchRepeatsSchedule item)
+        UpdateScheduleItem item)
     {
         var schedule = Find(userId, scheduleId);
 
@@ -164,8 +164,7 @@ public class RepeatsScheduleService
     }
 }
 
-
-public class PatchRepeatsSchedule
+public abstract class BaseRepeatsScheduleItem
 {
     public required ScheduleTitle Title { get; set; }
     public ScheduleShortDescription? ShortDescription { get; set; }
@@ -175,12 +174,16 @@ public class PatchRepeatsSchedule
     public ScheduleLongDescription? DefaultPhaseDescription { get; set; }
     public ScheduleShortDescription? DefaultRepeatPhaseShortDescription { get; set; }
     public ScheduleLongDescription? DefaultRepeatPhaseDescription { get; set; }
+}
+
+
+public class UpdateScheduleItem : BaseRepeatsScheduleItem
+{
     public List<UpdatePhaseInfo> Phases { get; set; }
 }
 
-public class CreateScheduleItem : PatchRepeatsSchedule
+public class CreateScheduleItem : BaseRepeatsScheduleItem
 {
-    public UserId ParentUserId { get; set; }
     public ForgottenBehavior ForgottenBehavior { get; set; }
     public List<PhaseInfo> Phases { get; set; }
 }
