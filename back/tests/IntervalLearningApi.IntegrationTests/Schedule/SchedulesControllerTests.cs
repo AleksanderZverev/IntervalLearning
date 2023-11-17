@@ -51,6 +51,26 @@ public class SchedulesControllerTests : SharedApiTests
         schedule.ForgottenBehavior.Should().NotBe(0);
         AssertPhasesEqual(schedule.Phases, createdSchedule.Phases);
     }
+    
+    [Fact]
+    public async Task GetSchedule_ShouldFindOwnSchedule()
+    {
+        //Arrange
+        var (client, scope) = SharedScope;
+        var (createdSchedule, scheduleInfo) = await CreateRandomSchedule();
+
+        //Act
+        var myScheduleResult = await client.GetAsync(ApiRoutes.Schedule.GetGetMySchedulePath(createdSchedule.Id));
+        var mySchedule = myScheduleResult.ToResponseDto<RepeatsScheduleDto>();
+
+        //Assert
+        mySchedule.Should().NotBeNull();
+        mySchedule.ParentUserId.Should().NotBeNullOrEmpty().And.Be(scope.Id);
+        mySchedule.Id.Should().NotBeNullOrEmpty().And.Be(createdSchedule.Id);
+        mySchedule.Title.Should().Be(createdSchedule.Title);
+        mySchedule.ForgottenBehavior.Should().Be(createdSchedule.ForgottenBehavior);
+        AssertPhasesEqual(mySchedule.Phases, createdSchedule.Phases);
+    }
 
     [Fact]
     public async Task UpdateSchedule_ShouldUpdateWithoutPhases()
