@@ -41,6 +41,7 @@ public class BaseApiTests : IAsyncLifetime
     }
 
     public record TestUserInfo(
+        string Id,
         string Email,
         string Password,
         string FirstName,
@@ -83,6 +84,7 @@ public class BaseApiTests : IAsyncLifetime
 
         var faker = new Faker();
         var testUserInfo = new TestUserInfo(
+            "0",
             faker.Person.Email,
             faker.Internet.Password(),
             faker.Person.FirstName,
@@ -99,8 +101,8 @@ public class BaseApiTests : IAsyncLifetime
                 SuggestLanguageId = TestConstants.Language.TestId,
             });
 
-        await AuthorizeClientAsync(client, testUserInfo.Email, testUserInfo.Password);
-        return new Scope(client, testUserInfo);
+        var authResponse = await AuthorizeClientAsync(client, testUserInfo.Email, testUserInfo.Password);
+        return new Scope(client, testUserInfo with { Id = authResponse.Id});
     }
     
     protected async Task<AuthenticateResponse> AuthorizeClientAsync(HttpClient client, string email, string password)

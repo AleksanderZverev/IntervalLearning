@@ -1,7 +1,5 @@
 using IntervalLearningApi.IntegrationTests.Common.Constants;
 using IntervalLearningApi.IntegrationTests.Common.Fakers.Api;
-using IntervalLearningApi.Models.ByUser;
-using IntervalLearningApi.Models.RepeatsSchedule;
 
 namespace IntervalLearningApi.IntegrationTests.Common.TestScopes;
 
@@ -45,6 +43,27 @@ public class SharedApiTests : BaseApiTests, IClassFixture<SharedDockerIntervalLe
 
         var schedule = createScheduleResponse.ToResponseDto<RepeatsScheduleDto>();
         return schedule ?? throw new InvalidOperationException();
+    }
+    
+    protected async Task<(RepeatsScheduleDto, RepeatsScheduleDto)> CreateRandomSchedule()
+    {
+        var scheduleInfo = new ScheduleFaker().Generate();
+        var createdSchedule = await CreateSchedule(new CreateScheduleRequest()
+        {
+            Title = scheduleInfo.Title,
+            Description = scheduleInfo.Description,
+            ForgottenBehavior = scheduleInfo.ForgottenBehavior,
+            CardsCountPerPhase = scheduleInfo.CardsCountPerPhase,
+            Phases = scheduleInfo.Phases.Select(p => new PhaseInfo()
+            {
+                Id = short.Parse(p.Id),
+                Description = p.Description,
+                SecondsFromLastPhase = p.SecondsFromLastPhase,
+                ShortDescription = p.ShortDescription,
+                IsDefaultValueSide = p.IsDefaultValueSide,
+            }).ToList(),
+        });
+        return (createdSchedule, scheduleInfo);
     }
 
     protected async Task<List<CardDto>> AddRandomCardsToCollection(string collectionId, int count)
