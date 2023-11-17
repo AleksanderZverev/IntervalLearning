@@ -35,24 +35,24 @@ public class RepeatScheduleConfiguration : IEntityTypeConfiguration<RepeatsSched
         //short
         builder.Property(s => s.ShortDescription)
             .HasMaxLength(200)
-            .HasConversion(Converters.ScheduleShortDescription.ToNullable());
+            .HasConversion(Converters.LongSingleLine.ToNullable());
 
         builder.Property(s => s.DefaultPhaseShortDescription)
             .HasMaxLength(200)
-            .HasConversion(Converters.ScheduleShortDescription.ToNullable());
+            .HasConversion(Converters.LongSingleLine.ToNullable());
         
         builder.Property(s => s.DefaultRepeatPhaseShortDescription)
             .HasMaxLength(200)
-            .HasConversion(Converters.ScheduleShortDescription.ToNullable());
+            .HasConversion(Converters.LongSingleLine.ToNullable());
         
         //long
         builder.Property(s => s.OnStartLearningDescription)
-            .HasConversion(Converters.ScheduleLongDescription.ToNullable());
+            .HasConversion(Converters.LongMultiLine.ToNullable());
         
         builder.Property(s => s.DefaultPhaseDescription)
-            .HasConversion(Converters.ScheduleLongDescription.ToNullable());
+            .HasConversion(Converters.LongMultiLine.ToNullable());
         
         builder.Property(s => s.DefaultRepeatPhaseDescription)
-            .HasConversion(Converters.ScheduleLongDescription.ToNullable());
+            .HasConversion(Converters.LongMultiLine.ToNullable());
     }
 }

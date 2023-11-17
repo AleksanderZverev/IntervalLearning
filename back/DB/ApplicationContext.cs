@@ -28,7 +28,7 @@ namespace DB
         public DbSet<PhaseRememberEntity> PhaseRememberEntities { get; set; }
         public DbSet<Theme> Themes { get; set; }
         public DbSet<RepeatsSchedule> RepeatsSchedules { get; set; }
-        public DbSet<PhaseEntity> Phases { get; set; }
+        public DbSet<Phase> Phases { get; set; }
 
         public DbSet<CardRepeatQueueEntity> Queue { get; set; }
 

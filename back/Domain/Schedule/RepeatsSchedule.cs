@@ -24,17 +24,17 @@ public class RepeatsSchedule : AggregateRoot<ComplexScheduleId>, IParentUserRefe
     public required ScheduleTitle Title { get; set; }
 
     // [StringLength(ShortDescriptionLength)]
-    public ScheduleShortDescription? ShortDescription { get; set; }
+    public LongSingleLineString? ShortDescription { get; set; }
 
-    public ScheduleLongDescription? OnStartLearningDescription { get; set; }
-
-    // [StringLength(ShortDescriptionLength)]
-    public ScheduleShortDescription? DefaultPhaseShortDescription { get; set; }
-    public ScheduleLongDescription? DefaultPhaseDescription { get; set; }
+    public LongMultiLineString? OnStartLearningDescription { get; set; }
 
     // [StringLength(ShortDescriptionLength)]
-    public ScheduleShortDescription? DefaultRepeatPhaseShortDescription { get; set; }
-    public ScheduleLongDescription? DefaultRepeatPhaseDescription { get; set; }
+    public LongSingleLineString? DefaultPhaseShortDescription { get; set; }
+    public LongMultiLineString? DefaultPhaseDescription { get; set; }
+
+    // [StringLength(ShortDescriptionLength)]
+    public LongSingleLineString? DefaultRepeatPhaseShortDescription { get; set; }
+    public LongMultiLineString? DefaultRepeatPhaseDescription { get; set; }
 
     // [Required] 
     public required short CardsCountPerPhase { get; set; }
@@ -43,7 +43,7 @@ public class RepeatsSchedule : AggregateRoot<ComplexScheduleId>, IParentUserRefe
 
     [Required]
     [MaxLength(50)]
-    public virtual List<PhaseEntity> Phases { get; set; }
+    public virtual List<Phase> Phases { get; set; }
 
     public bool IsArchived { get; set; }
     public bool IsRecommended { get; set; }
@@ -64,7 +64,7 @@ public class RepeatsSchedule : AggregateRoot<ComplexScheduleId>, IParentUserRefe
         Id = id;
     }
 
-    public (int nextPhaseIndex, PhaseEntity? nextPhase) GetNextPhaseIndex(Card.Card cardEntity, RememberEntity remember)
+    public (int nextPhaseIndex, Phase? nextPhase) GetNextPhaseIndex(Card.Card cardEntity, RememberEntity remember)
     {
         var currentPhaseIndex = remember.PhaseIndex;
         var currentPhase = GetPhase(currentPhaseIndex);
@@ -149,7 +149,7 @@ public class RepeatsSchedule : AggregateRoot<ComplexScheduleId>, IParentUserRefe
             : -1;
     }
 
-    public PhaseEntity? FindPhase(int phaseIndex)
+    public Phase? FindPhase(int phaseIndex)
     {
         if (phaseIndex < 0 || phaseIndex >= Phases.Count)
             return null;
@@ -158,7 +158,7 @@ public class RepeatsSchedule : AggregateRoot<ComplexScheduleId>, IParentUserRefe
         return sortedPhases[phaseIndex];
     }
 
-    public PhaseEntity GetPhase(int phaseIndex)
+    public Phase GetPhase(int phaseIndex)
     {
         if (phaseIndex < 0 || phaseIndex >= Phases.Count)
             throw new ArgumentOutOfRangeException();
