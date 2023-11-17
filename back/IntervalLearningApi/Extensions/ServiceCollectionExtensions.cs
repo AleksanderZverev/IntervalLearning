@@ -67,6 +67,7 @@ public static class ServiceCollectionExtensions
         var config = TypeAdapterConfig.GlobalSettings;
         config.RequireExplicitMapping = true;
         config.RequireDestinationMemberSource = true;
+        config.AllowImplicitDestinationInheritance = true;
 
         config.Scan(Assembly.GetExecutingAssembly());
 

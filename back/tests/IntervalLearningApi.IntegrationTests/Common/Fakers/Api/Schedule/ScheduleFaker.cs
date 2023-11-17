@@ -24,7 +24,7 @@ public class ScheduleFaker : Faker<RepeatsScheduleDto>
                         Id = (index + 1).ToString(),
                         ParentUserId = "1",
                         ParentRepeatsScheduleId = "1",
-                        SecondsFromLastPhase = (uint)duration.Seconds,
+                        SecondsFromLastPhase = (uint)duration.TotalSeconds,
                     })
                     .ToList(),
             };

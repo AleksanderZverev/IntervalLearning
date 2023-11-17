@@ -8,11 +8,6 @@ namespace DB.Configurations.Study;
 
 public class PhaseConfiguration : IEntityTypeConfiguration<Phase>
 {
-    public static string GetSequenceName(UserId parentUserId, ScheduleId scheduleId)
-    {
-        return $"phase_for_schedule_{scheduleId.Value}_of_user_{parentUserId.Value}";
-    }
-
     public void Configure(EntityTypeBuilder<Phase> builder)
     {
         builder.ToTable("SchedulePhases");

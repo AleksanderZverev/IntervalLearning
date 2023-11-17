@@ -120,6 +120,7 @@ public class SchedulesControllerTests : SharedApiTests
             Description = faker.Person.Company.Name,
             ShortDescription = faker.Person.Email,
             IsDefaultValueSide = p.IsDefaultValueSide,
+            SecondsFromLastPhase = p.SecondsFromLastPhase,
         }).ToList();
         
         var updateScheduleResult = await client.PatchAsJsonAsync(
@@ -142,23 +143,16 @@ public class SchedulesControllerTests : SharedApiTests
         updatedSchedule.CardsCountPerPhase.Should().Be(updateScheduleInfo.CardsCountPerPhase);
         updatedSchedule.Phases.Should().HaveCount(updateScheduleInfo.Phases.Count);
         
-        AssertPhasesEqual(updatedSchedule.Phases, updatePhases.Select(updatePhaseInfo =>
+        AssertPhasesEqual(updatedSchedule.Phases, updatePhases.Select(updatePhaseInfo => new PhaseDto()
         {
-            var createdPhase = createdSchedule.Phases.FirstOrDefault(
-                cp => cp.Id == updatePhaseInfo.Id.ToString());
-            
-            return new PhaseDto()
-            {
-                ParentRepeatsScheduleId = updatedSchedule.Id,
-                ParentUserId = updatedSchedule.ParentUserId,
+            ParentRepeatsScheduleId = updatedSchedule.Id,
+            ParentUserId = updatedSchedule.ParentUserId,
                 
-                Id = updatePhaseInfo.Id.ToString(),
-                IsDefaultValueSide = updatePhaseInfo.IsDefaultValueSide,
-                Description = updatePhaseInfo.Description,
-                ShortDescription = updatePhaseInfo.ShortDescription,
-                
-                SecondsFromLastPhase = createdPhase.SecondsFromLastPhase,
-            };
+            Id = updatePhaseInfo.Id.ToString(),
+            IsDefaultValueSide = updatePhaseInfo.IsDefaultValueSide,
+            Description = updatePhaseInfo.Description,
+            ShortDescription = updatePhaseInfo.ShortDescription,
+            SecondsFromLastPhase = updatePhaseInfo.SecondsFromLastPhase
         }).ToList());
     }
 
