@@ -1,6 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using DB.Models.ValueObjects;
+using Domain;
 using Domain.Schedule;
 using Domain.User;
 using Domain.User.ValueObjects;
@@ -10,8 +11,8 @@ namespace DB.Models;
 
 public interface IParentPhaseReference : IParentRepeatsScheduleReference
 {
-    public short ParentPhaseId { get; set; }
-    public PhaseEntity ParentPhase { get; set; }
+    public PhaseId ParentPhaseId { get; set; }
+    public Phase ParentPhase { get; set; }
 }
 
 public class PatchPhaseItem
@@ -39,12 +40,12 @@ public class CreatePhaseItem : PatchPhaseItem
 {
     public UserId ParentUserId { get; set; }
     public ScheduleId ParentRepeatsScheduleId { get; set; }
-    public short Id { get; set; }
+    public PhaseId Id { get; set; }
     public uint SecondsFromLastPhase { get; set; }
 
     public CreatePhaseItem(
         UserId parentUserId,
-        short id,
+        PhaseId id,
         ScheduleId parentRepeatsScheduleId,
         uint secondsFromLastPhase,
         string? shortDescription,
@@ -63,31 +64,42 @@ public class CreatePhaseItem : PatchPhaseItem
     }
 }
 
-
 //Первая фаза всегда = изучение на первом этапе
-[Table("SchedulePhases")]
-public class PhaseEntity : IParentRepeatsScheduleReference
+// [Table("SchedulePhases")]
+public class Phase : Entity<ComplexPhaseId>, IParentRepeatsScheduleReference
 {
-    public const int ShortDescriptionLength = 200;
+    // public const int ShortDescriptionLength = 200;
 
-    [DatabaseGenerated(DatabaseGeneratedOption.None)]
-    public short Id { get; set; }
+    // [DatabaseGenerated(DatabaseGeneratedOption.None)]
+    public PhaseId Id { get; set; }
 
-    [Required]
-    public uint SecondsFromLastPhase { get; set; }
+    // [Required]
+    public required uint SecondsFromLastPhase { get; set; }
 
-    [StringLength(ShortDescriptionLength)]
-    public string? ShortDescription { get; set; }
-    public string? OnLearnDescription { get; set; }
+    // [StringLength(ShortDescriptionLength)]
+    public LongSingleLineString? ShortDescription { get; set; }
+    public LongMultiLineString? OnLearnDescription { get; set; }
 
     public bool IsDefaultValueSide { get; set; }
 
     public ScheduleId ParentRepeatsScheduleId { get; set; }
     public RepeatsSchedule? ParentRepeatsSchedule { get; set; }
-
-
+    
     public UserId ParentUserId { get; set; }
     public User? ParentUser { get; set; }
+
+    public Phase(ScheduleId parentRepeatsScheduleId, UserId parentUserId, PhaseId id) 
+        : base(new ComplexPhaseId()
+        {
+            ParentUserId = parentUserId,
+            ParentRepeatsScheduleId = parentRepeatsScheduleId,
+            Id = id
+        })
+    {
+        Id = id;
+        ParentRepeatsScheduleId = parentRepeatsScheduleId;
+        ParentUserId = parentUserId;
+    }
 
     public bool IsRepeat()
     {

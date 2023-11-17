@@ -18,7 +18,7 @@ public class PhaseRememberEntity : IParentPhaseReference
     public PhaseRememberEntity(
         UserId parentUserId,
         ScheduleId parentRepeatsScheduleId,
-        short parentPhaseId,
+        PhaseId parentPhaseId,
         UserId repeatedUserId,
         float weight)
     {
@@ -35,6 +35,6 @@ public class PhaseRememberEntity : IParentPhaseReference
     public ScheduleId ParentRepeatsScheduleId { get; set; }
     public RepeatsSchedule? ParentRepeatsSchedule { get; set; }
 
-    public short ParentPhaseId { get; set; }
-    public PhaseEntity ParentPhase { get; set; }
+    public PhaseId ParentPhaseId { get; set; }
+    public Phase ParentPhase { get; set; }
 }
