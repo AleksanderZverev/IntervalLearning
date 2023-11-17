@@ -1,11 +1,9 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using DB.Models;
 using DB.Models.ValueObjects;
-using Domain;
-using Domain.Card;
-using Domain.User;
 using Domain.User.ValueObjects;
 
-namespace DB.Models;
+namespace Domain.Schedule;
 
 public interface IParentRepeatsScheduleReference : IParentUserReference
 {
@@ -51,7 +49,7 @@ public class RepeatsSchedule : AggregateRoot<ComplexScheduleId>, IParentUserRefe
     public bool IsRecommended { get; set; }
 
     public UserId ParentUserId { get; set; }
-    public virtual User? ParentUser { get; set; }
+    public virtual User.User? ParentUser { get; set; }
 
     public RepeatsSchedule(
         UserId parentUserId,
@@ -66,7 +64,7 @@ public class RepeatsSchedule : AggregateRoot<ComplexScheduleId>, IParentUserRefe
         Id = id;
     }
 
-    public (int nextPhaseIndex, PhaseEntity? nextPhase) GetNextPhaseIndex(Card cardEntity, RememberEntity remember)
+    public (int nextPhaseIndex, PhaseEntity? nextPhase) GetNextPhaseIndex(Card.Card cardEntity, RememberEntity remember)
     {
         var currentPhaseIndex = remember.PhaseIndex;
         var currentPhase = GetPhase(currentPhaseIndex);

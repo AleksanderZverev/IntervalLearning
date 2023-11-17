@@ -1,6 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using DB.Models.ValueObjects;
+using Domain.Schedule;
 using Domain.User;
 using Domain.User.ValueObjects;
 using Infrastructure;

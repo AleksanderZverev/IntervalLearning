@@ -12,7 +12,7 @@ public class ScheduleRegister : IRegister
         config.NewConfig<ScheduleId, short>()
             .Map(d => d, s => s.Value);
         
-        config.NewConfig<DB.Models.RepeatsSchedule, RepeatsScheduleDto>()
+        config.NewConfig<Domain.Schedule.RepeatsSchedule, RepeatsScheduleDto>()
             .Map(d => d.Description, s => s.OnStartLearningDescription);
     }
 }

@@ -3,6 +3,7 @@ using DB;
 using DB.Configurations.Study;
 using DB.Models;
 using DB.Models.ValueObjects;
+using Domain.Schedule;
 using Domain.User.ValueObjects;
 using Microsoft.EntityFrameworkCore;
 

@@ -5,6 +5,7 @@ using Domain.Card;
 using Domain.Card.ValueObjects;
 using Domain.Collection;
 using Domain.Collection.ValueObjects;
+using Domain.Schedule;
 using Domain.User;
 using Domain.User.ValueObjects;
 

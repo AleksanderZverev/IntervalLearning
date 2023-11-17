@@ -7,6 +7,7 @@ using DB.Models.ValueObjects;
 using Domain.Card;
 using Domain.Card.ValueObjects;
 using Domain.Collection.ValueObjects;
+using Domain.Schedule;
 using Domain.User.ValueObjects;
 using IntervalLearningApi.Models;
 using Microsoft.EntityFrameworkCore;
