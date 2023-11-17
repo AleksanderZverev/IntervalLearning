@@ -81,9 +81,9 @@ public class CardAndCollectionsControllerTests : SharedApiTests
             Description = "Only for tests",
             ForgottenBehavior = (int)forgottenBehavior,
             CardsCountPerPhase = 10,
-            Phases = phasesDuration.Select((d, i) => new PhaseInfo()
+            Phases = phasesDuration.Select((d, i) => new CreatePhaseDto()
             {
-                Id = (short)(i + 1),
+                Id = (i + 1).ToString(),
                 SecondsFromLastPhase = (uint)d.TotalSeconds,
             }).ToList(),
         });
@@ -99,9 +99,9 @@ public class CardAndCollectionsControllerTests : SharedApiTests
             Description = "Only for tests",
             ForgottenBehavior = (int)forgottenBehavior,
             CardsCountPerPhase = 10,
-            Phases = phasesDurationWithRepetitions.Select((d, i) => new PhaseInfo()
+            Phases = phasesDurationWithRepetitions.Select((d, i) => new CreatePhaseDto()
             {
-                Id = (short)(i + 1),
+                Id = (i + 1).ToString(),
                 SecondsFromLastPhase = (uint)d.TotalSeconds,
             }).ToList(),
         });

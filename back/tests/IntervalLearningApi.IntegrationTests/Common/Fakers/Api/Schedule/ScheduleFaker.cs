@@ -43,9 +43,9 @@ public class CreateScheduleRequestFaker : Faker<CreateScheduleRequest>
             Description = scheduleInfo.Description,
             ForgottenBehavior = scheduleInfo.ForgottenBehavior,
             CardsCountPerPhase = scheduleInfo.CardsCountPerPhase,
-            Phases = scheduleInfo.Phases.Select(p => new PhaseInfo()
+            Phases = scheduleInfo.Phases.Select(p => new CreatePhaseDto()
             {
-                Id = short.Parse(p.Id),
+                Id = p.Id,
                 Description = p.Description,
                 SecondsFromLastPhase = p.SecondsFromLastPhase,
                 ShortDescription = p.ShortDescription,

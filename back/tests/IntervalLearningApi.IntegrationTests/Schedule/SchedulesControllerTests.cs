@@ -114,9 +114,9 @@ public class SchedulesControllerTests : SharedApiTests
         //Act
         var updateScheduleInfo = new ScheduleFaker().Generate();
         var faker = new Faker();
-        var updatePhases = updateScheduleInfo.Phases.Select(p => new UpdatePhaseInfo()
+        var updatePhases = updateScheduleInfo.Phases.Select(p => new UpdatePhaseDto()
         {
-            Id = short.Parse(p.Id),
+            Id = p.Id,
             Description = faker.Person.Company.Name,
             ShortDescription = faker.Person.Email,
             IsDefaultValueSide = p.IsDefaultValueSide,

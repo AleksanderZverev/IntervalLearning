@@ -91,7 +91,6 @@ public class RepeatsScheduleService
             await db.Database.RollbackTransactionAsync();
             return (null, "Unable to create phases");
         }
-
     }
 
     public async Task<(RepeatsSchedule? schedule, string? error)> Create(
@@ -118,42 +117,35 @@ public class RepeatsScheduleService
             DefaultRepeatPhaseDescription = item.DefaultRepeatPhaseDescription,
         };
 
+        var phaseSeqName = PhaseConfiguration.GetSequenceName(newSchedule.ParentUserId, newSchedule.Id);
+        db.EnsureSequenceCreated(phaseSeqName);
+        
+        var newPhases = item.Phases.Select(p =>
+        {
+            var nextPhaseId = db.GetSequenceNextValue16(phaseSeqName);
+            var phaseId = PhaseId.Create(nextPhaseId).Value;
+            return new Phase(newSchedule.Id, newSchedule.ParentUserId, phaseId)
+            {
+                SecondsFromLastPhase = p.SecondsFromLastPhase,
+                IsDefaultValueSide = p.IsDefaultValueSide,
+                ShortDescription = p.ShortDescription,
+                OnLearnDescription = p.Description,
+            };
+        }).ToList();
+        db.Phases.UpdateRange(newPhases);
+
         try
         {
             db.RepeatsSchedules.Add(newSchedule);
             await db.SaveChangesAsync();
+            
+            newSchedule.Phases = newPhases;
+            return (newSchedule, null);
         }
-        catch
+        catch (Exception e)
         {
             await db.Database.RollbackTransactionAsync();
             return (null, "Unable to create schedule");
-        }
-
-        //TODO: Upper in one operation
-        var phases = item.Phases
-            .Select(phase => db.CreateByProperties<PhaseEntity>(
-                new CreatePhaseItem(
-                    userId,
-                    phase.Id,
-                    newSchedule.Id,
-                    phase.SecondsFromLastPhase,
-                    phase.ShortDescription,
-                    phase.Description,
-                    phase.IsDefaultValueSide)))
-            .ToList();
-
-        try
-        {
-            await db.SaveChangesAsync();
-            await db.Database.CommitTransactionAsync();
-            
-            newSchedule.Phases = phases;
-            return (newSchedule, null);
-        }
-        catch
-        {
-            await db.Database.RollbackTransactionAsync();
-            return (null, "Unable to create phases");
         }
     }
 
@@ -169,13 +161,13 @@ public class RepeatsScheduleService
 public abstract class BaseRepeatsScheduleItem
 {
     public required ScheduleTitle Title { get; set; }
-    public ScheduleShortDescription? ShortDescription { get; set; }
-    public ScheduleLongDescription? OnStartLearningDescription { get; set; }
+    public LongSingleLineString? ShortDescription { get; set; }
+    public LongMultiLineString? OnStartLearningDescription { get; set; }
     public short CardsCountPerPhase { get; set; }
-    public ScheduleShortDescription? DefaultPhaseShortDescription { get; set; }
-    public ScheduleLongDescription? DefaultPhaseDescription { get; set; }
-    public ScheduleShortDescription? DefaultRepeatPhaseShortDescription { get; set; }
-    public ScheduleLongDescription? DefaultRepeatPhaseDescription { get; set; }
+    public LongSingleLineString? DefaultPhaseShortDescription { get; set; }
+    public LongMultiLineString? DefaultPhaseDescription { get; set; }
+    public LongSingleLineString? DefaultRepeatPhaseShortDescription { get; set; }
+    public LongMultiLineString? DefaultRepeatPhaseDescription { get; set; }
 }
 
 
@@ -190,22 +182,22 @@ public class CreateScheduleItem : BaseRepeatsScheduleItem
     public List<PhaseInfo> Phases { get; set; }
 }
 
-public class UpdatePhaseInfo
+public class UpdatePhaseInfo : PhaseInfo
 {
     [Required]
-    public short Id { get; set; }
-
-    [StringLength(PhaseEntity.ShortDescriptionLength)]
-    public string? ShortDescription { get; set; }
-
-    [StringLength(1000)]
-    public string? Description { get; set; }
-
-    public bool IsDefaultValueSide { get; set; }
+    public PhaseId Id { get; init; }
 }
 
-public class PhaseInfo : UpdatePhaseInfo
+public class PhaseInfo
 {
     [Required]
-    public uint SecondsFromLastPhase { get; set; }
+    public uint SecondsFromLastPhase { get; init; }
+
+    [StringLength(200)]
+    public LongSingleLineString? ShortDescription { get; init; }
+
+    [StringLength(1000)]
+    public LongMultiLineString? Description { get; init; }
+    
+    public bool IsDefaultValueSide { get; init; }
 }

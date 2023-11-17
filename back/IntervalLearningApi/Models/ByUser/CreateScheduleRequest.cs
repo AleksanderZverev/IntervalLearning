@@ -16,25 +16,21 @@ public class CreteScheduleRegister : IRegister
         config.NewConfig<string, ScheduleTitle>()
             .MapWith(s => ScheduleTitle.Create(s).Value);
 
-        config.NewConfig<string, ScheduleShortDescription>()
-            .MapWith(s => ScheduleShortDescription.Create(s).Value);
+        config.NewConfig<string, LongSingleLineString>()
+            .MapWith(s => LongSingleLineString.Create(s).Value);
         
-        config.NewConfig<string, ScheduleLongDescription>()
-            .MapWith(s => ScheduleLongDescription.Create(s).Value);
+        config.NewConfig<string, LongMultiLineString>()
+            .MapWith(s => LongMultiLineString.Create(s).Value);
 
+        
         config.NewConfig<CreateScheduleRequest, CreateScheduleItem>()
             .Map(d => d.OnStartLearningDescription, s => s.Description)
             .IgnoreNullValues(true);
-
-        //Update Request
+        
 
         config.NewConfig<UpdateScheduleRequest, UpdateScheduleItem>()
             .Map(d => d.OnStartLearningDescription, s => s.Description)
             .IgnoreNullValues(true);
-
-        //temp lol
-        config.NewConfig<PhaseInfo, PhaseInfo>();
-        config.NewConfig<UpdatePhaseInfo, UpdatePhaseInfo>();
     }
 }
 
@@ -53,7 +49,7 @@ public class CreateScheduleRequest
     [StringLength(1000)]
     public string? Description { get; set; }
     [Required]
-    public List<PhaseInfo> Phases { get; set; }
+    public List<CreatePhaseDto> Phases { get; set; }
 
     [StringLength(200)]
     public string? DefaultPhaseShortDescription { get; set; }
@@ -78,7 +74,7 @@ public class UpdateScheduleRequest
     [StringLength(1000)]
     public string? Description { get; set; }
 
-    public List<UpdatePhaseInfo>? Phases { get; set; }
+    public List<UpdatePhaseDto>? Phases { get; set; }
 
     [StringLength(200)]
     public string? DefaultPhaseShortDescription { get; set; }

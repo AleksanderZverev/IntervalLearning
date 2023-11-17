@@ -410,7 +410,7 @@ public class CardsService
     {
         var closestRepeatDate = DateTime.MaxValue;
         var closestPhaseIndex = -1;
-        PhaseEntity? closestPhaseInfo = null;
+        Phase? closestPhaseInfo = null;
         var queueItems = new List<CardRepeatQueueEntity>(cards.Count);
 
         foreach (var card in cards)
@@ -510,7 +510,7 @@ public class CardsService
         
         var closestRepeatDate = DateTime.MaxValue;
         var closestPhaseIndex = -1;
-        PhaseEntity? closestPhaseInfo = null;
+        Phase? closestPhaseInfo = null;
 
         var forbidDate = DateTime.UtcNow.Date.AddDays(1);
 
@@ -619,9 +619,9 @@ public class CardsService
     {
         public DateTime? NextRepeatDate { get; }
         public int NextPhaseIndex { get; }
-        public PhaseEntity? NextPhase { get; }
+        public Phase? NextPhase { get; }
 
-        public NextRepeatInfo(DateTime? nextRepeatDate, PhaseEntity? nextPhase, int nextPhaseIndex)
+        public NextRepeatInfo(DateTime? nextRepeatDate, Phase? nextPhase, int nextPhaseIndex)
         {
             NextRepeatDate = nextRepeatDate;
             NextPhase = nextPhase;
