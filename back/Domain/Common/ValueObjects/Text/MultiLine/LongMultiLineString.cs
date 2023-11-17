@@ -4,22 +4,22 @@ using FluentResults;
 
 namespace DB.Models.ValueObjects;
 
-public class ScheduleLongDescription : SingleValueObject<string>
+public class LongMultiLineString : SingleValueObject<string>
 {
-    private ScheduleLongDescription(string value) : base(value)
+    private LongMultiLineString(string value) : base(value)
     {
     }
     
     private static StringFactory.Settings settings = new()
     {
-        FieldName = "Schedule long description",
+        FieldName = "Long multi line string",
         RemoveExcessWhiteSpaces = true,
         LeaveNewLines = true,
     };
     
-    public static Result<ScheduleLongDescription> Create(string text)
+    public static Result<LongMultiLineString> Create(string text)
     {
         return StringFactory.Create(text, settings)
-            .Map(validatedString => new ScheduleLongDescription(validatedString));
+            .Map(validatedString => new LongMultiLineString(validatedString));
     }
 }
