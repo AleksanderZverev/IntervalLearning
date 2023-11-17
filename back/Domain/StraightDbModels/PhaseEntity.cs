@@ -24,9 +24,13 @@ public class PatchPhaseItem
         string? description,
         bool isDefaultValueSide)
     {
-        Description = TextMaster.RemoveWhiteSpaces(description);
+        Description = string.IsNullOrEmpty(description) 
+            ? null 
+            : TextMaster.RemoveWhiteSpaces(description);
         IsDefaultValueSide = isDefaultValueSide;
-        ShortDescription = TextMaster.RemoveWhiteSpaces(shortDescription);
+        ShortDescription = string.IsNullOrEmpty(description) 
+            ? null 
+            : TextMaster.RemoveWhiteSpaces(shortDescription);
     }
 }
 

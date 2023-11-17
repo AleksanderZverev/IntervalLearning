@@ -12,10 +12,10 @@ public class CreteScheduleRegister : IRegister
     {
         config.NewConfig<short, ScheduleId>()
             .MapWith(id => ScheduleId.Create(id).Value);
-        
+
         config.NewConfig<string, ScheduleTitle>()
             .MapWith(s => ScheduleTitle.Create(s).Value);
-        
+
         config.NewConfig<string, ScheduleShortDescription>()
             .MapWith(s => ScheduleShortDescription.Create(s).Value);
         
@@ -23,12 +23,14 @@ public class CreteScheduleRegister : IRegister
             .MapWith(s => ScheduleLongDescription.Create(s).Value);
 
         config.NewConfig<CreateScheduleRequest, CreateScheduleItem>()
-            .Map(d => d.OnStartLearningDescription, s => s.Description);
+            .Map(d => d.OnStartLearningDescription, s => s.Description)
+            .IgnoreNullValues(true);
 
         //Update Request
 
         config.NewConfig<UpdateScheduleRequest, UpdateScheduleItem>()
-            .Map(d => d.OnStartLearningDescription, s => s.Description);
+            .Map(d => d.OnStartLearningDescription, s => s.Description)
+            .IgnoreNullValues(true);
 
         //temp lol
         config.NewConfig<PhaseInfo, PhaseInfo>();

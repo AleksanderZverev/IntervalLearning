@@ -75,15 +75,15 @@ public static class ApiRoutes
         public const string Get_GetAll = "";
         
         public const string Get_GetUserSchedule = "{userId}/{scheduleId}";
-        public static string GetGetUserSchedulePath(UserId userId, ScheduleId scheduleId)
+        public static string GetGetUserSchedulePath(UserId userId, string scheduleId)
             => $"{userId}/{scheduleId}";
         
         public const string Get_GetMySchedule = "my/{scheduleId}";
-        public static string GetGetMySchedulePath(ScheduleId scheduleId)
+        public static string GetGetMySchedulePath(string scheduleId)
             => $"my/{scheduleId}";
         
         public const string Patch_EditSchedule = "{scheduleId}";
-        public static string GetEditSchedulePath(ScheduleId scheduleId)
+        public static string GetEditSchedulePath(string scheduleId)
             => $"{scheduleId}";
         
         public const string Post_CreateSchedule = "";

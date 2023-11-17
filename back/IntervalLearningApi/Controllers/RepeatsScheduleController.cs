@@ -65,8 +65,14 @@ namespace IntervalLearningApi.Controllers
             if (userId.IsFailed)
                 return BadRequest();
 
-            var (schedule, error) = await repeatsScheduleService.PatchSchedule(userId.Value, ScheduleId.Create(scheduleId).Value, mapper.Map<PatchRepeatsSchedule>(request));
-            return schedule != null ?  mapper.Map<RepeatsScheduleDto>(schedule) : BadRequest(error);
+            var (schedule, error) = await repeatsScheduleService.PatchSchedule(
+                userId.Value, 
+                ScheduleId.Create(scheduleId).Value, 
+                mapper.Map<UpdateScheduleItem>(request));
+            
+            return schedule != null 
+                ?  mapper.Map<RepeatsScheduleDto>(schedule) 
+                : BadRequest(error);
         }
 
         [HttpPost(ApiRoutes.Schedule.Post_CreateSchedule)]
@@ -77,34 +83,13 @@ namespace IntervalLearningApi.Controllers
             if (userId.IsFailed)
                 return BadRequest();
 
-            var (schedule, error) = await repeatsScheduleService.Create(userId.Value, mapper.Map<CreateScheduleItem>(request)
-                //     new CreateScheduleItem()
-            // {
-            //     ParentUserId = userId.Value,
-            //     
-            //     Title = ScheduleTitle.Create(request.Title).Value,
-            //     CardsCountPerPhase = request.CardsCountPerPhase,
-            //     ForgottenBehavior = (ForgottenBehavior)request.ForgottenBehavior,
-            //
-            //     ShortDescription = ScheduleShortDescription.Create(request.ShortDescription).Value,
-            //     DefaultPhaseShortDescription = ScheduleShortDescription.Create(request.DefaultPhaseShortDescription).Value,
-            //     DefaultRepeatPhaseShortDescription = ScheduleShortDescription.Create(request.DefaultRepeatPhaseShortDescription).Value,
-            //     
-            //     OnStartLearningDescription = ScheduleLongDescription.Create(request.Description).Value,
-            //     DefaultPhaseDescription = ScheduleLongDescription.Create(request.DefaultPhaseDescription).Value,
-            //     DefaultRepeatPhaseDescription= ScheduleLongDescription.Create(request.DefaultRepeatPhaseDescription).Value,
-            //     
-            //     Phases = request.Phases.Select(p => new PhaseInfo()
-            //     {
-            //         Id = p.Id,
-            //         ShortDescription = p.ShortDescription,
-            //         Description = p.Description,
-            //         IsDefaultValueSide = p.IsDefaultValueSide,
-            //         SecondsFromLastPhase = p.SecondsFromLastPhase,
-            //     })
-            // }
-                );
-            return schedule != null ? mapper.Map<RepeatsScheduleDto>(schedule) : BadRequest(error);
+            var (schedule, error) = await repeatsScheduleService.Create(
+                userId.Value, 
+                mapper.Map<CreateScheduleItem>(request));
+            
+            return schedule != null 
+                ? mapper.Map<RepeatsScheduleDto>(schedule) 
+                : BadRequest(error);
         }
     }
 }

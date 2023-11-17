@@ -76,6 +76,7 @@ public class RepeatsScheduleService
             }
 
             db.Entry(phaseEntity).CurrentValues.SetValues(updateItem);
+            phaseEntity.OnLearnDescription = updateItem.Description;
         }
 
         try
