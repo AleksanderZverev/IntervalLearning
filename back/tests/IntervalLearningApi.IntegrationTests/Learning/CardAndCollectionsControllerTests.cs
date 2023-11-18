@@ -688,7 +688,7 @@ public class CardAndCollectionsControllerTests : SharedApiTests
                 PhaseIndex = rememberPhaseIndex,
                 ScheduleId = short.Parse(schedule.Id),
                 ScheduleUserId = UserId.Create(long.Parse(schedule.ParentUserId)).Value,
-                RememberItems = cards.Select(c => new RememberItem()
+                RememberItems = cards.Select(c => new RememberItemDto()
                 {
                     CardId = short.Parse(c.Id),
                     Weight = rememberWeight,

@@ -8,27 +8,15 @@ namespace Domain.Card.ValueObjects;
 
 public class ComplexCardId : ValueObject
 {
-    private ComplexCardId(UserId userId, CollectionId collectionId, CardId cardId)
-    {
-        UserId = userId;
-        CollectionId = collectionId;
-        CardId = cardId;
-    }
+    public required UserId UserId { get; init; }
+    public required CollectionId CollectionId { get; init; }
+    public required CardId Id { get; init; }
 
-    public UserId UserId { get; }
-    public CollectionId CollectionId { get; }
-    public CardId CardId { get; }
-    
-    public static ComplexCardId Create(UserId userId, CollectionId collectionId, CardId cardId)
-    {
-        return new ComplexCardId(userId, collectionId, cardId);
-    }
-    
     public override IEnumerable<object> GetEqualityComponents()
     {
         yield return UserId.GetEqualityComponents();
         yield return CollectionId.GetEqualityComponents();
-        yield return CardId.GetEqualityComponents();
+        yield return Id.GetEqualityComponents();
     }
 }
 

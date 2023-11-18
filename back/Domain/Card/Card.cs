@@ -33,7 +33,7 @@ public class Card : AggregateRoot<ComplexCardId>
     // [MaxLength(15)]
     // [StringLength(255)]
     public List<CardExample> Examples { get; set; } = new();
-    public virtual List<RememberEntity> Remembers { get; set; } = new();
+    public virtual List<Remember> Remembers { get; set; } = new();
     
     public UserId ParentUserId { get; set; }
     public virtual User.User? ParentUser { get; set; }
@@ -45,7 +45,12 @@ public class Card : AggregateRoot<ComplexCardId>
         UserId parentUserId,
         CollectionId parentCollectionId,
         CardId id) 
-        : base(ComplexCardId.Create(parentUserId, parentCollectionId, id))
+        : base(new ComplexCardId
+        {
+            UserId = parentUserId,
+            CollectionId = parentCollectionId,
+            Id = id,
+        })
     {
         ParentUserId = parentUserId;
         ParentCollectionId = parentCollectionId;
@@ -63,7 +68,7 @@ public class Card : AggregateRoot<ComplexCardId>
     //     return new Card(id, frontSideText, promptText, backSideText, description, examples);
     // }
     
-    public RememberEntity? FindLastRemember() 
+    public Remember? FindLastRemember() 
         => Remembers.MaxBy(c => c.Id);
     
     public DateTime GetLearnedDate()
@@ -74,7 +79,7 @@ public class Card : AggregateRoot<ComplexCardId>
             .RepeatedDate;
     }
     
-    public List<RememberEntity> GetRepeatingRemembers()
+    public List<Remember> GetRepeatingRemembers()
     {
         var learnedDate = GetLearnedDate();
         return Remembers

@@ -1,13 +1,24 @@
 using DB.Models;
+using DB.Models.ValueObjects;
+using Domain.Card.ValueObjects;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace DB.Configurations.Study;
 
-public class RememberConfiguration: IEntityTypeConfiguration<RememberEntity>
+public class RememberConfiguration: IEntityTypeConfiguration<Remember>
 {
-    public void Configure(EntityTypeBuilder<RememberEntity> builder)
+    public static string GetSequenceName(ComplexScheduleId schedule, ComplexCardId card)
     {
+        return $"remember_" +
+               $"schedule_{schedule.ParentUserId}_{schedule.Id}_" +
+               $"card_{card.UserId}_{card.CollectionId}_{card.Id}";
+    }
+
+    public void Configure(EntityTypeBuilder<Remember> builder)
+    {
+        builder.ToTable("RememberWeights");
+        
         builder.HasKey(r => new
         {
             r.ParentUserId,
@@ -18,6 +29,19 @@ public class RememberConfiguration: IEntityTypeConfiguration<RememberEntity>
             r.PhaseIndex,
             r.Id
         });
+
+        builder.Property(r => r.Id)
+            .ValueGeneratedOnAdd()
+            .IsRequired()
+            .HasConversion(
+                d => d.Value,
+                s => RememberId.Create(s).Value);
+
+        builder.Property(r => r.Weight)
+            .IsRequired()
+            .HasConversion(
+                d => d.Value,
+                s => RememberWeight.Create(s).Value);
         
         builder.ConfigureUserReference();
 

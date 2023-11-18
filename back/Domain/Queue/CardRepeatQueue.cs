@@ -27,7 +27,12 @@ public class CardRepeatQueue : AggregateRoot<ComplexQueueId>, IParentCardReferen
         DateTime date) : base(new ComplexQueueId()
     {
         QueueId = id,
-        CardId = ComplexCardId.Create(parentUserId, parentCollectionId, parentCardId),
+        CardId = new ComplexCardId
+        {
+            UserId = parentUserId,
+            CollectionId = parentCollectionId,
+            Id = parentCardId,
+        },
         ScheduleId = new ComplexScheduleId()
         {
             Id = parentRepeatsScheduleId,

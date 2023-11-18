@@ -1,4 +1,5 @@
 ﻿using DB.Models;
+using DB.Models.ValueObjects;
 using Mapster;
 using Newtonsoft.Json;
 
@@ -8,11 +9,12 @@ public class RememberRegister : IRegister
 {
     public void Register(TypeAdapterConfig config)
     {
-        config.NewConfig<RememberEntity, Remember>();
+        config.NewConfig<RememberWeight, float>();
+        config.NewConfig<Remember, RememberDto>();
     }
 }
 
-public class Remember
+public class RememberDto
 {
     [JsonProperty("userId")]
     public string ParentUserId { get; set; }

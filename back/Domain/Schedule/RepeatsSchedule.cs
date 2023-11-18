@@ -79,7 +79,7 @@ public class RepeatsSchedule : AggregateRoot<ComplexScheduleId>, IParentUserRefe
 
     public (int nextPhaseIndex, Phase? nextPhase) GetNextPhase(
         Card.Card cardEntity,
-        RememberEntity remember)
+        Remember remember)
     {
         var currentPhaseIndex = remember.PhaseIndex;
         var currentPhase = GetPhase(currentPhaseIndex);

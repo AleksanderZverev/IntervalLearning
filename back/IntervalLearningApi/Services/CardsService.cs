@@ -222,19 +222,20 @@ public class CardsService
             return (null, "Unable to create card", false);
         }
         
-        var remembers = card.Remembers.Select(r => new RememberEntity(
+        var remembers = card.Remembers.Select(r => new Remember(
             r.ParentRepeatsScheduleUserId,
             r.ParentRepeatsScheduleId,
             movedCard.ParentUserId,
             movedCard.ParentCollectionId,
             movedCard.Id,
+            r.Id,
             r.Weight,
             r.PhaseIndex,
             r.RepeatedDate)).ToList();
         
         await db.Remembers.AddRangeAsync(remembers);
         
-        if (!db.SoftSaveChanges())
+        if (!await db.SoftSaveChangesAsync())
         {
             return (null, "Unable to save remember entities", false);
         }
@@ -373,9 +374,10 @@ public class CardsService
 
         db.Database.BeginTransaction();
 
+        var startedDate = DateTime.UtcNow;
         startedCards.ForEach(c =>
         {
-            var remember = new RememberEntity(scheduleUserId, scheduleId, userId, collectionId, c.Id, 1f, -1, DateTime.UtcNow);
+            var remember = CreateRemember(schedule, c, RememberWeight.Create(1f).Value, -1, startedDate);
             db.Entry(remember).State = EntityState.Added;
         });
 
@@ -542,17 +544,8 @@ public class CardsService
                 return (null, "unable to repeat");
             }
 
-            var remember = new RememberEntity(
-                schedule.ParentUserId,
-                schedule.Id,
-                userId,
-                collectionId,
-                cardId,
-                weight,
-                queueItem.PhaseIndex,
-                now
-            );
-
+            
+            var remember = CreateRemember(schedule, card, weight, queueItem.PhaseIndex, now);
             db.Entry(remember).State = EntityState.Added;
 
             var currentPhase = schedule.GetPhase(queueItem.PhaseIndex);
@@ -597,6 +590,36 @@ public class CardsService
             closestPhaseIndex), null);
     }
 
+    private Remember CreateRemember(RepeatsSchedule schedule, Card card, RememberWeight weight, int phaseIndex, DateTime date)
+    {
+        var sequenceName = RememberConfiguration.GetSequenceName(
+            new ComplexScheduleId()
+            {
+                ParentUserId = schedule.ParentUserId,
+                Id = schedule.Id,
+            },
+            new ComplexCardId()
+            {
+                UserId = card.ParentUserId,
+                CollectionId = card.ParentCollectionId,
+                Id = card.Id,
+            });
+        
+        db.EnsureSequenceCreated(sequenceName);
+        var nextValue = db.GetSequenceNextValue16(sequenceName);
+        var rememberId = RememberId.Create(nextValue).Value;
+        return new Remember(
+            schedule.ParentUserId, 
+            schedule.Id,
+            card.ParentUserId,
+            card.ParentCollectionId,
+            card.Id,
+            rememberId,
+            weight, 
+            (short)phaseIndex,
+            date);
+    }
+
     public class CreateOrPatchCard
     {
         public CardText RememberingText { get; init; }
@@ -610,8 +633,8 @@ public class CardsService
 
     public class RememberItem
     {
-        public required  CardId CardId { get; init; }
-        public required float Weight { get; init; }
+        public required CardId CardId { get; init; }
+        public required RememberWeight  Weight { get; init; }
     }
 
     public class NextRepeatInfo

@@ -177,7 +177,7 @@ namespace DB.Migrations
                     b.ToTable("RefreshTokens");
                 });
 
-            modelBuilder.Entity("DB.Models.RememberEntity", b =>
+            modelBuilder.Entity("DB.Models.Remember", b =>
                 {
                     b.Property<long>("ParentUserId")
                         .HasColumnType("bigint");
@@ -213,7 +213,7 @@ namespace DB.Migrations
 
                     b.HasIndex("ParentRepeatsScheduleUserId", "ParentRepeatsScheduleId");
 
-                    b.ToTable("RememberWeights");
+                    b.ToTable("RememberWeights", (string)null);
                 });
 
             modelBuilder.Entity("DB.Models.Store.CollectionPublicationEntity", b =>
@@ -677,7 +677,7 @@ namespace DB.Migrations
                     b.Navigation("ParentUser");
                 });
 
-            modelBuilder.Entity("DB.Models.RememberEntity", b =>
+            modelBuilder.Entity("DB.Models.Remember", b =>
                 {
                     b.HasOne("Domain.User.User", "ParentUser")
                         .WithMany()

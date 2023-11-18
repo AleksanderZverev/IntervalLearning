@@ -246,12 +246,12 @@ namespace IntervalLearningApi.Controllers
                 : BadRequest(error);
         }
 
-        private List<CardsService.RememberItem> ToCardServiceRememberItems(List<RememberItem> requestRememberItems)
+        private List<CardsService.RememberItem> ToCardServiceRememberItems(List<RememberItemDto> requestRememberItems)
         {
             return requestRememberItems.Select(r => new CardsService.RememberItem
             {
                 CardId = CardId.Create(r.CardId).Value,
-                Weight = r.Weight
+                Weight = RememberWeight.Create(r.Weight).Value,
             }).ToList();
         }
     }
@@ -293,7 +293,7 @@ namespace IntervalLearningApi.Controllers
 
     public class RememberRequest
     {
-        public List<RememberItem> RememberItems { get; set; }
+        public List<RememberItemDto> RememberItems { get; set; }
         public long ScheduleUserId { get; set; }
         public short ScheduleId { get; set; }
         public short PhaseIndex { get; set; }
@@ -305,7 +305,7 @@ namespace IntervalLearningApi.Controllers
         public short CardId { get; set; }
     }
 
-    public class RememberItem
+    public class RememberItemDto
     {
         public short CardId { get; set; }
         public float Weight { get; set; }

@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
 using DB.Models.ValueObjects;
+using Domain;
 using Domain.Card;
 using Domain.Card.ValueObjects;
 using Domain.Collection;
@@ -11,19 +11,19 @@ using Domain.User.ValueObjects;
 
 namespace DB.Models;
 
-[Table("RememberWeights")]
-public class RememberEntity : IParentCardReference
+// [Table("RememberWeights")]
+public class Remember : Entity<ComplexRememberId>, IParentCardReference
 {
-    [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-    [Key]
-    public short Id { get; set; }
+    // [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+    // [Key]
+    public RememberId Id { get; set; }
 
     /// <summary>
     /// from 0.00 to 1.00
     /// </summary>
-    [Required]
-    [Range(0d, 1d)]
-    public float Weight { get; set; }
+    // [Required]
+    // [Range(0d, 1d)]
+    public RememberWeight Weight { get; set; }
 
     [Required]
     public short PhaseIndex { get; set; }
@@ -33,16 +33,33 @@ public class RememberEntity : IParentCardReference
     /// </summary>
     public DateTime RepeatedDate { get; set; }
     
-    public RememberEntity(
+    public Remember(
         UserId parentRepeatsScheduleUserId, 
         ScheduleId parentRepeatsScheduleId,
         UserId parentUserId,
         CollectionId parentCollectionId,
         CardId parentCardId,
-        float weight,
+        RememberId id,
+        RememberWeight weight,
         short phaseIndex,
         DateTime repeatedDate)
+        : base(new ComplexRememberId()
+        {
+            Id = id,
+            ScheduleId = new ComplexScheduleId()
+            {
+                Id = parentRepeatsScheduleId,
+                ParentUserId = parentRepeatsScheduleUserId
+            },
+            CardId = new ComplexCardId
+            {
+                UserId = parentUserId,
+                CollectionId = parentCollectionId,
+                Id = parentCardId,
+            }
+        })
     {
+        Id = id;
         ParentUserId = parentUserId;
         ParentCollectionId = parentCollectionId;
         ParentCardId = parentCardId;
