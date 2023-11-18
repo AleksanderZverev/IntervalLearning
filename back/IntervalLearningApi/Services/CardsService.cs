@@ -415,9 +415,7 @@ public class CardsService
 
         foreach (var card in cards)
         {
-            var lastRemember = card.FindLastRemember();
-            var nextPhaseIndex = lastRemember == null ? 0 : lastRemember.PhaseIndex + 1;
-            var nextPhase = scheduleWithPhases.FindPhase(nextPhaseIndex);
+            var (nextPhase, nextPhaseIndex) = scheduleWithPhases.GetNextPhase(card);
 
             if (nextPhase == null)
             {
@@ -475,7 +473,6 @@ public class CardsService
         short phaseIndex,
         List<RememberItem> rememberItems)
     {
-        var now = DateTime.UtcNow;
         var cardIds = rememberItems.ConvertAll(c => c.CardId);
 
         var collection = await db.Collections.FindAsync(userId, collectionId);
@@ -512,12 +509,19 @@ public class CardsService
         var closestPhaseIndex = -1;
         Phase? closestPhaseInfo = null;
 
-        var forbidDate = DateTime.UtcNow.Date.AddDays(1);
+        var now = DateTime.UtcNow;
+        var forbidDate = now.Date.AddDays(1);
 
         foreach (var rememberItem in rememberItems)
         {
-            var cardId = CardId.Create(rememberItem.CardId).Value;
             var weight = rememberItem.Weight;
+            var cardId = CardId.Create(rememberItem.CardId).Value;
+            var card = await FindCard(userId, collectionId, cardId);
+
+            if (card == null)
+            {
+                return (null, "Internal error, card not found");
+            }
 
             var queueItem = queueItems.Single(q => q.ParentCardId == cardId);
 
@@ -552,13 +556,6 @@ public class CardsService
             db.Entry(phaseRemember).State = EntityState.Added;
             db.Entry(queueItem).State = EntityState.Deleted;
 
-            var card = await FindCard(userId, collectionId, cardId);
-
-            if (card == null)
-            {
-                return (null, "Internal error, card not found");
-            }
-            
             var (nextPhaseIndex, nextPhase) = schedule.GetNextPhaseIndex(card, remember);
 
             if (nextPhase == null)
@@ -585,7 +582,7 @@ public class CardsService
             }
         }
 
-        var isOk = db.SoftSaveChanges();
+        var isOk = await db.SoftSaveChangesAsync();
 
         if (!isOk)
             return (null, "unknown error");

@@ -166,4 +166,14 @@ public class RepeatsSchedule : AggregateRoot<ComplexScheduleId>, IParentUserRefe
         var sortedPhases = Phases.OrderBy(p => p.Id).ToList();
         return sortedPhases[phaseIndex];
     }
+
+    public (Phase?, int) GetNextPhase(Card.Card card)
+    {
+        var lastRemember = card.FindLastRemember();
+        var nextPhaseIndex = lastRemember == null 
+            ? 0 
+            : lastRemember.PhaseIndex + 1;
+        var nextPhase = FindPhase(nextPhaseIndex);
+        return (nextPhase, nextPhaseIndex);
+    }
 }

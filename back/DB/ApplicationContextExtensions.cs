@@ -71,5 +71,18 @@ namespace DB
                 return false;
             }
         }
+        
+        public static async Task<bool> SoftSaveChangesAsync(this ApplicationContext db)
+        {
+            try
+            {
+                await db.SoftSaveChangesAsync();
+                return true;
+            }
+            catch (Exception e)
+            {
+                return false;
+            }
+        }
     }
 }
