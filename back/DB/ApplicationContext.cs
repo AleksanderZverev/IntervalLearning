@@ -20,7 +20,7 @@ namespace DB
         protected ApplicationContext(DbContextOptions options) : base(options) { }
 
         public DbSet<User> Users { get; set; }
-        public DbSet<UserPasswordsEntity> UsersPasswords { get; set; }
+        public DbSet<UserPassword> UsersPasswords { get; set; }
         public DbSet<RefreshTokenEntity> RefreshTokens { get; set; }
 
         public DbSet<Collection> Collections { get; set; }

@@ -20,7 +20,7 @@ public class User : AggregateRoot<UserId>
     public virtual UserMetadataEntity Metadata { get; set; }
     
     [JsonIgnore]
-    public UserPasswordsEntity? PasswordHash { get; set; }
+    public UserPassword? PasswordHash { get; set; }
     [JsonIgnore] 
     public List<RefreshTokenEntity> RefreshTokens { get; set; } = new();
     

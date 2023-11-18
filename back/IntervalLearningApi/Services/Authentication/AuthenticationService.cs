@@ -38,26 +38,26 @@ public class AuthenticationService : IAuthenticationService
         if (sameUser != null)
             return (false, "Email already exists");
 
-        var passwordHash = BCrypt.Net.BCrypt.HashPassword(request.Password);
-
         var userIdResult = db.GetUniqueUserId();
         if (userIdResult.IsFailed)
             return (false, "Failure on creating user id");
         
         //TODO: validation
-        var user = User.Create(userIdResult.Value, EmailAddress.Create(emailLower).Value,
-            UserName.Create(request.FirstName, request.LastName).Value).Value;
+        var user = User.Create(
+            userIdResult.Value,
+            EmailAddress.Create(emailLower).Value,
+            UserName.Create(request.FirstName, request.LastName).Value
+        ).Value;
         
-        user.PasswordHash = new UserPasswordsEntity()
-        {
-            PasswordHash = passwordHash,
-        };
+        var passwordHash = BCrypt.Net.BCrypt.HashPassword(request.Password);
+        user.PasswordHash = UserPassword.Create(userIdResult.Value, passwordHash).Value;
         
         try
         {
             db.Database.BeginTransaction();
 
             db.Users.Add(user);
+            db.UsersPasswords.Add(user.PasswordHash);
             db.SaveChanges();
 
             //TODO: validation
