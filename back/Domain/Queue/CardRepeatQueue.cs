@@ -1,14 +1,11 @@
 ﻿using DB.Models.ValueObjects;
-using Domain;
 using Domain.Card;
 using Domain.Card.ValueObjects;
-using Domain.Collection;
 using Domain.Collection.ValueObjects;
 using Domain.Schedule;
-using Domain.User;
 using Domain.User.ValueObjects;
 
-namespace DB.Models;
+namespace Domain.Queue;
 
 // [Table("Queue")]
 public class CardRepeatQueue : AggregateRoot<ComplexQueueId>, IParentCardReference
@@ -50,13 +47,13 @@ public class CardRepeatQueue : AggregateRoot<ComplexQueueId>, IParentCardReferen
 
     public UserId ParentUserId { get; set; }
 
-    public User? ParentUser { get; set; }
+    public User.User? ParentUser { get; set; }
 
     public CollectionId ParentCollectionId { get; set; }
-    public Collection? ParentCollection { get; set; }
+    public Collection.Collection? ParentCollection { get; set; }
 
     public CardId ParentCardId { get; set; }
-    public Card? ParentCard { get; set; }
+    public Card.Card? ParentCard { get; set; }
 
     public UserId ParentRepeatsScheduleUserId { get; set; }
     public ScheduleId ParentRepeatsScheduleId { get; set; }

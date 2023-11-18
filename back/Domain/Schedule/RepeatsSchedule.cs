@@ -1,6 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using DB.Models;
 using DB.Models.ValueObjects;
+using Domain.Schedule.ValueObjects;
 using Domain.User.ValueObjects;
 
 namespace Domain.Schedule;
@@ -64,7 +65,21 @@ public class RepeatsSchedule : AggregateRoot<ComplexScheduleId>, IParentUserRefe
         Id = id;
     }
 
-    public (int nextPhaseIndex, Phase? nextPhase) GetNextPhaseIndex(Card.Card cardEntity, RememberEntity remember)
+    public (Phase?, int) GetNextPhase(Card.Card card)
+    {
+        var lastRemember = card.FindLastRemember();
+
+        if (lastRemember == null)
+            return (null, 0);
+
+        var nextPhaseIndex = lastRemember.PhaseIndex + 1;
+        var nextPhase = FindPhase(nextPhaseIndex);
+        return (nextPhase, nextPhaseIndex);
+    }
+
+    public (int nextPhaseIndex, Phase? nextPhase) GetNextPhase(
+        Card.Card cardEntity,
+        RememberEntity remember)
     {
         var currentPhaseIndex = remember.PhaseIndex;
         var currentPhase = GetPhase(currentPhaseIndex);
@@ -165,15 +180,5 @@ public class RepeatsSchedule : AggregateRoot<ComplexScheduleId>, IParentUserRefe
         
         var sortedPhases = Phases.OrderBy(p => p.Id).ToList();
         return sortedPhases[phaseIndex];
-    }
-
-    public (Phase?, int) GetNextPhase(Card.Card card)
-    {
-        var lastRemember = card.FindLastRemember();
-        var nextPhaseIndex = lastRemember == null 
-            ? 0 
-            : lastRemember.PhaseIndex + 1;
-        var nextPhase = FindPhase(nextPhaseIndex);
-        return (nextPhase, nextPhaseIndex);
     }
 }

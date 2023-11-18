@@ -1,4 +1,6 @@
 using DB.Models;
+using Domain.Schedule;
+using Domain.Schedule.ValueObjects;
 using Domain.User.ValueObjects;
 using IntervalLearningApi.IntegrationTests.Learning.Scenarios;
 using IntervalLearningApi.Models.ByUser;

@@ -76,7 +76,7 @@ namespace DB
         {
             try
             {
-                await db.SoftSaveChangesAsync();
+                await db.SaveChangesAsync();
                 return true;
             }
             catch (Exception e)

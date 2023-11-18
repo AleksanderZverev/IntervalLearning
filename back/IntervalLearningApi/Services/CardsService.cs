@@ -7,6 +7,7 @@ using DB.Models.ValueObjects;
 using Domain.Card;
 using Domain.Card.ValueObjects;
 using Domain.Collection.ValueObjects;
+using Domain.Queue;
 using Domain.Schedule;
 using Domain.User.ValueObjects;
 using IntervalLearningApi.Models;
@@ -566,7 +567,7 @@ public class CardsService
             db.Entry(phaseRemember).State = EntityState.Added;
             db.Entry(queueItem).State = EntityState.Deleted;
 
-            var (nextPhaseIndex, nextPhase) = schedule.GetNextPhaseIndex(card, remember);
+            var (nextPhaseIndex, nextPhase) = schedule.GetNextPhase(card, remember);
 
             if (nextPhase == null)
                 continue;

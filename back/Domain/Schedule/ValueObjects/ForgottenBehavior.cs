@@ -1,4 +1,4 @@
-﻿namespace DB.Models;
+﻿namespace Domain.Schedule.ValueObjects;
 
 public enum ForgottenBehavior
 {

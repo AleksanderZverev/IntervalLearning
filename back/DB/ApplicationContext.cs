@@ -6,6 +6,7 @@ using DB.Models.Store;
 using Domain.Card;
 using Domain.Collection;
 using Domain.Language;
+using Domain.Queue;
 using Domain.Schedule;
 using Domain.Theme;
 using Domain.User;
