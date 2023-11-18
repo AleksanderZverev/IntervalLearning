@@ -10,7 +10,9 @@ using Domain.Queue;
 using Domain.Schedule;
 using Domain.Theme;
 using Domain.User;
+using Domain.User.Entities;
 using Microsoft.EntityFrameworkCore;
+using UserMetadata = DB.Models.UserMetadata;
 
 namespace DB
 {
@@ -33,7 +35,7 @@ namespace DB
 
         public DbSet<CardRepeatQueue> Queue { get; set; }
 
-        public DbSet<UserMetadataEntity> UserMetadata { get; set; }
+        public DbSet<UserMetadata> UserMetadata { get; set; }
 
         //Publications
 

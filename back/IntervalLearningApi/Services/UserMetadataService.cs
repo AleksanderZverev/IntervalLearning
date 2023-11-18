@@ -14,13 +14,13 @@ namespace IntervalLearningApi.Services
             this.db = db;
         }
 
-        public UserMetadataEntity GetMetadata(UserId userId)
+        public UserMetadata GetMetadata(UserId userId)
         {
             var metadata = db.UserMetadata.Single(m => m.ParentUserId == userId);
             return metadata;
         }
 
-        public void CardStateChanged(UserMetadataEntity metadata, Collection collection, bool? lastState, bool? newState)
+        public void CardStateChanged(UserMetadata metadata, Collection collection, bool? lastState, bool? newState)
         {
             var prevState = ToState(lastState);
             var nextState = ToState(newState);

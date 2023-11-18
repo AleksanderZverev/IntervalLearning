@@ -268,7 +268,7 @@ namespace DB.Migrations
                     b.ToTable("PublicCollectionSubscriber");
                 });
 
-            modelBuilder.Entity("DB.Models.UserMetadataEntity", b =>
+            modelBuilder.Entity("DB.Models.UserMetadata", b =>
                 {
                     b.Property<long>("ParentUserId")
                         .HasColumnType("bigint");
@@ -299,20 +299,6 @@ namespace DB.Migrations
                     b.HasIndex("SuggestTranslationLanguageId");
 
                     b.ToTable("UserMetadata");
-                });
-
-            modelBuilder.Entity("DB.Models.UserPassword", b =>
-                {
-                    b.Property<long>("ParentUserId")
-                        .HasColumnType("bigint");
-
-                    b.Property<string>("PasswordHash")
-                        .HasMaxLength(60)
-                        .HasColumnType("varchar(60)");
-
-                    b.HasKey("ParentUserId");
-
-                    b.ToTable("UsersPasswords");
                 });
 
             modelBuilder.Entity("Domain.Card.Card", b =>
@@ -560,6 +546,20 @@ namespace DB.Migrations
                     b.ToTable("Themes");
                 });
 
+            modelBuilder.Entity("Domain.User.Entities.UserPassword", b =>
+                {
+                    b.Property<long>("ParentUserId")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("PasswordHash")
+                        .HasMaxLength(60)
+                        .HasColumnType("varchar(60)");
+
+                    b.HasKey("ParentUserId");
+
+                    b.ToTable("UsersPasswords");
+                });
+
             modelBuilder.Entity("Domain.User.User", b =>
                 {
                     b.Property<long>("Id")
@@ -766,11 +766,11 @@ namespace DB.Migrations
                     b.Navigation("SubscriberUser");
                 });
 
-            modelBuilder.Entity("DB.Models.UserMetadataEntity", b =>
+            modelBuilder.Entity("DB.Models.UserMetadata", b =>
                 {
                     b.HasOne("Domain.User.User", "ParentUser")
                         .WithOne("Metadata")
-                        .HasForeignKey("DB.Models.UserMetadataEntity", "ParentUserId")
+                        .HasForeignKey("DB.Models.UserMetadata", "ParentUserId")
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
@@ -783,17 +783,6 @@ namespace DB.Migrations
                     b.Navigation("ParentUser");
 
                     b.Navigation("SuggestTranslationLanguage");
-                });
-
-            modelBuilder.Entity("DB.Models.UserPassword", b =>
-                {
-                    b.HasOne("Domain.User.User", "ParentUser")
-                        .WithOne("PasswordHash")
-                        .HasForeignKey("DB.Models.UserPassword", "ParentUserId")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired();
-
-                    b.Navigation("ParentUser");
                 });
 
             modelBuilder.Entity("Domain.Card.Card", b =>
@@ -888,6 +877,17 @@ namespace DB.Migrations
                         .OnDelete(DeleteBehavior.NoAction);
 
                     b.Navigation("Language");
+                });
+
+            modelBuilder.Entity("Domain.User.Entities.UserPassword", b =>
+                {
+                    b.HasOne("Domain.User.User", "ParentUser")
+                        .WithOne("PasswordHash")
+                        .HasForeignKey("Domain.User.Entities.UserPassword", "ParentUserId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.Navigation("ParentUser");
                 });
 
             modelBuilder.Entity("Domain.User.User", b =>

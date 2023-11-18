@@ -50,6 +50,6 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
 
         builder.HasOne(c => c.Metadata)
             .WithOne(m => m.ParentUser)
-            .HasForeignKey<UserMetadataEntity>(m => m.ParentUserId);
+            .HasForeignKey<UserMetadata>(m => m.ParentUserId);
     }
 }

@@ -3,11 +3,13 @@ using DB.BusinessExtensions;
 using DB.Models;
 using Domain.Language.ValueObjects;
 using Domain.User;
+using Domain.User.Entities;
 using Domain.User.ValueObjects;
 using IntervalLearningApi.Models;
 using IntervalLearningApi.Models.Common;
 using IntervalLearningApi.Services.Jwt;
 using Microsoft.EntityFrameworkCore;
+using UserMetadata = DB.Models.UserMetadata;
 
 namespace IntervalLearningApi.Services.Authentication;
 
@@ -61,7 +63,7 @@ public class AuthenticationService : IAuthenticationService
             db.SaveChanges();
 
             //TODO: validation
-            var metadata = new UserMetadataEntity(user.Id, LanguageId.Create(request.SuggestLanguageId).Value);
+            var metadata = new UserMetadata(user.Id, LanguageId.Create(request.SuggestLanguageId).Value);
             db.Entry(metadata).State = EntityState.Added;
 
             db.SaveChanges();

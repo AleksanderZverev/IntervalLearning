@@ -1,8 +1,10 @@
 using System.Text.Json.Serialization;
 using DB.Models;
 using Domain.Common.ValueObjects;
+using Domain.User.Entities;
 using Domain.User.ValueObjects;
 using FluentResults;
+using UserMetadata = DB.Models.UserMetadata;
 
 namespace Domain.User;
 
@@ -17,7 +19,7 @@ public class User : AggregateRoot<UserId>
     
     public bool EmailConfirmed { get; private set; }
     
-    public virtual UserMetadataEntity Metadata { get; set; }
+    public virtual UserMetadata Metadata { get; set; }
     
     [JsonIgnore]
     public UserPassword? PasswordHash { get; set; }

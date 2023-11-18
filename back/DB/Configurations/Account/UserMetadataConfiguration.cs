@@ -4,15 +4,18 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace DB.Configurations.Account;
 
-public class UserMetadataConfiguration : IEntityTypeConfiguration<UserMetadataEntity>
+public class UserMetadataConfiguration : IEntityTypeConfiguration<UserMetadata>
 {
-    public void Configure(EntityTypeBuilder<UserMetadataEntity> builder)
+    public void Configure(EntityTypeBuilder<UserMetadata> builder)
     {
         builder.HasKey(c => c.ParentUserId);
 
+        builder.Ignore(m => m.Id);
+        builder.Ignore(m => m.DomainEvents);
+
         builder.HasOne(m => m.ParentUser)
             .WithOne(u => u.Metadata)
-            .HasForeignKey<UserMetadataEntity>(m => m.ParentUserId)
+            .HasForeignKey<UserMetadata>(m => m.ParentUserId)
             .OnDelete(DeleteBehavior.NoAction);
 
         builder.HasOne(m => m.SuggestTranslationLanguage)
