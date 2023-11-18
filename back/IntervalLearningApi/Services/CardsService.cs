@@ -418,23 +418,27 @@ public class CardsService
 
         foreach (var card in cards)
         {
-            var (nextPhase, nextPhaseIndex) = scheduleWithPhases.GetNextPhase(card);
+            var (startPhase, phaseIndex) = scheduleWithPhases.FindFirstPhase();
 
-            if (nextPhase == null)
+            if (startPhase == null)
             {
                 Debug.Fail("nextPhase == null");
                 return (null, "An error in algorithm work");
             }
 
-            var nextRepeatDate = nextPhase.GetNextDate(DateTime.UtcNow);
-            var nextQueueItem = GetNextQueue(scheduleWithPhases, card, nextPhaseIndex, nextRepeatDate);
+            var nextRepeatDate = startPhase.GetNextDate(DateTime.UtcNow);
+            var nextQueueItem = GetNextQueue(
+                scheduleWithPhases,
+                card,
+                phaseIndex,
+                nextRepeatDate);
             queueItems.Add(nextQueueItem);
             
             if (nextRepeatDate <= closestRepeatDate)
             {
                 closestRepeatDate = nextRepeatDate;
-                closestPhaseInfo = nextPhase;
-                closestPhaseIndex = nextPhaseIndex;
+                closestPhaseInfo = startPhase;
+                closestPhaseIndex = phaseIndex;
             }
         }
 

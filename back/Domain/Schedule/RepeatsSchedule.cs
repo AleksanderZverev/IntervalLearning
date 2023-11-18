@@ -65,18 +65,6 @@ public class RepeatsSchedule : AggregateRoot<ComplexScheduleId>, IParentUserRefe
         Id = id;
     }
 
-    public (Phase?, int) GetNextPhase(Card.Card card)
-    {
-        var lastRemember = card.FindLastRemember();
-
-        if (lastRemember == null)
-            return (null, 0);
-
-        var nextPhaseIndex = lastRemember.PhaseIndex + 1;
-        var nextPhase = FindPhase(nextPhaseIndex);
-        return (nextPhase, nextPhaseIndex);
-    }
-
     public (int nextPhaseIndex, Phase? nextPhase) GetNextPhase(
         Card.Card cardEntity,
         Remember remember)
@@ -100,7 +88,7 @@ public class RepeatsSchedule : AggregateRoot<ComplexScheduleId>, IParentUserRefe
 
         if (currentPhase.IsRepeat() && currentPhaseIndex > 0)
         {
-            var previousRemember = cardEntity.FindLastRemember();
+            var previousRemember = cardEntity.FindPreviousRemember(remember.Id);
 
             if (previousRemember != null)
             {
@@ -162,6 +150,11 @@ public class RepeatsSchedule : AggregateRoot<ComplexScheduleId>, IParentUserRefe
         return currentPhaseIndex + 1 < Phases.Count
             ? currentPhaseIndex + 1
             : -1;
+    }
+
+    public (Phase?, int) FindFirstPhase()
+    {
+        return (FindPhase(0), 0);
     }
 
     public Phase? FindPhase(int phaseIndex)

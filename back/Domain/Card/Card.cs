@@ -1,4 +1,5 @@
 using DB.Models;
+using DB.Models.ValueObjects;
 using Domain.Card.ValueObjects;
 using Domain.Collection.ValueObjects;
 using Domain.User.ValueObjects;
@@ -70,6 +71,9 @@ public class Card : AggregateRoot<ComplexCardId>
     
     public Remember? FindLastRemember() 
         => Remembers.MaxBy(c => c.Id);
+    
+    public Remember? FindPreviousRemember(RememberId rememberId) 
+        => Remembers.FindLast(r => r.Id < rememberId);
     
     public DateTime GetLearnedDate()
     {
