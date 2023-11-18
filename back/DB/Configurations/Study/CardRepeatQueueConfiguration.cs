@@ -1,13 +1,25 @@
 using DB.Models;
+using DB.Models.ValueObjects;
+using Domain.Card;
+using Domain.Schedule;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace DB.Configurations.Study;
 
-public class CardRepeatQueueConfiguration : IEntityTypeConfiguration<CardRepeatQueueEntity>
+public class CardRepeatQueueConfiguration : IEntityTypeConfiguration<CardRepeatQueue>
 {
-    public void Configure(EntityTypeBuilder<CardRepeatQueueEntity> builder)
+    public static string GetSequenceName(RepeatsSchedule scheduleWithPhases, Card card)
     {
+        return $"queue_" +
+               $"schedule_{scheduleWithPhases.ParentUserId.Value}_{scheduleWithPhases.Id}_" +
+               $"card_{card.ParentUserId.Value}_{card.ParentCollectionId.Value}_{card.Id.Value}";
+    }
+
+    public void Configure(EntityTypeBuilder<CardRepeatQueue> builder)
+    {
+        builder.ToTable("Queue");
+        
         builder.HasKey(q => new
         {
             q.ParentUserId,
@@ -17,6 +29,11 @@ public class CardRepeatQueueConfiguration : IEntityTypeConfiguration<CardRepeatQ
             q.ParentRepeatsScheduleId,
             q.Id
         });
+
+        builder.Property(p => p.Id)
+            .ValueGeneratedOnAdd()
+            .HasConversion(d => d.Value, s => QueueId.Create(s).Value)
+            .IsRequired();
 
         builder.ConfigureUserReference();
 

@@ -411,7 +411,7 @@ public class CardsService
         var closestRepeatDate = DateTime.MaxValue;
         var closestPhaseIndex = -1;
         Phase? closestPhaseInfo = null;
-        var queueItems = new List<CardRepeatQueueEntity>(cards.Count);
+        var queueItems = new List<CardRepeatQueue>(cards.Count);
 
         foreach (var card in cards)
         {
@@ -424,18 +424,8 @@ public class CardsService
             }
 
             var nextRepeatDate = nextPhase.GetNextDate(DateTime.UtcNow);
-
-            var queueItem = new CardRepeatQueueEntity(
-                scheduleWithPhases.ParentUserId,
-                scheduleWithPhases.Id,
-                userId,
-                collectionId,
-                card.Id,
-                (short)nextPhaseIndex,
-                nextRepeatDate
-            );
-
-            queueItems.Add(queueItem);
+            var nextQueueItem = GetNextQueue(scheduleWithPhases, card, nextPhaseIndex, nextRepeatDate);
+            queueItems.Add(nextQueueItem);
             
             if (nextRepeatDate <= closestRepeatDate)
             {
@@ -463,6 +453,26 @@ public class CardsService
 #endif
 
         return (new NextRepeatInfo(closestRepeatDate, closestPhaseInfo, closestPhaseIndex), null);
+    }
+
+    private CardRepeatQueue GetNextQueue(RepeatsSchedule scheduleWithPhases, Card card, int nextPhaseIndex, DateTime nextRepeatDate)
+    {
+        var queueSequenceName = CardRepeatQueueConfiguration.GetSequenceName(scheduleWithPhases, card);
+        db.EnsureSequenceCreated(queueSequenceName);
+        var nextValue = db.GetSequenceNextValue16(queueSequenceName);
+        var queueId = QueueId.Create(nextValue).Value;
+        
+        var queueItem = new CardRepeatQueue(
+            scheduleWithPhases.ParentUserId,
+            scheduleWithPhases.Id,
+            card.ParentUserId,
+            card.ParentCollectionId,
+            card.Id,
+            queueId,
+            (short)nextPhaseIndex,
+            nextRepeatDate
+        );
+        return queueItem;
     }
 
     public async Task<(NextRepeatInfo? closestRepeatInfo, string? reason)> Remember(
@@ -562,16 +572,7 @@ public class CardsService
                 continue;
 
             var nextRepeatDate = nextPhase.GetNextDate(now);
-
-            var newQueueItem = new CardRepeatQueueEntity(
-                schedule.ParentUserId,
-                schedule.Id,
-                userId,
-                collectionId,
-                cardId,
-                (short)nextPhaseIndex,
-                nextRepeatDate);
-
+            var newQueueItem = GetNextQueue(schedule, card, nextPhaseIndex, nextRepeatDate);
             db.Entry(newQueueItem).State = EntityState.Added;
             
             if (nextRepeatDate < closestRepeatDate)

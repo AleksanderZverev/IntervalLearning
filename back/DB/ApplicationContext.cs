@@ -30,7 +30,7 @@ namespace DB
         public DbSet<RepeatsSchedule> RepeatsSchedules { get; set; }
         public DbSet<Phase> Phases { get; set; }
 
-        public DbSet<CardRepeatQueueEntity> Queue { get; set; }
+        public DbSet<CardRepeatQueue> Queue { get; set; }
 
         public DbSet<UserMetadataEntity> UserMetadata { get; set; }
 

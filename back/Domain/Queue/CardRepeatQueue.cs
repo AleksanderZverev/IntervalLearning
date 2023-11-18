@@ -1,5 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations.Schema;
-using DB.Models.ValueObjects;
+﻿using DB.Models.ValueObjects;
+using Domain;
 using Domain.Card;
 using Domain.Card.ValueObjects;
 using Domain.Collection;
@@ -10,24 +10,35 @@ using Domain.User.ValueObjects;
 
 namespace DB.Models;
 
-[Table("Queue")]
-public class CardRepeatQueueEntity : IParentCardReference
+// [Table("Queue")]
+public class CardRepeatQueue : AggregateRoot<ComplexQueueId>, IParentCardReference
 {
-    [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-    public short Id { get; set; }
+    // [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+    public QueueId Id { get; set; }
     public short PhaseIndex { get; set; }
 
     public DateTime Date { get; set; }
 
-    public CardRepeatQueueEntity(
+    public CardRepeatQueue(
         UserId parentRepeatsScheduleUserId,
         ScheduleId parentRepeatsScheduleId,
         UserId parentUserId, 
         CollectionId parentCollectionId, 
         CardId parentCardId,
+        QueueId id,
         short phaseIndex, 
-        DateTime date)
+        DateTime date) : base(new ComplexQueueId()
     {
+        QueueId = id,
+        CardId = ComplexCardId.Create(parentUserId, parentCollectionId, parentCardId),
+        ScheduleId = new ComplexScheduleId()
+        {
+            Id = parentRepeatsScheduleId,
+            ParentUserId = parentRepeatsScheduleUserId,
+        }
+    })
+    {
+        Id = id;
         ParentUserId = parentUserId;
         ParentCollectionId = parentCollectionId;
         ParentCardId = parentCardId;

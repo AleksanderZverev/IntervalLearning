@@ -25,7 +25,7 @@ namespace DB.Migrations
 
             modelBuilder.HasSequence("user_id_sequence");
 
-            modelBuilder.Entity("DB.Models.CardRepeatQueueEntity", b =>
+            modelBuilder.Entity("DB.Models.CardRepeatQueue", b =>
                 {
                     b.Property<long>("ParentUserId")
                         .HasColumnType("bigint");
@@ -58,7 +58,7 @@ namespace DB.Migrations
 
                     b.HasIndex("ParentRepeatsScheduleUserId", "ParentRepeatsScheduleId");
 
-                    b.ToTable("Queue");
+                    b.ToTable("Queue", (string)null);
                 });
 
             modelBuilder.Entity("DB.Models.Dictionary.TranslationEntity", b =>
@@ -582,7 +582,7 @@ namespace DB.Migrations
                     b.ToTable("Users");
                 });
 
-            modelBuilder.Entity("DB.Models.CardRepeatQueueEntity", b =>
+            modelBuilder.Entity("DB.Models.CardRepeatQueue", b =>
                 {
                     b.HasOne("Domain.User.User", "ParentUser")
                         .WithMany()
