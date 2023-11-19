@@ -103,4 +103,14 @@ public static class ApiRoutes
 
         public const string Get_GetAll = "";
     }
+
+    public class Dictionary
+    {
+        public const string BasePath = "api/dictionary";
+
+        public const string Get_GenLanguages = "languages";
+        public const string Post_AddTranslations = "translations";
+        public const string Get_GetTranslation = "translations";
+        public const string Get_SearchWords = "words/search";
+    }
 }

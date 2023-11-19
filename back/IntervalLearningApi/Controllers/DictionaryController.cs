@@ -1,4 +1,5 @@
 ﻿using DB.Models.Dictionary;
+using IntervalLearningApi.Constants;
 using IntervalLearningApi.Extensions;
 using IntervalLearningApi.Models.Dictionary;
 using IntervalLearningApi.Services.Dictionary;
@@ -8,7 +9,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace IntervalLearningApi.Controllers
 {
-    [Route("api/dictionary")]
+    [Route(ApiRoutes.Dictionary.BasePath)]
     [Authorize]
     [ApiController]
     public class DictionaryController : ControllerBase
@@ -22,7 +23,7 @@ namespace IntervalLearningApi.Controllers
             this.dictionaryService = dictionaryService;
         }
 
-        [HttpGet("words/search")]
+        [HttpGet(ApiRoutes.Dictionary.Get_SearchWords)]
         public async Task<ActionResult<List<WordDto>>> SearchWords(
             [FromQuery] string? word = null,
             [FromQuery] string? pronunciation = null
@@ -54,7 +55,7 @@ namespace IntervalLearningApi.Controllers
         }
 
 
-        [HttpGet("languages")]
+        [HttpGet(ApiRoutes.Dictionary.Get_GenLanguages)]
         [AllowAnonymous]
         public async Task<ActionResult<List<LanguageDto>>> GetLanguages()
         {
@@ -62,7 +63,7 @@ namespace IntervalLearningApi.Controllers
             return mapper.Map<List<LanguageDto>>(languages);
         }
 
-        [HttpPost("translations")]
+        [HttpPost(ApiRoutes.Dictionary.Post_AddTranslations)]
         public async Task<ActionResult<string>> AddTranslations([FromBody] AddTranslationsRequest req)
         {
             var userId = HttpContext.GetUserId();
@@ -74,7 +75,7 @@ namespace IntervalLearningApi.Controllers
             return ok != null ? ok : BadRequest(error);
         }
 
-        [HttpGet("translations")]
+        [HttpGet(ApiRoutes.Dictionary.Get_GetTranslation)]
         public async Task<ActionResult<List<TranslationDto>>> GetTranslation(string word)
         {
             var userId = HttpContext.GetUserId();
