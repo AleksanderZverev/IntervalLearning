@@ -71,19 +71,19 @@ public class DockerIntervalLearningApiFactory : WebApplicationFactory<Program>, 
         TestConstants.Theme.TestId = themeEntry.Entity.Id;
         
         //Dictionary
-        db.Words.AddRange(new WordEntity()
+        db.Words.AddRange(new LanguageWord()
         {
             Id = 1,
             LanguageId = english.Id,
-            Word = "hello",
-            Pronunciation = "həˈləʊ",
+            Word = WordText.Create("hello").Value,
+            Pronunciation = WordPronunciation.Create("həˈləʊ").Value,
         },
-        new WordEntity()
+        new LanguageWord()
         {
             Id = 2,
             LanguageId = english.Id,
-            Word = "world",
-            Pronunciation = "wɜːld",
+            Word = WordText.Create("world").Value,
+            Pronunciation = WordPronunciation.Create("wɜːld").Value,
         });
         await db.SaveChangesAsync();
         

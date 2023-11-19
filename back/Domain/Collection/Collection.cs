@@ -1,4 +1,3 @@
-using DB.Models;
 using DB.Models.Store;
 using DB.Models.ValueObjects;
 using Domain.Collection.ValueObjects;

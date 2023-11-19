@@ -7,7 +7,7 @@ namespace IntervalLearningApi.Models.Dictionary
     {
         public void Register(TypeAdapterConfig config)
         {
-            config.NewConfig<WordEntity, WordDto>();
+            config.NewConfig<LanguageWord, WordDto>();
         }
     }
 

@@ -44,7 +44,7 @@ namespace DB
 
         //Dictionary
 
-        public DbSet<WordEntity> Words { get; set; }
+        public DbSet<LanguageWord> Words { get; set; }
         public DbSet<Language> Languages { get; set; }
         public DbSet<WordTranslation> Translations { get; set; }
 

@@ -364,7 +364,7 @@ public class CollectionService
         return (movedCard, null);
     }
 
-    public async Task<(List<WordEntity>? words, Language? language, string? error)> GetRandomWords(
+    public async Task<(List<LanguageWord>? words, Language? language, string? error)> GetRandomWords(
         UserId userId, 
         CollectionId collectionId)
     {

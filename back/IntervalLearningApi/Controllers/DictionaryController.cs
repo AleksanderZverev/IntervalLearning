@@ -36,7 +36,7 @@ namespace IntervalLearningApi.Controllers
                 return BadRequest();
             }
 
-            List<WordEntity>? foundWords = null;
+            List<LanguageWord>? foundWords = null;
 
             if (pronunciationEmpty)
             {

@@ -25,7 +25,7 @@ namespace DB.Migrations
 
             modelBuilder.HasSequence("user_id_sequence");
 
-            modelBuilder.Entity("DB.Models.Dictionary.WordEntity", b =>
+            modelBuilder.Entity("DB.Models.Dictionary.LanguageWord", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -51,7 +51,7 @@ namespace DB.Migrations
 
                     b.HasIndex("Word");
 
-                    b.ToTable("Words");
+                    b.ToTable("Words", (string)null);
                 });
 
             modelBuilder.Entity("DB.Models.Dictionary.WordTranslation", b =>
@@ -582,7 +582,7 @@ namespace DB.Migrations
                     b.ToTable("Users");
                 });
 
-            modelBuilder.Entity("DB.Models.Dictionary.WordEntity", b =>
+            modelBuilder.Entity("DB.Models.Dictionary.LanguageWord", b =>
                 {
                     b.HasOne("Domain.Language.Language", "Language")
                         .WithMany()
@@ -601,7 +601,7 @@ namespace DB.Migrations
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
-                    b.HasOne("DB.Models.Dictionary.WordEntity", "Word")
+                    b.HasOne("DB.Models.Dictionary.LanguageWord", "Word")
                         .WithMany()
                         .HasForeignKey("WordId")
                         .OnDelete(DeleteBehavior.NoAction)
