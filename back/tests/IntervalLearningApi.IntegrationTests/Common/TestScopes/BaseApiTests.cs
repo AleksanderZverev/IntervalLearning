@@ -98,7 +98,7 @@ public class BaseApiTests : IAsyncLifetime
                 Password = testUserInfo.Password,
                 FirstName = testUserInfo.FirstName,
                 LastName = testUserInfo.LastName,
-                SuggestLanguageId = TestConstants.Language.TestId,
+                SuggestLanguageId = TestConstants.Language.SuggestTranslationLanguageId,
             });
 
         var authResponse = await AuthorizeClientAsync(client, testUserInfo.Email, testUserInfo.Password);

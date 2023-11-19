@@ -16,10 +16,12 @@ namespace IntervalLearningApi.Services.Dictionary
     public class DictionaryService
     {
         private readonly ApplicationContext db;
+        private readonly IHostEnvironment env;
 
-        public DictionaryService(ApplicationContext db)
+        public DictionaryService(ApplicationContext db, IHostEnvironment env)
         {
             this.db = db;
+            this.env = env;
         }
 
         public async Task<(List<WordTranslation>? translations, string? error)> GetTranslations(UserId userId, string word)
@@ -57,7 +59,7 @@ namespace IntervalLearningApi.Services.Dictionary
         {
             var user = await db.Users.FindAsync(userId);
 
-            if (user is not {Email.Value: "sam998980@mail.ru"})
+            if (env.IsProduction() && user is not {Email.Value: "sam998980@mail.ru"})
                 return (null, "Forbidden");
 
             var lines = text.Split("\n", StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);

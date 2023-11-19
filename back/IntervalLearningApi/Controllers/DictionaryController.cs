@@ -26,8 +26,7 @@ namespace IntervalLearningApi.Controllers
         [HttpGet(ApiRoutes.Dictionary.Get_SearchWords)]
         public async Task<ActionResult<List<WordDto>>> SearchWords(
             [FromQuery] string? word = null,
-            [FromQuery] string? pronunciation = null
-            )
+            [FromQuery] string? pronunciation = null)
         {
             var wordEmpty = string.IsNullOrEmpty(word);
             var pronunciationEmpty = string.IsNullOrEmpty(pronunciation);

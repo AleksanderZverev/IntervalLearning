@@ -31,17 +31,6 @@ public class Language
     
     public ShortString? TranslationLinkTitle { get;  private set; }
     public string? TranslationLink { get;  private set; }
-    
-    public static Result<Language> CreateNew(string name, string nativeLanguageName)
-    {
-        var nameResult = ShortString.Create(name);
-        if (nameResult.IsFailed) return nameResult.ToResult();
-        
-        var nativeLanguageNameResult = ShortString.Create(nativeLanguageName);
-        if (nativeLanguageNameResult.IsFailed) return nativeLanguageNameResult.ToResult();
-        
-        return new Language(LanguageId.CreateEmpty(), nameResult.Value, nativeLanguageNameResult.Value, null, null);
-    }
 
     public static Result<Language> Create(short id, string name, string nativeLanguageName)
     {

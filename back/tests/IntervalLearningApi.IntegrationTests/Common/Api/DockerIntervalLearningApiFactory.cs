@@ -2,8 +2,10 @@ using DB;
 using DB.DependencyInjection;
 using DB.Models;
 using DB.Models.Dictionary;
+using DB.Models.Dictionary.ValueObjects;
 using DB.Models.ValueObjects;
 using Domain.Language;
+using Domain.Language.ValueObjects;
 using IntervalLearningApi.IntegrationTests.Common.Constants;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -54,17 +56,51 @@ public class DockerIntervalLearningApiFactory : WebApplicationFactory<Program>, 
     
     private async Task SetupDatabaseAsync(ApplicationContext db)
     {
-        var languageEntry = db.Languages.Add(
-            Language.CreateNew("Test English", "Test English").Value);
-        await db.SaveChangesAsync();
-        TestConstants.Language.TestId = languageEntry.Entity.Id;
+        //Base
+        var english = db.Languages.Single(l => EF.Functions.ILike(l.Name, "english"));
+        var russian =  db.Languages.Single(l => EF.Functions.ILike(l.Name, "russian"));
+        TestConstants.Language.TestId = english.Id;
+        TestConstants.Language.SuggestTranslationLanguageId = russian.Id;
 
         var themeEntry = db.Themes.Add(new Theme(ThemeId.Create(1).Value)
         {
             Name = ThemeTitle.Create("Test English").Value,
-            LanguageId = languageEntry.Entity.Id,
+            LanguageId = english.Id,
         });
         await db.SaveChangesAsync();
         TestConstants.Theme.TestId = themeEntry.Entity.Id;
+        
+        //Dictionary
+        db.Words.AddRange(new WordEntity()
+        {
+            Id = 1,
+            LanguageId = english.Id,
+            Word = "hello",
+            Pronunciation = "həˈləʊ",
+        },
+        new WordEntity()
+        {
+            Id = 2,
+            LanguageId = english.Id,
+            Word = "world",
+            Pronunciation = "wɜːld",
+        });
+        await db.SaveChangesAsync();
+        
+        db.Translations.AddRange(new WordTranslation()
+        {
+            Id = 1,
+            WordId = 1,
+            LanguageId = russian.Id,
+            Translation = TranslationText.Create("привет").Value,
+        },
+        new WordTranslation()
+        {
+            Id = 2,
+            WordId = 2,
+            LanguageId = russian.Id,
+            Translation = TranslationText.Create("мир").Value,
+        });
+        await db.SaveChangesAsync();
     } 
 }
