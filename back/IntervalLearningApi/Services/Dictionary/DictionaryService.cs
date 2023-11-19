@@ -1,6 +1,8 @@
 ﻿using System.Linq;
 using DB;
 using DB.Models.Dictionary;
+using DB.Models.Dictionary.ValueObjects;
+using Domain.Common.ValueObjects;
 using Domain.Language;
 using Domain.Language.ValueObjects;
 using Domain.User.ValueObjects;
@@ -20,7 +22,7 @@ namespace IntervalLearningApi.Services.Dictionary
             this.db = db;
         }
 
-        public async Task<(List<TranslationEntity>? translations, string? error)> GetTranslations(UserId userId, string word)
+        public async Task<(List<WordTranslation>? translations, string? error)> GetTranslations(UserId userId, string word)
         {
             var metadata = await db.UserMetadata.FindAsync(userId);
 
@@ -36,7 +38,7 @@ namespace IntervalLearningApi.Services.Dictionary
             }
 
             if (words.Count == 0)
-                return (new List<TranslationEntity>(0), null);
+                return (new List<WordTranslation>(0), null);
 
             var foundWord = words[0];
 
@@ -63,7 +65,7 @@ namespace IntervalLearningApi.Services.Dictionary
             var errors = new List<string>(5);
 
             var allWords = await db.Words.ToListAsync();
-            var wordIdToTranslations = new Dictionary<int, List<TranslationEntity>>();
+            var wordIdToTranslations = new Dictionary<int, List<WordTranslation>>();
 
             db.Database.BeginTransaction();
 
@@ -125,7 +127,7 @@ namespace IntervalLearningApi.Services.Dictionary
                     .ToListAsync();
 
                 if (!wordIdToTranslations.ContainsKey(word.Id))
-                    wordIdToTranslations.Add(word.Id, new List<TranslationEntity>(translationsFromDb));
+                    wordIdToTranslations.Add(word.Id, new List<WordTranslation>(translationsFromDb));
 
                 var translations = wordIdToTranslations[word.Id];
                 var translationsSplit = translationsLine.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
@@ -163,11 +165,11 @@ namespace IntervalLearningApi.Services.Dictionary
                         continue;
                     }
 
-                    var translation = new TranslationEntity()
+                    var translation = new WordTranslation()
                     {
                         Id = id,
                         LanguageId = LanguageId.Create(translationLanguageId).Value,
-                        Translation = lowerTranslation,
+                        Translation = TranslationText.Create(lowerTranslation).Value,
                         WordId = word.Id,
                     };
 

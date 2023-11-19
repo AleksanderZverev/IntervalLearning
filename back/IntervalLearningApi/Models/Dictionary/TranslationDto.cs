@@ -7,7 +7,7 @@ public class TranslationRegister : IRegister
 {
     public void Register(TypeAdapterConfig config)
     {
-        config.NewConfig<TranslationEntity, TranslationDto>();
+        config.NewConfig<WordTranslation, TranslationDto>();
     }
 }
 

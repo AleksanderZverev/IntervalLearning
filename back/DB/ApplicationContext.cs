@@ -46,7 +46,7 @@ namespace DB
 
         public DbSet<WordEntity> Words { get; set; }
         public DbSet<Language> Languages { get; set; }
-        public DbSet<TranslationEntity> Translations { get; set; }
+        public DbSet<WordTranslation> Translations { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

@@ -25,29 +25,6 @@ namespace DB.Migrations
 
             modelBuilder.HasSequence("user_id_sequence");
 
-            modelBuilder.Entity("DB.Models.Dictionary.TranslationEntity", b =>
-                {
-                    b.Property<int>("WordId")
-                        .HasColumnType("integer");
-
-                    b.Property<short>("LanguageId")
-                        .HasColumnType("smallint");
-
-                    b.Property<short>("Id")
-                        .HasColumnType("smallint");
-
-                    b.Property<string>("Translation")
-                        .IsRequired()
-                        .HasMaxLength(255)
-                        .HasColumnType("character varying(255)");
-
-                    b.HasKey("WordId", "LanguageId", "Id");
-
-                    b.HasIndex("LanguageId");
-
-                    b.ToTable("Translations");
-                });
-
             modelBuilder.Entity("DB.Models.Dictionary.WordEntity", b =>
                 {
                     b.Property<int>("Id")
@@ -75,6 +52,29 @@ namespace DB.Migrations
                     b.HasIndex("Word");
 
                     b.ToTable("Words");
+                });
+
+            modelBuilder.Entity("DB.Models.Dictionary.WordTranslation", b =>
+                {
+                    b.Property<int>("WordId")
+                        .HasColumnType("integer");
+
+                    b.Property<short>("LanguageId")
+                        .HasColumnType("smallint");
+
+                    b.Property<short>("Id")
+                        .HasColumnType("smallint");
+
+                    b.Property<string>("Translation")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)");
+
+                    b.HasKey("WordId", "LanguageId", "Id");
+
+                    b.HasIndex("LanguageId");
+
+                    b.ToTable("Translations", (string)null);
                 });
 
             modelBuilder.Entity("DB.Models.Phase", b =>
@@ -582,7 +582,18 @@ namespace DB.Migrations
                     b.ToTable("Users");
                 });
 
-            modelBuilder.Entity("DB.Models.Dictionary.TranslationEntity", b =>
+            modelBuilder.Entity("DB.Models.Dictionary.WordEntity", b =>
+                {
+                    b.HasOne("Domain.Language.Language", "Language")
+                        .WithMany()
+                        .HasForeignKey("LanguageId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.Navigation("Language");
+                });
+
+            modelBuilder.Entity("DB.Models.Dictionary.WordTranslation", b =>
                 {
                     b.HasOne("Domain.Language.Language", "Language")
                         .WithMany()
@@ -599,17 +610,6 @@ namespace DB.Migrations
                     b.Navigation("Language");
 
                     b.Navigation("Word");
-                });
-
-            modelBuilder.Entity("DB.Models.Dictionary.WordEntity", b =>
-                {
-                    b.HasOne("Domain.Language.Language", "Language")
-                        .WithMany()
-                        .HasForeignKey("LanguageId")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired();
-
-                    b.Navigation("Language");
                 });
 
             modelBuilder.Entity("DB.Models.Phase", b =>
