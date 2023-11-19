@@ -5,13 +5,12 @@ namespace Domain.Common.Tools;
 
 public class StringFactory
 {
-    public class Settings
+    public record class Settings
     {
         public int? MaxLength { get; init; }
         public bool RemoveExcessWhiteSpaces { get; init; }
-        public bool LeaveNewLines { get; set; }
-        public bool AllowEmpty { get; set; }
-        
+        public bool LeaveNewLines { get; init; }
+        public bool AllowEmpty { get; init; }
         public required string FieldName { get; init; }
     }
 

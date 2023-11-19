@@ -1,20 +1,25 @@
+using Domain.Common.Tools;
 using FluentResults;
 
 namespace Domain.Common.ValueObjects;
 
-public class MediumString : SingleValueObject<string>
+public class MediumSingleLineString : SingleValueObject<string>
 {
-    private MediumString(string value) : base(value)
+    private MediumSingleLineString(string value) : base(value)
     {
     }
 
-    public static Result<MediumString> Create(string name)
+    private static StringFactory.Settings settings = new()
     {
-        var limitedStringResult = LimitedString.Create(name, 255);
-
-        if (limitedStringResult.IsFailed)
-            return limitedStringResult.ToResult();
+        FieldName = "Medium single line",
+        MaxLength = 255,
+        RemoveExcessWhiteSpaces = true,
+        LeaveNewLines = false,
+    };
     
-        return new MediumString(limitedStringResult.Value.Value);
+    public static Result<MediumSingleLineString> Create(string text)
+    {
+        return StringFactory.Create(text, settings)
+            .Map(validatedString => new MediumSingleLineString(validatedString));
     }
 }
