@@ -1,4 +1,5 @@
 ﻿using IntervalLearningApi.Constants;
+using IntervalLearningApi.Extensions;
 using IntervalLearningApi.Models;
 using IntervalLearningApi.Services.Authentication;
 using Microsoft.AspNetCore.Authorization;
@@ -33,22 +34,23 @@ public class AuthenticationController : ControllerBase
     [HttpPost(ApiRoutes.Accounts.Register)]
     public IActionResult Register(RegisterRequest req)
     {
-        var (ok, errorMessage) = authService.Register(req, GetSourceIpAddress());
-        return ok ? Ok() : BadRequest(errorMessage);
+        var result = authService.Register(req, GetSourceIpAddress());
+        return result.ToActionResult();
     }
 
     [AllowAnonymous]
     [HttpPost(ApiRoutes.Accounts.Authenticate)]
     public ActionResult<AuthenticateResponse> Authenticate(AuthenticateRequest model)
     {
-        var (response, error) = authService.Authenticate(model, GetSourceIpAddress());
+        var authResult = authService.Authenticate(model, GetSourceIpAddress());
 
-        if (response == null)
-            return BadRequest(error);
+        if (authResult.IsFailed)
+            return authResult.ToErrorActionResult();
 
-        SetRefreshTokenCookie(response.RefreshToken);
-        SetJwtTokenCookie(response.JwtToken);
-        return response;
+        var auth = authResult.Value;
+        SetRefreshTokenCookie(auth.RefreshToken);
+        SetJwtTokenCookie(auth.JwtToken);
+        return auth;
     }
 
     [AllowAnonymous]
@@ -68,14 +70,15 @@ public class AuthenticationController : ControllerBase
         if (oldResponse != null)
             return Ok(oldResponse);
 
-        var (response, error) = authService.RefreshToken(refreshToken, GetSourceIpAddress());
+        var authResult = authService.RefreshToken(refreshToken, GetSourceIpAddress());
 
-        if (response == null)
-            return BadRequest(error);
+        if (authResult.IsFailed)
+            return authResult.ToErrorActionResult();
 
-        SetRefreshTokenCookie(response.RefreshToken);
-        SetJwtTokenCookie(response.JwtToken);
-        return response;
+        var auth = authResult.Value;
+        SetRefreshTokenCookie(auth.RefreshToken);
+        SetJwtTokenCookie(auth.JwtToken);
+        return auth;
     }
 
     [HttpPost(ApiRoutes.Accounts.RevokeToken)]
@@ -86,8 +89,8 @@ public class AuthenticationController : ControllerBase
         if (string.IsNullOrEmpty(token))
             return BadRequest("Token is required");
 
-        var (ok, error) = authService.RevokeToken(token, GetSourceIpAddress());
-        return ok ? Ok() : BadRequest(error);
+        var result = authService.RevokeToken(token, GetSourceIpAddress());
+        return result.ToActionResult();
     }
 
     private static string? GetJwtToken(HttpRequest req) => req.Cookies[JwtTokenKey];

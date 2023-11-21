@@ -70,8 +70,8 @@ namespace IntervalLearningApi.Controllers
             if (userId.IsFailed)
                 return BadRequest();
 
-            var (ok, error) = await dictionaryService.ParseWordsWithTranslations(userId.Value, req.LanguageId, req.TranslationLanguageId, req.Text);
-            return ok != null ? ok : BadRequest(error);
+            var parseWordsResult = await dictionaryService.ParseWordsWithTranslations(userId.Value, req.LanguageId, req.TranslationLanguageId, req.Text);
+            return parseWordsResult.ToActionResult();
         }
 
         [HttpGet(ApiRoutes.Dictionary.Get_GetTranslation)]
@@ -82,10 +82,8 @@ namespace IntervalLearningApi.Controllers
             if (userId.IsFailed)
                 return BadRequest();
 
-            var (translations, error) = await dictionaryService.GetTranslations(userId.Value, word);
-            return translations == null
-                ? BadRequest(error)
-                : mapper.Map<List<TranslationDto>>(translations);
+            var translationsResult = await dictionaryService.GetTranslations(userId.Value, word);
+            return translationsResult.ToActionResult(translations => mapper.Map<List<TranslationDto>>(translations));
         }
 
         public class AddTranslationsRequest

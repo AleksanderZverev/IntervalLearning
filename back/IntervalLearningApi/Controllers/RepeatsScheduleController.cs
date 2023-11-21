@@ -65,14 +65,12 @@ namespace IntervalLearningApi.Controllers
             if (userId.IsFailed)
                 return BadRequest();
 
-            var (schedule, error) = await repeatsScheduleService.PatchSchedule(
+            var scheduleResult = await repeatsScheduleService.PatchSchedule(
                 userId.Value, 
                 ScheduleId.Create(scheduleId).Value, 
                 mapper.Map<UpdateScheduleItem>(request));
-            
-            return schedule != null 
-                ?  mapper.Map<RepeatsScheduleDto>(schedule) 
-                : BadRequest(error);
+
+            return scheduleResult.ToActionResult(schedule => mapper.Map<RepeatsScheduleDto>(schedule));
         }
 
         [HttpPost(ApiRoutes.Schedule.Post_CreateSchedule)]
@@ -83,13 +81,11 @@ namespace IntervalLearningApi.Controllers
             if (userId.IsFailed)
                 return BadRequest();
 
-            var (schedule, error) = await repeatsScheduleService.Create(
+            var scheduleResult = await repeatsScheduleService.Create(
                 userId.Value, 
                 mapper.Map<CreateScheduleItem>(request));
             
-            return schedule != null 
-                ? mapper.Map<RepeatsScheduleDto>(schedule) 
-                : BadRequest(error);
+            return scheduleResult.ToActionResult(schedule => mapper.Map<RepeatsScheduleDto>(schedule));
         }
     }
 }

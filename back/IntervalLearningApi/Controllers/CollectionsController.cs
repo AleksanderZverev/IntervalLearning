@@ -5,8 +5,10 @@ using DB.Models.ValueObjects;
 using Domain.Collection.ValueObjects;
 using Domain.Language;
 using Domain.User.ValueObjects;
+using FluentResults;
 using IntervalLearningApi.Constants;
 using IntervalLearningApi.Extensions;
+using IntervalLearningApi.Interfaces.DataTransactions;
 using IntervalLearningApi.Models.ByUser;
 using IntervalLearningApi.Models.Dictionary;
 using IntervalLearningApi.Services;
@@ -22,25 +24,30 @@ namespace IntervalLearningApi.Controllers
     public class CollectionsController : ControllerBase
     {
         private readonly IMapper mapper;
+        private readonly IDbTransactionProvider transactionProvider;
         private readonly CollectionService collectionService;
 
         public CollectionsController(
             IMapper mapper,
+            IDbTransactionProvider transactionProvider,
             CollectionService collectionService)
         {
             this.mapper = mapper;
+            this.transactionProvider = transactionProvider;
             this.collectionService = collectionService;
         }
 
         [HttpPost(ApiRoutes.Collections.Create)]
-        public ActionResult<CollectionDto> CreateCollection([FromBody]CreateCollectionItem item)
+        public async Task<ActionResult<CollectionDto>> CreateCollection([FromBody]CreateCollectionItem item)
         {
+            await using var transaction = await transactionProvider.BeginTransactionAsync();
+            
             var userId = HttpContext.GetUserId();
 
             if (userId.IsFailed)
                 return BadRequest();
 
-            var (collection, error) = collectionService.CreateOrEdit(
+            var collectionResult = collectionService.CreateOrEdit(
                 new CollectionService.CreateOrPatchCollection()
                 {
                     ParentUserId = userId.Value,
@@ -49,10 +56,12 @@ namespace IntervalLearningApi.Controllers
                     IsDefaultBackSide = item.IsDefaultBackSide,
                 },
                 item.CollectionId == null ? null : CollectionId.Create(item.CollectionId.Value).Value);
+            
+            if (collectionResult.IsFailed)
+                return BadRequest();
 
-            return collection != null
-                ? mapper.Map<CollectionDto>(collection)
-                : BadRequest(error);
+            await transaction.CommitAsync();
+            return mapper.Map<CollectionDto>(collectionResult.Value);
         }
         
         [HttpGet(ApiRoutes.Collections.SearchPublic)]
@@ -109,13 +118,15 @@ namespace IntervalLearningApi.Controllers
             if (userId.IsFailed)
                 return BadRequest();
 
-            var (words, language, error) = await collectionService.GetRandomWords(userId.Value, CollectionId.Create(collectionId).Value);
+            var wordsResult = await collectionService.GetRandomWords(userId.Value, CollectionId.Create(collectionId).Value);
 
-            return words == null || language == null
-                ? BadRequest(error)
-                : new GetRandomWordResponse(
-                    mapper.Map<List<WordDto>>(words),
-                    mapper.Map<LanguageDto>(language));
+            if (wordsResult.IsFailed)
+                return wordsResult.ToErrorActionResult();
+
+            var (words, language) = wordsResult.Value;
+            return new GetRandomWordResponse(
+                mapper.Map<List<WordDto>>(words),
+                mapper.Map<LanguageDto>(language));
         }
 
         [HttpGet(ApiRoutes.Collections.GetRepeatCollections)]
@@ -180,10 +191,8 @@ namespace IntervalLearningApi.Controllers
             if (userId.IsFailed)
                 return BadRequest();
 
-            var (collection, error) = await collectionService.MakePublic(userId.Value, CollectionId.Create(collectionId).Value).ConfigureAwait(false);
-            return collection != null 
-                ? mapper.Map<CollectionDto>(collection) 
-                : BadRequest(error);
+            var collectionResult = await collectionService.MakePublic(userId.Value, CollectionId.Create(collectionId).Value).ConfigureAwait(false);
+            return collectionResult.ToActionResult(collection => mapper.Map<CollectionDto>(collection));
         }
 
         [HttpPost(ApiRoutes.Collections.AddCardsToMyCollection)]
@@ -197,7 +206,7 @@ namespace IntervalLearningApi.Controllers
             if (userId.IsFailed)
                 return BadRequest();
 
-            var (collection, error) = await collectionService.AddCardsToMyCollection(
+            var collectionResult = await collectionService.AddCardsToMyCollection(
                 UserId.Create(collectionUserId).Value,
                 CollectionId.Create(collectionId).Value,
                 userId.Value,
@@ -206,9 +215,7 @@ namespace IntervalLearningApi.Controllers
             request.NewCollectionName,
                 request.CheckUnique);
             
-            return collection != null 
-                ? mapper.Map<CollectionDto>(collection)
-                : BadRequest(error);
+            return collectionResult.ToActionResult(collection => mapper.Map<CollectionDto>(collection));
         }
     }
 

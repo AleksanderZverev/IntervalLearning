@@ -369,7 +369,7 @@ public class CollectionService
         return movingResult.Value;
     }
 
-    public async Task<Result<(List<LanguageWord>? words, Language? language)>> GetRandomWords(
+    public async Task<Result<(List<LanguageWord> words, Language language)>> GetRandomWords(
         UserId userId, 
         CollectionId collectionId)
     {
