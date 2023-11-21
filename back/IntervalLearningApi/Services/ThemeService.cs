@@ -4,6 +4,8 @@ using DB.Models;
 using DB.Models.ValueObjects;
 using Domain.Common.ValueObjects;
 using Domain.Theme;
+using FluentResults;
+using Infrastructure.Errors;
 using Microsoft.EntityFrameworkCore;
 
 namespace IntervalLearningApi.Services;
@@ -19,18 +21,18 @@ public class ThemeService
 
     public List<Theme> GetAll() => db.Themes.AsNoTracking().ToList();
 
-    public (bool ok, string? reason) Create(string name)
+    public Result Create(string name)
     {
         var themeTitleResult = ThemeTitle.Create(name);
         
         if (themeTitleResult.IsFailed)
-            return (false, themeTitleResult.Errors.Single().Message);
+            return themeTitleResult.ToResult();
 
         var themeTitle = themeTitleResult.Value;
         var containsSameTheme = db.Themes.SingleOrDefault(t => EF.Functions.ILike(t.Name, themeTitle.Value));
 
         if (containsSameTheme != null)
-            return (false, "Conflict");
+            return new ConflictError("Theme");
 
         var seqName = ThemeConfiguration.GetSequenceName();
         db.EnsureSequenceCreated(seqName);
@@ -43,6 +45,6 @@ public class ThemeService
         db.Themes.Add(theme);
         db.SaveChanges();
 
-        return (true, null);
+        return Result.Ok();
     }
 }

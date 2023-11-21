@@ -5,6 +5,8 @@ using Domain.Language.ValueObjects;
 using Domain.User;
 using Domain.User.Entities;
 using Domain.User.ValueObjects;
+using FluentResults;
+using Infrastructure.Errors;
 using IntervalLearningApi.Models;
 using IntervalLearningApi.Models.Common;
 using IntervalLearningApi.Services.Jwt;
@@ -32,17 +34,17 @@ public class AuthenticationService : IAuthenticationService
         this.jwtSettings = jwtSettings;
     }
 
-    public (bool ok, string? error) Register(RegisterRequest request, string sourceIpAddress)
+    public Result Register(RegisterRequest request, string sourceIpAddress)
     {
         var emailLower = request.Email.ToLowerInvariant();
         var sameUser = db.Users.FirstOrDefault(u => u.Email == emailLower);
 
         if (sameUser != null)
-            return (false, "Email already exists");
+            return new ConflictError("Email");
 
         var userIdResult = db.GetUniqueUserId();
         if (userIdResult.IsFailed)
-            return (false, "Failure on creating user id");
+            return new InternalError();
         
         //TODO: validation
         var user = User.Create(
@@ -71,13 +73,13 @@ public class AuthenticationService : IAuthenticationService
         }
         catch
         {
-            return (false, "Unknown error");
+            return new InternalError();
         }
 
-        return (true, null);
+        return Result.Ok();
     }
 
-    public (AuthenticateResponse? response, string? errorMessage) Authenticate(AuthenticateRequest req, string ipAddress)
+    public Result<AuthenticateResponse> Authenticate(AuthenticateRequest req, string ipAddress)
     {
         var user = db.Users
             .Include(u => u.PasswordHash)
@@ -86,12 +88,12 @@ public class AuthenticationService : IAuthenticationService
             .SingleOrDefault(x => x.Email == req.Email.ToLower());
 
         if (user is {PasswordHash: null})
-            return (null, "Not signed up user!");
+            return new BadRequestError("User is not signed up");
 
         if (user == null || !BCrypt.Net.BCrypt.Verify(req.Password, user.PasswordHash.PasswordHash))
-            return (null, "Email or password is incorrect");
+            return new BadRequestError("Email or password is incorrect");
 
-        return (Authenticate(user, ipAddress), null);
+        return Authenticate(user, ipAddress);
     }
 
     public AuthenticateResponse? TryAuthenticateByOldToken(string jwtToken, string refreshToken)
@@ -121,13 +123,14 @@ public class AuthenticationService : IAuthenticationService
         return ToAuthenticationResponse(user, jwtToken, refreshToken.Token);
     }
 
-    public (AuthenticateResponse? response, string? error) RefreshToken(string refreshToken, string ipAddress)
+    public Result<AuthenticateResponse> RefreshToken(string refreshToken, string ipAddress)
     {
-        var (user, userError) = GetUserByRefreshToken(refreshToken);
+        var userResult = GetUserByRefreshToken(refreshToken);
 
-        if (user == null)
-            return (null, userError);
+        if (userResult.IsFailed)
+            return userResult.ToResult();
 
+        var user = userResult.Value;
         var refreshTokenItem = user.RefreshTokens.Single(x => x.Token == refreshToken);
 
         if (refreshTokenItem.IsRevoked)
@@ -138,17 +141,20 @@ public class AuthenticationService : IAuthenticationService
         }
 
         if (!refreshTokenItem.IsActive)
-            return (null, "Invalid token");
+            return new BadRequestError("Refresh token is invalid");
 
         var newRefreshToken = ReplaceOldRefreshToken(user, refreshTokenItem, ipAddress);
         user.RefreshTokens.Add(newRefreshToken);
         
         RemoveOldRefreshTokens(user);
-        db.SaveChanges();
+
+        if (!db.SoftSaveChanges())
+        {
+            return new InternalError();
+        }
 
         var jwtToken = jwtService.GenerateJwtToken(user);
-
-        return (ToAuthenticationResponse(user, jwtToken, newRefreshToken.Token), null);
+        return ToAuthenticationResponse(user, jwtToken, newRefreshToken.Token);
     }
 
     private AuthenticateResponse ToAuthenticationResponse(User userEntity, string jwtToken, string refreshToken)
@@ -165,33 +171,35 @@ public class AuthenticationService : IAuthenticationService
         };
     }
 
-    public (bool ok, string? error) RevokeToken(string token, string ipAddress)
+    public Result RevokeToken(string token, string ipAddress)
     {
-        var (user, userError) = GetUserByRefreshToken(token);
+        var userResult = GetUserByRefreshToken(token);
 
-        if (user == null)
-            return (false, userError);
+        if (userResult.IsFailed)
+            return userResult.ToResult();
 
+        var user = userResult.Value;
         var refreshToken = user.RefreshTokens.Single(x => x.Token == token);
 
         if (!refreshToken.IsActive)
-            return (false, "Invalid token");
+            return new BadRequestError("Refresh token is invalid");
         
         RevokeRefreshToken(refreshToken, ipAddress, "Revoked without replacement");
 
         db.Update(user);
-        db.SaveChanges();
-
-        return (true, null);
+        return db.SoftSaveChanges()
+            ? Result.Ok()
+            : new InternalError();
     }
 
-    private (User? user, string? error) GetUserByRefreshToken(string token)
+    private Result<User> GetUserByRefreshToken(string token)
     {
         var user = db.Users
             .Include(u => u.RefreshTokens)
             .Include(u => u.Metadata)
             .SingleOrDefault(u => u.RefreshTokens.Any(t => t.Token == token));
-        return (user, user == null ? "Invalid token" : null);
+        
+        return user != null ? user : new BadRequestError("Refresh token is expired");
     }
 
     private RefreshTokenEntity ReplaceOldRefreshToken(User user, RefreshTokenEntity tokenToRevoke, string ipAddress)

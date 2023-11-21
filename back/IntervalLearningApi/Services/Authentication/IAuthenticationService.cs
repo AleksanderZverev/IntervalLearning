@@ -1,12 +1,13 @@
-﻿using IntervalLearningApi.Models;
+﻿using FluentResults;
+using IntervalLearningApi.Models;
 
 namespace IntervalLearningApi.Services.Authentication;
 
 public interface IAuthenticationService
 {
-    (AuthenticateResponse? response, string? errorMessage) Authenticate(AuthenticateRequest req, string ipAddress);
-    (AuthenticateResponse? response, string? error) RefreshToken(string refreshToken, string ipAddress);
-    (bool ok, string? error) RevokeToken(string token, string ipAddress);
+    Result<AuthenticateResponse> Authenticate(AuthenticateRequest req, string ipAddress);
+    Result<AuthenticateResponse> RefreshToken(string refreshToken, string ipAddress);
+    Result RevokeToken(string token, string ipAddress);
     AuthenticateResponse? TryAuthenticateByOldToken(string jwtToken, string refreshToken);
-    (bool ok, string? error) Register(RegisterRequest request, string sourceIpAddress);
+    Result Register(RegisterRequest request, string sourceIpAddress);
 }

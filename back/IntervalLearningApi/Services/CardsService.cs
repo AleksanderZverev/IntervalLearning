@@ -10,6 +10,8 @@ using Domain.Collection.ValueObjects;
 using Domain.Queue;
 using Domain.Schedule;
 using Domain.User.ValueObjects;
+using FluentResults;
+using Infrastructure.Errors;
 using IntervalLearningApi.Models;
 using Microsoft.EntityFrameworkCore;
 
@@ -62,19 +64,12 @@ public class CardsService
             .ToListAsync();
     }
 
-    public (Card? card, string? error, bool isCreated) CreateOrEdit(CreateOrPatchCard item, CardId? cardId)
-    {
-        return cardId == null
-            ? Create(item)
-            : Edit(item, cardId);
-    }
-    
-    public (Card? card, string? error, bool isCreated) Edit(CreateOrPatchCard item, CardId cardId)
+    public Result<Card> Edit(CreateOrPatchCard item, CardId cardId)
     {
         var card = db.Cards.Find(item.ParentUserId, item.ParentCollectionId, cardId);
 
         if (card == null)
-            return (null, "Card not found", false);
+            return new NotFoundError(nameof(Card));
         
         card.MeaningText = item.MeaningText;
         card.RememberingText = item.RememberingText;
@@ -82,19 +77,13 @@ public class CardsService
         card.Description = item.Description;
         card.Examples = item.Examples;
 
-        try
-        {
-            db.Update(card);
-            db.SaveChanges();
-            return (card, null, false);
-        }
-        catch
-        {
-            return (null, "Unknown error", false);
-        }
+        db.Update(card);
+        return db.SoftSaveChanges()
+            ? card
+            : new InternalError();
     }
     
-    public (Card? card, string? error, bool isCreated) Create(CreateOrPatchCard item)
+    public Result<Card> Create(CreateOrPatchCard item)
     {
         var sequenceName = CardConfiguration.GetSequenceName(
             item.ParentUserId,
@@ -116,35 +105,24 @@ public class CardsService
             card.Examples = item.Examples;
         }
 
-        try
-        {
-            db.Add(card);
-            db.SaveChanges();
-            return (card, null, true);
-        }
-        catch
-        {
-            return (null, "Unknown error", false);
-        }
+        db.Add(card);
+        
+        return db.SoftSaveChanges()
+            ? card
+            : new InternalError();
     }
     
-    public async Task<(Card? card, string? error)> Delete(UserId userId, CollectionId collectionId, CardId cardId)
+    public async Task<Result<Card>> Delete(UserId userId, CollectionId collectionId, CardId cardId)
     {
         var card = await db.Cards.FindAsync(userId, collectionId, cardId);
 
         if (card == null)
-            return (null, "Card not found");
+            return new NotFoundError(nameof(Card));
 
         var deletedCard = db.Cards.Remove(card);
-        try
-        {
-            await db.SaveChangesAsync();
-            return (deletedCard.Entity, null);
-        }
-        catch
-        {
-            return (null, "Unable to save changes to database");
-        }
+        return await db.SoftSaveChangesAsync()
+            ? deletedCard.Entity
+            : new InternalError();
     }
 
     public async Task<List<Card>> Search(
@@ -185,7 +163,7 @@ public class CardsService
             .ToListAsync();
     }
 
-    public async Task<(Card? card, string? error, bool isMoved)> MoveCard(
+    public async Task<Result<Card>> MoveCard(
         UserId userId,
         CollectionId sourceCollectionId,
         CollectionId destinationCollectionId,
@@ -214,12 +192,12 @@ public class CardsService
         };
 
         db.Add(movedCard);
-
-        if (!db.SoftSaveChanges())
+        
+        if (!await db.SoftSaveChangesAsync())
         {
             if (!disableTransaction)
                 await db.Database.RollbackTransactionAsync();
-            return (null, "Unable to create card", false);
+            return new Error("Failure on creating card");
         }
         
         var remembers = card.Remembers.Select(r => new Remember(
@@ -237,23 +215,23 @@ public class CardsService
         
         if (!await db.SoftSaveChangesAsync())
         {
-            return (null, "Unable to save remember entities", false);
+            return new Error("Failure on saving remember entities");
         }
 
-        var (deleted, deletionError) = await Delete(userId, sourceCollectionId, cardId);
+        var deletionResult = await Delete(userId, sourceCollectionId, cardId);
 
-        if (deletionError != null)
+        if (deletionResult.IsFailed)
         {
-            return (null, deletionError, false);
+            return deletionResult;
         }
 
         if (!disableTransaction)
             await db.Database.CommitTransactionAsync();
 
-        return (movedCard, null, true);
+        return movedCard;
     }
 
-    public async Task<(List<Card>? cards, string? error)> GetNotStartedCards(
+    public async Task<Result<List<Card>>> GetNotStartedCards(
         UserId scheduleUserId,
         ScheduleId scheduleId,
         UserId userId,
@@ -264,7 +242,7 @@ public class CardsService
 
         if (schedule == null)
         {
-            return (null, "schedule not found");
+            return new NotFoundError(nameof(schedule));
         }
 
         var startedCardIds = await db.Remembers
@@ -283,7 +261,7 @@ public class CardsService
             .Take(count)
             .ToListAsync();
 
-        return (canStartCards, null);
+        return canStartCards;
     }
 
     public async Task<List<Card>> GetCardsQueue(
@@ -337,7 +315,7 @@ public class CardsService
         return cards;
     }
 
-    public (NextRepeatInfo? closestRepeatInfo, string? reason) Start(
+    public Result<NextRepeatInfo> Start(
         UserId userId,
         CollectionId collectionId,
         UserId scheduleUserId,
@@ -351,12 +329,12 @@ public class CardsService
 
         if (schedule == null)
         {
-            return (null, "Schedule not found");
+            return new NotFoundError("Schedule");
         }
 
         if (schedule.Phases.Count == 0)
         {
-            return (null, "No phases found");
+            return new NotFoundError("Phases");
         }
 
         var startedCards = db.Cards.Where(c => 
@@ -369,7 +347,7 @@ public class CardsService
 
         if (startedCards.Count == 0)
         {
-            return (null, "No cards");
+            return new NotFoundError("Cards");
         }
 
         db.Database.BeginTransaction();
@@ -381,31 +359,25 @@ public class CardsService
             db.Entry(remember).State = EntityState.Added;
         });
 
-        try
-        {
-            db.SaveChanges();
-        }
-        catch (Exception e)
-        {
-            logger.LogError(e.ToString());
-            db.Database.RollbackTransaction();
-            return (null, "unknown error");
-        }
-
-        var (nextRepeatInfo, queueError) = AddToQueue(userId, collectionId, startedCards, schedule);
-
-        if (nextRepeatInfo == null)
+        if (!db.SoftSaveChanges())
         {
             db.Database.RollbackTransaction();
-            return (null, queueError);
+            return new InternalError();
+        }
+
+        var nextRepeatInfoResult = AddToQueue(userId, collectionId, startedCards, schedule);
+
+        if (nextRepeatInfoResult.IsFailed)
+        {
+            db.Database.RollbackTransaction();
+            return nextRepeatInfoResult;
         }
 
         db.Database.CommitTransaction();
-
-        return (nextRepeatInfo, null);
+        return nextRepeatInfoResult.Value;
     }
 
-    private (NextRepeatInfo? closestRepeatInfo, string? reason) AddToQueue(
+    private Result<NextRepeatInfo> AddToQueue(
         UserId userId, 
         CollectionId collectionId, 
         List<Card> cards,
@@ -422,8 +394,8 @@ public class CardsService
 
             if (startPhase == null)
             {
-                Debug.Fail("nextPhase == null");
-                return (null, "An error in algorithm work");
+                Debug.Fail("An error in algorithm work: nextPhase == null");
+                return new InternalError();
             }
 
             var nextRepeatDate = startPhase.GetNextDate(DateTime.UtcNow);
@@ -444,22 +416,13 @@ public class CardsService
 
         queueItems.ForEach(q => db.Entry(q).State = EntityState.Added);
 
-        try
+        if (!db.SoftSaveChanges())
         {
-            db.SaveChanges();
-        }
-        catch (Exception e)
-        {
-            logger.LogError(e.ToString());
-            return (null, "unknown error");
+            return new InternalError();
         }
 
-#if DEBUG
-        if (closestRepeatDate == DateTime.MaxValue)
-            Debug.Fail("closestRepeatDate == DateTime.MaxValue)");
-#endif
-
-        return (new NextRepeatInfo(closestRepeatDate, closestPhaseInfo, closestPhaseIndex), null);
+        Debug.Assert(closestRepeatDate != DateTime.MaxValue, "closestRepeatDate != DateTime.MaxValue");
+        return new NextRepeatInfo(closestRepeatDate, closestPhaseInfo, closestPhaseIndex);
     }
 
     private CardRepeatQueue GetNextQueue(RepeatsSchedule scheduleWithPhases, Card card, int nextPhaseIndex, DateTime nextRepeatDate)
@@ -482,7 +445,7 @@ public class CardsService
         return queueItem;
     }
 
-    public async Task<(NextRepeatInfo? closestRepeatInfo, string? reason)> Remember(
+    public async Task<Result<NextRepeatInfo>> Remember(
         UserId userId,
         CollectionId collectionId,
         UserId scheduleUserId,
@@ -496,7 +459,7 @@ public class CardsService
 
         if (collection == null)
         {
-            return (null, "card's collection not found");
+            return new NotFoundError("card's collection");
         }
 
         var queueItems = await db.Queue
@@ -509,7 +472,7 @@ public class CardsService
             .ToListAsync();
 
         if (queueItems.Count == 0 || queueItems.Count != cardIds.Count)
-            return (null, "Incorrect request");
+            return new BadRequestError();
 
         var schedule = db.RepeatsSchedules
             .Include(s => s.Phases)
@@ -517,7 +480,7 @@ public class CardsService
 
         if (schedule == null)
         {
-            return (null, "Schedule not found");
+            return new NotFoundError("Schedule");
         }
         
         await using var transaction = await db.Database.BeginTransactionAsync();
@@ -537,7 +500,7 @@ public class CardsService
 
             if (card == null)
             {
-                return (null, "Internal error, card not found");
+                return new InternalError();
             }
 
             var queueItem = queueItems.Single(q => q.ParentCardId == cardId);
@@ -545,10 +508,9 @@ public class CardsService
             if (queueItem.Date.Date >= forbidDate && env.IsProduction())
             {
                 logger.LogInformation("Unable to remember. Not time!");
-                return (null, "unable to repeat");
+                return new BadRequestError("It's too early to repeat now");
             }
 
-            
             var remember = CreateRemember(schedule, card, weight, queueItem.PhaseIndex, now);
             db.Entry(remember).State = EntityState.Added;
 
@@ -581,17 +543,15 @@ public class CardsService
             }
         }
 
-        var isOk = await db.SoftSaveChangesAsync();
-
-        if (!isOk)
-            return (null, "unknown error");
+        if (!await db.SoftSaveChangesAsync())
+            return new InternalError();
 
         await transaction.CommitAsync();
 
-        return (new NextRepeatInfo(
+        return new NextRepeatInfo(
             closestRepeatDate == DateTime.MaxValue ? null : closestRepeatDate,
             closestPhaseInfo,
-            closestPhaseIndex), null);
+            closestPhaseIndex);
     }
 
     private Remember CreateRemember(RepeatsSchedule schedule, Card card, RememberWeight weight, int phaseIndex, DateTime date)

@@ -6,6 +6,8 @@ using DB.Models.ValueObjects;
 using Domain.Schedule;
 using Domain.Schedule.ValueObjects;
 using Domain.User.ValueObjects;
+using FluentResults;
+using Infrastructure.Errors;
 using Microsoft.EntityFrameworkCore;
 
 namespace IntervalLearningApi.Services;
@@ -26,31 +28,31 @@ public class RepeatsScheduleService
             .AsSplitQuery()
             .ToList();
 
-    public async Task<(RepeatsSchedule? schedule, string? error)> PatchSchedule(
-        UserId userId, 
+    public async Task<Result<RepeatsSchedule>> PatchSchedule(
+        UserId userId,
         ScheduleId scheduleId,
         UpdateScheduleItem item)
     {
         var schedule = Find(userId, scheduleId);
 
         if (schedule == null)
-            return (null, "not found");
-            
+            return new NotFoundError("Schedule");
+
         await using var transaction = await db.Database.BeginTransactionAsync();
-        
+
         schedule.Title = item.Title;
         schedule.CardsCountPerPhase = item.CardsCountPerPhase;
-         
+
         schedule.ShortDescription = item.ShortDescription;
         schedule.DefaultPhaseShortDescription = item.DefaultPhaseShortDescription;
         schedule.DefaultRepeatPhaseShortDescription = item.DefaultRepeatPhaseShortDescription;
-        
+
         schedule.OnStartLearningDescription = item.OnStartLearningDescription;
         schedule.DefaultPhaseDescription = item.DefaultPhaseDescription;
         schedule.DefaultRepeatPhaseDescription = item.DefaultRepeatPhaseDescription;
 
         db.Update(schedule);
-        
+
         if (item.Phases != null)
         {
             db.Phases.RemoveRange(schedule.Phases);
@@ -58,19 +60,16 @@ public class RepeatsScheduleService
             db.Phases.AddRange(schedule.Phases);
         }
 
-        try
+        if (!await db.SoftSaveChangesAsync())
         {
-            await db.SaveChangesAsync();
-            await transaction.CommitAsync();
-            return (schedule, null);
+            return new InternalError();
         }
-        catch (Exception e)
-        {
-            return (null, "Unable to edit schedule");
-        }
+        
+        await transaction.CommitAsync();
+        return schedule;
     }
 
-    public async Task<(RepeatsSchedule? schedule, string? error)> Create(
+    public async Task<Result<RepeatsSchedule>> Create(
         UserId userId, 
         CreateScheduleItem item)
     {
@@ -96,19 +95,16 @@ public class RepeatsScheduleService
 
         var newPhases = item.Phases.Select(p => ConvertToPhase(newSchedule, p)).ToList();
         newSchedule.Phases = newPhases;
+        
+        db.RepeatsSchedules.Add(newSchedule);
 
-        try
+        if (!await db.SoftSaveChangesAsync())
         {
-            db.RepeatsSchedules.Add(newSchedule);
-            await db.SaveChangesAsync();
+            return new InternalError();
+        }
 
-            await transaction.CommitAsync();
-            return (newSchedule, null);
-        }
-        catch (Exception e)
-        {
-            return (null, "Unable to create schedule");
-        }
+        await transaction.CommitAsync();
+        return newSchedule;
     }
 
     private static Phase ConvertToPhase(RepeatsSchedule newSchedule, PhaseInfo phase)

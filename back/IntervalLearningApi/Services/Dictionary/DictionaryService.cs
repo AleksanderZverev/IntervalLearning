@@ -6,7 +6,9 @@ using Domain.Common.ValueObjects;
 using Domain.Language;
 using Domain.Language.ValueObjects;
 using Domain.User.ValueObjects;
+using FluentResults;
 using Infrastructure;
+using Infrastructure.Errors;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -24,7 +26,7 @@ namespace IntervalLearningApi.Services.Dictionary
             this.env = env;
         }
 
-        public async Task<(List<WordTranslation>? translations, string? error)> GetTranslations(UserId userId, string word)
+        public async Task<Result<List<WordTranslation>>> GetTranslations(UserId userId, string word)
         {
             var metadata = await db.UserMetadata.FindAsync(userId);
 
@@ -36,11 +38,11 @@ namespace IntervalLearningApi.Services.Dictionary
 
             if (words.Count > 1)
             {
-                return (null, "Many words found");
+                return new BadRequestError("Found more than 1 word");
             }
 
             if (words.Count == 0)
-                return (new List<WordTranslation>(0), null);
+                return new List<WordTranslation>();
 
             var foundWord = words[0];
 
@@ -48,10 +50,10 @@ namespace IntervalLearningApi.Services.Dictionary
                 .Where(t => t.WordId == foundWord.Id && t.LanguageId == metadata.SuggestTranslationLanguageId)
                 .ToListAsync();
 
-            return (translations, null);
+            return translations;
         }
 
-        public async Task<(string? okText, string? error)> ParseWordsWithTranslations(
+        public async Task<Result<string>> ParseWordsWithTranslations(
             UserId userId, 
             short languageId, 
             short translationLanguageId, 
@@ -60,7 +62,7 @@ namespace IntervalLearningApi.Services.Dictionary
             var user = await db.Users.FindAsync(userId);
 
             if (env.IsProduction() && user is not {Email.Value: "sam998980@mail.ru"})
-                return (null, "Forbidden");
+                return new ForbiddenError();
 
             var lines = text.Split("\n", StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
 
@@ -188,8 +190,7 @@ namespace IntervalLearningApi.Services.Dictionary
             }
 
             db.Database.CommitTransaction();
-
-            return (string.Join("\n\n", errors), null);
+            return string.Join("\n\n", errors);
         }
 
         public async Task<List<Language>> GetLanguages()
