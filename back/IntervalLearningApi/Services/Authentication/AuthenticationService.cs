@@ -7,6 +7,7 @@ using Domain.User.Entities;
 using Domain.User.ValueObjects;
 using FluentResults;
 using Infrastructure.Errors;
+using IntervalLearningApi.Interfaces.DbTransactions;
 using IntervalLearningApi.Models;
 using IntervalLearningApi.Models.Common;
 using IntervalLearningApi.Services.Jwt;
@@ -21,17 +22,20 @@ public class AuthenticationService : IAuthenticationService
     private readonly ApplicationContext db;
     private readonly IJwtService jwtService;
     private readonly JwtSettings jwtSettings;
+    private readonly ITransactionProvider transactionProvider;
 
     public AuthenticationService(
         IDateTimeProvider dateTimeProvider,
         ApplicationContext db,
         IJwtService jwtService,
-        JwtSettings jwtSettings)
+        JwtSettings jwtSettings,
+        ITransactionProvider transactionProvider)
     {
         this.dateTimeProvider = dateTimeProvider;
         this.db = db;
         this.jwtService = jwtService;
         this.jwtSettings = jwtSettings;
+        this.transactionProvider = transactionProvider;
     }
 
     public Result Register(RegisterRequest request, string sourceIpAddress)
@@ -56,26 +60,26 @@ public class AuthenticationService : IAuthenticationService
         var passwordHash = BCrypt.Net.BCrypt.HashPassword(request.Password);
         user.PasswordHash = UserPassword.Create(userIdResult.Value, passwordHash).Value;
         
-        try
+        using var transaction = transactionProvider.CreateScope();
+        
+        db.Users.Add(user);
+        db.UsersPasswords.Add(user.PasswordHash);
+
+        if (!db.SoftSaveChanges())
         {
-            db.Database.BeginTransaction();
-
-            db.Users.Add(user);
-            db.UsersPasswords.Add(user.PasswordHash);
-            db.SaveChanges();
-
-            //TODO: validation
-            var metadata = new UserMetadata(user.Id, LanguageId.Create(request.SuggestLanguageId).Value);
-            db.Entry(metadata).State = EntityState.Added;
-
-            db.SaveChanges();
-            db.Database.CommitTransaction();
+            return new InternalError();
         }
-        catch
+        
+        //TODO: validation
+        var metadata = new UserMetadata(user.Id, LanguageId.Create(request.SuggestLanguageId).Value);
+        db.Entry(metadata).State = EntityState.Added;
+
+        if (!db.SoftSaveChanges())
         {
             return new InternalError();
         }
 
+        transaction.Complete();
         return Result.Ok();
     }
 

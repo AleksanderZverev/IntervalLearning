@@ -1,7 +1,6 @@
 ﻿using System.Diagnostics;
 using DB;
 using DB.Configurations.Study;
-using DB.Models;
 using DB.Models.Dictionary;
 using DB.Models.Store;
 using DB.Models.ValueObjects;
@@ -15,6 +14,7 @@ using Domain.User.ValueObjects;
 using FluentResults;
 using Infrastructure;
 using Infrastructure.Errors;
+using IntervalLearningApi.Interfaces.DbTransactions;
 using Microsoft.EntityFrameworkCore;
 
 namespace IntervalLearningApi.Services;
@@ -22,17 +22,17 @@ namespace IntervalLearningApi.Services;
 public class CollectionService
 {
     private readonly ApplicationContext db;
+    private readonly ITransactionProvider transactionProvider;
     private readonly CardsService cardsService;
-    private readonly UserMetadataService metadataService;
 
     public CollectionService(
         ApplicationContext db,
-        CardsService cardsService,
-        UserMetadataService metadataService)
+        ITransactionProvider transactionProvider,
+        CardsService cardsService)
     {
         this.db = db;
+        this.transactionProvider = transactionProvider;
         this.cardsService = cardsService;
-        this.metadataService = metadataService;
     }
 
     public Task<Collection?> Find(UserId userId, CollectionId collectionId)
@@ -234,17 +234,13 @@ public class CollectionService
         CardText? promptText,
         CardText backText,
         CardDescription? description,
-        List<CardExample> examples,
-        bool disableTransaction = false)
+        List<CardExample> examples)
     {
         var collection = db.Collections.Find(userId, collectionId);
 
         if (collection == null)
             return new Error("Collection not found");
 
-        if (!disableTransaction)
-            db.Database.BeginTransaction();
-        
         var createOrPatchCard = new CardsService.CreateOrPatchCard
         {
             ParentUserId = userId,
@@ -256,6 +252,8 @@ public class CollectionService
             Examples = examples
         };
 
+        using var transaction = transactionProvider.CreateScope();
+        
         var isCreation = cardId == null; 
         var cardResult = isCreation
             ? cardsService.Create(createOrPatchCard)
@@ -263,8 +261,6 @@ public class CollectionService
 
         if (cardResult.IsFailed)
         {
-            if (!disableTransaction)
-                db.Database.RollbackTransaction();
             return cardResult;
         }
 
@@ -276,37 +272,29 @@ public class CollectionService
 
         if (!db.SoftSaveChanges())
         {
-            if (!disableTransaction)
-                db.Database.RollbackTransaction();
             return new InternalError();
         }
 
-        if (!disableTransaction)
-            db.Database.CommitTransaction();
-
+        transaction.Complete();
         return cardResult.Value;
     }
     
     public async Task<Result<Card>> DeleteCard(
         UserId userId,
         CollectionId collectionId,
-        CardId cardId,
-        bool disableTransaction = false)
+        CardId cardId)
     {
         var collection = await db.Collections.FindAsync(userId, collectionId);
 
         if (collection == null)
             return new NotFoundError("Collection");
 
-        if (!disableTransaction)
-            await db.Database.BeginTransactionAsync();
-
+        using var transaction = transactionProvider.CreateScope();
+        
         var deletionResult = await cardsService.Delete(userId, collectionId, cardId);
-
+        
         if (deletionResult.IsFailed)
         {
-            if (!disableTransaction)
-                await db.Database.RollbackTransactionAsync();
             return deletionResult;
         }
 
@@ -315,15 +303,10 @@ public class CollectionService
 
         if (!await db.SoftSaveChangesAsync())
         {
-            if (!disableTransaction)
-                await db.Database.RollbackTransactionAsync();
-            
             return new InternalError();
         }
-        
-        if (!disableTransaction)
-            await db.Database.CommitTransactionAsync();
 
+        transaction.Complete();
         return deletionResult.Value;
     }
 
@@ -341,18 +324,16 @@ public class CollectionService
         if (destinationCollection == null)
             return new NotFoundError("Destination collection");
 
-        await db.Database.BeginTransactionAsync();
+        using var transaction = transactionProvider.CreateScope();
 
         var movingResult = await cardsService.MoveCard(
             userId,
             sourceCollectionId,
             destinationCollectionId,
-            cardId,
-            true);
+            cardId);
 
         if (movingResult.IsFailed)
         {
-            await db.Database.RollbackTransactionAsync();
             return movingResult;
         }
 
@@ -364,8 +345,8 @@ public class CollectionService
             //"Unable to increase cards count"
             return new InternalError();
         }
-        
-        await db.Database.CommitTransactionAsync();
+
+        transaction.Complete();
         return movingResult.Value;
     }
 
@@ -420,7 +401,7 @@ public class CollectionService
         if (collection == null)
             return new NotFoundError("Collection");
 
-        await db.Database.BeginTransactionAsync();
+        using var transaction = transactionProvider.CreateScope();
 
         var publication = db.CollectionPublications.Find(userId, collectionId)
             ?? db.CreateByProperties<CollectionPublicationEntity>(new CreateCollectionPublication(userId, collectionId));
@@ -428,7 +409,6 @@ public class CollectionService
 
         if (!db.SoftSaveChanges())
         {
-            await db.Database.RollbackTransactionAsync();
             return new InternalError();
         }
 
@@ -436,11 +416,10 @@ public class CollectionService
         
         if (!db.SoftSaveChanges())
         {
-            await db.Database.RollbackTransactionAsync();
             return new InternalError();
         }
 
-        await db.Database.CommitTransactionAsync();
+        transaction.Complete();
         return collection;
     }
 
@@ -452,7 +431,7 @@ public class CollectionService
         string? newCollectionName,
         bool checkUnique)
     {
-        await using var transaction = await db.Database.BeginTransactionAsync();
+        using var transaction = transactionProvider.CreateScope();
 
         if (myCollectionId == null && string.IsNullOrEmpty(newCollectionName))
             return new BadRequestError();
@@ -521,8 +500,7 @@ public class CollectionService
                 publicCard.PromptText,
                 publicCard.MeaningText,
                 publicCard.Description,
-                publicCard.Examples,
-                true);
+                publicCard.Examples);
 
             if (cardResult.IsFailed)
             {
@@ -563,7 +541,7 @@ public class CollectionService
             return new InternalError();
         }
 
-        await transaction.CommitAsync();
+        transaction.Complete();
         return myCollection;
     }
 

@@ -8,7 +8,6 @@ using Domain.User.ValueObjects;
 using FluentResults;
 using IntervalLearningApi.Constants;
 using IntervalLearningApi.Extensions;
-using IntervalLearningApi.Interfaces.DataTransactions;
 using IntervalLearningApi.Models.ByUser;
 using IntervalLearningApi.Models.Dictionary;
 using IntervalLearningApi.Services;
@@ -24,24 +23,19 @@ namespace IntervalLearningApi.Controllers
     public class CollectionsController : ControllerBase
     {
         private readonly IMapper mapper;
-        private readonly IDbTransactionProvider transactionProvider;
         private readonly CollectionService collectionService;
 
         public CollectionsController(
             IMapper mapper,
-            IDbTransactionProvider transactionProvider,
             CollectionService collectionService)
         {
             this.mapper = mapper;
-            this.transactionProvider = transactionProvider;
             this.collectionService = collectionService;
         }
 
         [HttpPost(ApiRoutes.Collections.Create)]
         public async Task<ActionResult<CollectionDto>> CreateCollection([FromBody]CreateCollectionItem item)
         {
-            await using var transaction = await transactionProvider.BeginTransactionAsync();
-            
             var userId = HttpContext.GetUserId();
 
             if (userId.IsFailed)
@@ -60,7 +54,6 @@ namespace IntervalLearningApi.Controllers
             if (collectionResult.IsFailed)
                 return BadRequest();
 
-            await transaction.CommitAsync();
             return mapper.Map<CollectionDto>(collectionResult.Value);
         }
         

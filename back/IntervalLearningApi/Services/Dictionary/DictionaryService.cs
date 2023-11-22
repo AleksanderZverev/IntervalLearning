@@ -9,6 +9,7 @@ using Domain.User.ValueObjects;
 using FluentResults;
 using Infrastructure;
 using Infrastructure.Errors;
+using IntervalLearningApi.Interfaces.DbTransactions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -17,11 +18,16 @@ namespace IntervalLearningApi.Services.Dictionary
 {
     public class DictionaryService
     {
+        private readonly ITransactionProvider transactionProvider;
         private readonly ApplicationContext db;
         private readonly IHostEnvironment env;
 
-        public DictionaryService(ApplicationContext db, IHostEnvironment env)
+        public DictionaryService(
+            ITransactionProvider transactionProvider,
+            ApplicationContext db,
+            IHostEnvironment env)
         {
+            this.transactionProvider = transactionProvider;
             this.db = db;
             this.env = env;
         }
@@ -71,7 +77,7 @@ namespace IntervalLearningApi.Services.Dictionary
             var allWords = await db.Words.ToListAsync();
             var wordIdToTranslations = new Dictionary<int, List<WordTranslation>>();
 
-            db.Database.BeginTransaction();
+            using var transaction = transactionProvider.CreateScope();
 
             foreach (var line in lines)
             {
@@ -189,7 +195,7 @@ namespace IntervalLearningApi.Services.Dictionary
                 }
             }
 
-            db.Database.CommitTransaction();
+            transaction.Complete();
             return string.Join("\n\n", errors);
         }
 

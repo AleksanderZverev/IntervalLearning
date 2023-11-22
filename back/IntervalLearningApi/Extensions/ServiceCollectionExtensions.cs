@@ -1,6 +1,8 @@
 ﻿using System.Reflection;
 using DB;
 using IntervalLearningApi.Controllers;
+using IntervalLearningApi.Infrastructure.DbTransactions;
+using IntervalLearningApi.Interfaces.DbTransactions;
 using IntervalLearningApi.Models;
 using IntervalLearningApi.Models.Common;
 using IntervalLearningApi.Services;
@@ -25,7 +27,8 @@ public static class ServiceCollectionExtensions
     public static void AddWeb(this IServiceCollection services, SecretConfig config)
     {
         services.AddTransient<IDateTimeProvider, DateTimeProvider>();
-        
+
+        services.AddScoped<ITransactionProvider, TransactionProvider>();
         services.AddScoped<IJwtService, JwtService>();
         services.AddScoped<IAuthenticationService, AuthenticationService>();
         services.AddScoped<UserService>();

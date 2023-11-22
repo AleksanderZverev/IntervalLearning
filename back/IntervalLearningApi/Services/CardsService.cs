@@ -12,6 +12,7 @@ using Domain.Schedule;
 using Domain.User.ValueObjects;
 using FluentResults;
 using Infrastructure.Errors;
+using IntervalLearningApi.Interfaces.DbTransactions;
 using IntervalLearningApi.Models;
 using Microsoft.EntityFrameworkCore;
 
@@ -27,14 +28,17 @@ public class CardsService
     private readonly ILogger<CardsService> logger;
     private readonly IHostEnvironment env;
     private readonly ApplicationContext db;
+    private readonly ITransactionProvider transactionProvider;
 
     public CardsService(ILogger<CardsService> logger,
         IHostEnvironment env,
-        ApplicationContext db)
+        ApplicationContext db,
+        ITransactionProvider transactionProvider)
     {
         this.logger = logger;
         this.env = env;
         this.db = db;
+        this.transactionProvider = transactionProvider;
     }
 
     public Task<List<Card>> GetAllCards(UserId userId, CollectionId collectionId)
@@ -167,17 +171,13 @@ public class CardsService
         UserId userId,
         CollectionId sourceCollectionId,
         CollectionId destinationCollectionId,
-        CardId cardId,
-        bool disableTransaction = false)
+        CardId cardId)
     {
         var card = await db.Cards
             .Include(c => c.Remembers)
             .AsSplitQuery()
             .SingleOrDefaultAsync(c =>
                 c.ParentUserId == userId && c.ParentCollectionId == sourceCollectionId && c.Id == cardId);
-        
-        if (!disableTransaction)
-            await db.Database.BeginTransactionAsync();
 
         var movedCard = new Card(userId, destinationCollectionId, cardId)
         {
@@ -190,13 +190,13 @@ public class CardsService
                 : new List<CardExample>(),
             CreatedDate = card.CreatedDate,
         };
-
+        
+        using var transaction = transactionProvider.CreateScope();
+        
         db.Add(movedCard);
         
         if (!await db.SoftSaveChangesAsync())
         {
-            if (!disableTransaction)
-                await db.Database.RollbackTransactionAsync();
             return new Error("Failure on creating card");
         }
         
@@ -225,9 +225,7 @@ public class CardsService
             return deletionResult;
         }
 
-        if (!disableTransaction)
-            await db.Database.CommitTransactionAsync();
-
+        transaction.Complete();
         return movedCard;
     }
 
@@ -350,7 +348,7 @@ public class CardsService
             return new NotFoundError("Cards");
         }
 
-        db.Database.BeginTransaction();
+        using var transaction = transactionProvider.CreateScope();
 
         var startedDate = DateTime.UtcNow;
         startedCards.ForEach(c =>
@@ -361,7 +359,6 @@ public class CardsService
 
         if (!db.SoftSaveChanges())
         {
-            db.Database.RollbackTransaction();
             return new InternalError();
         }
 
@@ -369,11 +366,10 @@ public class CardsService
 
         if (nextRepeatInfoResult.IsFailed)
         {
-            db.Database.RollbackTransaction();
             return nextRepeatInfoResult;
         }
 
-        db.Database.CommitTransaction();
+        transaction.Complete();
         return nextRepeatInfoResult.Value;
     }
 
@@ -483,7 +479,7 @@ public class CardsService
             return new NotFoundError("Schedule");
         }
         
-        await using var transaction = await db.Database.BeginTransactionAsync();
+        using var transaction = transactionProvider.CreateScope();
         
         var closestRepeatDate = DateTime.MaxValue;
         var closestPhaseIndex = -1;
@@ -546,7 +542,7 @@ public class CardsService
         if (!await db.SoftSaveChangesAsync())
             return new InternalError();
 
-        await transaction.CommitAsync();
+        transaction.Complete();
 
         return new NextRepeatInfo(
             closestRepeatDate == DateTime.MaxValue ? null : closestRepeatDate,

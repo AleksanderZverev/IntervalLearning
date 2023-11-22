@@ -8,6 +8,7 @@ using Domain.Schedule.ValueObjects;
 using Domain.User.ValueObjects;
 using FluentResults;
 using Infrastructure.Errors;
+using IntervalLearningApi.Interfaces.DbTransactions;
 using Microsoft.EntityFrameworkCore;
 
 namespace IntervalLearningApi.Services;
@@ -15,10 +16,14 @@ namespace IntervalLearningApi.Services;
 public class RepeatsScheduleService
 {
     private readonly ApplicationContext db;
+    private readonly ITransactionProvider transactionProvider;
 
-    public RepeatsScheduleService(ApplicationContext db)
+    public RepeatsScheduleService(
+        ApplicationContext db,
+        ITransactionProvider transactionProvider)
     {
         this.db = db;
+        this.transactionProvider = transactionProvider;
     }
 
     public List<RepeatsSchedule> GetAll(UserId userId) 
@@ -38,7 +43,7 @@ public class RepeatsScheduleService
         if (schedule == null)
             return new NotFoundError("Schedule");
 
-        await using var transaction = await db.Database.BeginTransactionAsync();
+        using var transaction = transactionProvider.CreateScope();
 
         schedule.Title = item.Title;
         schedule.CardsCountPerPhase = item.CardsCountPerPhase;
@@ -65,7 +70,7 @@ public class RepeatsScheduleService
             return new InternalError();
         }
         
-        await transaction.CommitAsync();
+        transaction.Complete();
         return schedule;
     }
 
@@ -73,7 +78,7 @@ public class RepeatsScheduleService
         UserId userId, 
         CreateScheduleItem item)
     {
-        await using var transaction = await db.Database.BeginTransactionAsync();
+        using var transaction = transactionProvider.CreateScope();
 
         var seqName = RepeatScheduleConfiguration.GetSequenceName(userId);
         db.EnsureSequenceCreated(seqName);
@@ -103,7 +108,7 @@ public class RepeatsScheduleService
             return new InternalError();
         }
 
-        await transaction.CommitAsync();
+        transaction.Complete();
         return newSchedule;
     }
 
