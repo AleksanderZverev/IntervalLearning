@@ -11,9 +11,9 @@ public static class BaseExtensions
     public static async Task<TResponse?> ToResponseDtoAsync<TResponse>(this HttpResponseMessage? response)
         where TResponse : class
     {
-        if (response == null)
+        if (response is not { IsSuccessStatusCode: true })
             return null;
-        
+
         var responseJson = await response.Content.ReadAsStringAsync();
         
         if (responseJson == null)

@@ -28,7 +28,54 @@ public class CardsControllerTests : SharedApiTests
         var pageCards = pageCardsResponse.ToResponseDto<List<CardDto>>();
         return pageCards;
     }
+    
+    private async Task<CardDto?> GetCardAsync(
+        HttpClient client,
+        CollectionDto collection,
+        string cardId)
+    {
+        var getCardResponse = await client.GetAsync(
+            Query(collection.Id, ApiRoutes.Cards.GetCardPath(cardId)));
+        var cardDto = getCardResponse.ToResponseDto<CardDto>();
+        return cardDto;
+    }
 
+    [Fact]
+    public async Task GetCard_ShouldReturnExisingCard()
+    {
+        //Arrange
+        var (client, user) = SharedScope;
+        var (collection, addedCard) = await CreateRandomCardAsync(); 
+
+        //Act
+        var card = await GetCardAsync(client, collection, addedCard.Id);
+
+        //Assert
+        card.Should().NotBeNull();
+        card.Should().BeEquivalentTo(addedCard, (options) =>
+        {
+            options.Using<DateTime>(ctx => 
+                ctx.Subject.Should().BeCloseTo(ctx.Expectation, TimeSpan.FromMilliseconds(100)))
+                .WhenTypeIs<DateTime>();
+            return options;
+        });
+    }
+    
+    [Fact]
+    public async Task GetCard_ShouldReturnEmptyResult_WhenNoCards()
+    {
+        //Arrange
+        var (client, user) = SharedScope;
+        var searchCollection = await CreateRandomCollectionAsync();
+        var (otherCollection, addedCard) = await CreateRandomCardAsync(); 
+        
+        //Act
+        var card = await GetCardAsync(client, searchCollection, addedCard.Id);
+
+        //Assert
+        card.Should().BeNull();
+    }
+    
     [Fact]
     public async Task GetCards_ShouldReturnEmpty_IfNoCardsAdded()
     {
