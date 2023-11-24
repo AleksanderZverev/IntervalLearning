@@ -1,5 +1,9 @@
 using Application.Common.Interfaces.Domain.Cards;
+using Application.Common.Interfaces.Domain.Study.Queue;
+using Application.Common.Interfaces.Domain.Study.Remember;
 using DB.Resolvers.Cards;
+using DB.Resolvers.Study.Queue;
+using DB.Resolvers.Study.Remember;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -14,6 +18,12 @@ public static class DependencyInjectionExtensions
         //Cards
         services.AddScoped<ICardsQueryResolver, CardsQueryResolver>();
         services.AddScoped<ICardsMutationResolver, CardMutationResolver>();
+        
+        //Queue
+        services.AddScoped<IRepeatingQueueResolver, RepeatingQueueResolver>();
+        
+        //Remember
+        services.AddScoped<IRememberResolver, RememberResolver>();
 
         return services;
     }
