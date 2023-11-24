@@ -1,4 +1,5 @@
 ﻿using System.Linq;
+using Application.Common.Interfaces.DB.Transactions;
 using DB;
 using DB.Models.Dictionary;
 using DB.Models.Dictionary.ValueObjects;
@@ -9,7 +10,6 @@ using Domain.User.ValueObjects;
 using FluentResults;
 using Infrastructure;
 using Infrastructure.Errors;
-using IntervalLearningApi.Interfaces.DbTransactions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;

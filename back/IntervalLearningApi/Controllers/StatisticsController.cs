@@ -1,3 +1,4 @@
+using DB.Models.ValueObjects;
 using Domain.User.ValueObjects;
 using IntervalLearningApi.Constants;
 using IntervalLearningApi.Extensions;
@@ -37,7 +38,7 @@ public class StatisticsController : ControllerBase
     [HttpGet(ApiRoutes.Statistics.Get_DetailedCalendarStatistic)]
     public async Task<ActionResult<CalendarLearningStatisticModel>> GetStatisticWithRecommendation(
         long scheduleUserId,
-        long scheduleId,
+        short scheduleId,
         DateTime from,
         DateTime to,
         int timezoneOffsetInMinutes)
@@ -50,7 +51,7 @@ public class StatisticsController : ControllerBase
         var statistic = await statisticsService.GetLearningStatistic(
             userId.Value,
             UserId.Create(scheduleUserId).Value,
-            scheduleId,
+            ScheduleId.Create(scheduleId).Value,
             from,
             to,
             TimeSpan.FromMinutes(timezoneOffsetInMinutes));

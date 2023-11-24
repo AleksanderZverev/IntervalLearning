@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using Application.Common.Interfaces.DB.Transactions;
 using DB;
 using DB.Configurations.Study;
 using DB.Models;
@@ -8,7 +9,6 @@ using Domain.Schedule.ValueObjects;
 using Domain.User.ValueObjects;
 using FluentResults;
 using Infrastructure.Errors;
-using IntervalLearningApi.Interfaces.DbTransactions;
 using Microsoft.EntityFrameworkCore;
 
 namespace IntervalLearningApi.Services;

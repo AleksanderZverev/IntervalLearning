@@ -1,4 +1,6 @@
 ﻿using System.Diagnostics;
+using Application.Commands.Cards.DeleteCard;
+using Application.Common.Interfaces.DB.Transactions;
 using DB;
 using DB.Configurations.Study;
 using DB.Models.Dictionary;
@@ -14,7 +16,6 @@ using Domain.User.ValueObjects;
 using FluentResults;
 using Infrastructure;
 using Infrastructure.Errors;
-using IntervalLearningApi.Interfaces.DbTransactions;
 using Microsoft.EntityFrameworkCore;
 
 namespace IntervalLearningApi.Services;
@@ -24,15 +25,18 @@ public class CollectionService
     private readonly ApplicationContext db;
     private readonly ITransactionProvider transactionProvider;
     private readonly CardsService cardsService;
+    private readonly DeleteCardCommand deleteCardCommand;
 
     public CollectionService(
         ApplicationContext db,
         ITransactionProvider transactionProvider,
-        CardsService cardsService)
+        CardsService cardsService,
+        DeleteCardCommand deleteCardCommand)
     {
         this.db = db;
         this.transactionProvider = transactionProvider;
         this.cardsService = cardsService;
+        this.deleteCardCommand = deleteCardCommand;
     }
 
     public Task<Collection?> Find(UserId userId, CollectionId collectionId)
@@ -54,9 +58,11 @@ public class CollectionService
 
     public async Task<Dictionary<DateTime, List<RepeatingPhase>>> GetRepeatCollections(UserId userId)
     {
+        //GetAll
         var queueItems = await db.Queue
             .Where(q => q.ParentUserId == userId)
-            .Include(q => q.ParentRepeatsSchedule).ThenInclude(q => q.Phases)
+            .Include(q => q.ParentRepeatsSchedule)
+            .ThenInclude(q => q.Phases)
             .AsSplitQuery()
             .ToListAsync();
 
@@ -291,7 +297,7 @@ public class CollectionService
 
         using var transaction = transactionProvider.CreateScope();
         
-        var deletionResult = await cardsService.Delete(userId, collectionId, cardId);
+        var deletionResult = await deleteCardCommand.Handle(new DeleteCardRequest(userId, collectionId, cardId));
         
         if (deletionResult.IsFailed)
         {

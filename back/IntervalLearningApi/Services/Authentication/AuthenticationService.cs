@@ -1,4 +1,5 @@
-﻿using DB;
+﻿using Application.Common.Interfaces.DB.Transactions;
+using DB;
 using DB.BusinessExtensions;
 using DB.Models;
 using Domain.Language.ValueObjects;
@@ -7,7 +8,6 @@ using Domain.User.Entities;
 using Domain.User.ValueObjects;
 using FluentResults;
 using Infrastructure.Errors;
-using IntervalLearningApi.Interfaces.DbTransactions;
 using IntervalLearningApi.Models;
 using IntervalLearningApi.Models.Common;
 using IntervalLearningApi.Services.Jwt;

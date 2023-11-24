@@ -1,5 +1,6 @@
 ﻿using System.Diagnostics;
 using System.Linq.Expressions;
+using Application.Common.Interfaces.DB.Transactions;
 using DB;
 using DB.Configurations.Study;
 using DB.Models;
@@ -9,10 +10,10 @@ using Domain.Card.ValueObjects;
 using Domain.Collection.ValueObjects;
 using Domain.Queue;
 using Domain.Schedule;
+using Domain.Schedule.Entities.Remember;
 using Domain.User.ValueObjects;
 using FluentResults;
 using Infrastructure.Errors;
-using IntervalLearningApi.Interfaces.DbTransactions;
 using IntervalLearningApi.Models;
 using Microsoft.EntityFrameworkCore;
 
@@ -48,7 +49,7 @@ public class CardsService
             .ToListAsync();
     }
 
-    public Task<Card?> FindCard(UserId userId, CollectionId collectionId, CardId cardId)
+    private Task<Card?> FindCard(UserId userId, CollectionId collectionId, CardId cardId)
     {
         return db.Cards
             .Include(r => r.Remembers)
@@ -243,6 +244,7 @@ public class CardsService
             return new NotFoundError(nameof(schedule));
         }
 
+        //GetRangeForCollection
         var startedCardIds = await db.Remembers
             .Where(r => r.ParentUserId == userId
                         && r.ParentCollectionId == collectionId
@@ -251,6 +253,7 @@ public class CardsService
             .Select(c => c.ParentCardId)
             .ToListAsync();
 
+        //GetExceptRange
         var canStartCards = await db.Cards
             .Where(c => c.ParentUserId == userId 
                         && c.ParentCollectionId == collectionId 
@@ -270,9 +273,7 @@ public class CardsService
         short phaseIndex, 
         DateTime dateTime)
     {
-        if (env.IsProduction() && dateTime.Date > DateTime.UtcNow.Date)
-            return new List<Card>();
-
+        //GetByDate
         var queueItems = await db.Queue
             .Where(c => c.ParentUserId == userId 
                         && c.ParentCollectionId == collectionId
@@ -287,12 +288,14 @@ public class CardsService
 
         var cardsIds = queueItems.Select(q => q.ParentCardId).ToList();
 
+        //GetRange
         var cards = await db.Cards
             .Where(c => c.ParentUserId == userId
                         && c.ParentCollectionId == collectionId
                         && cardsIds.Contains(c.Id))
             .ToListAsync();
 
+        //GetRange
         var remembers = await db.Remembers.Where(r => r.ParentUserId == userId
                                                       && r.ParentCollectionId == collectionId
                                                       && r.ParentRepeatsScheduleUserId == scheduleUserId
@@ -458,6 +461,7 @@ public class CardsService
             return new NotFoundError("card's collection");
         }
 
+        //GetForCards
         var queueItems = await db.Queue
             .Where(q => q.ParentUserId == userId
                         && q.ParentCollectionId == collectionId

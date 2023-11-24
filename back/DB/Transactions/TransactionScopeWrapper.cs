@@ -1,7 +1,7 @@
 using System.Transactions;
-using IntervalLearningApi.Interfaces.DbTransactions;
+using Application.Common.Interfaces.DB.Transactions;
 
-namespace IntervalLearningApi.Infrastructure.DbTransactions;
+namespace DB.Transactions;
 
 public class TransactionScopeWrapper : ITransactionScope
 {

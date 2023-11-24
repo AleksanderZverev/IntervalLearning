@@ -1,5 +1,6 @@
 using DB;
 using DB.Models;
+using DB.Models.ValueObjects;
 using Domain.User.ValueObjects;
 using Microsoft.EntityFrameworkCore;
 
@@ -30,7 +31,7 @@ public class StatisticsService
     public async Task<CalendarLearningStatistic?> GetLearningStatistic(
         UserId userId,
         UserId scheduleUserId,
-        long scheduleId,
+        ScheduleId scheduleId,
         DateTime from,
         DateTime to, 
         TimeSpan timezoneOffset)
@@ -161,11 +162,12 @@ public class StatisticsService
     private async Task<Dictionary<DateTime, int>> GetDateToQueueCount(
         UserId userId,
         UserId scheduleUserId,
-        long scheduleId,
+        ScheduleId scheduleId,
         DateTime from,
         DateTime to,
         TimeSpan timezoneOffset)
     {
+        //GetByRange
         var repetitions = db.Queue
             .Where(q =>
                 //filter by schedule
