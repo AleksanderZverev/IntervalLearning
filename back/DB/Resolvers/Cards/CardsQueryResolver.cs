@@ -24,4 +24,20 @@ public class CardsQueryResolver : ICardsQueryResolver
             .SingleOrDefaultAsync(c =>
                 c.ParentUserId == userId && c.ParentCollectionId == collectionId && c.Id == cardId);
     }
+    
+    public Task<List<Card>> GetAll(UserId userId, CollectionId collectionId)
+    {
+        return db.Cards
+            .Where(c => c.ParentUserId == userId && c.ParentCollectionId == collectionId)
+            .ToListAsync();
+    }
+
+    public Task<List<Card>> GetRange(UserId userId, CollectionId collectionId, List<CardId> cardsIds)
+    {
+        return db.Cards
+            .Where(c => c.ParentUserId == userId
+                        && c.ParentCollectionId == collectionId
+                        && cardsIds.Contains(c.Id))
+            .ToListAsync();
+    }
 }
