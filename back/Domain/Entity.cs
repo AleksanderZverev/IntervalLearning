@@ -1,5 +1,3 @@
-using Domain.User.Events;
-
 namespace Domain;
 
 public interface IDomainEvent

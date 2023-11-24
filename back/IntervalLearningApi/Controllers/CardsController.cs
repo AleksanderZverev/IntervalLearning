@@ -3,6 +3,7 @@ using Application.Commands.Cards;
 using Application.Commands.Cards.CreateCard;
 using Application.Commands.Cards.GetAllCards;
 using Application.Commands.Cards.GetCardsQueueCommand;
+using Application.Commands.Cards.GetNotStartedCardsCommand;
 using Application.Commands.Cards.UpdateCard;
 using DB.Models.ValueObjects;
 using Domain.Card.ValueObjects;
@@ -25,6 +26,7 @@ namespace IntervalLearningApi.Controllers
     public partial class CardsController : ControllerBase
     {
         private readonly IMapper mapper;
+        private readonly IServiceProvider serviceProvider;
         private readonly GetCardCommand getCardCommand;
         private readonly CreateCardCommand createCardCommand;
         private readonly UpdateCardCommand updateCardCommand;
@@ -36,6 +38,7 @@ namespace IntervalLearningApi.Controllers
 
         public CardsController(
             IMapper mapper,
+            IServiceProvider serviceProvider,
             GetCardCommand getCardCommand,
             CreateCardCommand createCardCommand,
             UpdateCardCommand updateCardCommand,
@@ -44,6 +47,7 @@ namespace IntervalLearningApi.Controllers
             CardsService cardsService, CollectionService collectionService, IHostEnvironment env)
         {
             this.mapper = mapper;
+            this.serviceProvider = serviceProvider;
             this.getCardCommand = getCardCommand;
             this.createCardCommand = createCardCommand;
             this.updateCardCommand = updateCardCommand;
@@ -178,13 +182,15 @@ namespace IntervalLearningApi.Controllers
 
             if (userId.IsFailed)
                 return BadRequest();
-            
-            var cardsResult = await cardsService.GetNotStartedCards(
-                UserId.Create(scheduleUserId).Value,
-                ScheduleId.Create(scheduleId).Value,
-                userId.Value,
-                CollectionId.Create(collectionId).Value,
-                count);
+
+            var cardsResult = await serviceProvider
+                .GetRequiredService<GetNotStartedCardsCommand>()
+                .Handle(new GetNotStartedCardsRequest(
+                    UserId.Create(scheduleUserId).Value,
+                    ScheduleId.Create(scheduleId).Value,
+                    userId.Value,
+                    CollectionId.Create(collectionId).Value,
+                    count));
 
             return cardsResult.ToActionResult(cards => mapper.Map<List<CardDto>>(cards));
         }

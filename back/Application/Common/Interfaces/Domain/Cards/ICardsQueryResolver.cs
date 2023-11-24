@@ -11,4 +11,5 @@ public interface ICardsQueryResolver
     public Task<Card?> Find(UserId userId, CollectionId collectionId, CardId cardId);
     public Task<List<Card>> GetAll(UserId userId, CollectionId collectionId);
     Task<List<Card>> GetRange(UserId userId, CollectionId collectionId, List<CardId> cardsIds);
+    Task<List<Card>> GetExceptRange(UserId userId, CollectionId collectionId, List<CardId> excludeCardIds);
 }

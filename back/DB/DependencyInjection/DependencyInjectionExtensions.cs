@@ -1,9 +1,11 @@
 using Application.Common.Interfaces.Domain.Cards;
 using Application.Common.Interfaces.Domain.Study.Queue;
 using Application.Common.Interfaces.Domain.Study.Remember;
+using Application.Common.Interfaces.Domain.Study.Schedule;
 using DB.Resolvers.Cards;
 using DB.Resolvers.Study.Queue;
 using DB.Resolvers.Study.Remember;
+using DB.Resolvers.Study.Schedule;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -24,6 +26,9 @@ public static class DependencyInjectionExtensions
         
         //Remember
         services.AddScoped<IRememberResolver, RememberResolver>();
+        
+        //Schedule
+        services.AddScoped<IScheduleResolver, ScheduleResolver>();
 
         return services;
     }

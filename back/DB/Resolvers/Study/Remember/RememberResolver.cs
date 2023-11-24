@@ -15,8 +15,21 @@ public class RememberResolver : IRememberResolver
     {
         this.db = db;
     }
+    
+    public Task<List<Domain.Schedule.Entities.Remember.Remember>> GetRangeForCollection(
+        UserId userId,
+        CollectionId collectionId,
+        UserId scheduleUserId,
+        ScheduleId scheduleId)
+    {
+        return db.Remembers.Where(r => r.ParentUserId == userId
+                                       && r.ParentCollectionId == collectionId
+                                       && r.ParentRepeatsScheduleUserId == scheduleUserId
+                                       && r.ParentRepeatsScheduleId == scheduleId)
+            .ToListAsync();
+    }
 
-    public Task<List<Models.Remember>> GetRange(
+    public Task<List<Domain.Schedule.Entities.Remember.Remember>> GetRangeForCards(
         UserId userId,
         CollectionId collectionId,
         UserId scheduleUserId,

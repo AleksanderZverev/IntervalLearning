@@ -2,6 +2,7 @@ using DB.Models;
 using DB.Models.ValueObjects;
 using Domain.Card.ValueObjects;
 using Domain.Collection.ValueObjects;
+using Domain.Schedule.Entities.Remember;
 using Domain.User.ValueObjects;
 
 namespace Domain.Card;

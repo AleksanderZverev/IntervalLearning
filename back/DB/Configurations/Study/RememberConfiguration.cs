@@ -1,6 +1,7 @@
 using DB.Models;
 using DB.Models.ValueObjects;
 using Domain.Card.ValueObjects;
+using Domain.Schedule.Entities.Remember;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 

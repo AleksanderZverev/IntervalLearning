@@ -1,6 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using DB.Models;
 using DB.Models.ValueObjects;
+using Domain.Schedule.Entities.Remember;
 using Domain.Schedule.ValueObjects;
 using Domain.User.ValueObjects;
 

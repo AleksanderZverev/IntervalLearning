@@ -40,4 +40,13 @@ public class CardsQueryResolver : ICardsQueryResolver
                         && cardsIds.Contains(c.Id))
             .ToListAsync();
     }
+    
+    public Task<List<Card>> GetExceptRange(UserId userId, CollectionId collectionId, List<CardId> excludeCardIds)
+    {
+        return db.Cards
+            .Where(c => c.ParentUserId == userId
+                        && c.ParentCollectionId == collectionId
+                        && !excludeCardIds.Contains(c.Id))
+            .ToListAsync();
+    }
 }

@@ -8,6 +8,7 @@ using Domain.Collection;
 using Domain.Language;
 using Domain.Queue;
 using Domain.Schedule;
+using Domain.Schedule.Entities.Remember;
 using Domain.Theme;
 using Domain.User;
 using Domain.User.Entities;

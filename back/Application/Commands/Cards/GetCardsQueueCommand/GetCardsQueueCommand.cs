@@ -40,7 +40,7 @@ public class GetCardsQueueCommand : ICommand<GetCardsQueueRequest, List<Card>>
 
         var cards = await cardsQueryResolver.GetRange(request.UserId, request.CollectionId, cardsIds);
 
-        var remembers = await rememberResolver.GetRange(
+        var remembers = await rememberResolver.GetRangeForCards(
             request.UserId,
             request.CollectionId,
             request.ScheduleUserId,
