@@ -1,3 +1,4 @@
+using Application.DI;
 using DB;
 using IntervalLearningApi;
 using IntervalLearningApi.Extensions;
@@ -27,6 +28,9 @@ services.AddPersistence((o) =>
 {
     o.UseNpgsql(connectionString);
 });
+
+services.AddApplication();
+
 services.AddWeb(new SecretConfig()
 {
     JwtSettings = jwtSettings,

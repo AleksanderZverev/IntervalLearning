@@ -14,6 +14,14 @@ public static class ResultsExtensions
         return MapErrorToActionResult(result.Errors);
     }
     
+    public static ActionResult ToErrorActionResult(this Result result)
+    {
+        if (result.IsSuccess)
+            throw new InvalidOperationException();
+
+        return MapErrorToActionResult(result.Errors);
+    }
+    
     public static ActionResult ToActionResult(this Result result)
     {
         if (result.IsSuccess)

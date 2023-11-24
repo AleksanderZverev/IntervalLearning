@@ -1,4 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using Application.Commands.Cards;
+using Application.Commands.Cards.CreateCard;
+using Application.Commands.Cards.UpdateCard;
 using DB.Models.ValueObjects;
 using Domain.Card.ValueObjects;
 using Domain.Collection.ValueObjects;
@@ -17,17 +20,26 @@ namespace IntervalLearningApi.Controllers
     [Route(ApiRoutes.Cards.BasePath)]
     [Authorize]
     [ApiController]
-    public class CardsController : ControllerBase
+    public partial class CardsController : ControllerBase
     {
         private readonly IMapper mapper;
+        private readonly GetCardCommand getCardCommand;
+        private readonly CreateCardCommand createCardCommand;
+        private readonly UpdateCardCommand updateCardCommand;
         private readonly CardsService cardsService;
         private readonly CollectionService collectionService;
 
         public CardsController(
             IMapper mapper,
+            GetCardCommand getCardCommand,
+            CreateCardCommand createCardCommand,
+            UpdateCardCommand updateCardCommand,
             CardsService cardsService, CollectionService collectionService)
         {
             this.mapper = mapper;
+            this.getCardCommand = getCardCommand;
+            this.createCardCommand = createCardCommand;
+            this.updateCardCommand = updateCardCommand;
             this.cardsService = cardsService;
             this.collectionService = collectionService;
         }
@@ -40,10 +52,13 @@ namespace IntervalLearningApi.Controllers
             if (userId.IsFailed)
                 return BadRequest();
 
-            var card = await cardsService.FindCard(userId.Value, CollectionId.Create(collectionId).Value, CardId.Create(cardId).Value);
-            return card == null 
-                ? NotFound()
-                : mapper.Map<CardDto>(card);
+            var cardResult = await getCardCommand.Handle(new GetCardRequest(
+                userId.Value,
+                CollectionId.Create(collectionId).Value,
+                CardId.Create(cardId).Value
+            ));
+            
+            return cardResult.ToActionResult(c => mapper.Map<CardDto>(c));
         }
 
         [HttpGet(ApiRoutes.Cards.Get_GetAll)]
@@ -102,41 +117,6 @@ namespace IntervalLearningApi.Controllers
                 count);
 
             return cardsResult.ToActionResult(cards => mapper.Map<List<CardDto>>(cards));
-        }
-
-        [HttpPost(ApiRoutes.Cards.Post_CreateCard)]
-        public ActionResult<CardDto> CreateCard(short collectionId, [FromBody]CreateCardItem item)
-        {
-            if (item.Examples != null && item.Examples.Any(e => e.Length > 255))
-            {
-                return BadRequest();
-            }
-
-            var userId = HttpContext.GetUserId();
-
-            if (userId.IsFailed)
-                return BadRequest();
-
-
-            var cardResult = collectionService.CreateOrEditCard(
-                userId.Value,
-                CollectionId.Create(collectionId).Value,
-                item.CardId == null 
-                    ? null 
-                    : CardId.Create(item.CardId.Value).Value,
-                CardText.Create(item.FrontText).Value,
-                item.PromptText == null 
-                    ? null 
-                    : CardText.Create(item.PromptText).Value,
-                CardText.Create(item.BackText).Value,
-                item.Description != null 
-                    ? CardDescription.Create(item.Description).Value 
-                    : null,
-                item.Examples != null
-                    ? item.Examples.Select(e => CardExample.Create(e).Value).ToList()
-                    : new List<CardExample>());
-
-            return cardResult.ToActionResult(card => mapper.Map<CardDto>(card));
         }
 
         [HttpDelete(ApiRoutes.Cards.Delete_DeleteCard)]
