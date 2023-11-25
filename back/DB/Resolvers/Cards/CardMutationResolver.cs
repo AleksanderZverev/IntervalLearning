@@ -21,6 +21,12 @@ public class CardMutationResolver : ICardsMutationResolver
     public Result<Card> Add(Card entity)
     {
         db.Cards.Add(entity);
+
+        if (entity.Remembers is { Count: > 0 })
+        {
+            db.Remembers.AddRange(entity.Remembers);
+        }
+        
         return db.SoftSaveChanges()
             ? entity
             : new InternalError();
@@ -29,6 +35,12 @@ public class CardMutationResolver : ICardsMutationResolver
     public Result<Card> Update(Card entity)
     {
         db.Cards.Update(entity);
+        
+        if (entity.Remembers is { Count: > 0 })
+        {
+            db.Remembers.UpdateRange(entity.Remembers);
+        }
+        
         return db.SoftSaveChanges()
             ? entity
             : new InternalError();
@@ -37,6 +49,12 @@ public class CardMutationResolver : ICardsMutationResolver
     public Result<Card> Delete(Card entity)
     {
         db.Cards.Remove(entity);
+        
+        if (entity.Remembers is { Count: > 0 })
+        {
+            db.Remembers.RemoveRange(entity.Remembers);
+        }
+        
         return db.SoftSaveChanges()
             ? entity
             : new InternalError();

@@ -2,22 +2,13 @@ using Application.Commands.Cards.DeleteCard;
 using Application.Common.Interfaces.DB.Transactions;
 using Application.Common.Interfaces.Domain.Collections;
 using Domain.Card;
-using Domain.Card.ValueObjects;
 using Domain.Collection;
-using Domain.Collection.ValueObjects;
-using Domain.User.ValueObjects;
 using FluentResults;
 using FluentResults.Extensions;
 using Infrastructure.Errors;
 using Infrastructure.Extensions;
 
 namespace Application.Commands.Collections.DeleteCardFromCollection;
-
-public record DeleteCardFromCollectionRequest(
-    UserId UserId,
-    CollectionId CollectionId,
-    CardId CardId
-);
 
 public class DeleteCardFromCollectionCommand : ICommand<DeleteCardFromCollectionRequest, Card>
 {

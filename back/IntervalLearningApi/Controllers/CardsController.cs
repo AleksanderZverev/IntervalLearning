@@ -6,6 +6,7 @@ using Application.Commands.Cards.GetCardsQueueCommand;
 using Application.Commands.Cards.GetNotStartedCardsCommand;
 using Application.Commands.Cards.UpdateCard;
 using Application.Commands.Collections.DeleteCardFromCollection;
+using Application.Commands.Collections.MoveCollectionCard;
 using DB.Models.ValueObjects;
 using Domain.Card.ValueObjects;
 using Domain.Collection.ValueObjects;
@@ -220,11 +221,13 @@ namespace IntervalLearningApi.Controllers
             if (userId.IsFailed)
                 return BadRequest();
 
-            var cardResult = await collectionService.MoveCard(
-                userId.Value,
-                CollectionId.Create(collectionId).Value,
-                CollectionId.Create(request.DestinationCollectionId).Value,
-                CardId.Create(request.CardId).Value);
+            var cardResult = await commandManager
+                .GetCommand<MoveCollectionCardCommand>()
+                .Handle(new MoveCollectionCardRequest(
+                    userId.Value,
+                    CollectionId.Create(collectionId).Value,
+                    CollectionId.Create(request.DestinationCollectionId).Value,
+                    CardId.Create(request.CardId).Value));
             
             return cardResult.ToActionResult(card => mapper.Map<CardDto>(card));
         }
