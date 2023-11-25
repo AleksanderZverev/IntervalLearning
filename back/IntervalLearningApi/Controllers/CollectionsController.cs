@@ -1,13 +1,13 @@
-﻿using DB.Models;
-using DB.Models.Dictionary;
-using DB.Models.Store;
+﻿using Application.Commands.Collections.CreateCollection;
+using Application.Commands.Collections.UpdateCollection;
 using DB.Models.ValueObjects;
+using Domain.Collection;
 using Domain.Collection.ValueObjects;
-using Domain.Language;
 using Domain.User.ValueObjects;
 using FluentResults;
 using IntervalLearningApi.Constants;
 using IntervalLearningApi.Extensions;
+using IntervalLearningApi.Infrastructure.CommandManager;
 using IntervalLearningApi.Models.ByUser;
 using IntervalLearningApi.Models.Dictionary;
 using IntervalLearningApi.Services;
@@ -23,40 +23,58 @@ namespace IntervalLearningApi.Controllers
     public class CollectionsController : ControllerBase
     {
         private readonly IMapper mapper;
+        private readonly CommandManager commandManager;
         private readonly CollectionService collectionService;
 
         public CollectionsController(
             IMapper mapper,
+            CommandManager commandManager,
             CollectionService collectionService)
         {
             this.mapper = mapper;
+            this.commandManager = commandManager;
             this.collectionService = collectionService;
         }
 
         [HttpPost(ApiRoutes.Collections.Create)]
-        public async Task<ActionResult<CollectionDto>> CreateCollection([FromBody]CreateCollectionItem item)
+        public async Task<ActionResult<CollectionDto>> CreateCollection([FromBody] CreateCollectionItem item)
         {
             var userId = HttpContext.GetUserId();
 
             if (userId.IsFailed)
                 return BadRequest();
 
-            var collectionResult = collectionService.CreateOrEdit(
-                new CollectionService.CreateOrPatchCollection()
-                {
-                    ParentUserId = userId.Value,
-                    Title = ThemeTitle.Create(item.Title).Value,
-                    ThemeId = ThemeId.Create(item.ThemeId).Value, 
-                    IsDefaultBackSide = item.IsDefaultBackSide,
-                },
-                item.CollectionId == null ? null : CollectionId.Create(item.CollectionId.Value).Value);
-            
-            if (collectionResult.IsFailed)
-                return BadRequest();
+            Result<Collection> collectionResult;
 
-            return mapper.Map<CollectionDto>(collectionResult.Value);
+            if (item.CollectionId == null)
+            {
+                collectionResult = await commandManager
+                    .GetCommand<CreateCollectionCommand>()
+                    .Handle(new CreateCollectionRequest()
+                    {
+                        ParentUserId = userId.Value,
+                        Title = ThemeTitle.Create(item.Title).Value,
+                        ThemeId = ThemeId.Create(item.ThemeId).Value,
+                        IsDefaultBackSide = item.IsDefaultBackSide,
+                    });
+            }
+            else
+            {
+                collectionResult = await commandManager
+                    .GetCommand<UpdateCollectionCommand>()
+                    .Handle(new UpdateCollectionRequest()
+                    {
+                        ParentUserId = userId.Value,
+                        CollectionId = CollectionId.Create(item.CollectionId.Value).Value,
+                        Title = ThemeTitle.Create(item.Title).Value,
+                        ThemeId = ThemeId.Create(item.ThemeId).Value,
+                        IsDefaultBackSide = item.IsDefaultBackSide,
+                    });
+            }
+
+            return collectionResult.ToActionResult(collection => mapper.Map<CollectionDto>(collection));
         }
-        
+
         [HttpGet(ApiRoutes.Collections.SearchPublic)]
         public async Task<ActionResult<List<StoreCollection>>> SearchPublicCollection(short themeId, string? searchName = null, int page = 1, int count = 10)
         {

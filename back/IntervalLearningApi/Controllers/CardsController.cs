@@ -19,7 +19,6 @@ using IntervalLearningApi.Extensions;
 using IntervalLearningApi.Infrastructure.CommandManager;
 using IntervalLearningApi.Models.ByUser;
 using IntervalLearningApi.Models.RepeatsSchedule;
-using IntervalLearningApi.Services;
 using MapsterMapper;
 using Microsoft.AspNetCore.Mvc;
 using SearchFieldType = IntervalLearningApi.Models.SearchFieldType;
@@ -29,25 +28,19 @@ namespace IntervalLearningApi.Controllers
     [Route(ApiRoutes.Cards.BasePath)]
     [Authorize]
     [ApiController]
-    public partial class CardsController : ControllerBase
+    public class CardsController : ControllerBase
     {
         private readonly IMapper mapper;
         private readonly CommandManager commandManager;
-        private readonly CardsService cardsService;
-        private readonly CollectionService collectionService;
         private readonly IHostEnvironment env;
 
         public CardsController(
             IMapper mapper,
             CommandManager commandManager,
-            CardsService cardsService, 
-            CollectionService collectionService, 
             IHostEnvironment env)
         {
             this.mapper = mapper;
             this.commandManager = commandManager;
-            this.cardsService = cardsService;
-            this.collectionService = collectionService;
             this.env = env;
         }
         

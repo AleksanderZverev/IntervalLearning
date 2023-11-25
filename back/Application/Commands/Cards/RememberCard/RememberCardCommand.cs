@@ -42,7 +42,6 @@ public class RememberCardCommand : ICommand<RememberCardRequest, NextRepeatInfoR
     private readonly ICollectionQueryResolver collectionQueryResolver;
     private readonly IRepeatingQueueResolver queueResolver;
     private readonly IScheduleResolver scheduleResolver;
-    private readonly IRememberQueryResolver rememberQueryResolver;
     private readonly IRememberMutationResolver rememberMutationResolver;
     private readonly IRepeatingQueueMutationResolver queueMutationResolver;
     private readonly IPhaseRememberMutationResolver phaseRememberMutationResolver;
@@ -53,7 +52,6 @@ public class RememberCardCommand : ICommand<RememberCardRequest, NextRepeatInfoR
         ICollectionQueryResolver collectionQueryResolver,
         IRepeatingQueueResolver queueResolver,
         IScheduleResolver scheduleResolver,
-        IRememberQueryResolver rememberQueryResolver,
         IRememberMutationResolver rememberMutationResolver,
         IRepeatingQueueMutationResolver queueMutationResolver,
         IPhaseRememberMutationResolver phaseRememberMutationResolver,
@@ -63,7 +61,6 @@ public class RememberCardCommand : ICommand<RememberCardRequest, NextRepeatInfoR
         this.collectionQueryResolver = collectionQueryResolver;
         this.queueResolver = queueResolver;
         this.scheduleResolver = scheduleResolver;
-        this.rememberQueryResolver = rememberQueryResolver;
         this.rememberMutationResolver = rememberMutationResolver;
         this.queueMutationResolver = queueMutationResolver;
         this.phaseRememberMutationResolver = phaseRememberMutationResolver;
