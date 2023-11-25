@@ -1,52 +1,26 @@
 using Application.Common.Interfaces.Domain.Collections;
 using Domain.Collection;
-using FluentResults;
-using Infrastructure.Errors;
 
 namespace DB.Resolvers.Collections;
 
-public class CollectionMutationResolver : ICollectionMutationResolver
+public class CollectionMutationResolver : BaseMutationResolver<Collection>, ICollectionMutationResolver
 {
-    private readonly ApplicationContext db;
-
-    public CollectionMutationResolver(ApplicationContext db)
+    public CollectionMutationResolver(ApplicationContext db) : base(db)
     {
-        this.db = db;
     }
 
-    public Result<Collection> Add(Collection entity)
+    protected override void MarkAdded(Collection entity)
     {
-        var entry = db.Collections.Add(entity);
-
-        if (!db.SoftSaveChanges())
-        {
-            return new InternalError();
-        }
-
-        return entity;
+        db.Collections.Add(entity);
     }
 
-    public Result<Collection> Update(Collection entity)
+    protected override void MarkUpdated(Collection entity)
     {
-        var entry = db.Collections.Update(entity);
-
-        if (!db.SoftSaveChanges())
-        {
-            return new InternalError();
-        }
-
-        return entity;
+        db.Collections.Update(entity);
     }
 
-    public Result<Collection> Delete(Collection entity)
+    protected override void MarkRemoved(Collection entity)
     {
-        var entry = db.Collections.Remove(entity);
-
-        if (!db.SoftSaveChanges())
-        {
-            return new InternalError();
-        }
-
-        return entity;
+        db.Collections.Remove(entity);
     }
 }

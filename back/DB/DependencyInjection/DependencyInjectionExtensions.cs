@@ -34,9 +34,11 @@ public static class DependencyInjectionExtensions
         
         //Queue
         services.AddScoped<IRepeatingQueueResolver, RepeatingQueueResolver>();
+        services.AddScoped<IRepeatingQueueMutationResolver, RepeatingQueueMutationResolver>();
         
         //Remember
-        services.AddScoped<IRememberResolver, RememberResolver>();
+        services.AddScoped<IRememberQueryResolver, RememberQueryQueryResolver>();
+        services.AddScoped<IRememberMutationResolver, RememberMutationResolver>();
         
         //Schedule
         services.AddScoped<IScheduleResolver, ScheduleResolver>();

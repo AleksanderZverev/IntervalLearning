@@ -9,44 +9,33 @@ using Infrastructure.Errors;
 
 namespace DB.Resolvers.Cards;
 
-public class CardMutationResolver : ICardsMutationResolver
+public class CardMutationResolver : BaseMutationResolver<Card>, ICardsMutationResolver
 {
-    private readonly ApplicationContext db;
-
-    public CardMutationResolver(ApplicationContext db)
+    public CardMutationResolver(ApplicationContext db) : base(db)
     {
-        this.db = db;
     }
 
-    public Result<Card> Add(Card entity)
+    protected override void MarkAdded(Card entity)
     {
         db.Cards.Add(entity);
-
+    
         if (entity.Remembers is { Count: > 0 })
         {
             db.Remembers.AddRange(entity.Remembers);
         }
-        
-        return db.SoftSaveChanges()
-            ? entity
-            : new InternalError();
     }
 
-    public Result<Card> Update(Card entity)
+    protected override void MarkUpdated(Card entity)
     {
         db.Cards.Update(entity);
-        
+    
         if (entity.Remembers is { Count: > 0 })
         {
             db.Remembers.UpdateRange(entity.Remembers);
         }
-        
-        return db.SoftSaveChanges()
-            ? entity
-            : new InternalError();
     }
 
-    public Result<Card> Delete(Card entity)
+    protected override void MarkRemoved(Card entity)
     {
         db.Cards.Remove(entity);
         
@@ -54,10 +43,6 @@ public class CardMutationResolver : ICardsMutationResolver
         {
             db.Remembers.RemoveRange(entity.Remembers);
         }
-        
-        return db.SoftSaveChanges()
-            ? entity
-            : new InternalError();
     }
 
     public Result<CardId> GetUniqueId(UserId userId, CollectionId collectionId)

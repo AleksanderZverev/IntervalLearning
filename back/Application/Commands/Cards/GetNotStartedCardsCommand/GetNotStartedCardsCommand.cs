@@ -11,16 +11,16 @@ public class GetNotStartedCardsCommand : ICommand<GetNotStartedCardsRequest, Lis
 {
     private readonly ICardsQueryResolver cardsQueryResolver;
     private readonly IScheduleResolver scheduleResolver;
-    private readonly IRememberResolver rememberResolver;
+    private readonly IRememberQueryResolver rememberQueryResolver;
 
     public GetNotStartedCardsCommand(
         ICardsQueryResolver cardsQueryResolver,
         IScheduleResolver scheduleResolver,
-        IRememberResolver rememberResolver)
+        IRememberQueryResolver rememberQueryResolver)
     {
         this.cardsQueryResolver = cardsQueryResolver;
         this.scheduleResolver = scheduleResolver;
-        this.rememberResolver = rememberResolver;
+        this.rememberQueryResolver = rememberQueryResolver;
     }
 
     public async Task<Result<List<Card>>> Handle(GetNotStartedCardsRequest request)
@@ -32,7 +32,7 @@ public class GetNotStartedCardsCommand : ICommand<GetNotStartedCardsRequest, Lis
             return new NotFoundError(nameof(schedule));
         }
         
-        var startingRemembers = await rememberResolver.GetRangeForCollection(
+        var startingRemembers = await rememberQueryResolver.GetRangeForCollection(
             request.UserId,
             request.CollectionId,
             request.ScheduleUserId,

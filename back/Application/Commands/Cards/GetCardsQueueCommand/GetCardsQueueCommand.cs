@@ -11,16 +11,16 @@ public class GetCardsQueueCommand : ICommand<GetCardsQueueRequest, List<Card>>
 {
     private readonly ICardsQueryResolver cardsQueryResolver;
     private readonly IRepeatingQueueResolver queueResolver;
-    private readonly IRememberResolver rememberResolver;
+    private readonly IRememberQueryResolver rememberQueryResolver;
 
     public GetCardsQueueCommand(
         ICardsQueryResolver cardsQueryResolver,
         IRepeatingQueueResolver queueResolver,
-        IRememberResolver rememberResolver)
+        IRememberQueryResolver rememberQueryResolver)
     {
         this.cardsQueryResolver = cardsQueryResolver;
         this.queueResolver = queueResolver;
-        this.rememberResolver = rememberResolver;
+        this.rememberQueryResolver = rememberQueryResolver;
     }
 
     public async Task<Result<List<Card>>> Handle(GetCardsQueueRequest request)
@@ -40,7 +40,7 @@ public class GetCardsQueueCommand : ICommand<GetCardsQueueRequest, List<Card>>
 
         var cards = await cardsQueryResolver.GetRange(request.UserId, request.CollectionId, cardsIds);
 
-        var remembers = await rememberResolver.GetRangeForCards(
+        var remembers = await rememberQueryResolver.GetRangeForCards(
             request.UserId,
             request.CollectionId,
             request.ScheduleUserId,

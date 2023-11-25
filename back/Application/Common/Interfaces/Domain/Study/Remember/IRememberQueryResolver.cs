@@ -5,7 +5,7 @@ using Domain.User.ValueObjects;
 
 namespace Application.Common.Interfaces.Domain.Study.Remember;
 
-public interface IRememberResolver
+public interface IRememberQueryResolver
 {
     Task<List<global::Domain.Schedule.Entities.Remember.Remember>> GetRangeForCollection(
         UserId userId,

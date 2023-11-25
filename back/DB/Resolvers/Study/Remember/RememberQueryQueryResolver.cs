@@ -7,11 +7,11 @@ using Microsoft.EntityFrameworkCore;
 
 namespace DB.Resolvers.Study.Remember;
 
-public class RememberResolver : IRememberResolver
+public class RememberQueryQueryResolver : IRememberQueryResolver
 {
     private readonly ApplicationContext db;
 
-    public RememberResolver(ApplicationContext db)
+    public RememberQueryQueryResolver(ApplicationContext db)
     {
         this.db = db;
     }

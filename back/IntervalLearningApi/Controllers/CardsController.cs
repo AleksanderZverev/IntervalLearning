@@ -5,6 +5,7 @@ using Application.Commands.Cards.GetAllCards;
 using Application.Commands.Cards.GetCardsQueueCommand;
 using Application.Commands.Cards.GetNotStartedCardsCommand;
 using Application.Commands.Cards.SearchCards;
+using Application.Commands.Cards.StartLearnCards;
 using Application.Commands.Cards.UpdateCard;
 using Application.Commands.Collections.DeleteCardFromCollection;
 using Application.Commands.Collections.MoveCollectionCard;
@@ -260,19 +261,21 @@ namespace IntervalLearningApi.Controllers
         }
 
         [HttpPost(ApiRoutes.Cards.Post_StartCards)]
-        public ActionResult<StartCardResponse> StartCards(short collectionId, [FromBody]CardsItem item)
+        public async Task<ActionResult<StartCardResponse>> StartCards(short collectionId, [FromBody]CardsItem item)
         {
             var userId = HttpContext.GetUserId();
 
             if (userId.IsFailed)
                 return BadRequest();
 
-            var closestRepeatInfoResult = cardsService.Start(
-                userId.Value,
-                CollectionId.Create(collectionId).Value,
-                UserId.Create(item.ScheduleUserId).Value,
-                ScheduleId.Create(item.ScheduleId).Value, 
-                item.CardIds);
+            var closestRepeatInfoResult = await commandManager
+                .GetCommand<StartLearnCardsCommand>()
+                .Handle(new StartLearnCardsRequest(
+                    userId.Value,
+                    CollectionId.Create(collectionId).Value,
+                    UserId.Create(item.ScheduleUserId).Value,
+                    ScheduleId.Create(item.ScheduleId).Value, 
+                    item.CardIds.Select(cId => CardId.Create(cId).Value).ToList()));
 
             return closestRepeatInfoResult.ToActionResult(closestRepeatInfo =>
                 new StartCardResponse(
