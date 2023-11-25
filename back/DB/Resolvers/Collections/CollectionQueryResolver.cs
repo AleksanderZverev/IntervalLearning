@@ -1,7 +1,9 @@
 using Application.Common.Interfaces.Domain.Collections;
+using DB.Models.ValueObjects;
 using Domain.Collection;
 using Domain.Collection.ValueObjects;
 using Domain.User.ValueObjects;
+using Microsoft.EntityFrameworkCore;
 
 namespace DB.Resolvers.Collections;
 
@@ -17,5 +19,18 @@ public class CollectionQueryResolver : ICollectionQueryResolver
     public Task<Collection?> Find(UserId userId, CollectionId collectionId)
     {
         return db.Collections.FindAsync(userId, collectionId).AsTask();
+    }
+
+    public async Task<List<Collection>> SearchPublicCollection(ThemeId themeId, string searchName)
+    {
+        var lowerSearchName = searchName.ToLowerInvariant().Trim();
+        return await db.Collections
+            .Where(c => c.ThemeId == themeId 
+                        && c.IsPublic 
+                        && EF.Functions.ILike(c.Title, $"{lowerSearchName}%"))
+            .Include(c => c.CollectionPublicationEntity)
+            .Include(c => c.ParentUser)
+            .AsSplitQuery()
+            .ToListAsync();
     }
 }

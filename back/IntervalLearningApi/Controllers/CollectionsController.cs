@@ -1,4 +1,5 @@
 ﻿using Application.Commands.Collections.CreateCollection;
+using Application.Commands.Collections.SearchPublicCollection;
 using Application.Commands.Collections.UpdateCollection;
 using DB.Models.ValueObjects;
 using Domain.Collection;
@@ -83,8 +84,20 @@ namespace IntervalLearningApi.Controllers
             if (userId.IsFailed)
                 return BadRequest();
 
-            var collections = await collectionService.SearchPublicCollections(userId.Value, ThemeId.Create(themeId).Value, searchName ?? "", page, count);
-            return mapper.Map<List<StoreCollection>>(collections.Select((t) => (t.collection, t.subscriber)));
+            var collectionsResult = await commandManager
+                .GetCommand<SearchPublicCollectionCommand>()
+                .Handle(new SearchPublicCollectionRequest(
+                    userId.Value,
+                    ThemeId.Create(themeId).Value,
+                    searchName ?? "",
+                    page,
+                    count));
+            
+            return collectionsResult.ToActionResult(collections => 
+                mapper.Map<List<StoreCollection>>(
+                    collections.Select(item => (item.Collection, item.Subscriber))
+                    )
+                );
         }
 
         [HttpGet(ApiRoutes.Collections.SearchPrivate)]
