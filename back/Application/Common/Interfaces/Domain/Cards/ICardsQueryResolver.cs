@@ -1,3 +1,4 @@
+using Application.Commands.Cards.SearchCards;
 using Application.Common.Interfaces.DB;
 using Domain.Card;
 using Domain.Card.ValueObjects;
@@ -12,4 +13,12 @@ public interface ICardsQueryResolver
     public Task<List<Card>> GetAll(UserId userId, CollectionId collectionId);
     Task<List<Card>> GetRange(UserId userId, CollectionId collectionId, List<CardId> cardsIds);
     Task<List<Card>> GetExceptRange(UserId userId, CollectionId collectionId, List<CardId> excludeCardIds);
+
+    Task<List<Card>> Search(
+        UserId userId,
+        CollectionId collectionId,
+        string searchValue,
+        SearchFieldType fieldType,
+        int page,
+        int count);
 }

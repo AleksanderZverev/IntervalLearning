@@ -4,6 +4,7 @@ using Application.Commands.Cards.CreateCard;
 using Application.Commands.Cards.GetAllCards;
 using Application.Commands.Cards.GetCardsQueueCommand;
 using Application.Commands.Cards.GetNotStartedCardsCommand;
+using Application.Commands.Cards.SearchCards;
 using Application.Commands.Cards.UpdateCard;
 using Application.Commands.Collections.DeleteCardFromCollection;
 using Application.Commands.Collections.MoveCollectionCard;
@@ -14,12 +15,12 @@ using Domain.User.ValueObjects;
 using IntervalLearningApi.Constants;
 using IntervalLearningApi.Extensions;
 using IntervalLearningApi.Infrastructure.CommandManager;
-using IntervalLearningApi.Models;
 using IntervalLearningApi.Models.ByUser;
 using IntervalLearningApi.Models.RepeatsSchedule;
 using IntervalLearningApi.Services;
 using MapsterMapper;
 using Microsoft.AspNetCore.Mvc;
+using SearchFieldType = IntervalLearningApi.Models.SearchFieldType;
 
 namespace IntervalLearningApi.Controllers
 {
@@ -245,8 +246,17 @@ namespace IntervalLearningApi.Controllers
             if (userId.IsFailed)
                 return BadRequest();
 
-            var cardEntities = await cardsService.Search(userId.Value, CollectionId.Create(collectionId).Value, searchValue.ToLower(), fieldType, page, count);
-            return mapper.Map<List<CardDto>>(cardEntities);
+            var cardsResult = await commandManager
+                .GetCommand<SearchCardsCommand>()
+                .Handle(new SearchCardsRequest(
+                    userId.Value,
+                    CollectionId.Create(collectionId).Value,
+                    searchValue.ToLower(),
+                    (Application.Commands.Cards.SearchCards.SearchFieldType)fieldType,
+                    page,
+                    count));
+
+            return cardsResult.ToActionResult(cards => mapper.Map<List<CardDto>>(cards));
         }
 
         [HttpPost(ApiRoutes.Cards.Post_StartCards)]

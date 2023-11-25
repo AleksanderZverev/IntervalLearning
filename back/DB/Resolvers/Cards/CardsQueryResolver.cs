@@ -1,3 +1,5 @@
+using System.Linq.Expressions;
+using Application.Commands.Cards.SearchCards;
 using Application.Common.Interfaces.Domain.Cards;
 using Domain.Card;
 using Domain.Card.ValueObjects;
@@ -47,6 +49,41 @@ public class CardsQueryResolver : ICardsQueryResolver
             .Where(c => c.ParentUserId == userId
                         && c.ParentCollectionId == collectionId
                         && !excludeCardIds.Contains(c.Id))
+            .ToListAsync();
+    }
+    
+    public async Task<List<Card>> Search(
+        UserId userId,
+        CollectionId collectionId,
+        string searchValue,
+        SearchFieldType fieldType,
+        int page,
+        int count)
+    {
+        Expression<Func<Card, bool>> condition = fieldType switch
+        {
+            SearchFieldType.RememberingText => c =>
+                c.ParentUserId == userId
+                && c.ParentCollectionId == collectionId
+                && EF.Functions.ILike(c.RememberingText, $"{searchValue}%"),
+            SearchFieldType.PromptText => c =>
+                c.ParentUserId == userId
+                && c.ParentCollectionId == collectionId
+                && EF.Functions.ILike(c.PromptText, $"{searchValue}%"),
+            SearchFieldType.MeaningText => c =>
+                c.ParentUserId == userId
+                && c.ParentCollectionId == collectionId
+                && EF.Functions.ILike(c.MeaningText, $"{searchValue}%"),
+            _ => throw new ArgumentOutOfRangeException(nameof(fieldType), fieldType, null)
+        };
+        
+        var skip = (page - 1) * count;
+        
+        return await db.Cards
+            .Where(condition)
+            .OrderByDescending(c => c.CreatedDate)
+            .Skip(skip)
+            .Take(count)
             .ToListAsync();
     }
 }
