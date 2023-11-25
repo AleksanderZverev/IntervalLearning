@@ -14,9 +14,9 @@ using Infrastructure.Extensions;
 namespace Application.Commands.Collections.DeleteCardFromCollection;
 
 public record DeleteCardFromCollectionRequest(
-    UserId userId,
-    CollectionId collectionId,
-    CardId cardId
+    UserId UserId,
+    CollectionId CollectionId,
+    CardId CardId
 );
 
 public class DeleteCardFromCollectionCommand : ICommand<DeleteCardFromCollectionRequest, Card>
@@ -41,7 +41,7 @@ public class DeleteCardFromCollectionCommand : ICommand<DeleteCardFromCollection
     public async Task<Result<Card>> Handle(DeleteCardFromCollectionRequest request)
     {
         return await collectionQueryResolver
-            .Find(request.userId, request.collectionId)
+            .Find(request.UserId, request.CollectionId)
             .ToResult()
             .ErrorIfNull(new NotFoundError(nameof(Collection)))
             .Bind(collection => DeletionDeleteCard(request, collection));
@@ -54,7 +54,7 @@ public class DeleteCardFromCollectionCommand : ICommand<DeleteCardFromCollection
         using var transaction = transactionProvider.CreateScope();
 
         var deletionResult = await deleteCardCommand.Handle(
-            new DeleteCardRequest(request.userId, request.collectionId, request.cardId));
+            new DeleteCardRequest(request.UserId, request.CollectionId, request.CardId));
 
         if (deletionResult.IsFailed)
         {

@@ -12,6 +12,7 @@ using Domain.Collection.ValueObjects;
 using Domain.User.ValueObjects;
 using IntervalLearningApi.Constants;
 using IntervalLearningApi.Extensions;
+using IntervalLearningApi.Infrastructure.CommandManager;
 using IntervalLearningApi.Models;
 using IntervalLearningApi.Models.ByUser;
 using IntervalLearningApi.Models.RepeatsSchedule;
@@ -27,33 +28,20 @@ namespace IntervalLearningApi.Controllers
     public partial class CardsController : ControllerBase
     {
         private readonly IMapper mapper;
-        private readonly IServiceProvider serviceProvider;
-        private readonly GetCardCommand getCardCommand;
-        private readonly CreateCardCommand createCardCommand;
-        private readonly UpdateCardCommand updateCardCommand;
-        private readonly GetAllCardsCommand getAllCardsCommand;
-        private readonly GetCardsQueueCommand getCardsQueueCommand;
+        private readonly CommandManager commandManager;
         private readonly CardsService cardsService;
         private readonly CollectionService collectionService;
         private readonly IHostEnvironment env;
 
         public CardsController(
             IMapper mapper,
-            IServiceProvider serviceProvider,
-            GetCardCommand getCardCommand,
-            CreateCardCommand createCardCommand,
-            UpdateCardCommand updateCardCommand,
-            GetAllCardsCommand getAllCardsCommand,
-            GetCardsQueueCommand getCardsQueueCommand,
-            CardsService cardsService, CollectionService collectionService, IHostEnvironment env)
+            CommandManager commandManager,
+            CardsService cardsService, 
+            CollectionService collectionService, 
+            IHostEnvironment env)
         {
             this.mapper = mapper;
-            this.serviceProvider = serviceProvider;
-            this.getCardCommand = getCardCommand;
-            this.createCardCommand = createCardCommand;
-            this.updateCardCommand = updateCardCommand;
-            this.getAllCardsCommand = getAllCardsCommand;
-            this.getCardsQueueCommand = getCardsQueueCommand;
+            this.commandManager = commandManager;
             this.cardsService = cardsService;
             this.collectionService = collectionService;
             this.env = env;
@@ -76,7 +64,10 @@ namespace IntervalLearningApi.Controllers
 
             if (item.CardId == null)
             {
-                var createdResult = await createCardCommand.Handle(new CreateCardRequest()
+                ;
+                var createdResult = await commandManager
+                    .GetCommand<CreateCardCommand>()
+                    .Handle(new CreateCardRequest()
                 {
                     ParentUserId = userId.Value,
                     ParentCollectionId = collectionIdDomain,
@@ -92,7 +83,9 @@ namespace IntervalLearningApi.Controllers
                 return createdResult.ToActionResult(c => mapper.Map<CardDto>(c));
             }
 
-            var cardResult = await updateCardCommand.Handle(new UpdateCardRequest(){
+            var cardResult = await commandManager
+                .GetCommand<UpdateCardCommand>()
+                .Handle(new UpdateCardRequest(){
                 CardId = CardId.Create(item.CardId.Value).Value,
                 ParentUserId = userId.Value,
                 ParentCollectionId = collectionIdDomain,
@@ -116,11 +109,12 @@ namespace IntervalLearningApi.Controllers
             if (userId.IsFailed)
                 return BadRequest();
 
-            var cardResult = await getCardCommand.Handle(new GetCardRequest(
-                userId.Value,
-                CollectionId.Create(collectionId).Value,
-                CardId.Create(cardId).Value
-            ));
+            var cardResult = await commandManager
+                .GetCommand<GetCardCommand>()
+                .Handle(new GetCardRequest(
+                    userId.Value,
+                    CollectionId.Create(collectionId).Value,
+                    CardId.Create(cardId).Value));
             
             return cardResult.ToActionResult(c => mapper.Map<CardDto>(c));
         }
@@ -136,12 +130,14 @@ namespace IntervalLearningApi.Controllers
             if (userId.IsFailed)
                 return BadRequest();
 
-            var cardsResult = await getAllCardsCommand.Handle(new GetAllCardsRequest(
-                userId.Value,
-                CollectionId.Create(collectionId).Value,
-                page,
-                count));
-
+            var cardsResult = await commandManager
+                .GetCommand<GetAllCardsCommand>()
+                .Handle(new GetAllCardsRequest(
+                    userId.Value,
+                    CollectionId.Create(collectionId).Value,
+                    page,
+                    count));
+            
             return cardsResult.ToActionResult(cards => mapper.Map<List<CardDto>>(cards));
         }
 
@@ -161,13 +157,15 @@ namespace IntervalLearningApi.Controllers
             if (env.IsProduction() && date.Date > DateTime.UtcNow.Date)
                 return new List<CardDto>();
 
-            var cardsResult = await getCardsQueueCommand.Handle(new GetCardsQueueRequest(
-                userId.Value,
-                CollectionId.Create(collectionId).Value,
-                UserId.Create(scheduleUserId).Value,
-                ScheduleId.Create(scheduleId).Value,
-                phaseIndex,
-                date));
+            var cardsResult = await commandManager
+                .GetCommand<GetCardsQueueCommand>()
+                .Handle(new GetCardsQueueRequest(
+                    userId.Value,
+                    CollectionId.Create(collectionId).Value,
+                    UserId.Create(scheduleUserId).Value,
+                    ScheduleId.Create(scheduleId).Value,
+                    phaseIndex,
+                    date));
 
             return cardsResult.ToActionResult(cards => mapper.Map<List<CardDto>>(cards));
         }
@@ -184,8 +182,8 @@ namespace IntervalLearningApi.Controllers
             if (userId.IsFailed)
                 return BadRequest();
 
-            var cardsResult = await serviceProvider
-                .GetRequiredService<GetNotStartedCardsCommand>()
+            var cardsResult = await commandManager
+                .GetCommand<GetNotStartedCardsCommand>()
                 .Handle(new GetNotStartedCardsRequest(
                     UserId.Create(scheduleUserId).Value,
                     ScheduleId.Create(scheduleId).Value,
@@ -204,8 +202,8 @@ namespace IntervalLearningApi.Controllers
             if (userId.IsFailed)
                 return BadRequest();
 
-            var cardResult = await serviceProvider
-                .GetRequiredService<DeleteCardFromCollectionCommand>()
+            var cardResult = await commandManager
+                .GetCommand<DeleteCardFromCollectionCommand>()
                 .Handle(new DeleteCardFromCollectionRequest(
                     userId.Value,
                     CollectionId.Create(collectionId).Value,
