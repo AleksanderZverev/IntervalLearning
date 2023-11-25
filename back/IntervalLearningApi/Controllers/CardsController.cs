@@ -4,6 +4,7 @@ using Application.Commands.Cards.CreateCard;
 using Application.Commands.Cards.GetAllCards;
 using Application.Commands.Cards.GetCardsQueueCommand;
 using Application.Commands.Cards.GetNotStartedCardsCommand;
+using Application.Commands.Cards.RememberCard;
 using Application.Commands.Cards.SearchCards;
 using Application.Commands.Cards.StartLearnCards;
 using Application.Commands.Cards.UpdateCard;
@@ -293,15 +294,17 @@ namespace IntervalLearningApi.Controllers
 
             if (userId.IsFailed)
                 return BadRequest();
-            
-            var closestRepeatInfoResult = await cardsService.Remember(
-                userId.Value,
-                CollectionId.Create(collectionId).Value,
-                UserId.Create(request.ScheduleUserId).Value,
-                ScheduleId.Create(request.ScheduleId).Value,
-                request.PhaseIndex,
-                ToCardServiceRememberItems(request.RememberItems)
-            );
+
+            var closestRepeatInfoResult = await commandManager
+                .GetCommand<RememberCardCommand>()
+                .Handle(new RememberCardRequest(
+                    userId.Value,
+                    CollectionId.Create(collectionId).Value,
+                    UserId.Create(request.ScheduleUserId).Value,
+                    ScheduleId.Create(request.ScheduleId).Value,
+                    request.PhaseIndex,
+                    ToCardServiceRememberItems(request.RememberItems),
+                    env.IsDevelopment()));
 
             return closestRepeatInfoResult.ToActionResult(closestRepeatInfo =>
                 new RememberCardResponse(
@@ -312,9 +315,9 @@ namespace IntervalLearningApi.Controllers
                     closestRepeatInfo.NextPhaseIndex));
         }
 
-        private List<CardsService.RememberItem> ToCardServiceRememberItems(List<RememberItemDto> requestRememberItems)
+        private List<RememberItem> ToCardServiceRememberItems(List<RememberItemDto> requestRememberItems)
         {
-            return requestRememberItems.Select(r => new CardsService.RememberItem
+            return requestRememberItems.Select(r => new RememberItem
             {
                 CardId = CardId.Create(r.CardId).Value,
                 Weight = RememberWeight.Create(r.Weight).Value,

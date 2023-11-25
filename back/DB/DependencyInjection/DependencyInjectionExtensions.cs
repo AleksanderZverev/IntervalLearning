@@ -1,11 +1,13 @@
 using Application.Common.Interfaces.DB.Transactions;
 using Application.Common.Interfaces.Domain.Cards;
 using Application.Common.Interfaces.Domain.Collections;
+using Application.Common.Interfaces.Domain.Study.PhaseRemember;
 using Application.Common.Interfaces.Domain.Study.Queue;
 using Application.Common.Interfaces.Domain.Study.Remember;
 using Application.Common.Interfaces.Domain.Study.Schedule;
 using DB.Resolvers.Cards;
 using DB.Resolvers.Collections;
+using DB.Resolvers.Study.PhaseRemember;
 using DB.Resolvers.Study.Queue;
 using DB.Resolvers.Study.Remember;
 using DB.Resolvers.Study.Schedule;
@@ -42,6 +44,9 @@ public static class DependencyInjectionExtensions
         
         //Schedule
         services.AddScoped<IScheduleResolver, ScheduleResolver>();
+        
+        //PhaseRemember
+        services.AddScoped<IPhaseRememberMutationResolver, PhaseRememberMutationResolver>();
 
         return services;
     }
