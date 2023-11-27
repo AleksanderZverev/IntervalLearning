@@ -5,6 +5,7 @@ using Application.Commands.Collections.GetCollection;
 using Application.Commands.Collections.GetPublicCollection;
 using Application.Commands.Collections.GetRandomWords;
 using Application.Commands.Collections.GetRepeatCollections;
+using Application.Commands.Collections.MakeCollectionPublic;
 using Application.Commands.Collections.SearchCollection;
 using Application.Commands.Collections.SearchPublicCollection;
 using Application.Commands.Collections.UpdateCollection;
@@ -241,7 +242,10 @@ namespace IntervalLearningApi.Controllers
             if (userId.IsFailed)
                 return BadRequest();
 
-            var collectionResult = await collectionService.MakePublic(userId.Value, CollectionId.Create(collectionId).Value).ConfigureAwait(false);
+            var collectionResult = await commandManager
+                .GetCommand<MakeCollectionPublicCommand>()
+                .Handle(new MakeCollectionPublicRequest(userId.Value, CollectionId.Create(collectionId).Value));
+            
             return collectionResult.ToActionResult(collection => mapper.Map<CollectionDto>(collection));
         }
 

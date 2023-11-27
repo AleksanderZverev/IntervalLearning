@@ -3,6 +3,7 @@ using Application.Common.Interfaces.Domain.Cards;
 using Application.Common.Interfaces.Domain.Collections;
 using Application.Common.Interfaces.Domain.Dictionary.Words;
 using Application.Common.Interfaces.Domain.Languages;
+using Application.Common.Interfaces.Domain.Store.CollectionPublications;
 using Application.Common.Interfaces.Domain.Store.PublicCollection;
 using Application.Common.Interfaces.Domain.Store.PublicCollectionSubscribers;
 using Application.Common.Interfaces.Domain.Study.PhaseRemember;
@@ -14,6 +15,7 @@ using DB.Resolvers.Cards;
 using DB.Resolvers.Collections;
 using DB.Resolvers.Dictionary.Words;
 using DB.Resolvers.Languages;
+using DB.Resolvers.Store.CollectionPublications;
 using DB.Resolvers.Store.PublicCollection;
 using DB.Resolvers.Store.PublicCollectionSubscribers;
 using DB.Resolvers.Study.PhaseRemember;
@@ -71,6 +73,10 @@ public static class DependencyInjectionExtensions
         
         //PublicCollectionSubscriber
         services.AddScoped<IPublicCollectionSubscriberQueryResolver, PublicCollectionSubscriberQueryResolver>();
+        
+        //CollectionPublicationEntity
+        services.AddScoped<ICollectionPublicationQueryResolver, CollectionPublicationQueryResolver>();
+        services.AddScoped<ICollectionPublicationMutationResolver, CollectionPublicationMutationResolver>();
         
         
         //===DICTIONARY===
