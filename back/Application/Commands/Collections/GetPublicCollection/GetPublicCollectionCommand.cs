@@ -21,6 +21,6 @@ public class GetPublicCollectionCommand : ICommand<GetPublicCollectionRequest, C
         return publicCollectionQueryResolver
             .Find(request.UserId, request.CollectionId)
             .ToResultAsync()
-            .ErrorIfNull(new NotFoundError());
+            .ErrorIfNull(new NotFoundError("Public collection"));
     }
 }

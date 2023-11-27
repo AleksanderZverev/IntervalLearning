@@ -1,4 +1,3 @@
-using Application.Common.Interfaces.Domain.Cards;
 using Application.Common.Interfaces.Domain.Collections;
 using Application.Common.Interfaces.Domain.Study.Remember;
 using Domain.Common.ValueObjects;
@@ -8,16 +7,13 @@ namespace Application.Commands.Collections.GetCanStartCollections;
 
 public class GetCanStartCollectionsCommand : ICommand<GetCanStartCollectionsRequest, GetCanStartCollectionsResponse>
 {
-    private readonly ICardsQueryResolver cardsQueryResolver;
     private readonly ICollectionQueryResolver collectionQueryResolver;
     private readonly IRememberQueryResolver rememberQueryResolver;
 
     public GetCanStartCollectionsCommand(
-        ICardsQueryResolver cardsQueryResolver,
         ICollectionQueryResolver collectionQueryResolver,
         IRememberQueryResolver rememberQueryResolver)
     {
-        this.cardsQueryResolver = cardsQueryResolver;
         this.collectionQueryResolver = collectionQueryResolver;
         this.rememberQueryResolver = rememberQueryResolver;
     }
