@@ -29,7 +29,7 @@ public class SearchPublicCollectionCommand : ICommand<SearchPublicCollectionRequ
     {
         var (myUserId, themeId, searchName, page, count) = request;
 
-        return await themesQueryResolver.FindAsync(themeId)
+        return await themesQueryResolver.Find(themeId)
             .ToResultAsync()
             .ErrorIfNull(new BadRequestError("Specified theme is not found"))
             .Bind(async theme =>

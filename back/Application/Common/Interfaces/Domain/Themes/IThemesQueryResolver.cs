@@ -5,5 +5,5 @@ namespace Application.Common.Interfaces.Domain.Themes;
 
 public interface IThemesQueryResolver
 {
-    Task<Theme?> FindAsync(ThemeId themeId);
+    Task<Theme?> Find(ThemeId themeId);
 }

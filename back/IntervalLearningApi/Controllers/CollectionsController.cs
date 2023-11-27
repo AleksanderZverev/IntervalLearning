@@ -1,6 +1,7 @@
 ﻿using Application.Commands.Collections.CreateCollection;
 using Application.Commands.Collections.GetAll;
 using Application.Commands.Collections.GetPublicCollection;
+using Application.Commands.Collections.GetRandomWords;
 using Application.Commands.Collections.SearchCollection;
 using Application.Commands.Collections.SearchPublicCollection;
 using Application.Commands.Collections.UpdateCollection;
@@ -155,7 +156,9 @@ namespace IntervalLearningApi.Controllers
             if (userId.IsFailed)
                 return BadRequest();
 
-            var wordsResult = await collectionService.GetRandomWords(userId.Value, CollectionId.Create(collectionId).Value);
+            var wordsResult = await commandManager
+                .GetCommand<GetRandomWordsCommand>()
+                .Handle(new GetRandomWordsRequest(userId.Value, CollectionId.Create(collectionId).Value));
 
             if (wordsResult.IsFailed)
                 return wordsResult.ToErrorActionResult();

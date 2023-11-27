@@ -1,6 +1,8 @@
 using Application.Common.Interfaces.DB.Transactions;
 using Application.Common.Interfaces.Domain.Cards;
 using Application.Common.Interfaces.Domain.Collections;
+using Application.Common.Interfaces.Domain.Dictionary.Words;
+using Application.Common.Interfaces.Domain.Languages;
 using Application.Common.Interfaces.Domain.Store.PublicCollection;
 using Application.Common.Interfaces.Domain.Store.PublicCollectionSubscribers;
 using Application.Common.Interfaces.Domain.Study.PhaseRemember;
@@ -10,6 +12,8 @@ using Application.Common.Interfaces.Domain.Study.Schedule;
 using Application.Common.Interfaces.Domain.Themes;
 using DB.Resolvers.Cards;
 using DB.Resolvers.Collections;
+using DB.Resolvers.Dictionary.Words;
+using DB.Resolvers.Languages;
 using DB.Resolvers.Store.PublicCollection;
 using DB.Resolvers.Store.PublicCollectionSubscribers;
 using DB.Resolvers.Study.PhaseRemember;
@@ -31,6 +35,9 @@ public static class DependencyInjectionExtensions
         
         //Theme
         services.AddScoped<IThemesQueryResolver, ThemesQueryResolver>();
+        
+        //Languages
+        services.AddScoped<ILanguagesQueryResolver, LanguagesQueryResolver>();
         
         //Transactions
         services.AddScoped<ITransactionProvider, TransactionProvider>();
@@ -64,6 +71,12 @@ public static class DependencyInjectionExtensions
         
         //PublicCollectionSubscriber
         services.AddScoped<IPublicCollectionSubscriberQueryResolver, PublicCollectionSubscriberQueryResolver>();
+        
+        
+        //===DICTIONARY===
+        
+        //Words
+        services.AddScoped<IWordsQueryResolver, WordsQueryResolver>();
 
         return services;
     }

@@ -13,7 +13,7 @@ public class ThemesQueryResolver : IThemesQueryResolver
         this.db = db;
     }
 
-    public Task<Theme?> FindAsync(ThemeId themeId)
+    public Task<Theme?> Find(ThemeId themeId)
     {
         return db.Themes.FindAsync(themeId).AsTask();
     }

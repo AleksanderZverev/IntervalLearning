@@ -27,7 +27,7 @@ public class SearchCollectionCommand : ICommand<SearchCollectionRequest, List<Co
         var toSkip = (page - 1) * count;
 
         return await themesQuery
-            .FindAsync(themeId)
+            .Find(themeId)
             .ToResultAsync()
             .ErrorIfNull(new BadRequestError("Incorrect theme id"))
             .Bind(theme => collectionQuery.Search(userId, themeId, searchName, toSkip, count));

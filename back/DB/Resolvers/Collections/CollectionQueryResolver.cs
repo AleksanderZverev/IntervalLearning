@@ -40,12 +40,11 @@ public class CollectionQueryResolver : ICollectionQueryResolver
             .ToListAsync();
     }
 
-    public Task<Result<List<Collection>>> GetAll(UserId userId)
+    public Task<List<Collection>> GetAll(UserId userId)
     {
         return db.Collections
             .Where(c => c.ParentUserId == userId)
             .Include(c => c.CollectionPublicationEntity)
-            .ToListAsync()
-            .ToResultAsync();
+            .ToListAsync();
     }
 }

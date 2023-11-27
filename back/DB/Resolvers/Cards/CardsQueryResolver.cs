@@ -3,6 +3,7 @@ using Application.Commands.Cards.SearchCards;
 using Application.Common.Interfaces.Domain.Cards;
 using Domain.Card;
 using Domain.Card.ValueObjects;
+using Domain.Collection;
 using Domain.Collection.ValueObjects;
 using Domain.User.ValueObjects;
 using Microsoft.EntityFrameworkCore;
@@ -86,6 +87,13 @@ public class CardsQueryResolver : ICardsQueryResolver
             .OrderByDescending(c => c.CreatedDate)
             .Skip(skip)
             .Take(count)
+            .ToListAsync();
+    }
+
+    public Task<List<Card>> GetRangeFromCollections(UserId userId, List<CollectionId> collectionIds)
+    {
+        return db.Cards
+            .Where(c => c.ParentUserId == userId && collectionIds.Contains(c.ParentCollectionId))
             .ToListAsync();
     }
 }
