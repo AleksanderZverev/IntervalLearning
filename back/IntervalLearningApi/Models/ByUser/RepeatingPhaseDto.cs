@@ -1,3 +1,4 @@
+using Application.Commands.Collections.GetRepeatCollections;
 using IntervalLearningApi.Services;
 using Mapster;
 
@@ -7,9 +8,9 @@ public class RepeatingPhaseDtoRegister : IRegister
 {
     public void Register(TypeAdapterConfig config)
     {
-        config.NewConfig<CollectionService.RepeatingPhase, RepeatingPhaseDto>();
+        config.NewConfig<RepeatingPhase, RepeatingPhaseDto>();
 
-        config.NewConfig<CollectionService.RepeatingCollection, RepeatingCollectionDto>();
+        config.NewConfig<RepeatingCollection, RepeatingCollectionDto>();
     }
 }
 

@@ -4,7 +4,6 @@ using Domain.Collection;
 using Domain.Collection.ValueObjects;
 using Domain.User.ValueObjects;
 using FluentResults;
-using Infrastructure.Extensions;
 using Microsoft.EntityFrameworkCore;
 
 namespace DB.Resolvers.Collections;
@@ -45,6 +44,13 @@ public class CollectionQueryResolver : ICollectionQueryResolver
         return db.Collections
             .Where(c => c.ParentUserId == userId)
             .Include(c => c.CollectionPublicationEntity)
+            .ToListAsync();
+    }
+
+    public Task<List<Collection>> GetRange(UserId userId, List<CollectionId> collectionIds)
+    {
+        return db.Collections
+            .Where(c => c.ParentUserId == userId && collectionIds.Contains(c.Id))
             .ToListAsync();
     }
 }

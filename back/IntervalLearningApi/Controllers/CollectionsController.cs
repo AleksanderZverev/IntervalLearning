@@ -2,6 +2,7 @@
 using Application.Commands.Collections.GetAll;
 using Application.Commands.Collections.GetPublicCollection;
 using Application.Commands.Collections.GetRandomWords;
+using Application.Commands.Collections.GetRepeatCollections;
 using Application.Commands.Collections.SearchCollection;
 using Application.Commands.Collections.SearchPublicCollection;
 using Application.Commands.Collections.UpdateCollection;
@@ -177,12 +178,15 @@ namespace IntervalLearningApi.Controllers
             if (userId.IsFailed)
                 return BadRequest();
 
-            var dateToRepeatingCollections = await collectionService.GetRepeatCollections(userId.Value);
+            var dateToRepeatingCollectionsResult = await commandManager
+                .GetCommand<GetRepeatCollectionsCommand>()
+                .Handle(new GetRepeatCollectionsRequest(userId.Value));
 
-            return new RepeatingCollectionResponse(dateToRepeatingCollections
-                .ToDictionary(
-                    p => p.Key,
-                    p => p.Value.Select(c => mapper.Map<RepeatingPhaseDto>(c)).ToList()));
+            return dateToRepeatingCollectionsResult.ToActionResult(dateToRepeatingCollections =>
+                new RepeatingCollectionResponse(dateToRepeatingCollections
+                    .ToDictionary(
+                        p => p.Key,
+                        p => p.Value.Select(c => mapper.Map<RepeatingPhaseDto>(c)).ToList())));
         }
 
         [HttpGet(ApiRoutes.Collections.GetNotFinished)]
