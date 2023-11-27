@@ -1,6 +1,7 @@
 using Application.Common.Interfaces.DB.Transactions;
 using Application.Common.Interfaces.Domain.Cards;
 using Application.Common.Interfaces.Domain.Collections;
+using Application.Common.Interfaces.Domain.Store.PublicCollection;
 using Application.Common.Interfaces.Domain.Store.PublicCollectionSubscribers;
 using Application.Common.Interfaces.Domain.Study.PhaseRemember;
 using Application.Common.Interfaces.Domain.Study.Queue;
@@ -9,6 +10,7 @@ using Application.Common.Interfaces.Domain.Study.Schedule;
 using Application.Common.Interfaces.Domain.Themes;
 using DB.Resolvers.Cards;
 using DB.Resolvers.Collections;
+using DB.Resolvers.Store.PublicCollection;
 using DB.Resolvers.Store.PublicCollectionSubscribers;
 using DB.Resolvers.Study.PhaseRemember;
 using DB.Resolvers.Study.Queue;
@@ -56,6 +58,9 @@ public static class DependencyInjectionExtensions
         services.AddScoped<IPhaseRememberMutationResolver, PhaseRememberMutationResolver>();
         
         //===STORE===
+        
+        //PublicCOllection
+        services.AddScoped<IPublicCollectionQueryResolver, PublicCollectionQueryResolver>();
         
         //PublicCollectionSubscriber
         services.AddScoped<IPublicCollectionSubscriberQueryResolver, PublicCollectionSubscriberQueryResolver>();

@@ -24,7 +24,7 @@ public class UpdateCardCommand : ICommand<UpdateCardRequest, Card>
     {
         return await cardsQueryResolver
             .Find(request.ParentUserId, request.ParentCollectionId, request.CardId)
-            .ToResult()
+            .ToResultAsync()
             .ErrorIfNull(new NotFoundError(nameof(Card)))
             .Bind(card =>
             {

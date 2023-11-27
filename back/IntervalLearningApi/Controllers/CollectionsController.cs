@@ -1,4 +1,5 @@
 ﻿using Application.Commands.Collections.CreateCollection;
+using Application.Commands.Collections.GetPublicCollection;
 using Application.Commands.Collections.SearchCollection;
 using Application.Commands.Collections.SearchPublicCollection;
 using Application.Commands.Collections.UpdateCollection;
@@ -121,10 +122,13 @@ namespace IntervalLearningApi.Controllers
         [HttpGet(ApiRoutes.Collections.GetPublicCollection)]
         public async Task<ActionResult<CollectionDto>> GetPublicCollection(long userId, short collectionId)
         {
-            var collection = await collectionService.FindPublicCollection(UserId.Create(userId).Value, CollectionId.Create(collectionId).Value);
-            return collection == null 
-                ? NotFound() 
-                : mapper.Map<CollectionDto>(collection);
+            var collectionResult = await commandManager
+                .GetCommand<GetPublicCollectionCommand>()
+                .Handle(new GetPublicCollectionRequest(
+                    UserId.Create(userId).Value,
+                    CollectionId.Create(collectionId).Value));
+
+            return collectionResult.ToActionResult(collection => mapper.Map<CollectionDto>(collection));
         }
 
         [HttpGet(ApiRoutes.Collections.GetAll)]

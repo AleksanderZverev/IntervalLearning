@@ -24,7 +24,7 @@ public class DeleteCardCommand : ICommand<DeleteCardRequest, Card>
     {
         return await cardsQueryResolver
             .Find(request.UserId, request.CollectionId, request.CardId)
-            .ToResult()
+            .ToResultAsync()
             .ErrorIfNull(new NotFoundError(nameof(Card)))
             .Bind(c => cardsMutationResolver.Delete(c));
     }

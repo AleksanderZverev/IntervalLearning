@@ -28,8 +28,8 @@ public class SearchCollectionCommand : ICommand<SearchCollectionRequest, List<Co
 
         return await themesQuery
             .FindAsync(themeId)
-            .ToResult()
+            .ToResultAsync()
             .ErrorIfNull(new BadRequestError("Incorrect theme id"))
-            .Bind(theme => collectionQuery.SearchPrivate(userId, themeId, searchName, toSkip, count));
+            .Bind(theme => collectionQuery.Search(userId, themeId, searchName, toSkip, count));
     }
 }

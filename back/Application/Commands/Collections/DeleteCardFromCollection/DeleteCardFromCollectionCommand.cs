@@ -33,7 +33,7 @@ public class DeleteCardFromCollectionCommand : ICommand<DeleteCardFromCollection
     {
         return await collectionQueryResolver
             .Find(request.UserId, request.CollectionId)
-            .ToResult()
+            .ToResultAsync()
             .ErrorIfNull(new NotFoundError(nameof(Collection)))
             .Bind(collection => DeletionDeleteCard(request, collection));
     }

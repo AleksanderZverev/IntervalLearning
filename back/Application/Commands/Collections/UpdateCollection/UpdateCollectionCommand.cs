@@ -25,7 +25,7 @@ public class UpdateCollectionCommand : ICommand<UpdateCollectionRequest, Collect
     {
         return await collectionQueryResolver
             .Find(request.ParentUserId, request.CollectionId)
-            .ToResult()
+            .ToResultAsync()
             .ErrorIfNull(new NotFoundError(nameof(Collection)))
             .Bind(collection =>
             {

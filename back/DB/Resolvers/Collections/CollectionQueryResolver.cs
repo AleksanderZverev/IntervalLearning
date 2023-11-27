@@ -22,26 +22,7 @@ public class CollectionQueryResolver : ICollectionQueryResolver
         return db.Collections.FindAsync(userId, collectionId).AsTask();
     }
 
-    public async Task<List<Collection>> SearchPublicCollection(
-        ThemeId themeId,
-        string searchName,
-        int skip,
-        int take)
-    {
-        var lowerSearchName = searchName.ToLowerInvariant().Trim();
-        return await db.Collections
-            .Where(c => c.ThemeId == themeId 
-                        && c.IsPublic 
-                        && EF.Functions.ILike(c.Title, $"{lowerSearchName}%"))
-            .Skip(skip)
-            .Take(take)
-            .Include(c => c.CollectionPublicationEntity)
-            .Include(c => c.ParentUser)
-            .AsSplitQuery()
-            .ToListAsync();
-    }
-
-    public async Task<Result<List<Collection>>> SearchPrivate(
+    public async Task<Result<List<Collection>>> Search(
         UserId userId,
         ThemeId themeId, 
         string searchName,
