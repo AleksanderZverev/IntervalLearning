@@ -1,5 +1,6 @@
 ﻿using Application.Commands.Collections.CreateCollection;
 using Application.Commands.Collections.GetAll;
+using Application.Commands.Collections.GetCanStartCollections;
 using Application.Commands.Collections.GetPublicCollection;
 using Application.Commands.Collections.GetRandomWords;
 using Application.Commands.Collections.GetRepeatCollections;
@@ -201,16 +202,19 @@ namespace IntervalLearningApi.Controllers
             if (userId.IsFailed)
                 return BadRequest();
 
-            var (totalCollections, canStartCollections) = await collectionService.GetCanStart(
-                userId.Value,
-                UserId.Create(scheduleUserId).Value,
-                ScheduleId.Create(scheduleId).Value,
-                page,
-                count);
-            
-            return new GetNotFinishedResponse(
-                totalCollections,
-                mapper.Map<List<CollectionDto>>(canStartCollections));
+            var canStartCollectionsResult = await commandManager
+                .GetCommand<GetCanStartCollectionsCommand>()
+                .Handle(new GetCanStartCollectionsRequest(
+                    userId.Value,
+                    UserId.Create(scheduleUserId).Value,
+                    ScheduleId.Create(scheduleId).Value,
+                    page,
+                    count));
+
+            return canStartCollectionsResult.ToActionResult(response =>
+                new GetNotFinishedResponse(
+                    response.TotalCollections,
+                    mapper.Map<List<CollectionDto>>(response.CanStartCollections)));
         }
 
         [HttpGet(ApiRoutes.Collections.GetCollection)]

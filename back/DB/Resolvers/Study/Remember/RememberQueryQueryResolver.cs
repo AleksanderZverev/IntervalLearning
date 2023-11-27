@@ -1,5 +1,6 @@
 using Application.Common.Interfaces.Domain.Study.Remember;
 using DB.Models.ValueObjects;
+using Domain.Card;
 using Domain.Card.ValueObjects;
 using Domain.Collection.ValueObjects;
 using Domain.User.ValueObjects;
@@ -41,6 +42,21 @@ public class RememberQueryQueryResolver : IRememberQueryResolver
                                        && r.ParentRepeatsScheduleUserId == scheduleUserId
                                        && r.ParentRepeatsScheduleId == scheduleId
                                        && cardsIds.Contains(r.ParentCardId))
+            .ToListAsync();
+    }
+
+    public Task<List<Card>> GetCanStartCards(UserId userId, UserId scheduleUserId, ScheduleId scheduleId)
+    {
+        //TODO: can be slow.
+        return db.Cards
+            .Where(c => c.ParentUserId == userId
+                        && !db.Remembers.Any(r =>
+                            r.ParentUserId == userId
+                            && r.ParentCollectionId == c.ParentCollectionId
+                            && r.ParentCardId == c.Id
+                            && r.ParentRepeatsScheduleUserId == scheduleUserId
+                            && r.ParentRepeatsScheduleId == scheduleId))
+            .AsSplitQuery()
             .ToListAsync();
     }
 }

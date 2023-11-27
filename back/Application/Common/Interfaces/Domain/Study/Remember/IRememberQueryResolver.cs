@@ -1,4 +1,5 @@
 using DB.Models.ValueObjects;
+using Domain.Card;
 using Domain.Card.ValueObjects;
 using Domain.Collection.ValueObjects;
 using Domain.User.ValueObjects;
@@ -19,4 +20,6 @@ public interface IRememberQueryResolver
         UserId scheduleUserId,
         ScheduleId scheduleId,
         List<CardId> cardsIds);
+
+    Task<List<Card>> GetCanStartCards(UserId userId, UserId scheduleUserId, ScheduleId scheduleId);
 }
