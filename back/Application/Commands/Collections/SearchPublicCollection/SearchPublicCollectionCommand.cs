@@ -35,14 +35,10 @@ public class SearchPublicCollectionCommand : ICommand<SearchPublicCollectionRequ
             {
                 var toSkip = (page - 1) * count;
 
-                var foundCollections = await collectionQueryResolver.SearchPublicCollection(themeId, searchName);
+                var foundCollections = await collectionQueryResolver.SearchPublicCollection(
+                    themeId, searchName, toSkip, count);
 
-                var targetCollections = foundCollections
-                    .Skip(toSkip)
-                    .Take(count)
-                    .ToList();
-
-                var result = targetCollections
+                var result = foundCollections
                     .Select(c =>
                     {
                         var subscription = publicCollectionSubscriberQueryResolver

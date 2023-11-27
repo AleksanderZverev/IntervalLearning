@@ -6,6 +6,7 @@ using Application.Common.Interfaces.Domain.Study.PhaseRemember;
 using Application.Common.Interfaces.Domain.Study.Queue;
 using Application.Common.Interfaces.Domain.Study.Remember;
 using Application.Common.Interfaces.Domain.Study.Schedule;
+using Application.Common.Interfaces.Domain.Themes;
 using DB.Resolvers.Cards;
 using DB.Resolvers.Collections;
 using DB.Resolvers.Store.PublicCollectionSubscribers;
@@ -13,6 +14,7 @@ using DB.Resolvers.Study.PhaseRemember;
 using DB.Resolvers.Study.Queue;
 using DB.Resolvers.Study.Remember;
 using DB.Resolvers.Study.Schedule;
+using DB.Resolvers.Themes;
 using DB.Transactions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -24,6 +26,9 @@ public static class DependencyInjectionExtensions
     public static IServiceCollection AddPersistence(this IServiceCollection services, Action<DbContextOptionsBuilder> optionsBuilder)
     {
         services.AddDbContext<ApplicationContext>(optionsBuilder);
+        
+        //Theme
+        services.AddScoped<IThemesQueryResolver, ThemesQueryResolver>();
         
         //Transactions
         services.AddScoped<ITransactionProvider, TransactionProvider>();
