@@ -1,4 +1,5 @@
 ﻿using Application.Commands.Collections.CreateCollection;
+using Application.Commands.Collections.GetAll;
 using Application.Commands.Collections.GetPublicCollection;
 using Application.Commands.Collections.SearchCollection;
 using Application.Commands.Collections.SearchPublicCollection;
@@ -139,8 +140,11 @@ namespace IntervalLearningApi.Controllers
             if (userId.IsFailed)
                 return BadRequest();
 
-            var collections = await collectionService.GetAllByUserId(userId.Value);
-            return mapper.Map<List<CollectionDto>>(collections);
+            var collectionsResult = await commandManager
+                .GetCommand<GetAllUserCollectionsCommand>()
+                .Handle(new GetAllUserCollectionsRequest(userId.Value));
+
+            return collectionsResult.ToActionResult(collections => mapper.Map<List<CollectionDto>>(collections));
         }
 
         [HttpGet(ApiRoutes.Collections.GetRandomWords)]

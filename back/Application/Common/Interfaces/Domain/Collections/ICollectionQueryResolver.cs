@@ -10,4 +10,5 @@ public interface ICollectionQueryResolver
 {
     Task<Collection?> Find(UserId userId, CollectionId collectionId);
     Task<Result<List<Collection>>> Search(UserId userId, ThemeId themeId, string searchName, int skip, int take);
+    Task<Result<List<Collection>>> GetAll(UserId userId);
 }

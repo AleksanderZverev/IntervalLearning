@@ -4,6 +4,7 @@ using Domain.Collection;
 using Domain.Collection.ValueObjects;
 using Domain.User.ValueObjects;
 using FluentResults;
+using Infrastructure.Extensions;
 using Microsoft.EntityFrameworkCore;
 
 namespace DB.Resolvers.Collections;
@@ -37,5 +38,14 @@ public class CollectionQueryResolver : ICollectionQueryResolver
             .Skip(skip)
             .Take(take)
             .ToListAsync();
+    }
+
+    public Task<Result<List<Collection>>> GetAll(UserId userId)
+    {
+        return db.Collections
+            .Where(c => c.ParentUserId == userId)
+            .Include(c => c.CollectionPublicationEntity)
+            .ToListAsync()
+            .ToResultAsync();
     }
 }
