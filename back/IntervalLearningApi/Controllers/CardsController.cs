@@ -8,6 +8,7 @@ using Application.Commands.Cards.RememberCard;
 using Application.Commands.Cards.SearchCards;
 using Application.Commands.Cards.StartLearnCards;
 using Application.Commands.Cards.UpdateCard;
+using Application.Commands.Collections.AddCardToCollection;
 using Application.Commands.Collections.DeleteCardFromCollection;
 using Application.Commands.Collections.MoveCollectionCard;
 using DB.Models.ValueObjects;
@@ -61,11 +62,27 @@ namespace IntervalLearningApi.Controllers
 
             if (item.CardId == null)
             {
-                ;
                 var createdResult = await commandManager
-                    .GetCommand<CreateCardCommand>()
-                    .Handle(new CreateCardRequest()
+                    .GetCommand<AddCardToCollectionCommand>()
+                    .Handle(new AddCardToCollectionRequest(
+                        userId.Value,
+                        collectionIdDomain,
+                        CardText.Create(item.FrontText).Value,
+                        item.PromptText == null ? null : CardText.Create(item.PromptText).Value,
+                        CardText.Create(item.BackText).Value,
+                        item.Description != null ? CardDescription.Create(item.Description).Value : null,
+                        item.Examples != null
+                            ? item.Examples.Select(e => CardExample.Create(e).Value).ToList()
+                            : new List<CardExample>()));
+                
+                return createdResult.ToActionResult(c => mapper.Map<CardDto>(c));
+            }
+
+            var cardResult = await commandManager
+                .GetCommand<UpdateCardCommand>()
+                .Handle(new UpdateCardRequest()
                 {
+                    CardId = CardId.Create(item.CardId.Value).Value,
                     ParentUserId = userId.Value,
                     ParentCollectionId = collectionIdDomain,
                     RememberingText = CardText.Create(item.FrontText).Value,
@@ -76,24 +93,6 @@ namespace IntervalLearningApi.Controllers
                         ? item.Examples.Select(e => CardExample.Create(e).Value).ToList()
                         : new List<CardExample>()
                 });
-                
-                return createdResult.ToActionResult(c => mapper.Map<CardDto>(c));
-            }
-
-            var cardResult = await commandManager
-                .GetCommand<UpdateCardCommand>()
-                .Handle(new UpdateCardRequest(){
-                CardId = CardId.Create(item.CardId.Value).Value,
-                ParentUserId = userId.Value,
-                ParentCollectionId = collectionIdDomain,
-                RememberingText = CardText.Create(item.FrontText).Value,
-                PromptText = item.PromptText == null ? null : CardText.Create(item.PromptText).Value,
-                MeaningText = CardText.Create(item.BackText).Value,
-                Description = item.Description != null ? CardDescription.Create(item.Description).Value : null,
-                Examples = item.Examples != null
-                    ? item.Examples.Select(e => CardExample.Create(e).Value).ToList()
-                    : new List<CardExample>()
-            });
             
             return cardResult.ToActionResult(card => mapper.Map<CardDto>(card));
         }

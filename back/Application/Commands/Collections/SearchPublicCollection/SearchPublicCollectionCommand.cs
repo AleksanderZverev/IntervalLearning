@@ -42,7 +42,7 @@ public class SearchPublicCollectionCommand : ICommand<SearchPublicCollectionRequ
                     .Select(c =>
                     {
                         var subscription = publicCollectionSubscriberQueryResolver
-                            .FindAsync(c.ParentUserId, c.Id, myUserId)
+                            .Find(c.ParentUserId, c.Id, myUserId)
                             .GetAwaiter()
                             .GetResult();
 

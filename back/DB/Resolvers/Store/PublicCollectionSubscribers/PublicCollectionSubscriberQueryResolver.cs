@@ -14,7 +14,7 @@ public class PublicCollectionSubscriberQueryResolver : IPublicCollectionSubscrib
         this.db = db;
     }
 
-    public Task<PublicCollectionSubscriber?> FindAsync(UserId userId, CollectionId collectionId, UserId subscriberUserId)
+    public Task<PublicCollectionSubscriber?> Find(UserId userId, CollectionId collectionId, UserId subscriberUserId)
     {
         return db.PublicCollectionSubscribers.FindAsync(userId, collectionId, subscriberUserId).AsTask();
     }

@@ -62,7 +62,7 @@ namespace IntervalLearningApi.Controllers
                     .Handle(new CreateCollectionRequest()
                     {
                         ParentUserId = userId.Value,
-                        Title = ThemeTitle.Create(item.Title).Value,
+                        Title = CollectionTitle.Create(item.Title).Value,
                         ThemeId = ThemeId.Create(item.ThemeId).Value,
                         IsDefaultBackSide = item.IsDefaultBackSide,
                     });
@@ -75,7 +75,7 @@ namespace IntervalLearningApi.Controllers
                     {
                         ParentUserId = userId.Value,
                         CollectionId = CollectionId.Create(item.CollectionId.Value).Value,
-                        Title = ThemeTitle.Create(item.Title).Value,
+                        Title = CollectionTitle.Create(item.Title).Value,
                         ThemeId = ThemeId.Create(item.ThemeId).Value,
                         IsDefaultBackSide = item.IsDefaultBackSide,
                     });
