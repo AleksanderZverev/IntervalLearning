@@ -73,6 +73,7 @@ public static class DependencyInjectionExtensions
         
         //PublicCollectionSubscriber
         services.AddScoped<IPublicCollectionSubscriberQueryResolver, PublicCollectionSubscriberQueryResolver>();
+        services.AddScoped<IPublicCollectionSubscriberMutationResolver, PublicCollectionSubscriberMutationResolver>();
         
         //CollectionPublicationEntity
         services.AddScoped<ICollectionPublicationQueryResolver, CollectionPublicationQueryResolver>();

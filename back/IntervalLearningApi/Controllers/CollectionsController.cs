@@ -1,4 +1,5 @@
-﻿using Application.Commands.Collections.CreateCollection;
+﻿using Application.Commands.Collections.AddPublicCollection;
+using Application.Commands.Collections.CreateCollection;
 using Application.Commands.Collections.GetAll;
 using Application.Commands.Collections.GetCanStartCollections;
 using Application.Commands.Collections.GetCollection;
@@ -260,14 +261,16 @@ namespace IntervalLearningApi.Controllers
             if (userId.IsFailed)
                 return BadRequest();
 
-            var collectionResult = await collectionService.AddCardsToMyCollection(
-                UserId.Create(collectionUserId).Value,
-                CollectionId.Create(collectionId).Value,
-                userId.Value,
-                //todo: check null
-                CollectionId.Create(request.MyCollectionId.Value).Value,
-            request.NewCollectionName,
-                request.CheckUnique);
+            var collectionResult = await commandManager
+                .GetCommand<AddPublicCollectionCommand>()
+                .Handle(new AddPublicCollectionRequest(
+                    UserId.Create(collectionUserId).Value,
+                    CollectionId.Create(collectionId).Value,
+                    userId.Value,
+                    //todo: check null
+                    CollectionId.Create(request.MyCollectionId.Value).Value,
+                    request.NewCollectionName,
+                    request.CheckUnique));
             
             return collectionResult.ToActionResult(collection => mapper.Map<CollectionDto>(collection));
         }

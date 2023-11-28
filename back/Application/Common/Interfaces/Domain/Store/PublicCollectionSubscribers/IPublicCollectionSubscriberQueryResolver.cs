@@ -6,5 +6,5 @@ namespace Application.Common.Interfaces.Domain.Store.PublicCollectionSubscribers
 
 public interface IPublicCollectionSubscriberQueryResolver
 {
-    Task<PublicCollectionSubscriber?> FindAsync(UserId userId, CollectionId collectionId, UserId subscriberUserId);
+    Task<PublicCollectionSubscriber?> Find(UserId userId, CollectionId collectionId, UserId subscriberUserId);
 }
