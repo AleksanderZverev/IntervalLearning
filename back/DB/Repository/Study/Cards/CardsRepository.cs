@@ -1,17 +1,16 @@
-using Application.Common.Interfaces.Domain.Cards;
+using Application.Common.Interfaces.DB.Repositories;
+using Application.Common.Interfaces.DB.Repositories.Cards;
 using DB.Configurations.Study;
+using DB.Repository;
 using Domain.Card;
 using Domain.Card.ValueObjects;
-using Domain.Collection.ValueObjects;
-using Domain.User.ValueObjects;
 using FluentResults;
-using Infrastructure.Errors;
 
 namespace DB.Resolvers.Cards;
 
-public class CardMutationResolver : BaseMutationResolver<Card>, ICardsMutationResolver
+internal class CardsRepository : BaseRepository<Card>, IRepository<Card, CardId, CardIdParams>
 {
-    public CardMutationResolver(ApplicationContext db) : base(db)
+    public CardsRepository(ApplicationContext db) : base(db)
     {
     }
 
@@ -45,9 +44,9 @@ public class CardMutationResolver : BaseMutationResolver<Card>, ICardsMutationRe
         }
     }
 
-    public Result<CardId> GetUniqueId(UserId userId, CollectionId collectionId)
+    public Result<CardId> GetUniqueId(CardIdParams param)
     {
-        var sequenceName = CardConfiguration.GetSequenceName(userId, collectionId);
+        var sequenceName = CardConfiguration.GetSequenceName(param.UserId, param.CollectionId);
         db.EnsureSequenceCreated(sequenceName);
         var nextCardId = db.GetSequenceNextValue16(sequenceName);
         return CardId.Create(nextCardId);

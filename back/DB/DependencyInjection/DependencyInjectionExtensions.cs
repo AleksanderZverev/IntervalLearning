@@ -1,3 +1,11 @@
+using Application.Common.Interfaces.DB.Repositories;
+using Application.Common.Interfaces.DB.Repositories.Cards;
+using Application.Common.Interfaces.DB.Repositories.Store;
+using Application.Common.Interfaces.DB.Repositories.Store.PublicCollections;
+using Application.Common.Interfaces.DB.Repositories.Study;
+using Application.Common.Interfaces.DB.Repositories.Study.CardRemembers;
+using Application.Common.Interfaces.DB.Repositories.Study.Collections;
+using Application.Common.Interfaces.DB.Repositories.Study.Queue;
 using Application.Common.Interfaces.DB.Transactions;
 using Application.Common.Interfaces.Domain.Cards;
 using Application.Common.Interfaces.Domain.Collections;
@@ -6,11 +14,17 @@ using Application.Common.Interfaces.Domain.Languages;
 using Application.Common.Interfaces.Domain.Store.CollectionPublications;
 using Application.Common.Interfaces.Domain.Store.PublicCollection;
 using Application.Common.Interfaces.Domain.Store.PublicCollectionSubscribers;
-using Application.Common.Interfaces.Domain.Study.PhaseRemember;
 using Application.Common.Interfaces.Domain.Study.Queue;
 using Application.Common.Interfaces.Domain.Study.Remember;
 using Application.Common.Interfaces.Domain.Study.Schedule;
 using Application.Common.Interfaces.Domain.Themes;
+using DB.Models.Store;
+using DB.Models.ValueObjects;
+using DB.Repository;
+using DB.Repository.Store;
+using DB.Repository.Store.PublicCollections;
+using DB.Repository.Study;
+using DB.Repository.Study.Collections;
 using DB.Resolvers.Cards;
 using DB.Resolvers.Collections;
 using DB.Resolvers.Dictionary.Words;
@@ -18,12 +32,18 @@ using DB.Resolvers.Languages;
 using DB.Resolvers.Store.CollectionPublications;
 using DB.Resolvers.Store.PublicCollection;
 using DB.Resolvers.Store.PublicCollectionSubscribers;
-using DB.Resolvers.Study.PhaseRemember;
 using DB.Resolvers.Study.Queue;
 using DB.Resolvers.Study.Remember;
 using DB.Resolvers.Study.Schedule;
 using DB.Resolvers.Themes;
 using DB.Transactions;
+using Domain.Card;
+using Domain.Card.ValueObjects;
+using Domain.Collection;
+using Domain.Collection.ValueObjects;
+using Domain.Queue;
+using Domain.Schedule.Entities.Remember;
+using Domain.Theme;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -35,8 +55,13 @@ public static class DependencyInjectionExtensions
     {
         services.AddDbContext<ApplicationContext>(optionsBuilder);
         
+        //BoundedContextRepository
+        services.AddScoped<IStudyRepository, StudyRepository>();
+        services.AddScoped<IStoreRepository, StoreRepository>();
+        
         //Theme
         services.AddScoped<IThemesQueryResolver, ThemesQueryResolver>();
+        services.AddScoped<IRepository<Theme>, BaseRepository<Theme>>();
         
         //Languages
         services.AddScoped<ILanguagesQueryResolver, LanguagesQueryResolver>();
@@ -46,40 +71,39 @@ public static class DependencyInjectionExtensions
         
         //Collections
         services.AddScoped<ICollectionQueryResolver, CollectionQueryResolver>();
-        services.AddScoped<ICollectionMutationResolver, CollectionMutationResolver>();
+        services.AddScoped<IRepository<Collection, CollectionId, CollectionIdParams>, CollectionRepository>();
 
         //Cards
         services.AddScoped<ICardsQueryResolver, CardsQueryResolver>();
-        services.AddScoped<ICardsMutationResolver, CardMutationResolver>();
+        services.AddScoped<IRepository<Card, CardId, CardIdParams>, CardsRepository>();
         
         //Queue
         services.AddScoped<IRepeatingQueueResolver, RepeatingQueueResolver>();
-        services.AddScoped<IRepeatingQueueMutationResolver, RepeatingQueueMutationResolver>();
+        services.AddScoped<IRepository<CardRepeatQueue, QueueId, RepeatingQueueIdParams>, RepeatingQueueRepository>();
         
         //Remember
         services.AddScoped<IRememberQueryResolver, RememberQueryQueryResolver>();
-        services.AddScoped<IRememberMutationResolver, RememberMutationResolver>();
+        services.AddScoped<IRepository<Remember, RememberId, RememberIdParams>, RememberRepository>();
         
         //Schedule
         services.AddScoped<IScheduleResolver, ScheduleResolver>();
         
         //PhaseRemember
-        services.AddScoped<IPhaseRememberMutationResolver, PhaseRememberMutationResolver>();
         
         //===STORE===
         
         //PublicCOllection
         services.AddScoped<IPublicCollectionQueryResolver, PublicCollectionQueryResolver>();
-        
+        services.AddScoped<IPublicCollectionRepository, PublicCollectionRepository>();
+
         //PublicCollectionSubscriber
         services.AddScoped<IPublicCollectionSubscriberQueryResolver, PublicCollectionSubscriberQueryResolver>();
-        services.AddScoped<IPublicCollectionSubscriberMutationResolver, PublicCollectionSubscriberMutationResolver>();
+        services.AddScoped<IRepository<PublicCollectionSubscriber>, BaseRepository<PublicCollectionSubscriber>>();
         
         //CollectionPublicationEntity
         services.AddScoped<ICollectionPublicationQueryResolver, CollectionPublicationQueryResolver>();
-        services.AddScoped<ICollectionPublicationMutationResolver, CollectionPublicationMutationResolver>();
-        
-        
+        services.AddScoped<IRepository<CollectionPublicationEntity>, BaseRepository<CollectionPublicationEntity>>();
+
         //===DICTIONARY===
         
         //Words
