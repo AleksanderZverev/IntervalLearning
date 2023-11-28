@@ -1,3 +1,4 @@
+using Application.Common.Interfaces.DB.Repositories.Study;
 using Application.Common.Interfaces.Domain.Collections;
 using Domain.Collection;
 using Domain.Collection.ValueObjects;
@@ -7,17 +8,17 @@ namespace Application.Commands.Collections.CreateCollection;
 
 public class CreateCollectionCommand : ICommand<CreateCollectionRequest, Collection>
 {
-    private readonly ICollectionMutationResolver collectionMutationResolver;
+    private readonly IStudyRepository studyRepository;
 
     public CreateCollectionCommand(
-        ICollectionMutationResolver collectionMutationResolver)
+        IStudyRepository studyRepository)
     {
-        this.collectionMutationResolver = collectionMutationResolver;
+        this.studyRepository = studyRepository;
     }
 
     public Task<Result<Collection>> Handle(CreateCollectionRequest request)
     {
-        var collectionId = collectionMutationResolver.GetUniqueId(request.ParentUserId).Value;
+        var collectionId = studyRepository.Collections.GetUniqueId(new(request.ParentUserId)).Value;
 
         var newCollectionResult = Collection.Create(
             request.ParentUserId,
@@ -31,6 +32,6 @@ public class CreateCollectionCommand : ICommand<CreateCollectionRequest, Collect
         var newCollection = newCollectionResult.Value;
         newCollection.IsDefaultBackSide = request.IsDefaultBackSide;
         
-        return Task.FromResult(collectionMutationResolver.Add(newCollection));
+        return Task.FromResult(studyRepository.Collections.Add(newCollection));
     }
 }

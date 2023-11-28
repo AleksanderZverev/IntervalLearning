@@ -35,7 +35,7 @@ public class Collection : Entity<ComplexCollectionId>
 
     // public long ParentUserId { get; set; }
 
-    public bool IsPublic { get; set; }
+    public bool IsPublic { get; private set; }
 
     public virtual CollectionPublicationEntity? CollectionPublicationEntity { get; set; }
 
@@ -72,4 +72,8 @@ public class Collection : Entity<ComplexCollectionId>
     //     CardsCount.Decrement();
     //     AddDomainEvent(new CardRemoved(card));
     // }
+    public void MakePublic()
+    {
+        IsPublic = true;
+    }
 }

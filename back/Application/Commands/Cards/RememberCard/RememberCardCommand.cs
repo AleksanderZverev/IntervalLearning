@@ -1,10 +1,9 @@
 using Application.Commands.Cards.StartLearnCards;
+using Application.Common.Interfaces.DB.Repositories.Study;
 using Application.Common.Interfaces.DB.Transactions;
 using Application.Common.Interfaces.Domain.Cards;
 using Application.Common.Interfaces.Domain.Collections;
-using Application.Common.Interfaces.Domain.Study.PhaseRemember;
 using Application.Common.Interfaces.Domain.Study.Queue;
-using Application.Common.Interfaces.Domain.Study.Remember;
 using Application.Common.Interfaces.Domain.Study.Schedule;
 using DB.Models;
 using DB.Models.ValueObjects;
@@ -42,9 +41,7 @@ public class RememberCardCommand : ICommand<RememberCardRequest, NextRepeatInfoR
     private readonly ICollectionQueryResolver collectionQueryResolver;
     private readonly IRepeatingQueueResolver queueResolver;
     private readonly IScheduleResolver scheduleResolver;
-    private readonly IRememberMutationResolver rememberMutationResolver;
-    private readonly IRepeatingQueueMutationResolver queueMutationResolver;
-    private readonly IPhaseRememberMutationResolver phaseRememberMutationResolver;
+    private readonly IStudyRepository studyRepository;
     private readonly ITransactionProvider transactionProvider;
 
     public RememberCardCommand(
@@ -52,19 +49,15 @@ public class RememberCardCommand : ICommand<RememberCardRequest, NextRepeatInfoR
         ICollectionQueryResolver collectionQueryResolver,
         IRepeatingQueueResolver queueResolver,
         IScheduleResolver scheduleResolver,
-        IRememberMutationResolver rememberMutationResolver,
-        IRepeatingQueueMutationResolver queueMutationResolver,
-        IPhaseRememberMutationResolver phaseRememberMutationResolver,
-        ITransactionProvider transactionProvider)
+        ITransactionProvider transactionProvider, 
+        IStudyRepository studyRepository)
     {
         this.cardsQueryResolver = cardsQueryResolver;
         this.collectionQueryResolver = collectionQueryResolver;
         this.queueResolver = queueResolver;
         this.scheduleResolver = scheduleResolver;
-        this.rememberMutationResolver = rememberMutationResolver;
-        this.queueMutationResolver = queueMutationResolver;
-        this.phaseRememberMutationResolver = phaseRememberMutationResolver;
         this.transactionProvider = transactionProvider;
+        this.studyRepository = studyRepository;
     }
 
     public async Task<Result<NextRepeatInfoResponse>> Handle(RememberCardRequest request)
@@ -123,8 +116,8 @@ public class RememberCardCommand : ICommand<RememberCardRequest, NextRepeatInfoR
             }
             
             var remember = CreateRemember(schedule, card, weight, queueItem.PhaseIndex, now);
-            var addRememberResult = rememberMutationResolver.Add(remember);
-            var removeQueueResult = queueMutationResolver.Delete(queueItem);
+            var addRememberResult = studyRepository.CardRemembers.Add(remember);
+            var removeQueueResult = studyRepository.RepeatingQueue.Delete(queueItem);
 
             if (addRememberResult.IsFailed || removeQueueResult.IsFailed)
                 return new InternalError();
@@ -138,7 +131,7 @@ public class RememberCardCommand : ICommand<RememberCardRequest, NextRepeatInfoR
                 userId,
                 weight);
 
-            var phaseRememberAddResult = phaseRememberMutationResolver.Add(phaseRemember);
+            var phaseRememberAddResult = studyRepository.PhaseRemembers.Add(phaseRemember);
 
             if (phaseRememberAddResult.IsFailed)
             {
@@ -153,7 +146,7 @@ public class RememberCardCommand : ICommand<RememberCardRequest, NextRepeatInfoR
             var nextRepeatDate = nextPhase.GetNextDate(now);
             var newQueueItem = GetNextQueue(schedule, card, nextPhaseIndex, nextRepeatDate);
             
-            var addNewQueueResult = queueMutationResolver.Add(newQueueItem);
+            var addNewQueueResult = studyRepository.RepeatingQueue.Add(newQueueItem);
 
             if (addNewQueueResult.IsFailed)
                 return new InternalError();
@@ -181,7 +174,7 @@ public class RememberCardCommand : ICommand<RememberCardRequest, NextRepeatInfoR
     
     private CardRepeatQueue GetNextQueue(RepeatsSchedule scheduleWithPhases, Card card, int nextPhaseIndex, DateTime nextRepeatDate)
     {
-        var queueId = queueMutationResolver.GetUniqueId(scheduleWithPhases, card).Value;
+        var queueId = studyRepository.RepeatingQueue.GetUniqueId(new(scheduleWithPhases, card)).Value;
         
         var queueItem = new CardRepeatQueue(
             scheduleWithPhases.ParentUserId,
@@ -199,7 +192,7 @@ public class RememberCardCommand : ICommand<RememberCardRequest, NextRepeatInfoR
     
     private Remember CreateRemember(RepeatsSchedule schedule, Card card, RememberWeight weight, int phaseIndex, DateTime date)
     {
-        var rememberId = rememberMutationResolver.GetUniqueId(schedule, card).Value;
+        var rememberId = studyRepository.CardRemembers.GetUniqueId(new(schedule, card)).Value;
         
         return new Remember(
             schedule.ParentUserId, 

@@ -1,4 +1,5 @@
 using Application.Commands.Cards.DeleteCard;
+using Application.Common.Interfaces.DB.Repositories.Study;
 using Application.Common.Interfaces.DB.Transactions;
 using Application.Common.Interfaces.Domain.Collections;
 using Domain.Card;
@@ -13,20 +14,20 @@ namespace Application.Commands.Collections.DeleteCardFromCollection;
 public class DeleteCardFromCollectionCommand : ICommand<DeleteCardFromCollectionRequest, Card>
 {
     private readonly ICollectionQueryResolver collectionQueryResolver;
-    private readonly ICollectionMutationResolver collectionMutationResolver;
+    private readonly IStudyRepository studyRepository;
     private readonly DeleteCardCommand deleteCardCommand;
     private readonly ITransactionProvider transactionProvider;
 
     public DeleteCardFromCollectionCommand(
         ICollectionQueryResolver collectionQueryResolver,
-        ICollectionMutationResolver collectionMutationResolver,
         DeleteCardCommand deleteCardCommand,
-        ITransactionProvider transactionProvider)
+        ITransactionProvider transactionProvider,
+        IStudyRepository studyRepository)
     {
         this.collectionQueryResolver = collectionQueryResolver;
-        this.collectionMutationResolver = collectionMutationResolver;
         this.deleteCardCommand = deleteCardCommand;
         this.transactionProvider = transactionProvider;
+        this.studyRepository = studyRepository;
     }
 
     public async Task<Result<Card>> Handle(DeleteCardFromCollectionRequest request)
@@ -54,7 +55,7 @@ public class DeleteCardFromCollectionCommand : ICommand<DeleteCardFromCollection
 
         collection.CardsCount.Decrement();
         
-        var updateResult = collectionMutationResolver.Update(collection);
+        var updateResult = studyRepository.Collections.Update(collection);
 
         if (updateResult.IsFailed)
         {

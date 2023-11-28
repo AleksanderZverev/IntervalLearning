@@ -18,6 +18,7 @@ using Application.Common.Interfaces.Domain.Study.Queue;
 using Application.Common.Interfaces.Domain.Study.Remember;
 using Application.Common.Interfaces.Domain.Study.Schedule;
 using Application.Common.Interfaces.Domain.Themes;
+using DB.Models;
 using DB.Models.Store;
 using DB.Models.ValueObjects;
 using DB.Repository;
@@ -42,6 +43,7 @@ using Domain.Card.ValueObjects;
 using Domain.Collection;
 using Domain.Collection.ValueObjects;
 using Domain.Queue;
+using Domain.Schedule;
 using Domain.Schedule.Entities.Remember;
 using Domain.Theme;
 using Microsoft.EntityFrameworkCore;
@@ -87,8 +89,13 @@ public static class DependencyInjectionExtensions
         
         //Schedule
         services.AddScoped<IScheduleResolver, ScheduleResolver>();
+        services.AddScoped<IRepository<RepeatsSchedule>, BaseRepository<RepeatsSchedule>>();
+        
+        //Phase
+        services.AddScoped<IRepository<Phase>, BaseRepository<Phase>>();
         
         //PhaseRemember
+        services.AddScoped<IRepository<PhaseRememberEntity>, BaseRepository<PhaseRememberEntity>>();
         
         //===STORE===
         

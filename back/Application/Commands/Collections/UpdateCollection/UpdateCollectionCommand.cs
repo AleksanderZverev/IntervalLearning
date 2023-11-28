@@ -1,3 +1,4 @@
+using Application.Common.Interfaces.DB.Repositories.Study;
 using Application.Common.Interfaces.Domain.Collections;
 using Domain.Collection;
 using Domain.Collection.ValueObjects;
@@ -11,14 +12,14 @@ namespace Application.Commands.Collections.UpdateCollection;
 public class UpdateCollectionCommand : ICommand<UpdateCollectionRequest, Collection>
 {
     private readonly ICollectionQueryResolver collectionQueryResolver;
-    private readonly ICollectionMutationResolver collectionMutationResolver;
+    private readonly IStudyRepository studyRepository;
 
     public UpdateCollectionCommand(
-        ICollectionQueryResolver collectionQueryResolver,
-        ICollectionMutationResolver collectionMutationResolver)
+        ICollectionQueryResolver collectionQueryResolver, 
+        IStudyRepository studyRepository)
     {
         this.collectionQueryResolver = collectionQueryResolver;
-        this.collectionMutationResolver = collectionMutationResolver;
+        this.studyRepository = studyRepository;
     }
 
     public async Task<Result<Collection>> Handle(UpdateCollectionRequest request)
@@ -32,7 +33,7 @@ public class UpdateCollectionCommand : ICommand<UpdateCollectionRequest, Collect
                 collection.Title = CollectionTitle.Create(request.Title).Value;
                 collection.ThemeId = request.ThemeId;
                 collection.IsDefaultBackSide = request.IsDefaultBackSide;
-                return collectionMutationResolver.Update(collection);
+                return studyRepository.Collections.Update(collection);
             });
     }
 }

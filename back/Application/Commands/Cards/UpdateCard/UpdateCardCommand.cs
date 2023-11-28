@@ -1,3 +1,4 @@
+using Application.Common.Interfaces.DB.Repositories.Study;
 using Application.Common.Interfaces.Domain.Cards;
 using Domain.Card;
 using FluentResults;
@@ -10,14 +11,14 @@ namespace Application.Commands.Cards.UpdateCard;
 public class UpdateCardCommand : ICommand<UpdateCardRequest, Card>
 {
     private readonly ICardsQueryResolver cardsQueryResolver;
-    private readonly ICardsMutationResolver cardsMutationResolver;
+    private readonly IStudyRepository studyRepository;
 
     public UpdateCardCommand(
         ICardsQueryResolver cardsQueryResolver,
-        ICardsMutationResolver cardsMutationResolver)
+        IStudyRepository studyRepository)
     {
         this.cardsQueryResolver = cardsQueryResolver;
-        this.cardsMutationResolver = cardsMutationResolver;
+        this.studyRepository = studyRepository;
     }
 
     public async Task<Result<Card>> Handle(UpdateCardRequest request)
@@ -35,6 +36,6 @@ public class UpdateCardCommand : ICommand<UpdateCardRequest, Card>
                 card.Examples = request.Examples;
                 return card.ToResult();
             })
-            .Bind(updatedCard => cardsMutationResolver.Update(updatedCard));
+            .Bind(updatedCard => studyRepository.Cards.Update(updatedCard));
     }
 }

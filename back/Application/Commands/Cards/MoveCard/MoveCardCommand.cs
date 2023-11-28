@@ -1,5 +1,6 @@
 using Application.Commands.Cards.CreateCard;
 using Application.Commands.Cards.DeleteCard;
+using Application.Common.Interfaces.DB.Repositories.Study;
 using Application.Common.Interfaces.DB.Transactions;
 using Application.Common.Interfaces.Domain.Cards;
 using Domain.Card;
@@ -13,23 +14,23 @@ namespace Application.Commands.Cards.MoveCard;
 public class MoveCardCommand : ICommand<MoveCardRequest, Card>
 {
     private readonly ICardsQueryResolver cardsQueryResolver;
-    private readonly ICardsMutationResolver cardsMutationResolver;
+    private readonly IStudyRepository studyRepository;
     private readonly ITransactionProvider transactionProvider;
     private readonly CreateCardCommand createCardCommand;
     private readonly DeleteCardCommand deleteCardCommand;
 
     public MoveCardCommand(
         ICardsQueryResolver cardsQueryResolver,
-        ICardsMutationResolver cardsMutationResolver,
         ITransactionProvider transactionProvider,
         CreateCardCommand createCardCommand,
-        DeleteCardCommand deleteCardCommand)
+        DeleteCardCommand deleteCardCommand, 
+        IStudyRepository studyRepository)
     {
         this.cardsQueryResolver = cardsQueryResolver;
-        this.cardsMutationResolver = cardsMutationResolver;
         this.transactionProvider = transactionProvider;
         this.createCardCommand = createCardCommand;
         this.deleteCardCommand = deleteCardCommand;
+        this.studyRepository = studyRepository;
     }
 
     public async Task<Result<Card>> Handle(MoveCardRequest request)
@@ -76,7 +77,7 @@ public class MoveCardCommand : ICommand<MoveCardRequest, Card>
                 r.RepeatedDate))
             .ToList();
         
-        var updateMovedCardResult = cardsMutationResolver.Update(movedCard);
+        var updateMovedCardResult = studyRepository.Cards.Update(movedCard);
 
         if (updateMovedCardResult.IsFailed)
             return updateMovedCardResult;

@@ -1,9 +1,8 @@
 using Application.Commands.Cards.CreateCard;
-using Application.Commands.Cards.UpdateCard;
+using Application.Common.Interfaces.DB.Repositories.Study;
 using Application.Common.Interfaces.DB.Transactions;
 using Application.Common.Interfaces.Domain.Collections;
 using Domain.Card;
-using Domain.Collection;
 using FluentResults;
 using Infrastructure.Errors;
 
@@ -12,23 +11,20 @@ namespace Application.Commands.Collections.AddCardToCollection;
 public class AddCardToCollectionCommand : ICommand<AddCardToCollectionRequest, Card>
 {
     private readonly ICollectionQueryResolver collectionQueryResolver;
-    private readonly ICollectionMutationResolver collectionMutationResolver;
     private readonly CreateCardCommand createCardCommand;
-    private readonly UpdateCardCommand updateCardCommand;
+    private readonly IStudyRepository studyRepository;
     private readonly ITransactionProvider transactionProvider;
 
     public AddCardToCollectionCommand(
         ICollectionQueryResolver collectionQueryResolver,
-        ICollectionMutationResolver collectionMutationResolver,
         CreateCardCommand createCardCommand,
-        UpdateCardCommand updateCardCommand,
-        ITransactionProvider transactionProvider)
+        ITransactionProvider transactionProvider, 
+        IStudyRepository studyRepository)
     {
         this.collectionQueryResolver = collectionQueryResolver;
-        this.collectionMutationResolver = collectionMutationResolver;
         this.createCardCommand = createCardCommand;
-        this.updateCardCommand = updateCardCommand;
         this.transactionProvider = transactionProvider;
+        this.studyRepository = studyRepository;
     }
 
     public async Task<Result<Card>> Handle(AddCardToCollectionRequest request)
@@ -59,7 +55,7 @@ public class AddCardToCollectionCommand : ICommand<AddCardToCollectionRequest, C
         }
         
         collection.CardsCount.Increment();
-        var updateResult = collectionMutationResolver.Update(collection);
+        var updateResult = studyRepository.Collections.Update(collection);
         
         if (updateResult.IsFailed)
             return new InternalError();

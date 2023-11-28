@@ -1,3 +1,5 @@
+using Application.Common.Interfaces.DB.Repositories.Cards;
+using Application.Common.Interfaces.DB.Repositories.Study;
 using Application.Common.Interfaces.Domain.Cards;
 using Domain.Card;
 using FluentResults;
@@ -6,17 +8,17 @@ namespace Application.Commands.Cards.CreateCard;
 
 public class CreateCardCommand : ICommand<CreateCardRequest, Card>
 {
-    private readonly ICardsMutationResolver cardsMutationResolver;
+    private readonly IStudyRepository studyRepository;
 
-    public CreateCardCommand(ICardsMutationResolver cardsMutationResolver)
+    public CreateCardCommand(IStudyRepository studyRepository)
     {
-        this.cardsMutationResolver = cardsMutationResolver;
+        this.studyRepository = studyRepository;
     }
 
     public async Task<Result<Card>> Handle(CreateCardRequest request)
     {
         return Result.Ok()
-            .Bind(() => cardsMutationResolver.GetUniqueId(request.ParentUserId, request.ParentCollectionId))
+            .Bind(() => studyRepository.Cards.GetUniqueId(new CardIdParams(request.ParentUserId, request.ParentCollectionId)))
             .Bind(cardId =>
             {
                 var card = new Card(request.ParentUserId, request.ParentCollectionId, cardId)
@@ -34,6 +36,6 @@ public class CreateCardCommand : ICommand<CreateCardRequest, Card>
 
                 return Result.Ok(card);
             })
-            .Bind(card => cardsMutationResolver.Add(card));
+            .Bind(card => studyRepository.Cards.Add(card));
     }
 }

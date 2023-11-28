@@ -1,6 +1,8 @@
 using System.Diagnostics;
 using Application.Commands.Collections.AddCardToCollection;
 using Application.Commands.Collections.CreateCollection;
+using Application.Common.Interfaces.DB.Repositories.Store;
+using Application.Common.Interfaces.DB.Repositories.Study;
 using Application.Common.Interfaces.DB.Transactions;
 using Application.Common.Interfaces.Domain.Cards;
 using Application.Common.Interfaces.Domain.Collections;
@@ -24,8 +26,7 @@ public class AddPublicCollectionCommand : ICommand<AddPublicCollectionRequest, C
     private readonly IPublicCollectionQueryResolver publicCollectionQueryResolver;
     private readonly ICollectionPublicationQueryResolver collectionPublicationQueryResolver;
     private readonly IPublicCollectionSubscriberQueryResolver subscriberQueryResolver;
-    private readonly ICollectionPublicationMutationResolver collectionPublicationMutationResolver;
-    private readonly IPublicCollectionSubscriberMutationResolver publicCollectionSubscriberMutationResolver;
+    private readonly IStoreRepository storeRepository;
     private readonly CreateCollectionCommand createCollectionCommand;
     private readonly AddCardToCollectionCommand addCardToCollectionCommand;
 
@@ -36,10 +37,9 @@ public class AddPublicCollectionCommand : ICommand<AddPublicCollectionRequest, C
         IPublicCollectionQueryResolver publicCollectionQueryResolver,
         ICollectionPublicationQueryResolver collectionPublicationQueryResolver,
         IPublicCollectionSubscriberQueryResolver subscriberQueryResolver,
-        ICollectionPublicationMutationResolver collectionPublicationMutationResolver,
-        IPublicCollectionSubscriberMutationResolver publicCollectionSubscriberMutationResolver,
         CreateCollectionCommand createCollectionCommand,
-        AddCardToCollectionCommand addCardToCollectionCommand)
+        AddCardToCollectionCommand addCardToCollectionCommand,
+        IStoreRepository storeRepository)
     {
         this.transactionProvider = transactionProvider;
         this.collectionQueryResolver = collectionQueryResolver;
@@ -47,10 +47,9 @@ public class AddPublicCollectionCommand : ICommand<AddPublicCollectionRequest, C
         this.publicCollectionQueryResolver = publicCollectionQueryResolver;
         this.collectionPublicationQueryResolver = collectionPublicationQueryResolver;
         this.subscriberQueryResolver = subscriberQueryResolver;
-        this.collectionPublicationMutationResolver = collectionPublicationMutationResolver;
-        this.publicCollectionSubscriberMutationResolver = publicCollectionSubscriberMutationResolver;
         this.createCollectionCommand = createCollectionCommand;
         this.addCardToCollectionCommand = addCardToCollectionCommand;
+        this.storeRepository = storeRepository;
     }
 
     public async Task<Result<Collection>> Handle(AddPublicCollectionRequest request)
@@ -147,7 +146,7 @@ public class AddPublicCollectionCommand : ICommand<AddPublicCollectionRequest, C
 
         if (subscriber == null)
         {
-            var addSubscriberResult = publicCollectionSubscriberMutationResolver.Add(new PublicCollectionSubscriber()
+            var addSubscriberResult = storeRepository.CollectionSubscribers.Add(new PublicCollectionSubscriber()
             {
                 ParentUserId = publicCollectionUserId,
                 ParentCollectionId = publicCollectionId,
@@ -165,14 +164,14 @@ public class AddPublicCollectionCommand : ICommand<AddPublicCollectionRequest, C
         else
         {
             subscriber.IsAdded = true;
-            var updateSubscriberResult = publicCollectionSubscriberMutationResolver.Update(subscriber);
+            var updateSubscriberResult = storeRepository.CollectionSubscribers.Update(subscriber);
 
             if (updateSubscriberResult.IsFailed)
                 return new InternalError();
         }
         
         publication.SubscribersCount++;
-        var updatePublicationResult = collectionPublicationMutationResolver.Update(publication);
+        var updatePublicationResult = storeRepository.CollectionPublications.Update(publication);
 
         if (updatePublicationResult.IsFailed)
         {

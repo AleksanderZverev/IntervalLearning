@@ -1,4 +1,6 @@
 using System.Diagnostics;
+using Application.Common.Interfaces.DB.Repositories.Study;
+using Application.Common.Interfaces.DB.Repositories.Study.CardRemembers;
 using Application.Common.Interfaces.DB.Transactions;
 using Application.Common.Interfaces.Domain.Cards;
 using Application.Common.Interfaces.Domain.Study.Queue;
@@ -19,25 +21,19 @@ public class StartLearnCardsCommand : ICommand<StartLearnCardsRequest, NextRepea
 {
     private readonly IScheduleResolver scheduleResolver;
     private readonly ICardsQueryResolver cardsQueryResolver;
-    private readonly ICardsMutationResolver cardsMutationResolver;
-    private readonly IRepeatingQueueMutationResolver queueMutationResolver;
-    private readonly IRememberMutationResolver rememberMutationResolver;
+    private readonly IStudyRepository studyRepository;
     private readonly ITransactionProvider transactionProvider;
 
     public StartLearnCardsCommand(
         IScheduleResolver scheduleResolver,
         ICardsQueryResolver cardsQueryResolver,
-        ICardsMutationResolver cardsMutationResolver,
-        IRepeatingQueueMutationResolver queueMutationResolver,
-        IRememberMutationResolver rememberMutationResolver,
-        ITransactionProvider transactionProvider)
+        ITransactionProvider transactionProvider, 
+        IStudyRepository studyRepository)
     {
         this.scheduleResolver = scheduleResolver;
         this.cardsQueryResolver = cardsQueryResolver;
-        this.cardsMutationResolver = cardsMutationResolver;
-        this.queueMutationResolver = queueMutationResolver;
-        this.rememberMutationResolver = rememberMutationResolver;
         this.transactionProvider = transactionProvider;
+        this.studyRepository = studyRepository;
     }
 
     public async Task<Result<NextRepeatInfoResponse>> Handle(StartLearnCardsRequest request)
@@ -67,7 +63,7 @@ public class StartLearnCardsCommand : ICommand<StartLearnCardsRequest, NextRepea
 
         var startedDate = DateTime.UtcNow;
 
-        var addRemembersResult = rememberMutationResolver.AddRange(startedCards
+        var addRemembersResult = studyRepository.CardRemembers.AddRange(startedCards
             .Select(c => CreateRemember(schedule, c, RememberWeight.Create(1f).Value, -1, startedDate))
             .ToList());
 
@@ -122,7 +118,7 @@ public class StartLearnCardsCommand : ICommand<StartLearnCardsRequest, NextRepea
             }
         }
 
-        var addedQueuesResult = queueMutationResolver.AddRange(queueItems);
+        var addedQueuesResult = studyRepository.RepeatingQueue.AddRange(queueItems);
 
         if (addedQueuesResult.IsFailed)
         {
@@ -140,7 +136,7 @@ public class StartLearnCardsCommand : ICommand<StartLearnCardsRequest, NextRepea
     
     private CardRepeatQueue GetNextQueue(RepeatsSchedule scheduleWithPhases, Card card, int nextPhaseIndex, DateTime nextRepeatDate)
     {
-        var queueId = queueMutationResolver.GetUniqueId(scheduleWithPhases, card).Value;
+        var queueId = studyRepository.RepeatingQueue.GetUniqueId(new(scheduleWithPhases, card)).Value;
         
         var queueItem = new CardRepeatQueue(
             scheduleWithPhases.ParentUserId,
@@ -158,7 +154,7 @@ public class StartLearnCardsCommand : ICommand<StartLearnCardsRequest, NextRepea
     
     private Remember CreateRemember(RepeatsSchedule schedule, Card card, RememberWeight weight, int phaseIndex, DateTime date)
     {
-        var rememberId = rememberMutationResolver.GetUniqueId(schedule, card).Value;
+        var rememberId = studyRepository.CardRemembers.GetUniqueId(new(schedule, card)).Value;
         
         return new Remember(
             schedule.ParentUserId, 

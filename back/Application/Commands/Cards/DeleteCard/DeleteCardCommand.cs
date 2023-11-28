@@ -1,3 +1,4 @@
+using Application.Common.Interfaces.DB.Repositories.Study;
 using Application.Common.Interfaces.Domain.Cards;
 using Domain.Card;
 using FluentResults;
@@ -10,14 +11,14 @@ namespace Application.Commands.Cards.DeleteCard;
 public class DeleteCardCommand : ICommand<DeleteCardRequest, Card>
 {
     private readonly ICardsQueryResolver cardsQueryResolver;
-    private readonly ICardsMutationResolver cardsMutationResolver;
+    private readonly IStudyRepository studyRepository;
 
     public DeleteCardCommand(
-        ICardsQueryResolver cardsQueryResolver,
-        ICardsMutationResolver cardsMutationResolver)
+        ICardsQueryResolver cardsQueryResolver, 
+        IStudyRepository studyRepository)
     {
         this.cardsQueryResolver = cardsQueryResolver;
-        this.cardsMutationResolver = cardsMutationResolver;
+        this.studyRepository = studyRepository;
     }
 
     public async Task<Result<Card>> Handle(DeleteCardRequest request)
@@ -26,6 +27,6 @@ public class DeleteCardCommand : ICommand<DeleteCardRequest, Card>
             .Find(request.UserId, request.CollectionId, request.CardId)
             .ToResultAsync()
             .ErrorIfNull(new NotFoundError(nameof(Card)))
-            .Bind(c => cardsMutationResolver.Delete(c));
+            .Bind(c => studyRepository.Cards.Delete(c));
     }
 }

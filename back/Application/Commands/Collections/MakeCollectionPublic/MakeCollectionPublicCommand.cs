@@ -1,7 +1,7 @@
+using Application.Common.Interfaces.DB.Repositories.Store;
 using Application.Common.Interfaces.DB.Transactions;
 using Application.Common.Interfaces.Domain.Collections;
 using Application.Common.Interfaces.Domain.Store.CollectionPublications;
-using Application.Common.Interfaces.Domain.Store.PublicCollection;
 using DB.Models.Store;
 using Domain.Collection;
 using FluentResults;
@@ -14,25 +14,19 @@ namespace Application.Commands.Collections.MakeCollectionPublic;
 public class MakeCollectionPublicCommand : ICommand<MakeCollectionPublicRequest, Collection>
 {
     private readonly ICollectionQueryResolver collectionQueryResolver;
-    private readonly ICollectionMutationResolver collectionMutationResolver;
-    private readonly IPublicCollectionQueryResolver publicCollectionQueryResolver;
     private readonly ICollectionPublicationQueryResolver collectionPublicationQueryResolver;
-    private readonly ICollectionPublicationMutationResolver collectionPublicationMutationResolver;
+    private readonly IStoreRepository storeRepository;
     private readonly ITransactionProvider transactionProvider;
 
     public MakeCollectionPublicCommand(
         ICollectionQueryResolver collectionQueryResolver,
-        ICollectionMutationResolver collectionMutationResolver,
-        IPublicCollectionQueryResolver publicCollectionQueryResolver,
         ICollectionPublicationQueryResolver collectionPublicationQueryResolver,
-        ICollectionPublicationMutationResolver collectionPublicationMutationResolver,
+        IStoreRepository storeRepository,
         ITransactionProvider transactionProvider)
     {
         this.collectionQueryResolver = collectionQueryResolver;
-        this.collectionMutationResolver = collectionMutationResolver;
-        this.publicCollectionQueryResolver = publicCollectionQueryResolver;
         this.collectionPublicationQueryResolver = collectionPublicationQueryResolver;
-        this.collectionPublicationMutationResolver = collectionPublicationMutationResolver;
+        this.storeRepository = storeRepository;
         this.transactionProvider = transactionProvider;
     }
 
@@ -57,15 +51,15 @@ public class MakeCollectionPublicCommand : ICommand<MakeCollectionPublicRequest,
                     ParentCollectionId = collectionId,
                 };
 
-                var addedPublicationResult = collectionPublicationMutationResolver.Add(publication);
+                var addedPublicationResult = storeRepository.CollectionPublications.Add(publication);
 
                 if (addedPublicationResult.IsFailed)
                 {
                     return new InternalError();
                 }
 
-                collection.IsPublic = true;
-                var updateResult = collectionMutationResolver.Update(collection);
+                collection.MakePublic();
+                var updateResult = storeRepository.PublicCollectionRepository.Update(collection);
         
                 if (updateResult.IsFailed)
                 {

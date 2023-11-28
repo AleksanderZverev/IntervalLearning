@@ -1,7 +1,9 @@
 using Application.Commands.Cards.MoveCard;
+using Application.Common.Interfaces.DB.Repositories.Study;
 using Application.Common.Interfaces.DB.Transactions;
 using Application.Common.Interfaces.Domain.Collections;
 using Domain.Card;
+using Domain.Collection;
 using FluentResults;
 using Infrastructure.Errors;
 
@@ -10,20 +12,20 @@ namespace Application.Commands.Collections.MoveCollectionCard;
 public class MoveCollectionCardCommand : ICommand<MoveCollectionCardRequest, Card>
 {
     private readonly ICollectionQueryResolver collectionQueryResolver;
-    private readonly ICollectionMutationResolver collectionMutationResolver;
+    private readonly IStudyRepository studyRepository;
     private readonly ITransactionProvider transactionProvider;
     private readonly MoveCardCommand moveCardCommand;
 
     public MoveCollectionCardCommand(
         ICollectionQueryResolver collectionQueryResolver,
-        ICollectionMutationResolver collectionMutationResolver,
         ITransactionProvider transactionProvider,
-        MoveCardCommand moveCardCommand)
+        MoveCardCommand moveCardCommand,
+        IStudyRepository studyRepository)
     {
         this.collectionQueryResolver = collectionQueryResolver;
-        this.collectionMutationResolver = collectionMutationResolver;
         this.transactionProvider = transactionProvider;
         this.moveCardCommand = moveCardCommand;
+        this.studyRepository = studyRepository;
     }
 
     public async Task<Result<Card>> Handle(MoveCollectionCardRequest request)
@@ -51,9 +53,11 @@ public class MoveCollectionCardCommand : ICommand<MoveCollectionCardRequest, Car
         sourceCollection.CardsCount.Decrement();
         destinationCollection.CardsCount.Increment();
         
-        var updatingResult = Result.Merge(
-            collectionMutationResolver.Update(sourceCollection),
-            collectionMutationResolver.Update(destinationCollection));
+        var updatingResult = studyRepository.Collections.UpdateRange(new List<Collection>()
+        {
+            sourceCollection,
+            destinationCollection
+        });
 
         if (updatingResult.IsFailed)
             return new InternalError();
