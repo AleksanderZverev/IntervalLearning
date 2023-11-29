@@ -12,12 +12,13 @@ using Domain.Queue;
 using Domain.Schedule;
 using Domain.Schedule.Entities.Remember;
 using Domain.Theme;
-using Domain.User.ValueObjects;
 
 namespace Application.Common.Interfaces.DB.Repositories.Study;
 
 public interface IStudyRepository : IBoundedContextRepository
 {
+    public IStudyQueryRepository Query { get; }
+    
     public IRepository<Theme> Themes { get; }
     
     public IRepository<Collection, CollectionId, CollectionIdParams> Collections { get; }

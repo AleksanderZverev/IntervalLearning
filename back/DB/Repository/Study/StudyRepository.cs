@@ -20,6 +20,8 @@ namespace DB.Repository.Study;
 
 public class StudyRepository : IStudyRepository
 {
+    public IStudyQueryRepository Query { get; }
+    
     public IRepository<Theme> Themes { get; }
     
     public IRepository<Collection, CollectionId, CollectionIdParams> Collections { get; }
@@ -34,6 +36,7 @@ public class StudyRepository : IStudyRepository
     public IRepository<PhaseRememberEntity> PhaseRemembers { get; }
 
     public StudyRepository(
+        IStudyQueryRepository query,
         IRepository<Theme> themes,
         IRepository<Collection, CollectionId, CollectionIdParams> collections,
         IRepository<Card, CardId, CardIdParams> cards,
@@ -43,6 +46,7 @@ public class StudyRepository : IStudyRepository
         IRepository<Remember, RememberId, RememberIdParams> cardRemembers,
         IRepository<PhaseRememberEntity> phaseRemembers)
     {
+        Query = query;
         Themes = themes;
         Collections = collections;
         Cards = cards;

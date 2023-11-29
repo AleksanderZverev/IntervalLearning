@@ -1,3 +1,4 @@
+using Application.Common.Interfaces.DB.Queries.Store;
 using Application.Common.Interfaces.DB.Repositories;
 using Application.Common.Interfaces.DB.Repositories.Cards;
 using Application.Common.Interfaces.DB.Repositories.Store;
@@ -21,6 +22,8 @@ using Application.Common.Interfaces.Domain.Themes;
 using DB.Models;
 using DB.Models.Store;
 using DB.Models.ValueObjects;
+using DB.Quaries.Store;
+using DB.Quaries.Study;
 using DB.Repository;
 using DB.Repository.Store;
 using DB.Repository.Store.PublicCollections;
@@ -59,7 +62,9 @@ public static class DependencyInjectionExtensions
         
         //BoundedContextRepository
         services.AddScoped<IStudyRepository, StudyRepository>();
+        services.AddScoped<IStudyQueryRepository, StudyQueryRepository>();
         services.AddScoped<IStoreRepository, StoreRepository>();
+        services.AddScoped<IStoreQueryRepository, StoreQueryRepository>();
         
         //Theme
         services.AddScoped<IThemesQueryResolver, ThemesQueryResolver>();
