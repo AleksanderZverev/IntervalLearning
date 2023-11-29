@@ -9,53 +9,23 @@ using DB.Models;
 using DB.Models.ValueObjects;
 using Domain.Card;
 using Domain.Card.ValueObjects;
-using Domain.Collection.ValueObjects;
 using Domain.Queue;
 using Domain.Schedule;
 using Domain.Schedule.Entities.Remember;
-using Domain.User.ValueObjects;
 using FluentResults;
 using Infrastructure.Errors;
 
 namespace Application.Commands.Cards.RememberCard;
 
-public class RememberItem
-{
-    public required CardId CardId { get; init; }
-    public required RememberWeight  Weight { get; init; }
-}
-
-public record RememberCardRequest(
-    UserId UserId,
-    CollectionId CollectionId,
-    UserId ScheduleUserId,
-    ScheduleId ScheduleId,
-    short PhaseIndex,
-    List<RememberItem> RememberItems,
-    bool AllowRepeatingInFuture
-);
-
 public class RememberCardCommand : ICommand<RememberCardRequest, NextRepeatInfoResponse>
 {
-    private readonly ICardsQueryResolver cardsQueryResolver;
-    private readonly ICollectionQueryResolver collectionQueryResolver;
-    private readonly IRepeatingQueueResolver queueResolver;
-    private readonly IScheduleResolver scheduleResolver;
     private readonly IStudyRepository studyRepository;
     private readonly ITransactionProvider transactionProvider;
 
     public RememberCardCommand(
-        ICardsQueryResolver cardsQueryResolver,
-        ICollectionQueryResolver collectionQueryResolver,
-        IRepeatingQueueResolver queueResolver,
-        IScheduleResolver scheduleResolver,
         ITransactionProvider transactionProvider, 
         IStudyRepository studyRepository)
     {
-        this.cardsQueryResolver = cardsQueryResolver;
-        this.collectionQueryResolver = collectionQueryResolver;
-        this.queueResolver = queueResolver;
-        this.scheduleResolver = scheduleResolver;
         this.transactionProvider = transactionProvider;
         this.studyRepository = studyRepository;
     }
@@ -66,7 +36,7 @@ public class RememberCardCommand : ICommand<RememberCardRequest, NextRepeatInfoR
 
         var cardIds = rememberItems.Select(c => c.CardId).Distinct().ToList();
 
-        var collection = await collectionQueryResolver.Find(userId, collectionId);
+        var collection = await studyRepository.Query.Collections.Find(userId, collectionId);
 
         if (collection == null)
         {
@@ -74,13 +44,13 @@ public class RememberCardCommand : ICommand<RememberCardRequest, NextRepeatInfoR
         }
 
         //GetForCards
-        var queueItems = await queueResolver.GetForCards(
+        var queueItems = await studyRepository.Query.RepeatingQueue.GetForCards(
             userId, collectionId, scheduleUserId, scheduleId, phaseIndex, cardIds);
 
         if (queueItems.Count == 0 || queueItems.Count != cardIds.Count)
             return new BadRequestError();
 
-        var schedule = await scheduleResolver.FindAsync(scheduleUserId, scheduleId);
+        var schedule = await studyRepository.Query.Schedules.Find(scheduleUserId, scheduleId);
 
         if (schedule == null)
         {
@@ -100,7 +70,7 @@ public class RememberCardCommand : ICommand<RememberCardRequest, NextRepeatInfoR
         {
             var weight = rememberItem.Weight;
             var cardId = CardId.Create(rememberItem.CardId).Value;
-            var card = await cardsQueryResolver.Find(userId, collectionId, cardId);
+            var card = await studyRepository.Query.Cards.Find(userId, collectionId, cardId);
 
             if (card == null)
             {

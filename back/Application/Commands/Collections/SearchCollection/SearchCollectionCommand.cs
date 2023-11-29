@@ -1,3 +1,4 @@
+using Application.Common.Interfaces.DB.Repositories.Study;
 using Application.Common.Interfaces.Domain.Collections;
 using Application.Common.Interfaces.Domain.Themes;
 using Domain.Collection;
@@ -10,15 +11,12 @@ namespace Application.Commands.Collections.SearchCollection;
 
 public class SearchCollectionCommand : ICommand<SearchCollectionRequest, List<Collection>>
 {
-    private readonly IThemesQueryResolver themesQuery;
-    private readonly ICollectionQueryResolver collectionQuery;
+    private readonly IStudyQueryRepository studyQueryRepository;
 
     public SearchCollectionCommand(
-        IThemesQueryResolver themesQuery,
-        ICollectionQueryResolver collectionQuery)
+        IStudyQueryRepository studyQueryRepository)
     {
-        this.themesQuery = themesQuery;
-        this.collectionQuery = collectionQuery;
+        this.studyQueryRepository = studyQueryRepository;
     }
 
     public async Task<Result<List<Collection>>> Handle(SearchCollectionRequest request)
@@ -26,10 +24,10 @@ public class SearchCollectionCommand : ICommand<SearchCollectionRequest, List<Co
         var (userId, themeId, searchName, page, count) = request;
         var toSkip = (page - 1) * count;
 
-        return await themesQuery
+        return await studyQueryRepository.Themes
             .Find(themeId)
             .ToResultAsync()
             .ErrorIfNull(new BadRequestError("Incorrect theme id"))
-            .Bind(theme => collectionQuery.Search(userId, themeId, searchName, toSkip, count));
+            .Bind(theme => studyQueryRepository.Collections.Search(userId, themeId, searchName, toSkip, count));
     }
 }

@@ -1,3 +1,4 @@
+using Application.Common.Interfaces.DB.Repositories.Study;
 using Application.Common.Interfaces.Domain.Collections;
 using Domain.Collection;
 using FluentResults;
@@ -7,15 +8,16 @@ namespace Application.Commands.Collections.GetAll;
 
 public class GetAllUserCollectionsCommand : ICommand<GetAllUserCollectionsRequest, List<Collection>>
 {
-    private readonly ICollectionQueryResolver collectionQueryResolver;
+    private readonly IStudyQueryRepository studyQueryRepository;
 
-    public GetAllUserCollectionsCommand(ICollectionQueryResolver collectionQueryResolver)
+    public GetAllUserCollectionsCommand(
+        IStudyQueryRepository studyQueryRepository)
     {
-        this.collectionQueryResolver = collectionQueryResolver;
+        this.studyQueryRepository = studyQueryRepository;
     }
 
     public Task<Result<List<Collection>>> Handle(GetAllUserCollectionsRequest userCollectionsRequest)
     {
-        return collectionQueryResolver.GetAll(userCollectionsRequest.UserId).ToResultAsync();
+        return studyQueryRepository.Collections.GetAll(userCollectionsRequest.UserId).ToResultAsync();
     }
 }

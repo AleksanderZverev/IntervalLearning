@@ -13,18 +13,15 @@ namespace Application.Commands.Collections.DeleteCardFromCollection;
 
 public class DeleteCardFromCollectionCommand : ICommand<DeleteCardFromCollectionRequest, Card>
 {
-    private readonly ICollectionQueryResolver collectionQueryResolver;
     private readonly IStudyRepository studyRepository;
     private readonly DeleteCardCommand deleteCardCommand;
     private readonly ITransactionProvider transactionProvider;
 
     public DeleteCardFromCollectionCommand(
-        ICollectionQueryResolver collectionQueryResolver,
         DeleteCardCommand deleteCardCommand,
         ITransactionProvider transactionProvider,
         IStudyRepository studyRepository)
     {
-        this.collectionQueryResolver = collectionQueryResolver;
         this.deleteCardCommand = deleteCardCommand;
         this.transactionProvider = transactionProvider;
         this.studyRepository = studyRepository;
@@ -32,7 +29,7 @@ public class DeleteCardFromCollectionCommand : ICommand<DeleteCardFromCollection
 
     public async Task<Result<Card>> Handle(DeleteCardFromCollectionRequest request)
     {
-        return await collectionQueryResolver
+        return await studyRepository.Query.Collections
             .Find(request.UserId, request.CollectionId)
             .ToResultAsync()
             .ErrorIfNull(new NotFoundError(nameof(Collection)))

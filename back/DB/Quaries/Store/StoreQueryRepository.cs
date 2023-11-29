@@ -7,17 +7,17 @@ namespace DB.Quaries.Store;
 
 public class StoreQueryRepository : IStoreQueryRepository
 {
-    public ICollectionPublicationQueryResolver CollectionPublications { get; }
-    public IPublicCollectionQueryResolver PublicCollections { get; }
-    public IPublicCollectionSubscriberQueryResolver PublicCollectionSubscribers { get; }
+    public ICollectionPublicationQueryResolver Publications { get; }
+    public IPublicCollectionQueryResolver Collections { get; }
+    public IPublicCollectionSubscriberQueryResolver Subscribers { get; }
 
     public StoreQueryRepository(
         ICollectionPublicationQueryResolver collectionPublications,
         IPublicCollectionQueryResolver publicCollections,
         IPublicCollectionSubscriberQueryResolver publicCollectionSubscribers)
     {
-        CollectionPublications = collectionPublications;
-        PublicCollections = publicCollections;
-        PublicCollectionSubscribers = publicCollectionSubscribers;
+        Publications = collectionPublications;
+        Collections = publicCollections;
+        Subscribers = publicCollectionSubscribers;
     }
 }

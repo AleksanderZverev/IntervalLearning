@@ -13,20 +13,17 @@ namespace Application.Commands.Cards.MoveCard;
 
 public class MoveCardCommand : ICommand<MoveCardRequest, Card>
 {
-    private readonly ICardsQueryResolver cardsQueryResolver;
     private readonly IStudyRepository studyRepository;
     private readonly ITransactionProvider transactionProvider;
     private readonly CreateCardCommand createCardCommand;
     private readonly DeleteCardCommand deleteCardCommand;
 
     public MoveCardCommand(
-        ICardsQueryResolver cardsQueryResolver,
         ITransactionProvider transactionProvider,
         CreateCardCommand createCardCommand,
         DeleteCardCommand deleteCardCommand, 
         IStudyRepository studyRepository)
     {
-        this.cardsQueryResolver = cardsQueryResolver;
         this.transactionProvider = transactionProvider;
         this.createCardCommand = createCardCommand;
         this.deleteCardCommand = deleteCardCommand;
@@ -37,7 +34,7 @@ public class MoveCardCommand : ICommand<MoveCardRequest, Card>
     {
         var (userId, sourceCollectionId, destinationCollectionId, cardId) = request;
         
-        var card = await cardsQueryResolver.Find(userId, sourceCollectionId, cardId);
+        var card = await studyRepository.Query.Cards.Find(userId, sourceCollectionId, cardId);
 
         if (card == null)
             return new NotFoundError(nameof(Card));

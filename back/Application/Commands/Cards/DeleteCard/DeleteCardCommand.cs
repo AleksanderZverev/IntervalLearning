@@ -10,20 +10,17 @@ namespace Application.Commands.Cards.DeleteCard;
 
 public class DeleteCardCommand : ICommand<DeleteCardRequest, Card>
 {
-    private readonly ICardsQueryResolver cardsQueryResolver;
     private readonly IStudyRepository studyRepository;
 
     public DeleteCardCommand(
-        ICardsQueryResolver cardsQueryResolver, 
         IStudyRepository studyRepository)
     {
-        this.cardsQueryResolver = cardsQueryResolver;
         this.studyRepository = studyRepository;
     }
 
     public async Task<Result<Card>> Handle(DeleteCardRequest request)
     {
-        return await cardsQueryResolver
+        return await studyRepository.Query.Cards
             .Find(request.UserId, request.CollectionId, request.CardId)
             .ToResultAsync()
             .ErrorIfNull(new NotFoundError(nameof(Card)))

@@ -11,18 +11,15 @@ namespace Application.Commands.Collections.MoveCollectionCard;
 
 public class MoveCollectionCardCommand : ICommand<MoveCollectionCardRequest, Card>
 {
-    private readonly ICollectionQueryResolver collectionQueryResolver;
     private readonly IStudyRepository studyRepository;
     private readonly ITransactionProvider transactionProvider;
     private readonly MoveCardCommand moveCardCommand;
 
     public MoveCollectionCardCommand(
-        ICollectionQueryResolver collectionQueryResolver,
         ITransactionProvider transactionProvider,
         MoveCardCommand moveCardCommand,
         IStudyRepository studyRepository)
     {
-        this.collectionQueryResolver = collectionQueryResolver;
         this.transactionProvider = transactionProvider;
         this.moveCardCommand = moveCardCommand;
         this.studyRepository = studyRepository;
@@ -32,8 +29,8 @@ public class MoveCollectionCardCommand : ICommand<MoveCollectionCardRequest, Car
     {
         var (userId, sourceCollectionId, destinationCollectionId, cardId) = request;
         
-        var sourceCollection = await collectionQueryResolver.Find(userId, sourceCollectionId);
-        var destinationCollection = await collectionQueryResolver.Find(userId, destinationCollectionId);
+        var sourceCollection = await studyRepository.Query.Collections.Find(userId, sourceCollectionId);
+        var destinationCollection = await studyRepository.Query.Collections.Find(userId, destinationCollectionId);
 
         if (sourceCollection == null)
             return new NotFoundError("Source collection");

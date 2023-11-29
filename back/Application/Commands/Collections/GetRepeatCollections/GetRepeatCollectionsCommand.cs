@@ -1,3 +1,4 @@
+using Application.Common.Interfaces.DB.Repositories.Study;
 using Application.Common.Interfaces.Domain.Collections;
 using Application.Common.Interfaces.Domain.Study.Queue;
 using FluentResults;
@@ -6,29 +7,26 @@ namespace Application.Commands.Collections.GetRepeatCollections;
 
 public class GetRepeatCollectionsCommand : ICommand<GetRepeatCollectionsRequest, Dictionary<DateTime, List<RepeatingPhase>>>
 {
-    private readonly IRepeatingQueueResolver repeatingQueueResolver;
-    private readonly ICollectionQueryResolver collectionQueryResolver;
+    private readonly IStudyQueryRepository studyQueryRepository;
 
     public GetRepeatCollectionsCommand(
-        IRepeatingQueueResolver repeatingQueueResolver,
-        ICollectionQueryResolver collectionQueryResolver)
+        IStudyQueryRepository studyQueryRepository)
     {
-        this.repeatingQueueResolver = repeatingQueueResolver;
-        this.collectionQueryResolver = collectionQueryResolver;
+        this.studyQueryRepository = studyQueryRepository;
     }
 
     public async Task<Result<Dictionary<DateTime, List<RepeatingPhase>>>> Handle(GetRepeatCollectionsRequest request)
     {
         var userId = request.UserId;
         
-        var queueItems = await repeatingQueueResolver.GetAll(userId);
+        var queueItems = await studyQueryRepository.RepeatingQueue.GetAll(userId);
 
         var collectionIds = queueItems
             .Select(q => q.ParentCollectionId)
             .Distinct()
             .ToList();
 
-        var collections = await collectionQueryResolver.GetRange(userId, collectionIds);
+        var collections = await studyQueryRepository.Collections.GetRange(userId, collectionIds);
         var collectionIdToCollection = collections.ToDictionary(c => c.Id);
 
         var result = new Dictionary<DateTime, List<RepeatingPhase>>();

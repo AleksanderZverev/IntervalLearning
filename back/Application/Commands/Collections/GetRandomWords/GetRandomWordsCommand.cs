@@ -1,3 +1,5 @@
+using Application.Common.Interfaces.DB.Queries.Dictionary;
+using Application.Common.Interfaces.DB.Repositories.Study;
 using Application.Common.Interfaces.Domain.Cards;
 using Application.Common.Interfaces.Domain.Collections;
 using Application.Common.Interfaces.Domain.Dictionary.Words;
@@ -11,38 +13,29 @@ namespace Application.Commands.Collections.GetRandomWords;
 
 public class GetRandomWordsCommand : ICommand<GetRandomWordsRequest, GetRandomWordsResponse>
 {
-    private readonly ICollectionQueryResolver collectionQueryResolver;
-    private readonly IThemesQueryResolver themesQueryResolver;
-    private readonly ICardsQueryResolver cardsQueryResolver;
-    private readonly ILanguagesQueryResolver languagesQueryResolver;
-    private readonly IWordsQueryResolver wordsQueryResolver;
+    private readonly IStudyQueryRepository studyQueryRepository;
+    private readonly IDictionaryQueryRepository dictionaryQueryRepository;
 
     public GetRandomWordsCommand(
-        ICollectionQueryResolver collectionQueryResolver,
-        IThemesQueryResolver themesQueryResolver,
-        ICardsQueryResolver cardsQueryResolver,
-        ILanguagesQueryResolver languagesQueryResolver,
-        IWordsQueryResolver wordsQueryResolver)
+        IStudyQueryRepository studyQueryRepository,
+        IDictionaryQueryRepository dictionaryQueryRepository)
     {
-        this.collectionQueryResolver = collectionQueryResolver;
-        this.themesQueryResolver = themesQueryResolver;
-        this.cardsQueryResolver = cardsQueryResolver;
-        this.languagesQueryResolver = languagesQueryResolver;
-        this.wordsQueryResolver = wordsQueryResolver;
+        this.studyQueryRepository = studyQueryRepository;
+        this.dictionaryQueryRepository = dictionaryQueryRepository;
     }
 
     public async Task<Result<GetRandomWordsResponse>> Handle(GetRandomWordsRequest request)
     {
         var (userId, collectionId) = request;
         
-        var collection = await collectionQueryResolver.Find(userId, collectionId);
+        var collection = await studyQueryRepository.Collections.Find(userId, collectionId);
 
         if (collection == null)
         {
             return new NotFoundError("Collection");
         }
 
-        var theme = await themesQueryResolver.Find(collection.ThemeId);
+        var theme = await studyQueryRepository.Themes.Find(collection.ThemeId);
 
         if (theme?.LanguageId == null)
         {
@@ -51,22 +44,22 @@ public class GetRandomWordsCommand : ICommand<GetRandomWordsRequest, GetRandomWo
                 : "Language not linked");
         }
 
-        var language = await languagesQueryResolver.Find(theme.LanguageId);
+        var language = await dictionaryQueryRepository.Languages.Find(theme.LanguageId);
 
         if (language == null)
             return new NotFoundError("Language");
 
-        var words = await wordsQueryResolver.GetAll(theme.LanguageId);
+        var words = await dictionaryQueryRepository.Words.GetAll(theme.LanguageId);
         words.Shuffle();
 
-        var userCollections = await collectionQueryResolver.GetAll(userId);
+        var userCollections = await studyQueryRepository.Collections.GetAll(userId);
         var collectionIds = userCollections
             .Where(c => c.ThemeId == theme.Id)
             .Select(c => c.Id)
             .Distinct()
             .ToList();
 
-        var cards = await cardsQueryResolver.GetRangeFromCollections(userId, collectionIds);
+        var cards = await studyQueryRepository.Cards.GetRangeFromCollections(userId, collectionIds);
 
         var resultWords = words
             .Where(w => !cards.Exists(c => 

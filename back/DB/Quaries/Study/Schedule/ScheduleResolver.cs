@@ -15,7 +15,7 @@ public class ScheduleResolver : IScheduleResolver
         this.db = db;
     }
 
-    public Task<RepeatsSchedule?> FindAsync(UserId userId, ScheduleId scheduleId)
+    public Task<RepeatsSchedule?> Find(UserId userId, ScheduleId scheduleId)
     {
         return db.RepeatsSchedules
             .Include(s => s.Phases)

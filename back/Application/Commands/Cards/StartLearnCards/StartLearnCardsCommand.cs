@@ -19,19 +19,13 @@ namespace Application.Commands.Cards.StartLearnCards;
 
 public class StartLearnCardsCommand : ICommand<StartLearnCardsRequest, NextRepeatInfoResponse>
 {
-    private readonly IScheduleResolver scheduleResolver;
-    private readonly ICardsQueryResolver cardsQueryResolver;
     private readonly IStudyRepository studyRepository;
     private readonly ITransactionProvider transactionProvider;
 
     public StartLearnCardsCommand(
-        IScheduleResolver scheduleResolver,
-        ICardsQueryResolver cardsQueryResolver,
         ITransactionProvider transactionProvider, 
         IStudyRepository studyRepository)
     {
-        this.scheduleResolver = scheduleResolver;
-        this.cardsQueryResolver = cardsQueryResolver;
         this.transactionProvider = transactionProvider;
         this.studyRepository = studyRepository;
     }
@@ -40,7 +34,7 @@ public class StartLearnCardsCommand : ICommand<StartLearnCardsRequest, NextRepea
     {
         var (userId, collectionId, scheduleUserId, scheduleId, cardIds) = request;
         
-        var schedule = await scheduleResolver.FindAsync(scheduleUserId, scheduleId);
+        var schedule = await studyRepository.Query.Schedules.Find(scheduleUserId, scheduleId);
 
         if (schedule == null)
         {
@@ -52,7 +46,7 @@ public class StartLearnCardsCommand : ICommand<StartLearnCardsRequest, NextRepea
             return new NotFoundError("Phases");
         }
 
-        var startedCards = await cardsQueryResolver.GetRange(userId, collectionId, cardIds);
+        var startedCards = await studyRepository.Query.Cards.GetRange(userId, collectionId, cardIds);
 
         if (startedCards.Count == 0)
         {

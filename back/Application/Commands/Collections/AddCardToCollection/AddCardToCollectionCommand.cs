@@ -10,18 +10,15 @@ namespace Application.Commands.Collections.AddCardToCollection;
 
 public class AddCardToCollectionCommand : ICommand<AddCardToCollectionRequest, Card>
 {
-    private readonly ICollectionQueryResolver collectionQueryResolver;
     private readonly CreateCardCommand createCardCommand;
     private readonly IStudyRepository studyRepository;
     private readonly ITransactionProvider transactionProvider;
 
     public AddCardToCollectionCommand(
-        ICollectionQueryResolver collectionQueryResolver,
         CreateCardCommand createCardCommand,
         ITransactionProvider transactionProvider, 
         IStudyRepository studyRepository)
     {
-        this.collectionQueryResolver = collectionQueryResolver;
         this.createCardCommand = createCardCommand;
         this.transactionProvider = transactionProvider;
         this.studyRepository = studyRepository;
@@ -31,7 +28,7 @@ public class AddCardToCollectionCommand : ICommand<AddCardToCollectionRequest, C
     {
         var (userId, collectionId, frontText, promptText, backText, description, examples) = request;
         
-        var collection = await collectionQueryResolver.Find(userId, collectionId);
+        var collection = await studyRepository.Query.Collections.Find(userId, collectionId);
 
         if (collection == null)
             return new Error("Collection");

@@ -1,4 +1,5 @@
 using Application.Common.Interfaces.DB.Repositories.Store;
+using Application.Common.Interfaces.DB.Repositories.Study;
 using Application.Common.Interfaces.DB.Transactions;
 using Application.Common.Interfaces.Domain.Collections;
 using Application.Common.Interfaces.Domain.Store.CollectionPublications;
@@ -13,33 +14,30 @@ namespace Application.Commands.Collections.MakeCollectionPublic;
 
 public class MakeCollectionPublicCommand : ICommand<MakeCollectionPublicRequest, Collection>
 {
-    private readonly ICollectionQueryResolver collectionQueryResolver;
-    private readonly ICollectionPublicationQueryResolver collectionPublicationQueryResolver;
+    private readonly IStudyQueryRepository studyQueryRepository; 
     private readonly IStoreRepository storeRepository;
     private readonly ITransactionProvider transactionProvider;
 
     public MakeCollectionPublicCommand(
-        ICollectionQueryResolver collectionQueryResolver,
-        ICollectionPublicationQueryResolver collectionPublicationQueryResolver,
         IStoreRepository storeRepository,
-        ITransactionProvider transactionProvider)
+        ITransactionProvider transactionProvider, 
+        IStudyQueryRepository studyQueryRepository)
     {
-        this.collectionQueryResolver = collectionQueryResolver;
-        this.collectionPublicationQueryResolver = collectionPublicationQueryResolver;
         this.storeRepository = storeRepository;
         this.transactionProvider = transactionProvider;
+        this.studyQueryRepository = studyQueryRepository;
     }
 
     public async Task<Result<Collection>> Handle(MakeCollectionPublicRequest request)
     {
         var (userId, collectionId) = request;
-        return await collectionQueryResolver
+        return await studyQueryRepository.Collections
             .Find(userId, collectionId)
             .ToResultAsync()
             .ErrorIfNull(new NotFoundError("Collection"))
             .Bind(async collection =>
             {
-                var existingPublication = await collectionPublicationQueryResolver.Find(userId, collectionId);
+                var existingPublication = await storeRepository.Query.Publications.Find(userId, collectionId);
 
                 if (existingPublication != null)
                     return new BadRequestError("Collection is already published");
@@ -51,7 +49,7 @@ public class MakeCollectionPublicCommand : ICommand<MakeCollectionPublicRequest,
                     ParentCollectionId = collectionId,
                 };
 
-                var addedPublicationResult = storeRepository.CollectionPublications.Add(publication);
+                var addedPublicationResult = storeRepository.Publications.Add(publication);
 
                 if (addedPublicationResult.IsFailed)
                 {
@@ -59,7 +57,7 @@ public class MakeCollectionPublicCommand : ICommand<MakeCollectionPublicRequest,
                 }
 
                 collection.MakePublic();
-                var updateResult = storeRepository.PublicCollectionRepository.Update(collection);
+                var updateResult = storeRepository.Collections.Update(collection);
         
                 if (updateResult.IsFailed)
                 {

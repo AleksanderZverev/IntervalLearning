@@ -6,5 +6,5 @@ namespace Application.Common.Interfaces.Domain.Study.Schedule;
 
 public interface IScheduleResolver
 {
-    Task<RepeatsSchedule?> FindAsync(UserId userId, ScheduleId scheduleId);
+    Task<RepeatsSchedule?> Find(UserId userId, ScheduleId scheduleId);
 }

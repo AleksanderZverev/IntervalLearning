@@ -10,20 +10,17 @@ namespace Application.Commands.Cards.UpdateCard;
 
 public class UpdateCardCommand : ICommand<UpdateCardRequest, Card>
 {
-    private readonly ICardsQueryResolver cardsQueryResolver;
     private readonly IStudyRepository studyRepository;
 
     public UpdateCardCommand(
-        ICardsQueryResolver cardsQueryResolver,
         IStudyRepository studyRepository)
     {
-        this.cardsQueryResolver = cardsQueryResolver;
         this.studyRepository = studyRepository;
     }
 
     public async Task<Result<Card>> Handle(UpdateCardRequest request)
     {
-        return await cardsQueryResolver
+        return await studyRepository.Query.Cards
             .Find(request.ParentUserId, request.ParentCollectionId, request.CardId)
             .ToResultAsync()
             .ErrorIfNull(new NotFoundError(nameof(Card)))

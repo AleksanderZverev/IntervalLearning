@@ -1,4 +1,5 @@
 using Application.Commands.Cards.GetAllCards;
+using Application.Common.Interfaces.DB.Repositories.Study;
 using Application.Common.Interfaces.Domain.Cards;
 using Application.Common.Interfaces.Domain.Study.Queue;
 using Application.Common.Interfaces.Domain.Study.Remember;
@@ -9,23 +10,17 @@ namespace Application.Commands.Cards.GetCardsQueueCommand;
 
 public class GetCardsQueueCommand : ICommand<GetCardsQueueRequest, List<Card>>
 {
-    private readonly ICardsQueryResolver cardsQueryResolver;
-    private readonly IRepeatingQueueResolver queueResolver;
-    private readonly IRememberQueryResolver rememberQueryResolver;
+    private readonly IStudyQueryRepository studyQueryRepository;
 
     public GetCardsQueueCommand(
-        ICardsQueryResolver cardsQueryResolver,
-        IRepeatingQueueResolver queueResolver,
-        IRememberQueryResolver rememberQueryResolver)
+        IStudyQueryRepository studyQueryRepository)
     {
-        this.cardsQueryResolver = cardsQueryResolver;
-        this.queueResolver = queueResolver;
-        this.rememberQueryResolver = rememberQueryResolver;
+        this.studyQueryRepository = studyQueryRepository;
     }
 
     public async Task<Result<List<Card>>> Handle(GetCardsQueueRequest request)
     {
-        var queueItems = await queueResolver.GetByDate(
+        var queueItems = await studyQueryRepository.RepeatingQueue.GetByDate(
             request.UserId,
             request.CollectionId,
             request.ScheduleUserId,
@@ -38,9 +33,9 @@ public class GetCardsQueueCommand : ICommand<GetCardsQueueRequest, List<Card>>
 
         var cardsIds = queueItems.Select(q => q.ParentCardId).ToList();
 
-        var cards = await cardsQueryResolver.GetRange(request.UserId, request.CollectionId, cardsIds);
+        var cards = await studyQueryRepository.Cards.GetRange(request.UserId, request.CollectionId, cardsIds);
 
-        var remembers = await rememberQueryResolver.GetRangeForCards(
+        var remembers = await studyQueryRepository.CardRemembers.GetRangeForCards(
             request.UserId,
             request.CollectionId,
             request.ScheduleUserId,
@@ -58,6 +53,5 @@ public class GetCardsQueueCommand : ICommand<GetCardsQueueRequest, List<Card>>
         }
 
         return cards;
-        
     }
 }

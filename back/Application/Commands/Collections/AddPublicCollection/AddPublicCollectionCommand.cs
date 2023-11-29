@@ -21,34 +21,22 @@ namespace Application.Commands.Collections.AddPublicCollection;
 public class AddPublicCollectionCommand : ICommand<AddPublicCollectionRequest, Collection>
 {
     private readonly ITransactionProvider transactionProvider;
-    private readonly ICollectionQueryResolver collectionQueryResolver;
-    private readonly ICardsQueryResolver cardsQueryResolver;
-    private readonly IPublicCollectionQueryResolver publicCollectionQueryResolver;
-    private readonly ICollectionPublicationQueryResolver collectionPublicationQueryResolver;
-    private readonly IPublicCollectionSubscriberQueryResolver subscriberQueryResolver;
     private readonly IStoreRepository storeRepository;
     private readonly CreateCollectionCommand createCollectionCommand;
     private readonly AddCardToCollectionCommand addCardToCollectionCommand;
+    private readonly IStudyQueryRepository studyQueryRepository;
 
     public AddPublicCollectionCommand(
         ITransactionProvider transactionProvider,
-        ICollectionQueryResolver collectionQueryResolver,
-        ICardsQueryResolver cardsQueryResolver,
-        IPublicCollectionQueryResolver publicCollectionQueryResolver,
-        ICollectionPublicationQueryResolver collectionPublicationQueryResolver,
-        IPublicCollectionSubscriberQueryResolver subscriberQueryResolver,
         CreateCollectionCommand createCollectionCommand,
         AddCardToCollectionCommand addCardToCollectionCommand,
+        IStudyQueryRepository studyQueryRepository,
         IStoreRepository storeRepository)
     {
         this.transactionProvider = transactionProvider;
-        this.collectionQueryResolver = collectionQueryResolver;
-        this.cardsQueryResolver = cardsQueryResolver;
-        this.publicCollectionQueryResolver = publicCollectionQueryResolver;
-        this.collectionPublicationQueryResolver = collectionPublicationQueryResolver;
-        this.subscriberQueryResolver = subscriberQueryResolver;
         this.createCollectionCommand = createCollectionCommand;
         this.addCardToCollectionCommand = addCardToCollectionCommand;
+        this.studyQueryRepository = studyQueryRepository;
         this.storeRepository = storeRepository;
     }
 
@@ -59,7 +47,7 @@ public class AddPublicCollectionCommand : ICommand<AddPublicCollectionRequest, C
         if (myCollectionId == null && string.IsNullOrEmpty(newCollectionName))
             return new BadRequestError();
 
-        var publicCollection = await publicCollectionQueryResolver.Find(publicCollectionUserId, publicCollectionId);
+        var publicCollection = await storeRepository.Query.Collections.Find(publicCollectionUserId, publicCollectionId);
 
         if (publicCollection == null)
         {
@@ -72,7 +60,7 @@ public class AddPublicCollectionCommand : ICommand<AddPublicCollectionRequest, C
 
         if (myCollectionId != null)
         {
-            var foundCollection = await collectionQueryResolver.Find(myUserId, myCollectionId);
+            var foundCollection = await studyQueryRepository.Collections.Find(myUserId, myCollectionId);
 
             if (foundCollection == null)
                 return new NotFoundError("Specified personal collection");
@@ -99,7 +87,7 @@ public class AddPublicCollectionCommand : ICommand<AddPublicCollectionRequest, C
             return new BadRequestError("Themes of collections are different");
         }
 
-        var publicCards = await cardsQueryResolver.GetAll(publicCollectionUserId, publicCollectionId);
+        var publicCards = await studyQueryRepository.Cards.GetAll(publicCollectionUserId, publicCollectionId);
 
         if (publicCards.Count == 0)
         {
@@ -107,7 +95,7 @@ public class AddPublicCollectionCommand : ICommand<AddPublicCollectionRequest, C
         }
 
         var myCards = checkUnique 
-            ? await cardsQueryResolver.GetAll(myUserId, myCollection.Id) 
+            ? await studyQueryRepository.Cards.GetAll(myUserId, myCollection.Id) 
             : new List<Card>();
         
         var myCardsSet = new HashSet<string>(myCards.Select(c => c.RememberingText.Value));
@@ -134,7 +122,7 @@ public class AddPublicCollectionCommand : ICommand<AddPublicCollectionRequest, C
             }
         }
 
-        var publication = await collectionPublicationQueryResolver.Find(publicCollectionUserId, publicCollectionId);
+        var publication = await storeRepository.Query.Publications.Find(publicCollectionUserId, publicCollectionId);
 
         if (publication == null)
         {
@@ -142,11 +130,11 @@ public class AddPublicCollectionCommand : ICommand<AddPublicCollectionRequest, C
             return new InternalError();
         }
 
-        var subscriber = await subscriberQueryResolver.Find(publicCollectionUserId, publicCollectionId, myUserId);
+        var subscriber = await storeRepository.Query.Subscribers.Find(publicCollectionUserId, publicCollectionId, myUserId);
 
         if (subscriber == null)
         {
-            var addSubscriberResult = storeRepository.CollectionSubscribers.Add(new PublicCollectionSubscriber()
+            var addSubscriberResult = storeRepository.Subscribers.Add(new PublicCollectionSubscriber()
             {
                 ParentUserId = publicCollectionUserId,
                 ParentCollectionId = publicCollectionId,
@@ -158,20 +146,20 @@ public class AddPublicCollectionCommand : ICommand<AddPublicCollectionRequest, C
             {
                 return new InternalError();
             }
-
-            subscriber = addSubscriberResult.Value;
         }
         else
         {
             subscriber.IsAdded = true;
-            var updateSubscriberResult = storeRepository.CollectionSubscribers.Update(subscriber);
+            var updateSubscriberResult = storeRepository.Subscribers.Update(subscriber);
 
             if (updateSubscriberResult.IsFailed)
+            {
                 return new InternalError();
+            }
         }
         
         publication.SubscribersCount++;
-        var updatePublicationResult = storeRepository.CollectionPublications.Update(publication);
+        var updatePublicationResult = storeRepository.Publications.Update(publication);
 
         if (updatePublicationResult.IsFailed)
         {

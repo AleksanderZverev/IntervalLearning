@@ -6,7 +6,7 @@ namespace Application.Common.Interfaces.DB.Queries.Store;
 
 public interface IStoreQueryRepository
 {
-    public ICollectionPublicationQueryResolver CollectionPublications { get; } 
-    public IPublicCollectionQueryResolver PublicCollections { get; }
-    public IPublicCollectionSubscriberQueryResolver PublicCollectionSubscribers { get; }
+    public ICollectionPublicationQueryResolver Publications { get; } 
+    public IPublicCollectionQueryResolver Collections { get; }
+    public IPublicCollectionSubscriberQueryResolver Subscribers { get; }
 }

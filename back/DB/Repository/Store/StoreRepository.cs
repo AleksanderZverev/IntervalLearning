@@ -9,10 +9,10 @@ namespace DB.Repository.Store;
 public class StoreRepository : IStoreRepository
 {
     public IStoreQueryRepository Query { get; }
-    public IRepository<CollectionPublicationEntity> CollectionPublications { get; }
+    public IRepository<CollectionPublicationEntity> Publications { get; }
 
-    public IRepository<PublicCollectionSubscriber> CollectionSubscribers { get; }
-    public IPublicCollectionRepository PublicCollectionRepository { get; }
+    public IRepository<PublicCollectionSubscriber> Subscribers { get; }
+    public IPublicCollectionRepository Collections { get; }
 
     public StoreRepository(
         IStoreQueryRepository query,
@@ -20,9 +20,9 @@ public class StoreRepository : IStoreRepository
         IRepository<PublicCollectionSubscriber> publicCollectionSubscribers,
         IPublicCollectionRepository publicCollectionRepository)
     {
-        CollectionPublications = collectionPublications;
-        CollectionSubscribers = publicCollectionSubscribers;
-        PublicCollectionRepository = publicCollectionRepository;
+        Publications = collectionPublications;
+        Subscribers = publicCollectionSubscribers;
+        Collections = publicCollectionRepository;
         Query = query;
     }
 }

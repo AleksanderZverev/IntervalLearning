@@ -47,7 +47,7 @@ public class RememberQueryQueryResolver : IRememberQueryResolver
 
     public Task<List<Card>> GetCanStartCards(UserId userId, UserId scheduleUserId, ScheduleId scheduleId)
     {
-        //TODO: can be slow.
+        //TODO: Move to business layer
         return db.Cards
             .Where(c => c.ParentUserId == userId
                         && !db.Remembers.Any(r =>

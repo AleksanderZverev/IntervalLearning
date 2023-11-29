@@ -1,3 +1,5 @@
+using Application.Common.Interfaces.DB.Queries.Store;
+using Application.Common.Interfaces.DB.Repositories.Study;
 using Application.Common.Interfaces.Domain.Collections;
 using Application.Common.Interfaces.Domain.Store.PublicCollection;
 using Application.Common.Interfaces.Domain.Store.PublicCollectionSubscribers;
@@ -11,37 +13,34 @@ namespace Application.Commands.Collections.SearchPublicCollection;
 
 public class SearchPublicCollectionCommand : ICommand<SearchPublicCollectionRequest, List<SearchPublicCollectionItem>>
 {
-    private readonly IThemesQueryResolver themesQueryResolver;
-    private readonly IPublicCollectionQueryResolver publicCollectionQueryResolver;
-    private readonly IPublicCollectionSubscriberQueryResolver publicCollectionSubscriberQueryResolver;
+    private readonly IStudyQueryRepository studyQueryRepository;
+    private readonly IStoreQueryRepository storeQueryRepository;
 
     public SearchPublicCollectionCommand(
-        IThemesQueryResolver themesQueryResolver,
-        IPublicCollectionQueryResolver publicCollectionQueryResolver,
-        IPublicCollectionSubscriberQueryResolver publicCollectionSubscriberQueryResolver)
+        IStudyQueryRepository studyQueryRepository,
+        IStoreQueryRepository storeQueryRepository)
     {
-        this.themesQueryResolver = themesQueryResolver;
-        this.publicCollectionQueryResolver = publicCollectionQueryResolver;
-        this.publicCollectionSubscriberQueryResolver = publicCollectionSubscriberQueryResolver;
+        this.studyQueryRepository = studyQueryRepository;
+        this.storeQueryRepository = storeQueryRepository;
     }
 
     public async Task<Result<List<SearchPublicCollectionItem>>> Handle(SearchPublicCollectionRequest request)
     {
         var (myUserId, themeId, searchName, page, count) = request;
 
-        return await themesQueryResolver.Find(themeId)
+        return await studyQueryRepository.Themes.Find(themeId)
             .ToResultAsync()
             .ErrorIfNull(new BadRequestError("Specified theme is not found"))
             .Bind(async theme =>
             {
                 var toSkip = (page - 1) * count;
 
-                var foundCollections = await publicCollectionQueryResolver.Search(themeId, searchName, toSkip, count);
+                var foundCollections = await storeQueryRepository.Collections.Search(themeId, searchName, toSkip, count);
 
                 var result = foundCollections
                     .Select(c =>
                     {
-                        var subscription = publicCollectionSubscriberQueryResolver
+                        var subscription = storeQueryRepository.Subscribers
                             .Find(c.ParentUserId, c.Id, myUserId)
                             .GetAwaiter()
                             .GetResult();

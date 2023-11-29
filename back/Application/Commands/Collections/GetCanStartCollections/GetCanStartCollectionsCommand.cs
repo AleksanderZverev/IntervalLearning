@@ -1,3 +1,4 @@
+using Application.Common.Interfaces.DB.Repositories.Study;
 using Application.Common.Interfaces.Domain.Collections;
 using Application.Common.Interfaces.Domain.Study.Remember;
 using Domain.Common.ValueObjects;
@@ -7,22 +8,19 @@ namespace Application.Commands.Collections.GetCanStartCollections;
 
 public class GetCanStartCollectionsCommand : ICommand<GetCanStartCollectionsRequest, GetCanStartCollectionsResponse>
 {
-    private readonly ICollectionQueryResolver collectionQueryResolver;
-    private readonly IRememberQueryResolver rememberQueryResolver;
+    private readonly IStudyQueryRepository studyQueryRepository;
 
     public GetCanStartCollectionsCommand(
-        ICollectionQueryResolver collectionQueryResolver,
-        IRememberQueryResolver rememberQueryResolver)
+        IStudyQueryRepository studyQueryRepository)
     {
-        this.collectionQueryResolver = collectionQueryResolver;
-        this.rememberQueryResolver = rememberQueryResolver;
+        this.studyQueryRepository = studyQueryRepository;
     }
 
     public async Task<Result<GetCanStartCollectionsResponse>> Handle(GetCanStartCollectionsRequest request)
     {
         var (userId, scheduleUserId, scheduleId, page, count) = request;
 
-        var canStartCards = await rememberQueryResolver.GetCanStartCards(userId, scheduleUserId, scheduleId);
+        var canStartCards = await studyQueryRepository.CardRemembers.GetCanStartCards(userId, scheduleUserId, scheduleId);
 
         var skip = (page - 1) * count;
 
@@ -38,7 +36,7 @@ public class GetCanStartCollectionsCommand : ICommand<GetCanStartCollectionsRequ
             .Take(count)
             .ToList();
 
-        var canStartCollections = await collectionQueryResolver.GetRange(userId, collectionIdsToStart);
+        var canStartCollections = await studyQueryRepository.Collections.GetRange(userId, collectionIdsToStart);
 
         var collectionToCardsCount = canStartCollections
             .GroupBy(c => c.Id)
