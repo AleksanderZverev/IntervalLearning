@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using Application.Commands.Schedules.CreateSchedule;
 using Application.Common.Interfaces.DB.Transactions;
 using DB;
 using DB.Configurations.Study;
@@ -74,43 +75,43 @@ public class RepeatsScheduleService
         return schedule;
     }
 
-    public async Task<Result<RepeatsSchedule>> Create(
-        UserId userId, 
-        CreateScheduleItem item)
-    {
-        using var transaction = transactionProvider.CreateScope();
-
-        var seqName = RepeatScheduleConfiguration.GetSequenceName(userId);
-        db.EnsureSequenceCreated(seqName);
-        var nextId = db.GetSequenceNextValue16(seqName);
-        var scheduleId = ScheduleId.Create(nextId).Value;
-        
-        var newSchedule = new RepeatsSchedule(userId, scheduleId)
-        {
-            Title = item.Title,
-            ForgottenBehavior = item.ForgottenBehavior, // (ForgottenBehavior)request.ForgottenBehavior,
-            CardsCountPerPhase = item.CardsCountPerPhase,
-            ShortDescription = item.ShortDescription,
-            OnStartLearningDescription = item.OnStartLearningDescription, // request.Description,
-            DefaultPhaseShortDescription = item.DefaultPhaseShortDescription,
-            DefaultPhaseDescription = item.DefaultPhaseDescription,
-            DefaultRepeatPhaseShortDescription = item.DefaultRepeatPhaseShortDescription,
-            DefaultRepeatPhaseDescription = item.DefaultRepeatPhaseDescription,
-        };
-
-        var newPhases = item.Phases.Select(p => ConvertToPhase(newSchedule, p)).ToList();
-        newSchedule.Phases = newPhases;
-        
-        db.RepeatsSchedules.Add(newSchedule);
-
-        if (!await db.SoftSaveChangesAsync())
-        {
-            return new InternalError();
-        }
-
-        transaction.Complete();
-        return newSchedule;
-    }
+    // public async Task<Result<RepeatsSchedule>> Create(
+    //     UserId userId, 
+    //     CreateScheduleItem item)
+    // {
+    //     using var transaction = transactionProvider.CreateScope();
+    //
+    //     var seqName = RepeatScheduleConfiguration.GetSequenceName(userId);
+    //     db.EnsureSequenceCreated(seqName);
+    //     var nextId = db.GetSequenceNextValue16(seqName);
+    //     var scheduleId = ScheduleId.Create(nextId).Value;
+    //     
+    //     var newSchedule = new RepeatsSchedule(userId, scheduleId)
+    //     {
+    //         Title = item.Title,
+    //         ForgottenBehavior = item.ForgottenBehavior, // (ForgottenBehavior)request.ForgottenBehavior,
+    //         CardsCountPerPhase = item.CardsCountPerPhase,
+    //         ShortDescription = item.ShortDescription,
+    //         OnStartLearningDescription = item.OnStartLearningDescription, // request.Description,
+    //         DefaultPhaseShortDescription = item.DefaultPhaseShortDescription,
+    //         DefaultPhaseDescription = item.DefaultPhaseDescription,
+    //         DefaultRepeatPhaseShortDescription = item.DefaultRepeatPhaseShortDescription,
+    //         DefaultRepeatPhaseDescription = item.DefaultRepeatPhaseDescription,
+    //     };
+    //
+    //     var newPhases = item.Phases.Select(p => ConvertToPhase(newSchedule, p)).ToList();
+    //     newSchedule.Phases = newPhases;
+    //     
+    //     db.RepeatsSchedules.Add(newSchedule);
+    //
+    //     if (!await db.SoftSaveChangesAsync())
+    //     {
+    //         return new InternalError();
+    //     }
+    //
+    //     transaction.Complete();
+    //     return newSchedule;
+    // }
 
     private static Phase ConvertToPhase(RepeatsSchedule newSchedule, PhaseInfo phase)
     {
@@ -150,21 +151,21 @@ public class UpdateScheduleItem : BaseRepeatsScheduleItem
     public List<UpdatePhaseInfo> Phases { get; set; }
 }
 
-public class CreateScheduleItem : BaseRepeatsScheduleItem
-{
-    public ForgottenBehavior ForgottenBehavior { get; set; }
-    public List<PhaseInfo> Phases { get; set; }
-}
+// public class CreateScheduleItem : BaseRepeatsScheduleItem
+// {
+//     public ForgottenBehavior ForgottenBehavior { get; set; }
+//     public List<PhaseInfo> Phases { get; set; }
+// }
 
 public class UpdatePhaseInfo : PhaseInfo
 {
 }
 
-public class PhaseInfo
-{
-    public PhaseId Id { get; set; }
-    public uint SecondsFromLastPhase { get; set; }
-    public LongSingleLineString? ShortDescription { get; set; }
-    public LongMultiLineString? Description { get; set; }
-    public bool IsDefaultValueSide { get; set; }
-}
+// public class PhaseInfo
+// {
+//     public PhaseId Id { get; set; }
+//     public uint SecondsFromLastPhase { get; set; }
+//     public LongSingleLineString? ShortDescription { get; set; }
+//     public LongMultiLineString? Description { get; set; }
+//     public bool IsDefaultValueSide { get; set; }
+// }

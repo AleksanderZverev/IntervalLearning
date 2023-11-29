@@ -4,6 +4,7 @@ using Application.Common.Interfaces.DB.Repositories.Study;
 using Application.Common.Interfaces.DB.Repositories.Study.CardRemembers;
 using Application.Common.Interfaces.DB.Repositories.Study.Collections;
 using Application.Common.Interfaces.DB.Repositories.Study.Queue;
+using Application.Common.Interfaces.DB.Repositories.Study.Schedules;
 using Application.Common.Interfaces.DB.Repositories.Study.Themes;
 using DB.Models;
 using DB.Models.ValueObjects;
@@ -28,7 +29,7 @@ public class StudyRepository : IStudyRepository
     public IRepository<Collection, CollectionId, CollectionIdParams> Collections { get; }
     public IRepository<Card, CardId, CardIdParams> Cards { get; }
     
-    public IRepository<RepeatsSchedule> RepeatsSchedules { get; }
+    public IRepository<RepeatsSchedule, ScheduleId, ScheduleIdParams> RepeatsSchedules { get; }
     public IRepository<Phase> Phases { get; }
     
     public IRepository<CardRepeatQueue, QueueId, RepeatingQueueIdParams> RepeatingQueue { get; }
@@ -41,7 +42,7 @@ public class StudyRepository : IStudyRepository
         IRepository<Theme, ThemeId, ThemeIdParams> themes,
         IRepository<Collection, CollectionId, CollectionIdParams> collections,
         IRepository<Card, CardId, CardIdParams> cards,
-        IRepository<RepeatsSchedule> repeatsSchedules,
+        IRepository<RepeatsSchedule, ScheduleId, ScheduleIdParams> repeatsSchedules,
         IRepository<Phase> phases,
         IRepository<CardRepeatQueue, QueueId, RepeatingQueueIdParams> repeatingQueue,
         IRepository<Remember, RememberId, RememberIdParams> cardRemembers,

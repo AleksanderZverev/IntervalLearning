@@ -1,4 +1,5 @@
-﻿using Application.Commands.Schedules.GetAvailableSchedules;
+﻿using Application.Commands.Schedules.CreateSchedule;
+using Application.Commands.Schedules.GetAvailableSchedules;
 using Application.Commands.Schedules.GetSchedule;
 using DB.Models.ValueObjects;
 using Domain.User.ValueObjects;
@@ -92,10 +93,12 @@ namespace IntervalLearningApi.Controllers
 
             if (userId.IsFailed)
                 return BadRequest();
-
-            var scheduleResult = await repeatsScheduleService.Create(
-                userId.Value, 
-                mapper.Map<CreateScheduleItem>(request));
+            
+            var scheduleResult = await commandManager
+                .GetCommand<CreateScheduleCommand>()
+                .Handle(new CreateScheduleCommandRequest(
+                    userId.Value,
+                    mapper.Map<CreateScheduleProps>(request)));
             
             return scheduleResult.ToActionResult(schedule => mapper.Map<RepeatsScheduleDto>(schedule));
         }
