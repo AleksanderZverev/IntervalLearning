@@ -1,4 +1,5 @@
-﻿using Application.Commands.Dictionary.SearchWords;
+﻿using Application.Commands.Dictionary.GetLanguages;
+using Application.Commands.Dictionary.SearchWords;
 using DB.Models.Dictionary;
 using DB.Models.Dictionary.ValueObjects;
 using IntervalLearningApi.Constants;
@@ -65,8 +66,11 @@ namespace IntervalLearningApi.Controllers
         [AllowAnonymous]
         public async Task<ActionResult<List<LanguageDto>>> GetLanguages()
         {
-            var languages = await dictionaryService.GetLanguages();
-            return mapper.Map<List<LanguageDto>>(languages);
+            var languagesResult = await commandManager
+                .GetCommand<GetLanguagesCommand>()
+                .Handle(new GetLanguagesRequest());
+
+            return languagesResult.ToActionResult(languages => mapper.Map<List<LanguageDto>>(languages));
         }
 
         [HttpPost(ApiRoutes.Dictionary.Post_AddTranslations)]
