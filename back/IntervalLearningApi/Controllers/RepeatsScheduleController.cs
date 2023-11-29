@@ -1,7 +1,9 @@
-﻿using DB.Models.ValueObjects;
+﻿using Application.Commands.Schedules.GetAvailableSchedules;
+using DB.Models.ValueObjects;
 using Domain.User.ValueObjects;
 using IntervalLearningApi.Constants;
 using IntervalLearningApi.Extensions;
+using IntervalLearningApi.Infrastructure.CommandManager;
 using IntervalLearningApi.Models.ByUser;
 using IntervalLearningApi.Models.RepeatsSchedule;
 using IntervalLearningApi.Services;
@@ -16,26 +18,32 @@ namespace IntervalLearningApi.Controllers
     public class RepeatsScheduleController : ControllerBase
     {
         private readonly IMapper mapper;
+        private readonly CommandManager commandManager;
         private readonly RepeatsScheduleService repeatsScheduleService;
 
         public RepeatsScheduleController(
             IMapper mapper,
+            CommandManager commandManager,
             RepeatsScheduleService repeatsScheduleService)
         {
             this.mapper = mapper;
+            this.commandManager = commandManager;
             this.repeatsScheduleService = repeatsScheduleService;
         }
 
         [HttpGet(ApiRoutes.Schedule.Get_GetAll)]
-        public ActionResult<List<RepeatsScheduleDto>> GetAll()
+        public async Task<ActionResult<List<RepeatsScheduleDto>>> GetAll()
         {
             var userId = HttpContext.GetUserId();
 
             if (userId.IsFailed)
                 return BadRequest();
 
-            var schedules = repeatsScheduleService.GetAll(userId.Value);
-            return mapper.Map<List<RepeatsScheduleDto>>(schedules);
+            var schedulesResult = await commandManager
+                .GetCommand<GetAvailableSchedulesCommand>()
+                .Handle(new GetAvailableSchedulesRequest(userId.Value));
+
+            return schedulesResult.ToActionResult(schedules => mapper.Map<List<RepeatsScheduleDto>>(schedules));
         }
 
         [HttpGet(ApiRoutes.Schedule.Get_GetUserSchedule)]

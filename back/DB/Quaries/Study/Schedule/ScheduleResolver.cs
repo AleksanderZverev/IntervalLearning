@@ -21,4 +21,22 @@ public class ScheduleResolver : IScheduleResolver
             .Include(s => s.Phases)
             .SingleOrDefaultAsync(s => s.ParentUserId == userId && s.Id ==scheduleId);
     }
+
+    public Task<List<RepeatsSchedule>> GetUsers(UserId userId)
+    {
+        return db.RepeatsSchedules
+            .Where(s => s.ParentUserId == userId)
+            .Include(s => s.Phases)
+            .AsSplitQuery()
+            .ToListAsync();
+    }
+    
+    public Task<List<RepeatsSchedule>> GetRecommended()
+    {
+        return db.RepeatsSchedules
+            .Where(s => s.IsRecommended)
+            .Include(s => s.Phases)
+            .AsSplitQuery()
+            .ToListAsync();
+    }
 }
