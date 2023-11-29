@@ -418,7 +418,7 @@ public class CollectionService
             return new InternalError();
         }
 
-        collection.IsPublic = true;
+        collection.MakePublic();
         
         if (!db.SoftSaveChanges())
         {

@@ -1,6 +1,9 @@
-﻿using DB.Models.Dictionary;
+﻿using Application.Commands.Dictionary.SearchWords;
+using DB.Models.Dictionary;
+using DB.Models.Dictionary.ValueObjects;
 using IntervalLearningApi.Constants;
 using IntervalLearningApi.Extensions;
+using IntervalLearningApi.Infrastructure.CommandManager;
 using IntervalLearningApi.Models.Dictionary;
 using IntervalLearningApi.Services.Dictionary;
 using MapsterMapper;
@@ -15,11 +18,16 @@ namespace IntervalLearningApi.Controllers
     public class DictionaryController : ControllerBase
     {
         private readonly IMapper mapper;
+        private readonly CommandManager commandManager;
         private readonly DictionaryService dictionaryService;
 
-        public DictionaryController(IMapper mapper, DictionaryService dictionaryService)
+        public DictionaryController(
+            IMapper mapper,
+            CommandManager commandManager,
+            DictionaryService dictionaryService)
         {
             this.mapper = mapper;
+            this.commandManager = commandManager;
             this.dictionaryService = dictionaryService;
         }
 
@@ -36,21 +44,20 @@ namespace IntervalLearningApi.Controllers
                 return BadRequest();
             }
 
-            List<LanguageWord>? foundWords = null;
+            var searchType = wordEmpty
+                ? SearchWordType.Pronunciation
+                : SearchWordType.Word;
 
-            if (pronunciationEmpty)
-            {
-                foundWords = await dictionaryService.FindWord(word);
-            }
+            var textResult = WordText.Create(wordEmpty ? pronunciation : word);
 
-            if (wordEmpty)
-            {
-                foundWords = await dictionaryService.FindWordByPronunciation(pronunciation);
-            }
-            
-            return foundWords is not { Count: > 0 }
-                ? new List<WordDto>()
-                : mapper.Map<List<WordDto>>(foundWords);
+            if (textResult.IsFailed)
+                return textResult.ToErrorActionResult();
+
+            var foundWordsResult = await commandManager
+                .GetCommand<SearchWordsCommand>()
+                .Handle(new SearchWordsRequest(textResult.Value, searchType, 30));
+
+            return foundWordsResult.ToActionResult(foundWords => mapper.Map<List<WordDto>>(foundWords));
         }
 
 

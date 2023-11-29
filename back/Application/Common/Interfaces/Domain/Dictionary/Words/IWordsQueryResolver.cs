@@ -1,9 +1,13 @@
 using DB.Models.Dictionary;
+using DB.Models.Dictionary.ValueObjects;
 using Domain.Language.ValueObjects;
+using FluentResults;
 
 namespace Application.Common.Interfaces.Domain.Dictionary.Words;
 
 public interface IWordsQueryResolver
 {
     Task<List<LanguageWord>> GetAll(LanguageId languageId);
+    Task<List<LanguageWord>> SearchWord(WordText text, int count);
+    Task<List<LanguageWord>> SearchWordByPronunciation(WordText text, int count);
 }
