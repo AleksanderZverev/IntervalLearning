@@ -19,6 +19,7 @@ public class ScheduleResolver : IScheduleResolver
     {
         return db.RepeatsSchedules
             .Include(s => s.Phases)
+            .AsSplitQuery()
             .SingleOrDefaultAsync(s => s.ParentUserId == userId && s.Id ==scheduleId);
     }
 

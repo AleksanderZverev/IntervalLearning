@@ -1,4 +1,5 @@
 ﻿using Application.Commands.Schedules.GetAvailableSchedules;
+using Application.Commands.Schedules.GetSchedule;
 using DB.Models.ValueObjects;
 using Domain.User.ValueObjects;
 using IntervalLearningApi.Constants;
@@ -47,10 +48,13 @@ namespace IntervalLearningApi.Controllers
         }
 
         [HttpGet(ApiRoutes.Schedule.Get_GetUserSchedule)]
-        public ActionResult<RepeatsScheduleDto> GetSchedule(long userId, short scheduleId)
+        public async Task<ActionResult<RepeatsScheduleDto>> GetSchedule(long userId, short scheduleId)
         {
-            var schedule = repeatsScheduleService.Find(UserId.Create(userId).Value, ScheduleId.Create(scheduleId).Value);
-            return schedule == null ? NotFound() : mapper.Map<RepeatsScheduleDto>(schedule);
+            var scheduleResult = await commandManager
+                .GetCommand<GetScheduleCommand>()
+                .Handle(new GetScheduleRequest(UserId.Create(userId).Value, ScheduleId.Create(scheduleId).Value));
+            
+            return scheduleResult.ToActionResult(schedule => mapper.Map<RepeatsScheduleDto>(schedule));
         }
 
         [HttpGet(ApiRoutes.Schedule.Get_GetMySchedule)]
