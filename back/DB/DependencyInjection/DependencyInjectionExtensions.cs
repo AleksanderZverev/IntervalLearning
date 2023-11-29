@@ -8,6 +8,7 @@ using Application.Common.Interfaces.DB.Repositories.Study;
 using Application.Common.Interfaces.DB.Repositories.Study.CardRemembers;
 using Application.Common.Interfaces.DB.Repositories.Study.Collections;
 using Application.Common.Interfaces.DB.Repositories.Study.Queue;
+using Application.Common.Interfaces.DB.Repositories.Study.Themes;
 using Application.Common.Interfaces.DB.Transactions;
 using Application.Common.Interfaces.Domain.Cards;
 using Application.Common.Interfaces.Domain.Collections;
@@ -31,6 +32,7 @@ using DB.Repository.Store;
 using DB.Repository.Store.PublicCollections;
 using DB.Repository.Study;
 using DB.Repository.Study.Collections;
+using DB.Repository.Study.Themes;
 using DB.Resolvers.Cards;
 using DB.Resolvers.Collections;
 using DB.Resolvers.Dictionary.Words;
@@ -73,7 +75,7 @@ public static class DependencyInjectionExtensions
 
         //Theme
         services.AddScoped<IThemesQueryResolver, ThemesQueryResolver>();
-        services.AddScoped<IRepository<Theme>, BaseRepository<Theme>>();
+        services.AddScoped<IRepository<Theme, ThemeId, ThemeIdParams>, ThemesRepository>();
         
         //Languages
         services.AddScoped<ILanguagesQueryResolver, LanguagesQueryResolver>();

@@ -4,6 +4,7 @@ using Application.Common.Interfaces.DB.Repositories.Study;
 using Application.Common.Interfaces.DB.Repositories.Study.CardRemembers;
 using Application.Common.Interfaces.DB.Repositories.Study.Collections;
 using Application.Common.Interfaces.DB.Repositories.Study.Queue;
+using Application.Common.Interfaces.DB.Repositories.Study.Themes;
 using DB.Models;
 using DB.Models.ValueObjects;
 using Domain.Card;
@@ -22,7 +23,7 @@ public class StudyRepository : IStudyRepository
 {
     public IStudyQueryRepository Query { get; }
     
-    public IRepository<Theme> Themes { get; }
+    public IRepository<Theme, ThemeId, ThemeIdParams> Themes { get; }
     
     public IRepository<Collection, CollectionId, CollectionIdParams> Collections { get; }
     public IRepository<Card, CardId, CardIdParams> Cards { get; }
@@ -37,7 +38,7 @@ public class StudyRepository : IStudyRepository
 
     public StudyRepository(
         IStudyQueryRepository query,
-        IRepository<Theme> themes,
+        IRepository<Theme, ThemeId, ThemeIdParams> themes,
         IRepository<Collection, CollectionId, CollectionIdParams> collections,
         IRepository<Card, CardId, CardIdParams> cards,
         IRepository<RepeatsSchedule> repeatsSchedules,

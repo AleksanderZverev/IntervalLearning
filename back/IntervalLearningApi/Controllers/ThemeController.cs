@@ -1,5 +1,11 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using Application.Commands.Themes.CreateTheme;
+using Application.Commands.Themes.GetThemes;
+using DB.Models.ValueObjects;
+using Infrastructure.Extensions;
 using IntervalLearningApi.Constants;
+using IntervalLearningApi.Extensions;
+using IntervalLearningApi.Infrastructure.CommandManager;
 using IntervalLearningApi.Models.ByUser;
 using IntervalLearningApi.Services;
 using MapsterMapper;
@@ -12,30 +18,35 @@ namespace IntervalLearningApi.Controllers
     public class ThemeController : ControllerBase
     {
         private readonly IMapper mapper;
-        private readonly ThemeService themeService;
+        private readonly CommandManager commandManager;
 
-        public ThemeController(IMapper mapper, ThemeService themeService)
+        public ThemeController(
+            IMapper mapper,
+            CommandManager commandManager)
         {
             this.mapper = mapper;
-            this.themeService = themeService;
+            this.commandManager = commandManager;
         }
 
         [HttpGet(ApiRoutes.Themes.Get_GetAll)]
-        public List<ThemeDto> GetAll()
+        public async Task<ActionResult<List<ThemeDto>>> GetAll()
         {
-            var themes = themeService.GetAll();
-            
-            return themes is not { Count: > 0 }
-                ? new List<ThemeDto>()
-                : mapper.Map<List<ThemeDto>>(themes);
+            var themesResult = await commandManager
+                .GetCommand<GetThemesCommand>()
+                .Handle(new GetThemesRequest());
+
+            return themesResult.ToActionResult(themes => mapper.Map<List<ThemeDto>>(themes));
         }
 
-        //[HttpPost]
-        //public IActionResult CreateTheme([FromBody] CreateThemeItem themeItem)
-        //{
-        //    var (ok, error) = themeService.Create(themeItem.Name);
-        //    return ok ? Ok() : BadRequest(error);
-        //}
+        // [HttpPost]
+        // public IActionResult CreateTheme([FromBody] CreateThemeItem themeItem)
+        // {
+        //     var creationResult = commandManager
+        //         .GetCommand<CreateThemeCommand>()
+        //         .Handle(new CreateThemeRequest(ThemeTitle.Create(themeItem.Name).Value));
+        //     
+        //     return creationResult.IsCompletedSuccessfully ? Ok() : BadRequest();
+        // }
     }
 
     public class CreateThemeItem
