@@ -34,46 +34,46 @@ public class RepeatsScheduleService
             .AsSplitQuery()
             .ToList();
 
-    public async Task<Result<RepeatsSchedule>> PatchSchedule(
-        UserId userId,
-        ScheduleId scheduleId,
-        UpdateScheduleItem item)
-    {
-        var schedule = Find(userId, scheduleId);
-
-        if (schedule == null)
-            return new NotFoundError("Schedule");
-
-        using var transaction = transactionProvider.CreateScope();
-
-        schedule.Title = item.Title;
-        schedule.CardsCountPerPhase = item.CardsCountPerPhase;
-
-        schedule.ShortDescription = item.ShortDescription;
-        schedule.DefaultPhaseShortDescription = item.DefaultPhaseShortDescription;
-        schedule.DefaultRepeatPhaseShortDescription = item.DefaultRepeatPhaseShortDescription;
-
-        schedule.OnStartLearningDescription = item.OnStartLearningDescription;
-        schedule.DefaultPhaseDescription = item.DefaultPhaseDescription;
-        schedule.DefaultRepeatPhaseDescription = item.DefaultRepeatPhaseDescription;
-
-        db.Update(schedule);
-
-        if (item.Phases != null)
-        {
-            db.Phases.RemoveRange(schedule.Phases);
-            schedule.Phases = item.Phases.Select(p => ConvertToPhase(schedule, p)).ToList();
-            db.Phases.AddRange(schedule.Phases);
-        }
-
-        if (!await db.SoftSaveChangesAsync())
-        {
-            return new InternalError();
-        }
-        
-        transaction.Complete();
-        return schedule;
-    }
+    // public async Task<Result<RepeatsSchedule>> PatchSchedule(
+    //     UserId userId,
+    //     ScheduleId scheduleId,
+    //     UpdateScheduleItem item)
+    // {
+    //     var schedule = Find(userId, scheduleId);
+    //
+    //     if (schedule == null)
+    //         return new NotFoundError("Schedule");
+    //
+    //     using var transaction = transactionProvider.CreateScope();
+    //
+    //     schedule.Title = item.Title;
+    //     schedule.CardsCountPerPhase = item.CardsCountPerPhase;
+    //
+    //     schedule.ShortDescription = item.ShortDescription;
+    //     schedule.DefaultPhaseShortDescription = item.DefaultPhaseShortDescription;
+    //     schedule.DefaultRepeatPhaseShortDescription = item.DefaultRepeatPhaseShortDescription;
+    //
+    //     schedule.OnStartLearningDescription = item.OnStartLearningDescription;
+    //     schedule.DefaultPhaseDescription = item.DefaultPhaseDescription;
+    //     schedule.DefaultRepeatPhaseDescription = item.DefaultRepeatPhaseDescription;
+    //
+    //     db.Update(schedule);
+    //
+    //     if (item.Phases != null)
+    //     {
+    //         db.Phases.RemoveRange(schedule.Phases);
+    //         schedule.Phases = item.Phases.Select(p => ConvertToPhase(schedule, p)).ToList();
+    //         db.Phases.AddRange(schedule.Phases);
+    //     }
+    //
+    //     if (!await db.SoftSaveChangesAsync())
+    //     {
+    //         return new InternalError();
+    //     }
+    //     
+    //     transaction.Complete();
+    //     return schedule;
+    // }
 
     // public async Task<Result<RepeatsSchedule>> Create(
     //     UserId userId, 
@@ -134,22 +134,22 @@ public class RepeatsScheduleService
     }
 }
 
-public abstract class BaseRepeatsScheduleItem
-{
-    public required ScheduleTitle Title { get; set; }
-    public LongSingleLineString? ShortDescription { get; set; }
-    public LongMultiLineString? OnStartLearningDescription { get; set; }
-    public short CardsCountPerPhase { get; set; }
-    public LongSingleLineString? DefaultPhaseShortDescription { get; set; }
-    public LongMultiLineString? DefaultPhaseDescription { get; set; }
-    public LongSingleLineString? DefaultRepeatPhaseShortDescription { get; set; }
-    public LongMultiLineString? DefaultRepeatPhaseDescription { get; set; }
-}
-
-public class UpdateScheduleItem : BaseRepeatsScheduleItem
-{
-    public List<UpdatePhaseInfo> Phases { get; set; }
-}
+// public abstract class BaseRepeatsScheduleItem
+// {
+//     public required ScheduleTitle Title { get; set; }
+//     public LongSingleLineString? ShortDescription { get; set; }
+//     public LongMultiLineString? OnStartLearningDescription { get; set; }
+//     public short CardsCountPerPhase { get; set; }
+//     public LongSingleLineString? DefaultPhaseShortDescription { get; set; }
+//     public LongMultiLineString? DefaultPhaseDescription { get; set; }
+//     public LongSingleLineString? DefaultRepeatPhaseShortDescription { get; set; }
+//     public LongMultiLineString? DefaultRepeatPhaseDescription { get; set; }
+// }
+//
+// public class UpdateScheduleItem : BaseRepeatsScheduleItem
+// {
+//     public List<UpdatePhaseInfo> Phases { get; set; }
+// }
 
 // public class CreateScheduleItem : BaseRepeatsScheduleItem
 // {
@@ -157,9 +157,9 @@ public class UpdateScheduleItem : BaseRepeatsScheduleItem
 //     public List<PhaseInfo> Phases { get; set; }
 // }
 
-public class UpdatePhaseInfo : PhaseInfo
-{
-}
+// public class UpdatePhaseInfo : PhaseInfo
+// {
+// }
 
 // public class PhaseInfo
 // {

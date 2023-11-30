@@ -1,6 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.Diagnostics;
 using Application.Commands.Schedules.CreateSchedule;
+using Application.Commands.Schedules.UpdateSchedule;
 using DB.Models;
 using DB.Models.ValueObjects;
 using IntervalLearningApi.Services;

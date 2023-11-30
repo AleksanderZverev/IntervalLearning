@@ -1,5 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using Application.Commands.Schedules.CreateSchedule;
+using Application.Commands.Schedules.UpdateSchedule;
 using DB.Models.ValueObjects;
 using Domain.User.ValueObjects;
 using IntervalLearningApi.Models.RepeatsSchedule;
@@ -28,7 +29,7 @@ public class CreteScheduleRegister : IRegister
             .Map(d => d.OnStartLearningDescription, s => s.Description)
             .IgnoreNullValues(true);
 
-        config.NewConfig<UpdateScheduleRequest, UpdateScheduleItem>()
+        config.NewConfig<UpdateScheduleRequest, UpdateScheduleProps>()
             .Map(d => d.OnStartLearningDescription, s => s.Description)
             .IgnoreNullValues(true);
     }

@@ -1,6 +1,7 @@
 ﻿using Application.Commands.Schedules.CreateSchedule;
 using Application.Commands.Schedules.GetAvailableSchedules;
 using Application.Commands.Schedules.GetSchedule;
+using Application.Commands.Schedules.UpdateSchedule;
 using DB.Models.ValueObjects;
 using Domain.User.ValueObjects;
 using IntervalLearningApi.Constants;
@@ -59,15 +60,18 @@ namespace IntervalLearningApi.Controllers
         }
 
         [HttpGet(ApiRoutes.Schedule.Get_GetMySchedule)]
-        public ActionResult<RepeatsScheduleDto> GetSchedule(short scheduleId)
+        public async Task<ActionResult<RepeatsScheduleDto>> GetSchedule(short scheduleId)
         {
             var userId = HttpContext.GetUserId();
 
             if (userId.IsFailed)
                 return BadRequest();
 
-            var schedule = repeatsScheduleService.Find(userId.Value, ScheduleId.Create(scheduleId).Value);
-            return schedule == null ? NotFound() :  mapper.Map<RepeatsScheduleDto>(schedule);
+            var scheduleResult = await commandManager
+                .GetCommand<GetScheduleCommand>()
+                .Handle(new GetScheduleRequest(userId.Value, ScheduleId.Create(scheduleId).Value));
+
+            return scheduleResult.ToActionResult(schedule => mapper.Map<RepeatsScheduleDto>(schedule));
         }
 
         [HttpPatch(ApiRoutes.Schedule.Patch_EditSchedule)]
@@ -78,10 +82,12 @@ namespace IntervalLearningApi.Controllers
             if (userId.IsFailed)
                 return BadRequest();
 
-            var scheduleResult = await repeatsScheduleService.PatchSchedule(
-                userId.Value, 
-                ScheduleId.Create(scheduleId).Value, 
-                mapper.Map<UpdateScheduleItem>(request));
+            var scheduleResult = await commandManager
+                .GetCommand<UpdateScheduleCommand>()
+                .Handle(new UpdateScheduleCommandRequest(
+                    userId.Value,
+                    ScheduleId.Create(scheduleId).Value,
+                    mapper.Map<UpdateScheduleProps>(request)));
 
             return scheduleResult.ToActionResult(schedule => mapper.Map<RepeatsScheduleDto>(schedule));
         }
