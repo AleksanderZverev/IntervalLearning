@@ -5,6 +5,7 @@ using IntervalLearningApi.Extensions;
 using Microsoft.AspNetCore.HttpLogging;
 using Microsoft.EntityFrameworkCore;
 using DB.DependencyInjection;
+using Infrastructure.DI;
 using IntervalLearningApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -29,6 +30,7 @@ services.AddPersistence((o) =>
     o.UseNpgsql(connectionString);
 });
 
+services.AddInfrastructure();
 services.AddApplication();
 
 services.AddWeb(new SecretConfig()

@@ -9,6 +9,8 @@ public class UserPasswordConfiguration : IEntityTypeConfiguration<UserPassword>
 {
     public void Configure(EntityTypeBuilder<UserPassword> builder)
     {
+        builder.ToTable("UsersPasswords");
+        
         builder.HasKey(p => p.ParentUserId);
 
         builder.Ignore(p => p.Id);

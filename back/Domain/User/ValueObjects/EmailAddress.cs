@@ -15,7 +15,7 @@ public class EmailAddress : SingleValueObject<string>
         if (string.IsNullOrWhiteSpace(dirtyEmail))
             return Result.Fail("Email is empty");
 
-        var email = dirtyEmail.Trim();
+        var email = dirtyEmail.ToLowerInvariant().Trim();
 
         if (email.Length > 255)
             return Result.Fail("Email is too long");

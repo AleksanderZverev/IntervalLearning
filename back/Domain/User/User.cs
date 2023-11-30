@@ -10,7 +10,7 @@ namespace Domain.User;
 
 public class User : AggregateRoot<UserId>
 {
-    protected User(UserId id) : base(id)
+    public User(UserId id) : base(id)
     {
     }
     

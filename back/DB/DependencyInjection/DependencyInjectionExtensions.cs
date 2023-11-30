@@ -1,6 +1,10 @@
+using Application.Common.Interfaces.DB.Queries.Accounts;
+using Application.Common.Interfaces.DB.Queries.Accounts.Users;
 using Application.Common.Interfaces.DB.Queries.Dictionary;
 using Application.Common.Interfaces.DB.Queries.Store;
 using Application.Common.Interfaces.DB.Repositories;
+using Application.Common.Interfaces.DB.Repositories.Accounts;
+using Application.Common.Interfaces.DB.Repositories.Accounts.Users;
 using Application.Common.Interfaces.DB.Repositories.Cards;
 using Application.Common.Interfaces.DB.Repositories.Store;
 using Application.Common.Interfaces.DB.Repositories.Store.PublicCollections;
@@ -25,10 +29,14 @@ using Application.Common.Interfaces.Domain.Themes;
 using DB.Models;
 using DB.Models.Store;
 using DB.Models.ValueObjects;
+using DB.Quaries.Accounts;
+using DB.Quaries.Accounts.Users;
 using DB.Quaries.Dictionary;
 using DB.Quaries.Store;
 using DB.Quaries.Study;
 using DB.Repository;
+using DB.Repository.Accounts;
+using DB.Repository.Accounts.Users;
 using DB.Repository.Store;
 using DB.Repository.Store.PublicCollections;
 using DB.Repository.Study;
@@ -55,6 +63,9 @@ using Domain.Queue;
 using Domain.Schedule;
 using Domain.Schedule.Entities.Remember;
 using Domain.Theme;
+using Domain.User;
+using Domain.User.Entities;
+using Domain.User.ValueObjects;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -67,6 +78,9 @@ public static class DependencyInjectionExtensions
         services.AddDbContext<ApplicationContext>(optionsBuilder);
         
         //===BoundedContextRepository===
+        services.AddScoped<IAccountRepository, AccountRepository>();
+        services.AddScoped<IAccountQueryRepository, AccountQueryRepository>();
+        
         services.AddScoped<IStudyRepository, StudyRepository>();
         services.AddScoped<IStudyQueryRepository, StudyQueryRepository>();
         
@@ -74,6 +88,12 @@ public static class DependencyInjectionExtensions
         services.AddScoped<IStoreQueryRepository, StoreQueryRepository>();
 
         services.AddScoped<IDictionaryQueryRepository, DictionaryQueryRepository>();
+
+        //Users
+        services.AddScoped<IUsersQueryRepository, UsersQueryRepository>();
+        services.AddScoped<IRepository<User, UserId, UserIdParams>, UsersRepository>();
+        services.AddScoped<IRepository<UserPassword>, BaseRepository<UserPassword>>();
+        services.AddScoped<IRepository<UserMetadata>, BaseRepository<UserMetadata>>();
 
         //Theme
         services.AddScoped<IThemesQueryResolver, ThemesQueryResolver>();

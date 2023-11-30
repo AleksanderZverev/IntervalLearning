@@ -1,5 +1,10 @@
-﻿using IntervalLearningApi.Constants;
+﻿using Application.Commands.Accounts.Register;
+using Domain.Common.ValueObjects;
+using Domain.Language.ValueObjects;
+using Domain.User.ValueObjects;
+using IntervalLearningApi.Constants;
 using IntervalLearningApi.Extensions;
+using IntervalLearningApi.Infrastructure.CommandManager;
 using IntervalLearningApi.Models;
 using IntervalLearningApi.Services.Authentication;
 using Microsoft.AspNetCore.Authorization;
@@ -16,15 +21,18 @@ public class AuthenticationController : ControllerBase
     private const string RefreshTokenKey = "refreshToken";
     private const string JwtTokenKey = "jwtToken";
 
+    private readonly CommandManager commandManager;
     private readonly IAuthenticationService authService;
     private readonly UserService userService;
     private readonly JwtSettings jwtSettings;
 
     public AuthenticationController(
+        CommandManager commandManager,
         JwtSettings jwtSettings,
         IAuthenticationService authService, 
         UserService userService)
     {
+        this.commandManager = commandManager;
         this.authService = authService;
         this.userService = userService;
         this.jwtSettings = jwtSettings;
@@ -32,9 +40,18 @@ public class AuthenticationController : ControllerBase
 
     [AllowAnonymous]
     [HttpPost(ApiRoutes.Accounts.Register)]
-    public IActionResult Register(RegisterRequest req)
+    public async Task<IActionResult> Register(RegisterRequest req)
     {
-        var result = authService.Register(req, GetSourceIpAddress());
+        var result = await commandManager
+            .GetCommand<RegisterAccountCommand>()
+            .Handle(new RegisterAccountRequest(
+                EmailAddress.Create(req.Email).Value,
+                MediumSingleLineString.Create(req.Password).Value,
+                UserName.Create(req.FirstName, req.LastName).Value,
+                LanguageId.Create(req.SuggestLanguageId).Value,
+                GetSourceIpAddress()
+            ));
+        
         return result.ToActionResult();
     }
 
