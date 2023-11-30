@@ -5,7 +5,7 @@ VisualStudioVersion = 17.1.32104.313
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IntervalLearningApi", "IntervalLearningApi\IntervalLearningApi.csproj", "{9818DE49-7979-441C-AB26-F23B6F9A40D3}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Infrastructure", "Infrastructure\Infrastructure.csproj", "{B037140A-FC72-4D26-9ADC-A7031509B590}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GlobalTools", "GlobalTools\GlobalTools.csproj", "{B037140A-FC72-4D26-9ADC-A7031509B590}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DB", "DB\DB.csproj", "{008B7E25-4A1F-4DD2-84AB-B8A552258265}"
 EndProject
