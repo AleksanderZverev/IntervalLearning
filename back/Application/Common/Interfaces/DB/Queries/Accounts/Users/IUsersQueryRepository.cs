@@ -7,5 +7,5 @@ namespace Application.Common.Interfaces.DB.Queries.Accounts.Users;
 public interface IUsersQueryRepository
 {
     Task<User?> FindByEmail(EmailAddress email);
-    
+    Task<User?> Find(UserId userId);
 }

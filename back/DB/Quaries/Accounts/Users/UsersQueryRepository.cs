@@ -22,4 +22,11 @@ public class UsersQueryRepository : IUsersQueryRepository
             .Include(u => u.Metadata)
             .SingleOrDefaultAsync(x => EF.Functions.ILike(x.Email, email.Value));
     }
+
+    public Task<User?> Find(UserId userId)
+    {
+        return db.Users
+            .Include(u => u.Metadata)
+            .SingleOrDefaultAsync(u => u.Id == userId);
+    }
 }

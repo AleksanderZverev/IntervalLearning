@@ -1,4 +1,5 @@
 ﻿using Application.Commands.Accounts.Authenticate;
+using Application.Commands.Accounts.AuthenticateByOldToken;
 using Application.Commands.Accounts.Register;
 using Domain.Common.ValueObjects;
 using Domain.Language.ValueObjects;
@@ -80,7 +81,7 @@ public class AuthenticationController : ControllerBase
 
     [AllowAnonymous]
     [HttpPost(ApiRoutes.Accounts.RefreshToken)]
-    public ActionResult<AuthenticateResponse> RefreshToken()
+    public async Task<ActionResult<AuthenticateResponse>> RefreshToken()
     {
         var jwtToken = GetJwtToken(Request);
         var refreshToken = GetRefreshToken(Request);
@@ -88,12 +89,17 @@ public class AuthenticationController : ControllerBase
         if (string.IsNullOrEmpty(refreshToken))
             return BadRequest();
 
-        var oldResponse = string.IsNullOrEmpty(jwtToken)
-            ? null
-            : authService.TryAuthenticateByOldToken(jwtToken, refreshToken);
+        if (!string.IsNullOrEmpty(jwtToken))
+        {
+            var reAuthResult = await commandManager
+                .GetCommand<AuthenticateByOldTokenCommand>()
+                .Handle(new AuthenticateByOldTokenRequest(jwtToken, refreshToken));
 
-        if (oldResponse != null)
-            return Ok(oldResponse);
+            if (reAuthResult.IsSuccess)
+            {
+                return mapper.Map<AuthenticateResponse>(reAuthResult.Value);
+            }
+        }
 
         var authResult = authService.RefreshToken(refreshToken, GetSourceIpAddress());
 

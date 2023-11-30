@@ -6,8 +6,11 @@ using Application.Common.Accounts.Jwt;
 using Application.Common.Interfaces.DB.Queries.Accounts;
 using DB.Models;
 using Domain.User;
+using Domain.User.ValueObjects;
+using FluentResults;
 using Infrastructure;
 using Infrastructure.BoundedContexts.Accounts.Jwt;
+using Infrastructure.Errors;
 using Microsoft.IdentityModel.Tokens;
 
 namespace IntervalLearningApi.Services.Jwt;
@@ -50,7 +53,7 @@ public class JwtService : IJwtService
         return tokenHandler.WriteToken(token);
     }
 
-    public long? ValidateJwtToken(string token, DateTime? notValidTill = null)
+    public Result<UserId> ValidateJwtToken(string token, DateTime? notValidTill = null)
     {
         var tokenHandler = new JwtSecurityTokenHandler();
         var securityKey = Encoding.ASCII.GetBytes(jwtSettings.Secret);
@@ -72,16 +75,16 @@ public class JwtService : IJwtService
 
             if (notValidTill != null && expireTime <= notValidTill)
             {
-                return null;
+                return new BadRequestError("Token is not valid");
             }
 
             var userId = long.Parse(jwtToken.Claims.First(x => x.Type == IdClaimType).Value);
 
-            return userId;
+            return UserId.Create(userId);
         }
         catch
         {
-            return null;
+            return new InternalError();
         }
     }
 
