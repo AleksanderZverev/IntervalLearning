@@ -1,6 +1,8 @@
 ﻿using System.Security.Claims;
+using Application.Common.Accounts.Jwt;
 using DB;
 using Domain.User.ValueObjects;
+using Infrastructure.BoundedContexts.Accounts.Jwt;
 using IntervalLearningApi.Models;
 using IntervalLearningApi.Services.Jwt;
 using Microsoft.AspNetCore.Authorization;

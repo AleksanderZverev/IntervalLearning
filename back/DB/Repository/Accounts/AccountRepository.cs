@@ -16,16 +16,19 @@ public class AccountRepository : IAccountRepository
     public IRepository<User, UserId, UserIdParams> Users { get; }
     public IRepository<UserPassword> Passwords { get; }
     public IRepository<UserMetadata> Metadata { get; }
+    public IRepository<RefreshTokenEntity> RefreshTokens { get; }
 
     public AccountRepository(
         IAccountQueryRepository query,
         IRepository<User, UserId, UserIdParams> users,
         IRepository<UserPassword> passwords, 
-        IRepository<UserMetadata> metadata)
+        IRepository<UserMetadata> metadata, 
+        IRepository<RefreshTokenEntity> refreshTokens)
     {
         Query = query;
         Users = users;
         Passwords = passwords;
         Metadata = metadata;
+        RefreshTokens = refreshTokens;
     }
 }

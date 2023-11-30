@@ -1,4 +1,5 @@
-﻿using Application.Common.Interfaces.DB.Transactions;
+﻿using Application.Common.Accounts.Jwt;
+using Application.Common.Interfaces.DB.Transactions;
 using DB;
 using DB.BusinessExtensions;
 using DB.Models;
@@ -7,9 +8,10 @@ using Domain.User;
 using Domain.User.Entities;
 using Domain.User.ValueObjects;
 using FluentResults;
+using Infrastructure;
+using Infrastructure.BoundedContexts.Accounts.Jwt;
 using Infrastructure.Errors;
 using IntervalLearningApi.Models;
-using IntervalLearningApi.Models.Common;
 using IntervalLearningApi.Services.Jwt;
 using Microsoft.EntityFrameworkCore;
 using UserMetadata = DB.Models.UserMetadata;

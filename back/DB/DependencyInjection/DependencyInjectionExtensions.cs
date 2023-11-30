@@ -1,4 +1,5 @@
 using Application.Common.Interfaces.DB.Queries.Accounts;
+using Application.Common.Interfaces.DB.Queries.Accounts.RefreshTokens;
 using Application.Common.Interfaces.DB.Queries.Accounts.Users;
 using Application.Common.Interfaces.DB.Queries.Dictionary;
 using Application.Common.Interfaces.DB.Queries.Store;
@@ -30,6 +31,7 @@ using DB.Models;
 using DB.Models.Store;
 using DB.Models.ValueObjects;
 using DB.Quaries.Accounts;
+using DB.Quaries.Accounts.RefreshTokens;
 using DB.Quaries.Accounts.Users;
 using DB.Quaries.Dictionary;
 using DB.Quaries.Store;
@@ -94,6 +96,8 @@ public static class DependencyInjectionExtensions
         services.AddScoped<IRepository<User, UserId, UserIdParams>, UsersRepository>();
         services.AddScoped<IRepository<UserPassword>, BaseRepository<UserPassword>>();
         services.AddScoped<IRepository<UserMetadata>, BaseRepository<UserMetadata>>();
+        services.AddScoped<IRefreshTokensQueryRepository, RefreshTokensQueryRepository>();
+        services.AddScoped<IRepository<RefreshTokenEntity>, BaseRepository<RefreshTokenEntity>>();
 
         //Theme
         services.AddScoped<IThemesQueryResolver, ThemesQueryResolver>();

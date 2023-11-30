@@ -1,12 +1,15 @@
-﻿using Application.Commands.Accounts.Register;
+﻿using Application.Commands.Accounts.Authenticate;
+using Application.Commands.Accounts.Register;
 using Domain.Common.ValueObjects;
 using Domain.Language.ValueObjects;
 using Domain.User.ValueObjects;
+using Infrastructure.BoundedContexts.Accounts.Jwt;
 using IntervalLearningApi.Constants;
 using IntervalLearningApi.Extensions;
 using IntervalLearningApi.Infrastructure.CommandManager;
 using IntervalLearningApi.Models;
 using IntervalLearningApi.Services.Authentication;
+using MapsterMapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
@@ -23,18 +26,18 @@ public class AuthenticationController : ControllerBase
 
     private readonly CommandManager commandManager;
     private readonly IAuthenticationService authService;
-    private readonly UserService userService;
+    private readonly IMapper mapper;
     private readonly JwtSettings jwtSettings;
 
     public AuthenticationController(
         CommandManager commandManager,
         JwtSettings jwtSettings,
         IAuthenticationService authService, 
-        UserService userService)
+        IMapper mapper)
     {
         this.commandManager = commandManager;
         this.authService = authService;
-        this.userService = userService;
+        this.mapper = mapper;
         this.jwtSettings = jwtSettings;
     }
 
@@ -57,9 +60,14 @@ public class AuthenticationController : ControllerBase
 
     [AllowAnonymous]
     [HttpPost(ApiRoutes.Accounts.Authenticate)]
-    public ActionResult<AuthenticateResponse> Authenticate(AuthenticateRequest model)
+    public async Task<ActionResult<AuthenticateResponse>> Authenticate(AuthenticateRequest model)
     {
-        var authResult = authService.Authenticate(model, GetSourceIpAddress());
+        var authResult = await commandManager
+            .GetCommand<AuthenticateCommand>()
+            .Handle(new AuthenticateCommandRequest(
+                EmailAddress.Create(model.Email).Value,
+                MediumSingleLineString.Create(model.Password).Value,
+                GetSourceIpAddress()));
 
         if (authResult.IsFailed)
             return authResult.ToErrorActionResult();
@@ -67,7 +75,7 @@ public class AuthenticationController : ControllerBase
         var auth = authResult.Value;
         SetRefreshTokenCookie(auth.RefreshToken);
         SetJwtTokenCookie(auth.JwtToken);
-        return auth;
+        return mapper.Map<AuthenticateResponse>(auth);
     }
 
     [AllowAnonymous]

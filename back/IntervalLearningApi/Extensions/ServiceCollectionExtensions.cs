@@ -1,11 +1,10 @@
 ﻿using System.Reflection;
-using Application.Common.Interfaces.DB.Transactions;
+using Application.Common.Accounts.Jwt;
 using DB;
-using DB.Transactions;
+using Infrastructure;
+using Infrastructure.BoundedContexts.Accounts.Jwt;
 using IntervalLearningApi.Controllers;
 using IntervalLearningApi.Infrastructure.CommandManager;
-using IntervalLearningApi.Models;
-using IntervalLearningApi.Models.Common;
 using IntervalLearningApi.Services;
 using IntervalLearningApi.Services.Authentication;
 using IntervalLearningApi.Services.Dictionary;
@@ -13,8 +12,6 @@ using IntervalLearningApi.Services.Jwt;
 using Mapster;
 using MapsterMapper;
 using Newtonsoft.Json.Serialization;
-using NodaTime;
-using NodaTime.Serialization.JsonNet;
 
 namespace IntervalLearningApi.Extensions;
 
@@ -32,7 +29,6 @@ public static class ServiceCollectionExtensions
         services.AddScoped<CommandManager>();
         services.AddScoped<IJwtService, JwtService>();
         services.AddScoped<IAuthenticationService, AuthenticationService>();
-        services.AddScoped<UserService>();
 
         services.AddScoped<StatisticsService>();
         services.AddScoped<UserMetadataService>();
@@ -58,7 +54,6 @@ public static class ServiceCollectionExtensions
         {
             opts.SerializerSettings.ContractResolver = new DefaultContractResolver()
                 {NamingStrategy = new CamelCaseNamingStrategy()};
-            opts.SerializerSettings.ConfigureForNodaTime(DateTimeZoneProviders.Tzdb);
         });
     }
 

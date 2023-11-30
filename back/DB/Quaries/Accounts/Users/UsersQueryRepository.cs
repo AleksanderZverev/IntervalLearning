@@ -16,6 +16,10 @@ public class UsersQueryRepository : IUsersQueryRepository
 
     public Task<User?> FindByEmail(EmailAddress email)
     {
-        return db.Users.FirstOrDefaultAsync(u => u.Email == email);
+        return db.Users
+            .Include(u => u.PasswordHash)
+            .Include(u => u.RefreshTokens)
+            .Include(u => u.Metadata)
+            .SingleOrDefaultAsync(x => EF.Functions.ILike(x.Email, email.Value));
     }
 }

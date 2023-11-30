@@ -2,11 +2,12 @@
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
-using DB;
+using Application.Common.Accounts.Jwt;
+using Application.Common.Interfaces.DB.Queries.Accounts;
 using DB.Models;
 using Domain.User;
-using IntervalLearningApi.Models;
-using Microsoft.Extensions.Options;
+using Infrastructure;
+using Infrastructure.BoundedContexts.Accounts.Jwt;
 using Microsoft.IdentityModel.Tokens;
 
 namespace IntervalLearningApi.Services.Jwt;
@@ -14,27 +15,34 @@ namespace IntervalLearningApi.Services.Jwt;
 public class JwtService : IJwtService
 {
     private const string IdClaimType = "Id";
-    private readonly ApplicationContext db;
+    private readonly IDateTimeProvider dateTimeProvider;
+    private readonly IAccountQueryRepository accountQueryRepository;
     private readonly JwtSettings jwtSettings;
 
     public JwtService(
-        ApplicationContext db,
+        IDateTimeProvider dateTimeProvider,
+        IAccountQueryRepository accountQueryRepository,
         JwtSettings appSettings)
     {
-        this.db = db;
+        this.dateTimeProvider = dateTimeProvider;
+        this.accountQueryRepository = accountQueryRepository;
         jwtSettings = appSettings;
+    }
+
+    public bool IsTokenExpired(DateTime refreshTokenCreatedDate)
+    {
+        return refreshTokenCreatedDate.AddDays(jwtSettings.RefreshTokenTTLInDays) <= dateTimeProvider.UtcNow;
     }
 
     public string GenerateJwtToken(User userEntity)
     {
-
         var tokenHandler = new JwtSecurityTokenHandler();
         var securityKey = Encoding.ASCII.GetBytes(jwtSettings.Secret);
 
         var tokenDescriptor = new SecurityTokenDescriptor
         {
             Subject = new ClaimsIdentity(GetClaims(userEntity)),
-            Expires = DateTime.UtcNow.AddMinutes(jwtSettings.JwtTokenTTLInMinutes),
+            Expires = dateTimeProvider.UtcNow.AddMinutes(jwtSettings.JwtTokenTTLInMinutes),
             SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(securityKey), SecurityAlgorithms.HmacSha256Signature)
         };
 
@@ -79,7 +87,7 @@ public class JwtService : IJwtService
 
     public RefreshTokenEntity GenerateRefreshToken(User user, string ipAddress)
     {
-        var now = DateTime.UtcNow; // SystemClock.Instance.GetCurrentInstant();
+        var now = dateTimeProvider.UtcNow; // SystemClock.Instance.GetCurrentInstant();
 
         var lastRefreshToken = user.RefreshTokens.MaxBy(t => t.Id);
         var id = (short) (lastRefreshToken == null ? 0 : (lastRefreshToken.Id + 1) % short.MaxValue);
@@ -100,9 +108,7 @@ public class JwtService : IJwtService
         {
             var randomSequence = RandomNumberGenerator.GetBytes(64);
             var token = Convert.ToBase64String(randomSequence);
-
-            var isTokenUnique = !db.Users.Any(u => u.RefreshTokens.Any(t => t.Token == token));
-
+            var isTokenUnique = !accountQueryRepository.RefreshTokens.Contains(token).GetAwaiter().GetResult();
             return isTokenUnique ? token : GetUniqueToken();
         }
     }

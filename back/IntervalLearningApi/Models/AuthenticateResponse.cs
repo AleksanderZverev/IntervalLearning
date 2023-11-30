@@ -1,8 +1,21 @@
 ﻿using System.Text.Json.Serialization;
-using DB.Models;
-using Domain.Language.ValueObjects;
+using Application.Commands.Accounts.Authenticate;
+using Mapster;
 
 namespace IntervalLearningApi.Models;
+
+public class AuthenticateResponseRegister : IRegister 
+{
+    public void Register(TypeAdapterConfig config)
+    {
+        config.NewConfig<AuthenticateCommandResponse, AuthenticateResponse>()
+            .Map(d => d.RefreshToken, s => s.RefreshToken)
+            .Map(d => d.JwtToken, s => s.JwtToken)
+            .Map(d => d.SuggestTranslationLanguageId, s => s.User.Metadata.SuggestTranslationLanguageId)
+            .Map(d => d, s => s.User.UserName)
+            .Map(d => d, s => s.User);
+    }
+}
 
 public class AuthenticateResponse
 {

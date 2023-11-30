@@ -1,4 +1,4 @@
-﻿namespace IntervalLearningApi.Models;
+﻿namespace Infrastructure.BoundedContexts.Accounts.Jwt;
 
 public class JwtSettings
 {

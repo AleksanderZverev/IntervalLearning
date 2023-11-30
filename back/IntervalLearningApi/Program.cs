@@ -5,6 +5,7 @@ using IntervalLearningApi.Extensions;
 using Microsoft.AspNetCore.HttpLogging;
 using Microsoft.EntityFrameworkCore;
 using DB.DependencyInjection;
+using Infrastructure.BoundedContexts.Accounts.Jwt;
 using Infrastructure.DI;
 using IntervalLearningApi.Models;
 

@@ -8,4 +8,9 @@ public class PasswordsService : IPasswordService
     {
         return BCrypt.Net.BCrypt.HashPassword(password);
     }
+
+    public bool IsPasswordCorrect(string checkingPassword, string correctUserPasswordHash)
+    {
+        return BCrypt.Net.BCrypt.Verify(checkingPassword, correctUserPasswordHash);
+    }
 }

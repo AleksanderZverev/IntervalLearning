@@ -14,4 +14,5 @@ public interface IAccountRepository : IBoundedContextRepository
     IRepository<User, UserId, UserIdParams> Users { get; }
     IRepository<UserPassword> Passwords { get; }
     IRepository<UserMetadata> Metadata { get; }
+    IRepository<RefreshTokenEntity> RefreshTokens { get; }
 }

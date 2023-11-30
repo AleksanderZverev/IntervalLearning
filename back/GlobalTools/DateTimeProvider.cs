@@ -1,4 +1,4 @@
-namespace IntervalLearningApi.Models.Common;
+namespace Infrastructure;
 
 public interface IDateTimeProvider
 {
