@@ -22,16 +22,13 @@ namespace IntervalLearningApi.Controllers
     {
         private readonly IMapper mapper;
         private readonly CommandManager commandManager;
-        private readonly RepeatsScheduleService repeatsScheduleService;
 
         public RepeatsScheduleController(
             IMapper mapper,
-            CommandManager commandManager,
-            RepeatsScheduleService repeatsScheduleService)
+            CommandManager commandManager)
         {
             this.mapper = mapper;
             this.commandManager = commandManager;
-            this.repeatsScheduleService = repeatsScheduleService;
         }
 
         [HttpGet(ApiRoutes.Schedule.Get_GetAll)]

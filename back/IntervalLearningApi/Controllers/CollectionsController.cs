@@ -34,16 +34,13 @@ namespace IntervalLearningApi.Controllers
     {
         private readonly IMapper mapper;
         private readonly CommandManager commandManager;
-        private readonly CollectionService collectionService;
 
         public CollectionsController(
             IMapper mapper,
-            CommandManager commandManager,
-            CollectionService collectionService)
+            CommandManager commandManager)
         {
             this.mapper = mapper;
             this.commandManager = commandManager;
-            this.collectionService = collectionService;
         }
 
         [HttpPost(ApiRoutes.Collections.Create)]

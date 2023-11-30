@@ -218,4 +218,9 @@ public class StatisticsService
             LearnedCards: learnedCards
         );
     }
+    
+    public record LearningStatistic(
+        int RepeatedCards,
+        int LearnedCards
+    );
 }

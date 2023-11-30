@@ -34,11 +34,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IAuthenticationService, AuthenticationService>();
         services.AddScoped<UserService>();
 
-        services.AddScoped<CollectionService>();
-        services.AddScoped<CardsService>();
         services.AddScoped<StatisticsService>();
-        services.AddScoped<RepeatsScheduleService>();
-        services.AddScoped<ThemeService>();
         services.AddScoped<UserMetadataService>();
         services.AddScoped<DictionaryService>();
         services.AddScoped(typeof(Repository<>));
