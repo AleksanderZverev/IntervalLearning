@@ -75,4 +75,24 @@ public class AuthenticationControllerTests : ScopeApiTests
         newAuth.JwtToken.Should().NotBeNull();
         oldAuth.JwtToken.Should().BeEquivalentTo(newAuth.JwtToken);
     }
+    
+    [Fact]
+    public async Task RevokeToken_ShouldRevokeByRefreshToken()
+    {
+        //Arrange
+        var client = await GetEmptyClient();
+        var (email, password, _) = await RegisterRandomUserAsync(client);
+        var oldAuth = await AuthorizeClientAsync(client, email, password);
+        
+        //Act
+        var revokeResponse = await client.PostAsJsonAsync(ApiRoutes.Accounts.RevokeToken, new RevokeTokenRequest()
+        {
+            Token = oldAuth.RefreshToken,
+        });
+
+        //Assert
+        oldAuth.Should().NotBeNull();
+        oldAuth.JwtToken.Should().NotBeEmpty();
+        revokeResponse.IsSuccessStatusCode.Should().BeTrue();
+    }
 }

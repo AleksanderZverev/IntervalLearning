@@ -2,6 +2,7 @@
 using Application.Commands.Accounts.AuthenticateByOldToken;
 using Application.Commands.Accounts.RefreshToken;
 using Application.Commands.Accounts.Register;
+using Application.Commands.Accounts.RevokeToken;
 using Domain.Common.ValueObjects;
 using Domain.Language.ValueObjects;
 using Domain.User.ValueObjects;
@@ -116,14 +117,17 @@ public class AuthenticationController : ControllerBase
     }
 
     [HttpPost(ApiRoutes.Accounts.RevokeToken)]
-    public IActionResult RevokeToken(RevokeTokenRequest req)
+    public async Task<IActionResult> RevokeToken(RevokeTokenRequest req)
     {
         var token = req.Token ?? GetRefreshToken(Request);
 
         if (string.IsNullOrEmpty(token))
             return BadRequest("Token is required");
 
-        var result = authService.RevokeToken(token, GetSourceIpAddress());
+        var result = await commandManager
+            .GetCommand<RevokeTokenCommand>()
+            .Handle(new RevokeTokenCommandRequest(token, GetSourceIpAddress()));
+        
         return result.ToActionResult();
     }
 

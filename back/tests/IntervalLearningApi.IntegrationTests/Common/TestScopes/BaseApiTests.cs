@@ -105,7 +105,7 @@ public class BaseApiTests : IAsyncLifetime
         return new Scope(client, testUserInfo with { Id = authResponse.Id});
     }
     
-    protected async Task<AuthenticateResponse> AuthorizeClientAsync(HttpClient client, string email, string password)
+    public async Task<AuthenticateResponse> AuthorizeClientAsync(HttpClient client, string email, string password)
     {
         var authResponse = await client.PostAsJsonAsync(
             AbsoluteQuery(ApiRoutes.Accounts.BasePath, ApiRoutes.Accounts.Authenticate),
