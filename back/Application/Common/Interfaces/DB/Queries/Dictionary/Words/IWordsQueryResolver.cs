@@ -1,7 +1,6 @@
 using DB.Models.Dictionary;
 using DB.Models.Dictionary.ValueObjects;
 using Domain.Language.ValueObjects;
-using FluentResults;
 
 namespace Application.Common.Interfaces.Domain.Dictionary.Words;
 

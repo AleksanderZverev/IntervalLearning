@@ -1,5 +1,3 @@
-using Domain.Common.ValueObjects;
-
 namespace Application.Common.Accounts.PasswordService;
 
 public interface IPasswordService

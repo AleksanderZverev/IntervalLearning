@@ -1,5 +1,4 @@
 using Application.Common.Interfaces.DB.Queries.Dictionary;
-using Application.Common.Interfaces.Domain.Languages;
 using Domain.Language;
 using FluentResults;
 using Infrastructure.Extensions;

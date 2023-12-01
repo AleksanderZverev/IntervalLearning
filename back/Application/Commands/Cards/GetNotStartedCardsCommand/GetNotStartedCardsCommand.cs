@@ -1,7 +1,4 @@
 using Application.Common.Interfaces.DB.Repositories.Study;
-using Application.Common.Interfaces.Domain.Cards;
-using Application.Common.Interfaces.Domain.Study.Remember;
-using Application.Common.Interfaces.Domain.Study.Schedule;
 using Domain.Card;
 using FluentResults;
 using Infrastructure.Errors;

@@ -1,13 +1,8 @@
-using System.Text.Json.Serialization;
 using Application.Common.Accounts.Jwt;
 using Application.Common.Accounts.PasswordService;
-using Application.Common.Interfaces.DB.Queries.Accounts;
 using Application.Common.Interfaces.DB.Repositories.Accounts;
-using Application.Common.Interfaces.DB.Transactions;
 using Domain.User;
-using Domain.User.Entities;
 using FluentResults;
-using Infrastructure;
 using Infrastructure.Errors;
 
 namespace Application.Commands.Accounts.Authenticate;

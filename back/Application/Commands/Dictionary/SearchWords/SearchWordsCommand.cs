@@ -1,5 +1,4 @@
 using Application.Common.Interfaces.DB.Queries.Dictionary;
-using Application.Common.Interfaces.Domain.Dictionary.Words;
 using DB.Models.Dictionary;
 using FluentResults;
 using Infrastructure.Errors;

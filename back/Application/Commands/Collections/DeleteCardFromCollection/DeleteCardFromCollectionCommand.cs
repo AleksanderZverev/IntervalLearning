@@ -1,7 +1,6 @@
 using Application.Commands.Cards.DeleteCard;
 using Application.Common.Interfaces.DB.Repositories.Study;
 using Application.Common.Interfaces.DB.Transactions;
-using Application.Common.Interfaces.Domain.Collections;
 using Domain.Card;
 using Domain.Collection;
 using FluentResults;

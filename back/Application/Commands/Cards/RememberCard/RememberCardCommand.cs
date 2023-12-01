@@ -1,10 +1,6 @@
 using Application.Commands.Cards.StartLearnCards;
 using Application.Common.Interfaces.DB.Repositories.Study;
 using Application.Common.Interfaces.DB.Transactions;
-using Application.Common.Interfaces.Domain.Cards;
-using Application.Common.Interfaces.Domain.Collections;
-using Application.Common.Interfaces.Domain.Study.Queue;
-using Application.Common.Interfaces.Domain.Study.Schedule;
 using DB.Models;
 using DB.Models.ValueObjects;
 using Domain.Card;

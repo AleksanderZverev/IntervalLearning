@@ -1,8 +1,6 @@
 using Application.Commands.Cards.SearchCards;
-using Application.Common.Interfaces.DB;
 using Domain.Card;
 using Domain.Card.ValueObjects;
-using Domain.Collection;
 using Domain.Collection.ValueObjects;
 using Domain.User.ValueObjects;
 

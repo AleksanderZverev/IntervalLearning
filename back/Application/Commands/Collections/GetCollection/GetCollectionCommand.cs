@@ -1,5 +1,4 @@
 using Application.Common.Interfaces.DB.Repositories.Study;
-using Application.Common.Interfaces.Domain.Collections;
 using Domain.Collection;
 using FluentResults;
 using Infrastructure.Errors;

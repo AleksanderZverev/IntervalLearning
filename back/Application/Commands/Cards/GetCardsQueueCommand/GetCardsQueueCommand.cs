@@ -1,8 +1,4 @@
-using Application.Commands.Cards.GetAllCards;
 using Application.Common.Interfaces.DB.Repositories.Study;
-using Application.Common.Interfaces.Domain.Cards;
-using Application.Common.Interfaces.Domain.Study.Queue;
-using Application.Common.Interfaces.Domain.Study.Remember;
 using Domain.Card;
 using FluentResults;
 

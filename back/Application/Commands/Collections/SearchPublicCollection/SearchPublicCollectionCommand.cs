@@ -1,9 +1,5 @@
 using Application.Common.Interfaces.DB.Queries.Store;
 using Application.Common.Interfaces.DB.Repositories.Study;
-using Application.Common.Interfaces.Domain.Collections;
-using Application.Common.Interfaces.Domain.Store.PublicCollection;
-using Application.Common.Interfaces.Domain.Store.PublicCollectionSubscribers;
-using Application.Common.Interfaces.Domain.Themes;
 using FluentResults;
 using FluentResults.Extensions;
 using Infrastructure.Errors;

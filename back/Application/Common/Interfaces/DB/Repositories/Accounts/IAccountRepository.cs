@@ -1,5 +1,4 @@
 using Application.Common.Interfaces.DB.Queries.Accounts;
-using Application.Common.Interfaces.DB.Queries.Accounts.Users;
 using Application.Common.Interfaces.DB.Repositories.Accounts.Users;
 using DB.Models;
 using Domain.User;

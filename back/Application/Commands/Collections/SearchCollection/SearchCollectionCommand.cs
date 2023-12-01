@@ -1,6 +1,4 @@
 using Application.Common.Interfaces.DB.Repositories.Study;
-using Application.Common.Interfaces.Domain.Collections;
-using Application.Common.Interfaces.Domain.Themes;
 using Domain.Collection;
 using FluentResults;
 using FluentResults.Extensions;

@@ -1,7 +1,6 @@
 using Application.Commands.Accounts.Authenticate;
 using Application.Common.Accounts.Jwt;
 using Application.Common.Interfaces.DB.Repositories.Accounts;
-using Domain.User.ValueObjects;
 using FluentResults;
 using FluentResults.Extensions;
 using Infrastructure;
