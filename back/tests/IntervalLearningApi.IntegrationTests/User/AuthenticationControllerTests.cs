@@ -1,3 +1,6 @@
+using IntervalLearningApi.Controllers.Accounts.Models.Authenticate;
+using IntervalLearningApi.Controllers.Accounts.Models.RevokeToken;
+
 namespace IntervalLearningApi.IntegrationTests.User;
 
 [UseBasePath(ApiRoutes.Accounts.BasePath)]

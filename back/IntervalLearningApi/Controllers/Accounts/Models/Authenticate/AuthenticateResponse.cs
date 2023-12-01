@@ -2,7 +2,7 @@
 using Application.Commands.Accounts.Authenticate;
 using Mapster;
 
-namespace IntervalLearningApi.Models;
+namespace IntervalLearningApi.Controllers.Accounts.Models.Authenticate;
 
 public class AuthenticateResponseRegister : IRegister 
 {

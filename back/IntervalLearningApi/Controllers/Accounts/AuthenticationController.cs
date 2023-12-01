@@ -6,16 +6,21 @@ using Application.Commands.Accounts.RevokeToken;
 using Domain.Common.ValueObjects;
 using Domain.Language.ValueObjects;
 using Domain.User.ValueObjects;
+using FluentResults;
+using FluentResults.Extensions;
 using Infrastructure.BoundedContexts.Accounts.Jwt;
 using IntervalLearningApi.Constants;
+using IntervalLearningApi.Controllers.Accounts.Models.Authenticate;
+using IntervalLearningApi.Controllers.Accounts.Models.Register;
+using IntervalLearningApi.Controllers.Accounts.Models.RevokeToken;
 using IntervalLearningApi.Extensions;
 using IntervalLearningApi.Infrastructure.CommandManager;
-using IntervalLearningApi.Models;
+using IntervalLearningApi.Infrastructure.ValidatorResolver;
 using MapsterMapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-namespace IntervalLearningApi.Controllers;
+namespace IntervalLearningApi.Controllers.Accounts;
 
 [Authorize]
 [ApiController]
@@ -25,15 +30,18 @@ public class AuthenticationController : ControllerBase
     private const string RefreshTokenKey = "refreshToken";
     private const string JwtTokenKey = "jwtToken";
 
+    private readonly ValidatorResolver validatorResolver;
     private readonly CommandManager commandManager;
     private readonly IMapper mapper;
     private readonly JwtSettings jwtSettings;
 
     public AuthenticationController(
+        ValidatorResolver validatorResolver,
         CommandManager commandManager,
         JwtSettings jwtSettings,
         IMapper mapper)
     {
+        this.validatorResolver = validatorResolver;
         this.commandManager = commandManager;
         this.mapper = mapper;
         this.jwtSettings = jwtSettings;
@@ -41,39 +49,39 @@ public class AuthenticationController : ControllerBase
 
     [AllowAnonymous]
     [HttpPost(ApiRoutes.Accounts.Register)]
-    public async Task<IActionResult> Register(RegisterRequest req)
+    public Task<ActionResult> Register(RegisterRequest req)
     {
-        var result = await commandManager
-            .GetCommand<RegisterAccountCommand>()
-            .Handle(new RegisterAccountRequest(
-                EmailAddress.Create(req.Email).Value,
-                MediumSingleLineString.Create(req.Password).Value,
-                UserName.Create(req.FirstName, req.LastName).Value,
-                LanguageId.Create(req.SuggestLanguageId).Value,
-                GetSourceIpAddress()
-            ));
-        
-        return result.ToActionResult();
+        return validatorResolver.Validate(req)
+            .Bind(() => commandManager
+                .GetCommand<RegisterAccountCommand>()
+                .Handle(new RegisterAccountRequest(
+                    EmailAddress.Create(req.Email).Value,
+                    MediumSingleLineString.Create(req.Password).Value,
+                    UserName.Create(req.FirstName, req.LastName).Value,
+                    LanguageId.Create(req.SuggestLanguageId).Value,
+                    GetSourceIpAddress()
+                )))
+            .ToActionResultAsync();
     }
 
     [AllowAnonymous]
     [HttpPost(ApiRoutes.Accounts.Authenticate)]
-    public async Task<ActionResult<AuthenticateResponse>> Authenticate(AuthenticateRequest model)
+    public Task<ActionResult<AuthenticateResponse>> Authenticate(AuthenticateRequest model)
     {
-        var authResult = await commandManager
-            .GetCommand<AuthenticateCommand>()
-            .Handle(new AuthenticateCommandRequest(
-                EmailAddress.Create(model.Email).Value,
-                MediumSingleLineString.Create(model.Password).Value,
-                GetSourceIpAddress()));
-
-        if (authResult.IsFailed)
-            return authResult.ToErrorActionResult();
-
-        var auth = authResult.Value;
-        SetRefreshTokenCookie(auth.RefreshToken);
-        SetJwtTokenCookie(auth.JwtToken);
-        return mapper.Map<AuthenticateResponse>(auth);
+        return validatorResolver.Validate(model)
+            .Bind(() => commandManager
+                .GetCommand<AuthenticateCommand>()
+                .Handle(new AuthenticateCommandRequest(
+                    EmailAddress.Create(model.Email).Value,
+                    MediumSingleLineString.Create(model.Password).Value,
+                    GetSourceIpAddress())))
+            .Bind(auth =>
+            {
+                SetRefreshTokenCookie(auth.RefreshToken);
+                SetJwtTokenCookie(auth.JwtToken);
+                return mapper.Map<AuthenticateResponse>(auth).ToResult();
+            })
+            .ToActionResultAsync();
     }
 
     [AllowAnonymous]
@@ -114,6 +122,13 @@ public class AuthenticationController : ControllerBase
     [HttpPost(ApiRoutes.Accounts.RevokeToken)]
     public async Task<IActionResult> RevokeToken(RevokeTokenRequest req)
     {
+        var validationResult = validatorResolver.Validate(req);
+
+        if (validationResult.IsFailed)
+        {
+            return validationResult.ToErrorActionResult();
+        }
+            
         var token = req.Token ?? GetRefreshToken(Request);
 
         if (string.IsNullOrEmpty(token))

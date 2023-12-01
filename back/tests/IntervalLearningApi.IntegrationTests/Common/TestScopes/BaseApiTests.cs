@@ -1,6 +1,8 @@
 using System.Net.Http.Headers;
 using System.Reflection;
 using Bogus;
+using IntervalLearningApi.Controllers.Accounts.Models.Authenticate;
+using IntervalLearningApi.Controllers.Accounts.Models.Register;
 using IntervalLearningApi.IntegrationTests.Common.Constants;
 using IntervalLearningApi.IntegrationTests.Common.Fakers;
 using IntervalLearningApi.Models.ByUser;

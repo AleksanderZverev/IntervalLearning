@@ -1,10 +1,14 @@
 ﻿using System.Reflection;
 using Application.Common.Accounts.JwtService;
 using DB;
+using FluentValidation;
 using Infrastructure;
 using Infrastructure.BoundedContexts.Accounts.Jwt;
 using IntervalLearningApi.Controllers;
+using IntervalLearningApi.Controllers.Accounts.Models.Authenticate;
 using IntervalLearningApi.Infrastructure.CommandManager;
+using IntervalLearningApi.Infrastructure.ValidatorResolver;
+using IntervalLearningApi.Models;
 using IntervalLearningApi.Services;
 using IntervalLearningApi.Services.Dictionary;
 using IntervalLearningApi.Services.Jwt;
@@ -26,6 +30,8 @@ public static class ServiceCollectionExtensions
         services.AddTransient<IDateTimeProvider, DateTimeProvider>();
 
         services.AddScoped<CommandManager>();
+        services.AddScoped<ValidatorResolver>();
+        
         services.AddScoped<IJwtService, JwtService>();
 
         services.AddScoped<StatisticsService>();
@@ -35,6 +41,7 @@ public static class ServiceCollectionExtensions
         services.AddSingleton(config.JwtSettings);
         
         services.AddWebMapper();
+        services.AddWebValidator();
 
         // services.AddScoped<SessionUser>(provider =>
         // {
@@ -69,5 +76,10 @@ public static class ServiceCollectionExtensions
 #if DEBUG
         config.Compile();
 #endif
+    }
+
+    private static void AddWebValidator(this IServiceCollection services)
+    {
+        services.AddValidatorsFromAssemblyContaining<AuthenticateRequestValidator>();
     }
 }
