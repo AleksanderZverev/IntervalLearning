@@ -30,6 +30,6 @@ public class ValidatorResolver
     {
         return validationResult.IsValid
             ? Result.Ok()
-            : Result.Fail(new ValidationError());
+            : Result.Fail(new ValidationError(validationResult.Errors.First().ErrorMessage));
     }
 }
