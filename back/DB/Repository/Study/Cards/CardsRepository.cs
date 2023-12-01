@@ -1,5 +1,5 @@
 using Application.Common.Interfaces.DB.Repositories;
-using Application.Common.Interfaces.DB.Repositories.Cards;
+using Application.Common.Interfaces.DB.Repositories.Study.Cards;
 using DB.Configurations.Study;
 using DB.Repository;
 using Domain.Card;

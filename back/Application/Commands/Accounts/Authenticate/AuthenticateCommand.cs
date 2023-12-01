@@ -1,4 +1,4 @@
-using Application.Common.Accounts.Jwt;
+using Application.Common.Accounts.JwtService;
 using Application.Common.Accounts.PasswordService;
 using Application.Common.Interfaces.DB.Repositories.Accounts;
 using Domain.User;

@@ -1,9 +1,9 @@
-using Application.Common.Interfaces.DB.Repositories.Study;
+using Application.Common.Interfaces.DB.Queries.Study;
 using Domain.Collection;
 using FluentResults;
 using Infrastructure.Extensions;
 
-namespace Application.Commands.Collections.GetAll;
+namespace Application.Commands.Collections.GetAllUserCollections;
 
 public class GetAllUserCollectionsCommand : ICommand<GetAllUserCollectionsRequest, List<Collection>>
 {

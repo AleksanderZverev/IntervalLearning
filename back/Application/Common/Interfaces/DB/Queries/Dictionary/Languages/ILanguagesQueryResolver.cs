@@ -1,7 +1,7 @@
 using Domain.Language;
 using Domain.Language.ValueObjects;
 
-namespace Application.Common.Interfaces.Domain.Languages;
+namespace Application.Common.Interfaces.DB.Queries.Dictionary.Languages;
 
 public interface ILanguagesQueryResolver
 {

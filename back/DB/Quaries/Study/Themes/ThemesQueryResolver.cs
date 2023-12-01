@@ -1,4 +1,4 @@
-using Application.Common.Interfaces.Domain.Themes;
+using Application.Common.Interfaces.DB.Queries.Study.Themes;
 using DB.Models.ValueObjects;
 using Domain.Theme;
 using Microsoft.EntityFrameworkCore;

@@ -1,3 +1,4 @@
+using Application.Common.Interfaces.DB.Queries.Study;
 using Application.Common.Interfaces.DB.Repositories.Study;
 using Domain.Collection;
 using FluentResults;

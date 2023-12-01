@@ -1,5 +1,5 @@
 using Application.Commands.Accounts.Authenticate;
-using Application.Common.Accounts.Jwt;
+using Application.Common.Accounts.JwtService;
 using Application.Common.Interfaces.DB.Repositories.Accounts;
 using Application.Common.Interfaces.DB.Transactions;
 using DB.Models;

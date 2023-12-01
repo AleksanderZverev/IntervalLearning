@@ -1,4 +1,4 @@
-using Application.Common.Interfaces.Domain.Dictionary.Words;
+using Application.Common.Interfaces.DB.Queries.Dictionary.Words;
 using DB.Models.Dictionary;
 using DB.Models.Dictionary.ValueObjects;
 using Domain.Language.ValueObjects;

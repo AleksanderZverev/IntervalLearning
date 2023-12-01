@@ -4,7 +4,7 @@ using Domain.Card.ValueObjects;
 using Domain.Collection.ValueObjects;
 using Domain.User.ValueObjects;
 
-namespace Application.Common.Interfaces.Domain.Study.Remember;
+namespace Application.Common.Interfaces.DB.Queries.Study.Remember;
 
 public interface IRememberQueryResolver
 {

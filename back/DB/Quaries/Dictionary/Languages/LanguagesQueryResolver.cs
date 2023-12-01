@@ -1,4 +1,4 @@
-using Application.Common.Interfaces.Domain.Languages;
+using Application.Common.Interfaces.DB.Queries.Dictionary.Languages;
 using Domain.Language;
 using Domain.Language.ValueObjects;
 using Microsoft.EntityFrameworkCore;

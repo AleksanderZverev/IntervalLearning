@@ -4,7 +4,7 @@ using Domain.Card.ValueObjects;
 using Domain.Collection.ValueObjects;
 using Domain.User.ValueObjects;
 
-namespace Application.Common.Interfaces.Domain.Cards;
+namespace Application.Common.Interfaces.DB.Queries.Study.Cards;
 
 public interface ICardsQueryResolver
 {

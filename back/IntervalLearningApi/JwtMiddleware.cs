@@ -1,5 +1,5 @@
 ﻿using System.Security.Claims;
-using Application.Common.Accounts.Jwt;
+using Application.Common.Accounts.JwtService;
 using DB;
 using Domain.User.ValueObjects;
 using Infrastructure.BoundedContexts.Accounts.Jwt;

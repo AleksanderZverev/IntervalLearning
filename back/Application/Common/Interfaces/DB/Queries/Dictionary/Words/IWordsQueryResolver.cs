@@ -2,7 +2,7 @@ using DB.Models.Dictionary;
 using DB.Models.Dictionary.ValueObjects;
 using Domain.Language.ValueObjects;
 
-namespace Application.Common.Interfaces.Domain.Dictionary.Words;
+namespace Application.Common.Interfaces.DB.Queries.Dictionary.Words;
 
 public interface IWordsQueryResolver
 {

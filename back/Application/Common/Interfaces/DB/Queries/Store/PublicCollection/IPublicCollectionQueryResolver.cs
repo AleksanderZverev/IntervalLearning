@@ -3,7 +3,7 @@ using Domain.Collection;
 using Domain.Collection.ValueObjects;
 using Domain.User.ValueObjects;
 
-namespace Application.Common.Interfaces.Domain.Store.PublicCollection;
+namespace Application.Common.Interfaces.DB.Queries.Store.PublicCollection;
 
 public interface IPublicCollectionQueryResolver
 {

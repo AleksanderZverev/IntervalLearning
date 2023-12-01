@@ -1,10 +1,10 @@
-using Application.Common.Interfaces.DB.Repositories.Study;
+using Application.Common.Interfaces.DB.Queries.Study;
 using Domain.Card;
 using FluentResults;
 using Infrastructure.Errors;
 using Infrastructure.Extensions;
 
-namespace Application.Commands.Cards;
+namespace Application.Commands.Cards.GetCard;
 
 public class GetCardCommand : ICommand<GetCardRequest, Card>
 {

@@ -2,6 +2,7 @@
 using Application.Commands.Cards;
 using Application.Commands.Cards.CreateCard;
 using Application.Commands.Cards.GetAllCards;
+using Application.Commands.Cards.GetCard;
 using Application.Commands.Cards.GetCardsQueueCommand;
 using Application.Commands.Cards.GetNotStartedCardsCommand;
 using Application.Commands.Cards.RememberCard;

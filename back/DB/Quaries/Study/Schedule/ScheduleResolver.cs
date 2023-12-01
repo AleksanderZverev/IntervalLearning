@@ -1,4 +1,4 @@
-using Application.Common.Interfaces.Domain.Study.Schedule;
+using Application.Common.Interfaces.DB.Queries.Study.Schedule;
 using DB.Models.ValueObjects;
 using Domain.Schedule;
 using Domain.User.ValueObjects;

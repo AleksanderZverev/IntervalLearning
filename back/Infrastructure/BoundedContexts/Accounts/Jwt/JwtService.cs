@@ -2,7 +2,7 @@
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
-using Application.Common.Accounts.Jwt;
+using Application.Common.Accounts.JwtService;
 using Application.Common.Interfaces.DB.Queries.Accounts;
 using DB.Models;
 using Domain.User;

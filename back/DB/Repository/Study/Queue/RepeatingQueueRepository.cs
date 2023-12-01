@@ -1,6 +1,5 @@
 using Application.Common.Interfaces.DB.Repositories;
 using Application.Common.Interfaces.DB.Repositories.Study.Queue;
-using Application.Common.Interfaces.Domain.Study.Queue;
 using DB.Configurations.Study;
 using DB.Models.ValueObjects;
 using DB.Repository;

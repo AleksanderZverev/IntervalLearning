@@ -1,4 +1,4 @@
-using Application.Common.Interfaces.Domain.Study.Remember;
+using Application.Common.Interfaces.DB.Queries.Study.Remember;
 using DB.Models.ValueObjects;
 using Domain.Card;
 using Domain.Card.ValueObjects;

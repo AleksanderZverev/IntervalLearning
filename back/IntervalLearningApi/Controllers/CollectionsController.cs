@@ -1,6 +1,6 @@
 ﻿using Application.Commands.Collections.AddPublicCollection;
 using Application.Commands.Collections.CreateCollection;
-using Application.Commands.Collections.GetAll;
+using Application.Commands.Collections.GetAllUserCollections;
 using Application.Commands.Collections.GetCanStartCollections;
 using Application.Commands.Collections.GetCollection;
 using Application.Commands.Collections.GetPublicCollection;

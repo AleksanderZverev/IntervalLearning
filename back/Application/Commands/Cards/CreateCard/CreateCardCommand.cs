@@ -1,5 +1,5 @@
-using Application.Common.Interfaces.DB.Repositories.Cards;
 using Application.Common.Interfaces.DB.Repositories.Study;
+using Application.Common.Interfaces.DB.Repositories.Study.Cards;
 using Domain.Card;
 using FluentResults;
 

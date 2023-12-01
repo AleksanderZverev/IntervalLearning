@@ -1,7 +1,7 @@
 using Application.Common.Interfaces.DB.Queries.Store;
-using Application.Common.Interfaces.Domain.Store.CollectionPublications;
-using Application.Common.Interfaces.Domain.Store.PublicCollection;
-using Application.Common.Interfaces.Domain.Store.PublicCollectionSubscribers;
+using Application.Common.Interfaces.DB.Queries.Store.CollectionPublications;
+using Application.Common.Interfaces.DB.Queries.Store.PublicCollection;
+using Application.Common.Interfaces.DB.Queries.Store.PublicCollectionSubscribers;
 
 namespace DB.Quaries.Store;
 

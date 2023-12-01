@@ -1,4 +1,4 @@
-using Application.Common.Interfaces.Domain.Collections;
+using Application.Common.Interfaces.DB.Queries.Study.Collections;
 using DB.Models.ValueObjects;
 using Domain.Collection;
 using Domain.Collection.ValueObjects;

@@ -2,7 +2,7 @@ using DB.Models.Store;
 using Domain.Collection.ValueObjects;
 using Domain.User.ValueObjects;
 
-namespace Application.Common.Interfaces.Domain.Store.PublicCollectionSubscribers;
+namespace Application.Common.Interfaces.DB.Queries.Store.PublicCollectionSubscribers;
 
 public interface IPublicCollectionSubscriberQueryResolver
 {

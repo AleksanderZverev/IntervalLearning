@@ -1,4 +1,4 @@
-using Application.Common.Interfaces.Domain.Study.Queue;
+using Application.Common.Interfaces.DB.Queries.Study.Queue;
 using DB.Models.ValueObjects;
 using Domain.Card.ValueObjects;
 using Domain.Collection.ValueObjects;

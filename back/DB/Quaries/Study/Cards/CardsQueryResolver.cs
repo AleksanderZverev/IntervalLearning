@@ -1,6 +1,6 @@
 using System.Linq.Expressions;
 using Application.Commands.Cards.SearchCards;
-using Application.Common.Interfaces.Domain.Cards;
+using Application.Common.Interfaces.DB.Queries.Study.Cards;
 using Domain.Card;
 using Domain.Card.ValueObjects;
 using Domain.Collection;

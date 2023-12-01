@@ -1,4 +1,4 @@
-using Application.Common.Interfaces.Domain.Store.CollectionPublications;
+using Application.Common.Interfaces.DB.Queries.Store.CollectionPublications;
 using DB.Models.Store;
 using Domain.Collection.ValueObjects;
 using Domain.User.ValueObjects;

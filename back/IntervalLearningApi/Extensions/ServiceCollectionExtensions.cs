@@ -1,5 +1,5 @@
 ﻿using System.Reflection;
-using Application.Common.Accounts.Jwt;
+using Application.Common.Accounts.JwtService;
 using DB;
 using Infrastructure;
 using Infrastructure.BoundedContexts.Accounts.Jwt;
