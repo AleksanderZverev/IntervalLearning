@@ -198,22 +198,5 @@ namespace IntervalLearningApi.Services.Dictionary
             transaction.Complete();
             return string.Join("\n\n", errors);
         }
-
-        public async Task<List<Language>> GetLanguages()
-        {
-            return await db.Languages.ToListAsync();
-        }
-
-        public async Task<List<LanguageWord>> FindWord(string word)
-        {
-            var lowerWord = word.ToLowerInvariant();
-            return await db.Words.Where(w => EF.Functions.ILike(w.Word, $"{lowerWord}%")).Take(30).ToListAsync();
-        }
-
-        public async Task<List<LanguageWord>> FindWordByPronunciation(string pronunciation)
-        {
-            var lowerPronounce = pronunciation.ToLowerInvariant();
-            return await db.Words.Where(w => w.Pronunciation != null &&  EF.Functions.ILike(w.Pronunciation, $"{lowerPronounce}%")).Take(30).ToListAsync();
-        }
     }
 }

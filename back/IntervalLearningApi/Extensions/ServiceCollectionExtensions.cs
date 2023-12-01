@@ -6,7 +6,6 @@ using Infrastructure.BoundedContexts.Accounts.Jwt;
 using IntervalLearningApi.Controllers;
 using IntervalLearningApi.Infrastructure.CommandManager;
 using IntervalLearningApi.Services;
-using IntervalLearningApi.Services.Authentication;
 using IntervalLearningApi.Services.Dictionary;
 using IntervalLearningApi.Services.Jwt;
 using Mapster;
@@ -28,10 +27,8 @@ public static class ServiceCollectionExtensions
 
         services.AddScoped<CommandManager>();
         services.AddScoped<IJwtService, JwtService>();
-        services.AddScoped<IAuthenticationService, AuthenticationService>();
 
         services.AddScoped<StatisticsService>();
-        services.AddScoped<UserMetadataService>();
         services.AddScoped<DictionaryService>();
         services.AddScoped(typeof(Repository<>));
 

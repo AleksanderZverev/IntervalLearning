@@ -11,11 +11,9 @@ using IntervalLearningApi.Constants;
 using IntervalLearningApi.Extensions;
 using IntervalLearningApi.Infrastructure.CommandManager;
 using IntervalLearningApi.Models;
-using IntervalLearningApi.Services.Authentication;
 using MapsterMapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Options;
 
 namespace IntervalLearningApi.Controllers;
 
@@ -28,18 +26,15 @@ public class AuthenticationController : ControllerBase
     private const string JwtTokenKey = "jwtToken";
 
     private readonly CommandManager commandManager;
-    private readonly IAuthenticationService authService;
     private readonly IMapper mapper;
     private readonly JwtSettings jwtSettings;
 
     public AuthenticationController(
         CommandManager commandManager,
         JwtSettings jwtSettings,
-        IAuthenticationService authService, 
         IMapper mapper)
     {
         this.commandManager = commandManager;
-        this.authService = authService;
         this.mapper = mapper;
         this.jwtSettings = jwtSettings;
     }
