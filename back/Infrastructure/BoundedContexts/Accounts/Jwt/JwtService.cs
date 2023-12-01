@@ -37,14 +37,14 @@ public class JwtService : IJwtService
         return refreshTokenCreatedDate.AddDays(jwtSettings.RefreshTokenTTLInDays) <= dateTimeProvider.UtcNow;
     }
 
-    public string GenerateJwtToken(User userEntity)
+    public string GenerateJwtToken(User user)
     {
         var tokenHandler = new JwtSecurityTokenHandler();
         var securityKey = Encoding.ASCII.GetBytes(jwtSettings.Secret);
 
         var tokenDescriptor = new SecurityTokenDescriptor
         {
-            Subject = new ClaimsIdentity(GetClaims(userEntity)),
+            Subject = new ClaimsIdentity(GetClaims(user)),
             Expires = dateTimeProvider.UtcNow.AddMinutes(jwtSettings.JwtTokenTTLInMinutes),
             SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(securityKey), SecurityAlgorithms.HmacSha256Signature)
         };

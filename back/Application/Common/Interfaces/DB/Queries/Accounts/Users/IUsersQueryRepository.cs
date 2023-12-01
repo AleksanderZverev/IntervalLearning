@@ -8,4 +8,5 @@ public interface IUsersQueryRepository
 {
     Task<User?> FindByEmail(EmailAddress email);
     Task<User?> Find(UserId userId);
+    Task<User?> FindUserByRefreshToken(string refreshToken);
 }

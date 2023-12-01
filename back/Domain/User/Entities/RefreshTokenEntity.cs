@@ -28,4 +28,16 @@ public class RefreshTokenEntity
     public UserId ParentUserId { get; set; }
     [JsonIgnore]
     public User? ParentUser { get; set; }
+    
+    public void Revoke(
+        DateTime revokeDate,
+        string ipAddress, 
+        string reason = null, 
+        string replacedByToken = null)
+    {
+        Revoked = revokeDate;
+        RevokedByIp = ipAddress;
+        ReasonRevoked = reason;
+        ReplacedByToken = replacedByToken;
+    }
 }

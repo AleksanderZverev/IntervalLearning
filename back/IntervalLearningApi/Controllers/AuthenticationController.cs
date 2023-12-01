@@ -1,5 +1,6 @@
 ﻿using Application.Commands.Accounts.Authenticate;
 using Application.Commands.Accounts.AuthenticateByOldToken;
+using Application.Commands.Accounts.RefreshToken;
 using Application.Commands.Accounts.Register;
 using Domain.Common.ValueObjects;
 using Domain.Language.ValueObjects;
@@ -101,7 +102,9 @@ public class AuthenticationController : ControllerBase
             }
         }
 
-        var authResult = authService.RefreshToken(refreshToken, GetSourceIpAddress());
+        var authResult = await commandManager
+            .GetCommand<RefreshTokenCommand>()
+            .Handle(new RefreshTokenCommandRequest(refreshToken, GetSourceIpAddress()));
 
         if (authResult.IsFailed)
             return authResult.ToErrorActionResult();
@@ -109,7 +112,7 @@ public class AuthenticationController : ControllerBase
         var auth = authResult.Value;
         SetRefreshTokenCookie(auth.RefreshToken);
         SetJwtTokenCookie(auth.JwtToken);
-        return auth;
+        return mapper.Map<AuthenticateResponse>(auth);
     }
 
     [HttpPost(ApiRoutes.Accounts.RevokeToken)]
