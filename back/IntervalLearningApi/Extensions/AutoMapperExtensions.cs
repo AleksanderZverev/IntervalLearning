@@ -35,6 +35,15 @@ public static class AutoMapperExtensions
         });
     }
     
+    public static IRuleBuilderOptions<T, string> WhenNotNullOrEmpty<T>(
+        this IRuleBuilderOptions<T, string> ruleBuilder)
+    {
+        return ruleBuilder.Configure(config => 
+        {
+            config.ApplyCondition(context => !string.IsNullOrEmpty((string)config.GetPropertyValue(context.InstanceToValidate)));
+        });
+    }
+    
     public static IRuleBuilderOptions<T, TProperty> ShouldBeCreatable<T, TProperty, TCreated>(
         this IRuleBuilder<T, TProperty> ruleBuilder,
         Func<TProperty, Result<TCreated>> create)

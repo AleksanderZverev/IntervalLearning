@@ -4,6 +4,8 @@ using Application.Commands.Schedules.CreateSchedule;
 using Application.Commands.Schedules.UpdateSchedule;
 using DB.Models;
 using DB.Models.ValueObjects;
+using FluentValidation;
+using IntervalLearningApi.Extensions;
 using IntervalLearningApi.Services;
 using Mapster;
 using Newtonsoft.Json;
@@ -27,6 +29,18 @@ public class PhaseRegister : IRegister
     }
 }
 
+public class BasePhaseBodyValidator<T> : AbstractValidator<T>
+    where T : BasePhaseBody
+{
+    public BasePhaseBodyValidator()
+    {
+        RuleFor(p => p.Id).NotNull().NotEmpty();
+        RuleFor(p => p.SecondsFromLastPhase).GreaterThanOrEqualTo((uint)1);
+        RuleFor(p => p.ShortDescription).Length(1, 200).WhenNotNull();
+        RuleFor(p => p.Description).Length(1, 200).WhenNotNull();
+    }
+}
+
 public abstract class BasePhaseBody
 {
     [Required]
@@ -38,14 +52,6 @@ public abstract class BasePhaseBody
     [StringLength(200)]
     public string? Description { get; set; }
     public bool IsDefaultValueSide { get; set; }
-}
-
-public class CreatePhaseDto : BasePhaseBody
-{
-}
-
-public class UpdatePhaseDto : BasePhaseBody
-{
 }
 
 public class PhaseDto : BasePhaseBody

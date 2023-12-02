@@ -4,9 +4,11 @@ using Application.Commands.Schedules.GetSchedule;
 using Application.Commands.Schedules.UpdateSchedule;
 using DB.Models.ValueObjects;
 using Domain.User.ValueObjects;
+using Infrastructure.Extensions;
 using IntervalLearningApi.Constants;
 using IntervalLearningApi.Extensions;
 using IntervalLearningApi.Infrastructure.CommandManager;
+using IntervalLearningApi.Infrastructure.ValidatorResolver;
 using IntervalLearningApi.Models.ByUser;
 using IntervalLearningApi.Models.RepeatsSchedule;
 using IntervalLearningApi.Services;
@@ -20,13 +22,16 @@ namespace IntervalLearningApi.Controllers
     [ApiController]
     public class RepeatsScheduleController : ControllerBase
     {
+        private readonly ValidatorResolver validatorResolver;
         private readonly IMapper mapper;
         private readonly CommandManager commandManager;
 
         public RepeatsScheduleController(
+            ValidatorResolver validatorResolver,
             IMapper mapper,
             CommandManager commandManager)
         {
+            this.validatorResolver = validatorResolver;
             this.mapper = mapper;
             this.commandManager = commandManager;
         }
@@ -47,51 +52,85 @@ namespace IntervalLearningApi.Controllers
         }
 
         [HttpGet(ApiRoutes.Schedule.Get_GetUserSchedule)]
-        public async Task<ActionResult<RepeatsScheduleDto>> GetSchedule(long userId, short scheduleId)
+        public async Task<ActionResult<RepeatsScheduleDto>> GetSchedule(
+            long userId, 
+            short scheduleId)
         {
+            var argsResult = (
+                userId: UserId.Create(userId),
+                scheduleId: ScheduleId.Create(scheduleId)
+            );
+
+            if (argsResult.HasAnyError())
+                return BadRequest();
+            
             var scheduleResult = await commandManager
                 .GetCommand<GetScheduleCommand>()
-                .Handle(new GetScheduleRequest(UserId.Create(userId).Value, ScheduleId.Create(scheduleId).Value));
+                .Handle(new GetScheduleRequest(
+                    argsResult.userId.Value, 
+                    argsResult.scheduleId.Value));
             
             return scheduleResult.ToActionResult(schedule => mapper.Map<RepeatsScheduleDto>(schedule));
         }
 
         [HttpGet(ApiRoutes.Schedule.Get_GetMySchedule)]
-        public async Task<ActionResult<RepeatsScheduleDto>> GetSchedule(short scheduleId)
+        public async Task<ActionResult<RepeatsScheduleDto>> GetSchedule(
+            short scheduleId)
         {
-            var userId = HttpContext.GetUserId();
+            var argsResult = (
+                userId: HttpContext.GetUserId(),
+                scheduleId: ScheduleId.Create(scheduleId)
+            );
 
-            if (userId.IsFailed)
+            if (argsResult.HasAnyError())
                 return BadRequest();
 
             var scheduleResult = await commandManager
                 .GetCommand<GetScheduleCommand>()
-                .Handle(new GetScheduleRequest(userId.Value, ScheduleId.Create(scheduleId).Value));
+                .Handle(new GetScheduleRequest(
+                    argsResult.userId.Value, 
+                    argsResult.scheduleId.Value));
 
             return scheduleResult.ToActionResult(schedule => mapper.Map<RepeatsScheduleDto>(schedule));
         }
 
         [HttpPatch(ApiRoutes.Schedule.Patch_EditSchedule)]
-        public async Task<ActionResult<RepeatsScheduleDto>> EditSchedule(short scheduleId, [FromBody] UpdateScheduleRequest request)
+        public async Task<ActionResult<RepeatsScheduleDto>> UpdateSchedule(
+            short scheduleId, 
+            [FromBody] UpdateScheduleRequest request)
         {
-            var userId = HttpContext.GetUserId();
+            var validation = validatorResolver.Validate(request);
 
-            if (userId.IsFailed)
+            if (validation.IsFailed)
+                return validation.ToErrorActionResult();
+            
+            var argsResult = (
+                userId: HttpContext.GetUserId(),
+                scheduleId: ScheduleId.Create(scheduleId)
+            );
+
+            if (argsResult.HasAnyError())
                 return BadRequest();
 
             var scheduleResult = await commandManager
                 .GetCommand<UpdateScheduleCommand>()
                 .Handle(new UpdateScheduleCommandRequest(
-                    userId.Value,
-                    ScheduleId.Create(scheduleId).Value,
+                    argsResult.userId.Value,
+                    argsResult.scheduleId.Value,
                     mapper.Map<UpdateScheduleProps>(request)));
 
             return scheduleResult.ToActionResult(schedule => mapper.Map<RepeatsScheduleDto>(schedule));
         }
 
         [HttpPost(ApiRoutes.Schedule.Post_CreateSchedule)]
-        public async Task<ActionResult<RepeatsScheduleDto>> CreateSchedule([FromBody] CreateScheduleRequest request)
+        public async Task<ActionResult<RepeatsScheduleDto>> CreateSchedule(
+            [FromBody] CreateScheduleRequest request)
         {
+            var validation = validatorResolver.Validate(request);
+
+            if (validation.IsFailed)
+                return validation.ToErrorActionResult();
+            
             var userId = HttpContext.GetUserId();
 
             if (userId.IsFailed)

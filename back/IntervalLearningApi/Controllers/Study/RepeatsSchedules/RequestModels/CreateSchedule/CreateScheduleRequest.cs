@@ -2,7 +2,10 @@ using System.ComponentModel.DataAnnotations;
 using Application.Commands.Schedules.CreateSchedule;
 using Application.Commands.Schedules.UpdateSchedule;
 using DB.Models.ValueObjects;
+using Domain.Schedule.ValueObjects;
 using Domain.User.ValueObjects;
+using FluentValidation;
+using IntervalLearningApi.Extensions;
 using IntervalLearningApi.Models.RepeatsSchedule;
 using IntervalLearningApi.Services;
 using Mapster;
@@ -35,6 +38,25 @@ public class CreteScheduleRegister : IRegister
     }
 }
 
+public class CreateScheduleRequestValidator : AbstractValidator<CreateScheduleRequest>
+{
+    public CreateScheduleRequestValidator()
+    {
+        RuleFor(p => p.CardsCountPerPhase).GreaterThanOrEqualTo((short)1);
+        RuleFor(p => p.ForgottenBehavior).Must(b => Enum.IsDefined(typeof(ForgottenBehavior), b));
+        RuleFor(p => p.Title).ShouldBeCreatable(ScheduleTitle.Create);
+        RuleForEach(p => p.Phases).SetValidator(new CreatePhaseDtoValidator());
+        
+        RuleFor(p => p.ShortDescription).ShouldBeCreatable(LongSingleLineString.Create).WhenNotNullOrEmpty();
+        RuleFor(p => p.DefaultPhaseShortDescription).ShouldBeCreatable(LongSingleLineString.Create).WhenNotNullOrEmpty();
+        RuleFor(p => p.DefaultRepeatPhaseShortDescription).ShouldBeCreatable(LongSingleLineString.Create).WhenNotNullOrEmpty();
+        
+        RuleFor(p => p.Description).ShouldBeCreatable(LongMultiLineString.Create).WhenNotNullOrEmpty();
+        RuleFor(p => p.DefaultPhaseDescription).ShouldBeCreatable(LongMultiLineString.Create).WhenNotNullOrEmpty();
+        RuleFor(p => p.DefaultRepeatPhaseDescription).ShouldBeCreatable(LongMultiLineString.Create).WhenNotNullOrEmpty();
+    }
+}
+
 public class CreateScheduleRequest
 {
     [Required]
@@ -51,31 +73,6 @@ public class CreateScheduleRequest
     public string? Description { get; set; }
     [Required]
     public List<CreatePhaseDto> Phases { get; set; }
-
-    [StringLength(200)]
-    public string? DefaultPhaseShortDescription { get; set; }
-    [StringLength(1000)]
-    public string? DefaultPhaseDescription { get; set; }
-    [StringLength(200)]
-    public string? DefaultRepeatPhaseShortDescription { get; set; }
-    [StringLength(1000)]
-    public string? DefaultRepeatPhaseDescription { get; set; }
-}
-
-public class UpdateScheduleRequest
-{
-    [Required]
-    public short CardsCountPerPhase { get; set; }
-    [Required]
-    public string Title { get; set; }
-
-    [StringLength(200)]
-    public string? ShortDescription { get; set; }
-
-    [StringLength(1000)]
-    public string? Description { get; set; }
-
-    public List<UpdatePhaseDto>? Phases { get; set; }
 
     [StringLength(200)]
     public string? DefaultPhaseShortDescription { get; set; }
