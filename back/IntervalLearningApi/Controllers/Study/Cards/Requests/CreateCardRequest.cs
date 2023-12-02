@@ -3,7 +3,7 @@ using Domain.Card.ValueObjects;
 using FluentValidation;
 using IntervalLearningApi.Extensions;
 
-namespace IntervalLearningApi.Controllers;
+namespace IntervalLearningApi.Controllers.Study.Cards.Requests;
 
 public class CreateCardRequestValidator : AbstractValidator<CreateCardRequest>
 {

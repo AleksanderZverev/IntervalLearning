@@ -1,7 +1,7 @@
 using Domain.Common.ValueObjects;
 using Mapster;
 
-namespace IntervalLearningApi.Models;
+namespace IntervalLearningApi.Controllers;
 
 public class CommonMapping : IRegister
 {

@@ -1,6 +1,6 @@
 ﻿using FluentValidation;
 
-namespace IntervalLearningApi.Controllers.Accounts.Models.RevokeToken;
+namespace IntervalLearningApi.Controllers.Accounts.Requests.RevokeToken;
 
 public class RevokeTokenRequestValidator : AbstractValidator<RevokeTokenRequest>
 {

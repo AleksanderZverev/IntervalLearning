@@ -1,3 +1,5 @@
+using IntervalLearningApi.Controllers.Study.Themes.DTOs;
+
 namespace IntervalLearningApi.IntegrationTests.Themes;
 
 [UseBasePath(ApiRoutes.Themes.BasePath)]

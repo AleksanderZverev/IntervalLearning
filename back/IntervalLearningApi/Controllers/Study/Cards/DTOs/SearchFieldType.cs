@@ -1,4 +1,4 @@
-﻿namespace IntervalLearningApi.Models;
+﻿namespace IntervalLearningApi.Controllers.Study.Cards.DTOs;
 
 public enum SearchFieldType
 {

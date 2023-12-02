@@ -1,6 +1,7 @@
 using Bogus;
+using IntervalLearningApi.Controllers.Study.Collections.DTOs;
+using IntervalLearningApi.Controllers.Study.Collections.RequestModels.CreateCollection;
 using IntervalLearningApi.IntegrationTests.Common.Constants;
-using IntervalLearningApi.Models.ByUser;
 
 namespace IntervalLearningApi.IntegrationTests.Collections;
 

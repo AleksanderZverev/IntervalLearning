@@ -1,5 +1,6 @@
+using IntervalLearningApi.Controllers.Study.Cards.Requests;
+using IntervalLearningApi.Controllers.Study.Collections.DTOs;
 using IntervalLearningApi.IntegrationTests.Common.Fakers.Api;
-using IntervalLearningApi.Models.ByUser;
 
 namespace IntervalLearningApi.IntegrationTests.Cards;
 

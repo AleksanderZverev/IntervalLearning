@@ -1,9 +1,8 @@
-﻿using DB.Models;
-using DB.Models.ValueObjects;
+﻿using DB.Models.ValueObjects;
 using Mapster;
 using Newtonsoft.Json;
 
-namespace IntervalLearningApi.Models.RepeatsSchedule;
+namespace IntervalLearningApi.Controllers.Study.RepeatsSchedules.DTOs;
 
 public class ScheduleRegister : IRegister
 {

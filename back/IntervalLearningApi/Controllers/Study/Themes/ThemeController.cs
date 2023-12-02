@@ -1,17 +1,13 @@
 ﻿using System.ComponentModel.DataAnnotations;
-using Application.Commands.Themes.CreateTheme;
 using Application.Commands.Themes.GetThemes;
-using DB.Models.ValueObjects;
-using Infrastructure.Extensions;
 using IntervalLearningApi.Constants;
+using IntervalLearningApi.Controllers.Study.Themes.DTOs;
 using IntervalLearningApi.Extensions;
 using IntervalLearningApi.Infrastructure.CommandManager;
-using IntervalLearningApi.Models.ByUser;
-using IntervalLearningApi.Services;
 using MapsterMapper;
 using Microsoft.AspNetCore.Mvc;
 
-namespace IntervalLearningApi.Controllers
+namespace IntervalLearningApi.Controllers.Study.Themes
 {
     [Route(ApiRoutes.Themes.BasePath)]
     [ApiController]

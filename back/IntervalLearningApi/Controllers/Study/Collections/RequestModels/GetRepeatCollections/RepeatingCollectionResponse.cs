@@ -1,4 +1,6 @@
-namespace IntervalLearningApi.Models.ByUser;
+using IntervalLearningApi.Controllers.Study.RepeatsSchedules.DTOs;
+
+namespace IntervalLearningApi.Controllers.Study.Collections.RequestModels.GetRepeatCollections;
 
 public class RepeatingCollectionResponse
 {

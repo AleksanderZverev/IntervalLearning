@@ -1,7 +1,7 @@
 ﻿using Domain.Language;
 using Mapster;
 
-namespace IntervalLearningApi.Models.Dictionary;
+namespace IntervalLearningApi.Controllers.Dictionary.DTOs;
 
 public class LanguageRegister : IRegister
 {

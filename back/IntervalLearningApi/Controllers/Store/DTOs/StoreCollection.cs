@@ -1,9 +1,10 @@
-using DB.Models;
 using DB.Models.Store;
 using Domain.Collection;
+using IntervalLearningApi.Controllers.Accounts.DTOs;
+using IntervalLearningApi.Controllers.Study.Collections.DTOs;
 using Mapster;
 
-namespace IntervalLearningApi.Models.ByUser;
+namespace IntervalLearningApi.Controllers.Store.DTOs;
 
 public class StoreCollectionRegister : IRegister
 {

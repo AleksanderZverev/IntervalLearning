@@ -1,5 +1,5 @@
 using Bogus;
-using IntervalLearningApi.Models.ByUser;
+using IntervalLearningApi.Controllers.Accounts.DTOs;
 
 namespace IntervalLearningApi.IntegrationTests.Common.Fakers;
 

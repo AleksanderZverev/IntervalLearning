@@ -1,10 +1,9 @@
 using DB;
-using DB.Models;
 using DB.Models.ValueObjects;
 using Domain.User.ValueObjects;
 using Microsoft.EntityFrameworkCore;
 
-namespace IntervalLearningApi.Services;
+namespace IntervalLearningApi.Services.Statistics;
 
 public record CalendarLearningStatistic(
     int LearnedCards,

@@ -6,16 +6,16 @@ using DB.Models.ValueObjects;
 using Domain.User.ValueObjects;
 using Infrastructure.Extensions;
 using IntervalLearningApi.Constants;
+using IntervalLearningApi.Controllers.Study.RepeatsSchedules.DTOs;
+using IntervalLearningApi.Controllers.Study.RepeatsSchedules.Requests.CreateSchedule;
+using IntervalLearningApi.Controllers.Study.RepeatsSchedules.Requests.UpdateSchedule;
 using IntervalLearningApi.Extensions;
 using IntervalLearningApi.Infrastructure.CommandManager;
 using IntervalLearningApi.Infrastructure.ValidatorResolver;
-using IntervalLearningApi.Models.ByUser;
-using IntervalLearningApi.Models.RepeatsSchedule;
-using IntervalLearningApi.Services;
 using MapsterMapper;
 using Microsoft.AspNetCore.Mvc;
 
-namespace IntervalLearningApi.Controllers
+namespace IntervalLearningApi.Controllers.Study.RepeatsSchedules
 {
     [Route(ApiRoutes.Schedule.BasePath)]
     [Authorize]

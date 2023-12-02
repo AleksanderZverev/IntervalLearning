@@ -1,9 +1,9 @@
-﻿using DB.Models;
-using Domain.Card;
+﻿using Domain.Card;
+using IntervalLearningApi.Controllers.Study.RepeatsSchedules.DTOs;
 using Mapster;
 using Newtonsoft.Json;
 
-namespace IntervalLearningApi.Models.ByUser;
+namespace IntervalLearningApi.Controllers.Study.Cards.DTOs;
 
 public class CardRegister : IRegister
 {

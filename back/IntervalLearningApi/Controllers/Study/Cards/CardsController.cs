@@ -1,6 +1,4 @@
 ﻿using System.ComponentModel.DataAnnotations;
-using Application.Commands.Cards;
-using Application.Commands.Cards.CreateCard;
 using Application.Commands.Cards.GetAllCards;
 using Application.Commands.Cards.GetCard;
 using Application.Commands.Cards.GetCardsQueueCommand;
@@ -16,19 +14,23 @@ using DB.Models.ValueObjects;
 using Domain.Card.ValueObjects;
 using Domain.Collection.ValueObjects;
 using Domain.User.ValueObjects;
-using FluentResults;
 using Infrastructure.Extensions;
 using IntervalLearningApi.Constants;
+using IntervalLearningApi.Controllers.Study.Cards.DTOs;
+using IntervalLearningApi.Controllers.Study.Cards.Requests;
+using IntervalLearningApi.Controllers.Study.Cards.Requests.RememberCard;
+using IntervalLearningApi.Controllers.Study.Cards.Requests.StartCards;
+using IntervalLearningApi.Controllers.Study.RepeatsSchedules.DTOs;
 using IntervalLearningApi.Extensions;
 using IntervalLearningApi.Infrastructure.CommandManager;
 using IntervalLearningApi.Infrastructure.ValidatorResolver;
-using IntervalLearningApi.Models.ByUser;
-using IntervalLearningApi.Models.RepeatsSchedule;
 using MapsterMapper;
 using Microsoft.AspNetCore.Mvc;
-using SearchFieldType = IntervalLearningApi.Models.SearchFieldType;
+using CreateCardRequest = IntervalLearningApi.Controllers.Study.Cards.Requests.CreateCardRequest;
+using RememberCardRequest = IntervalLearningApi.Controllers.Study.Cards.Requests.RememberCard.RememberCardRequest;
+using SearchFieldType = IntervalLearningApi.Controllers.Study.Cards.DTOs.SearchFieldType;
 
-namespace IntervalLearningApi.Controllers
+namespace IntervalLearningApi.Controllers.Study.Cards
 {
     [Route(ApiRoutes.Cards.BasePath)]
     [Authorize]

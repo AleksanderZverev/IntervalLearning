@@ -1,19 +1,18 @@
-﻿using System.ComponentModel.DataAnnotations;
-using Application.Commands.Dictionary.GetLanguages;
+﻿using Application.Commands.Dictionary.GetLanguages;
 using Application.Commands.Dictionary.SearchWords;
-using DB.Models.Dictionary;
 using DB.Models.Dictionary.ValueObjects;
 using IntervalLearningApi.Constants;
+using IntervalLearningApi.Controllers.Dictionary.DTOs;
+using IntervalLearningApi.Controllers.Dictionary.Requests.AddTranslations;
 using IntervalLearningApi.Extensions;
 using IntervalLearningApi.Infrastructure.CommandManager;
 using IntervalLearningApi.Infrastructure.ValidatorResolver;
-using IntervalLearningApi.Models.Dictionary;
 using IntervalLearningApi.Services.Dictionary;
 using MapsterMapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-namespace IntervalLearningApi.Controllers
+namespace IntervalLearningApi.Controllers.Dictionary
 {
     [Route(ApiRoutes.Dictionary.BasePath)]
     [Authorize]

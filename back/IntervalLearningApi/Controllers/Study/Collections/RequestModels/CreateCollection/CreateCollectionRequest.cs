@@ -4,7 +4,7 @@ using Domain.Collection.ValueObjects;
 using FluentValidation;
 using IntervalLearningApi.Extensions;
 
-namespace IntervalLearningApi.Models.ByUser;
+namespace IntervalLearningApi.Controllers.Study.Collections.RequestModels.CreateCollection;
 
 public class CreateCollectionRequestValidator : AbstractValidator<CreateCollectionRequest>
 {

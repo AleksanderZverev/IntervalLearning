@@ -1,11 +1,11 @@
-﻿using DB.Models;
-using Domain.Collection;
+﻿using Domain.Collection;
 using Domain.Collection.ValueObjects;
 using Domain.Common.ValueObjects;
+using IntervalLearningApi.Controllers.Store.DTOs;
 using Mapster;
 using Newtonsoft.Json;
 
-namespace IntervalLearningApi.Models.ByUser;
+namespace IntervalLearningApi.Controllers.Study.Collections.DTOs;
 
 public class CollectionsRegister : IRegister
 {

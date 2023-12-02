@@ -1,8 +1,8 @@
 using Application.Commands.Collections.GetRepeatCollections;
-using IntervalLearningApi.Services;
+using IntervalLearningApi.Controllers.Study.Collections.DTOs;
 using Mapster;
 
-namespace IntervalLearningApi.Models.ByUser;
+namespace IntervalLearningApi.Controllers.Study.RepeatsSchedules.DTOs;
 
 public class RepeatingPhaseDtoRegister : IRegister
 {

@@ -1,4 +1,5 @@
-using IntervalLearningApi.Models.Dictionary;
+using IntervalLearningApi.Controllers.Dictionary.DTOs;
+using IntervalLearningApi.Controllers.Dictionary.Requests.AddTranslations;
 using NUnit.Framework;
 
 namespace IntervalLearningApi.IntegrationTests.Dictionary;

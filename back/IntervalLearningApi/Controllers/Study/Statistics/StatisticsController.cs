@@ -1,12 +1,12 @@
 using DB.Models.ValueObjects;
 using Domain.User.ValueObjects;
 using IntervalLearningApi.Constants;
+using IntervalLearningApi.Controllers.Study.Statistics.DTOs;
 using IntervalLearningApi.Extensions;
-using IntervalLearningApi.Models.ByUser;
-using IntervalLearningApi.Services;
+using IntervalLearningApi.Services.Statistics;
 using Microsoft.AspNetCore.Mvc;
 
-namespace IntervalLearningApi.Controllers;
+namespace IntervalLearningApi.Controllers.Study.Statistics;
 
 [Route(ApiRoutes.Statistics.BasePath)]
 [Authorize]

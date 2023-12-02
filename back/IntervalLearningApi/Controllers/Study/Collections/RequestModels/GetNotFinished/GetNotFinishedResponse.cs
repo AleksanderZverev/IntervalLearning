@@ -1,4 +1,6 @@
-namespace IntervalLearningApi.Models.ByUser;
+using IntervalLearningApi.Controllers.Study.Collections.DTOs;
+
+namespace IntervalLearningApi.Controllers.Study.Collections.RequestModels.GetNotFinished;
 
 public class GetNotFinishedResponse
 {

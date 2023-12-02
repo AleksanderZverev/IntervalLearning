@@ -3,14 +3,12 @@ using Application.Commands.Schedules.CreateSchedule;
 using Application.Commands.Schedules.UpdateSchedule;
 using DB.Models.ValueObjects;
 using Domain.Schedule.ValueObjects;
-using Domain.User.ValueObjects;
 using FluentValidation;
+using IntervalLearningApi.Controllers.Study.RepeatsSchedules.Requests.UpdateSchedule;
 using IntervalLearningApi.Extensions;
-using IntervalLearningApi.Models.RepeatsSchedule;
-using IntervalLearningApi.Services;
 using Mapster;
 
-namespace IntervalLearningApi.Models.ByUser;
+namespace IntervalLearningApi.Controllers.Study.RepeatsSchedules.Requests.CreateSchedule;
 
 public class CreteScheduleRegister : IRegister
 {

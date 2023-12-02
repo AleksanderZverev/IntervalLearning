@@ -1,7 +1,7 @@
 
-using IntervalLearningApi.Models.RepeatsSchedule;
+using IntervalLearningApi.Controllers.Study.RepeatsSchedules.DTOs;
 
-namespace IntervalLearningApi.Controllers;
+namespace IntervalLearningApi.Controllers.Study.Cards.Requests.StartCards;
 
 public class StartCardsResponse
 {

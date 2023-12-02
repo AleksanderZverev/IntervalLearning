@@ -1,5 +1,5 @@
-using IntervalLearningApi.Controllers.Accounts.Models.Authenticate;
-using IntervalLearningApi.Controllers.Accounts.Models.RevokeToken;
+using IntervalLearningApi.Controllers.Accounts.Requests.Authenticate;
+using IntervalLearningApi.Controllers.Accounts.Requests.RevokeToken;
 
 namespace IntervalLearningApi.IntegrationTests.User;
 

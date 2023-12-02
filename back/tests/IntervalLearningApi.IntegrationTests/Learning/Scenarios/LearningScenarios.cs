@@ -1,5 +1,3 @@
-global using IntervalLearningApi.Models.ByUser;
-global using IntervalLearningApi.Models.RepeatsSchedule;
 global using IntervalLearningApi.Services;
 global using DB.Models;
 global using IntervalLearningApi.IntegrationTests.Learning;

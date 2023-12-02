@@ -1,3 +1,9 @@
+using IntervalLearningApi.Controllers.Study.Cards.DTOs;
+using IntervalLearningApi.Controllers.Study.Cards.Requests;
+using IntervalLearningApi.Controllers.Study.Collections.DTOs;
+using IntervalLearningApi.Controllers.Study.Collections.RequestModels.CreateCollection;
+using IntervalLearningApi.Controllers.Study.RepeatsSchedules.DTOs;
+using IntervalLearningApi.Controllers.Study.RepeatsSchedules.Requests.CreateSchedule;
 using IntervalLearningApi.IntegrationTests.Common.Constants;
 using IntervalLearningApi.IntegrationTests.Common.Fakers.Api;
 

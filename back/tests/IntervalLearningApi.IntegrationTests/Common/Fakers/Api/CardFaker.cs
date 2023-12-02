@@ -1,4 +1,5 @@
 using Bogus;
+using IntervalLearningApi.Controllers.Study.Cards.Requests;
 
 namespace IntervalLearningApi.IntegrationTests.Common.Fakers.Api;
 

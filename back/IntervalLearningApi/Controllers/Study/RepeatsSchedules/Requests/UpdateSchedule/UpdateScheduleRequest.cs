@@ -2,9 +2,8 @@ using System.ComponentModel.DataAnnotations;
 using DB.Models.ValueObjects;
 using FluentValidation;
 using IntervalLearningApi.Extensions;
-using IntervalLearningApi.Models.RepeatsSchedule;
 
-namespace IntervalLearningApi.Models.ByUser;
+namespace IntervalLearningApi.Controllers.Study.RepeatsSchedules.Requests.UpdateSchedule;
 
 public class UpdateScheduleRequestValidator : AbstractValidator<UpdateScheduleRequest>
 {

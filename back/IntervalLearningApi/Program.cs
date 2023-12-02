@@ -1,13 +1,12 @@
 using Application.DI;
 using DB;
+using DB.DependencyInjection;
+using Infrastructure.BoundedContexts.Accounts.Jwt;
+using Infrastructure.DI;
 using IntervalLearningApi;
 using IntervalLearningApi.Extensions;
 using Microsoft.AspNetCore.HttpLogging;
 using Microsoft.EntityFrameworkCore;
-using DB.DependencyInjection;
-using Infrastructure.BoundedContexts.Accounts.Jwt;
-using Infrastructure.DI;
-using IntervalLearningApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -106,7 +105,7 @@ using (var scope = app.Services.CreateScope())
     }
     catch (Exception ex)
     {
-        var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
+        var logger = scope.ServiceProvider.GetRequiredService<ILogger<IntervalLearningApi.Program>>();
         logger.LogError(ex, "An error occurred while migrating the database.");
         throw;
     }
@@ -150,4 +149,7 @@ app.MapControllers();
 
 app.Run();
 
-public partial class Program { }
+namespace IntervalLearningApi
+{
+    public partial class Program { }
+}

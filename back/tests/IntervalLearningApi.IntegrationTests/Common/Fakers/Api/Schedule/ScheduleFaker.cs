@@ -1,4 +1,6 @@
 using Bogus;
+using IntervalLearningApi.Controllers.Study.RepeatsSchedules.DTOs;
+using IntervalLearningApi.Controllers.Study.RepeatsSchedules.Requests.CreateSchedule;
 
 namespace IntervalLearningApi.IntegrationTests.Common.Fakers.Api;
 

@@ -2,7 +2,7 @@ using Domain.Collection.ValueObjects;
 using FluentValidation;
 using IntervalLearningApi.Extensions;
 
-namespace IntervalLearningApi.Controllers;
+namespace IntervalLearningApi.Controllers.Study.Collections.RequestModels.AddCardsToMyCollection;
 
 public class AddCollectionsRequestValidator : AbstractValidator<AddCollectionsRequest>
 {

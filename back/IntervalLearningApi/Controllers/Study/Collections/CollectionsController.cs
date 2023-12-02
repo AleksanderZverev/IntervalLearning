@@ -17,17 +17,23 @@ using Domain.User.ValueObjects;
 using FluentResults;
 using Infrastructure.Extensions;
 using IntervalLearningApi.Constants;
+using IntervalLearningApi.Controllers.Dictionary.DTOs;
+using IntervalLearningApi.Controllers.Store.DTOs;
+using IntervalLearningApi.Controllers.Study.Collections.DTOs;
+using IntervalLearningApi.Controllers.Study.Collections.RequestModels.AddCardsToMyCollection;
+using IntervalLearningApi.Controllers.Study.Collections.RequestModels.CreateCollection;
+using IntervalLearningApi.Controllers.Study.Collections.RequestModels.GetNotFinished;
+using IntervalLearningApi.Controllers.Study.Collections.RequestModels.GetRandomWords;
+using IntervalLearningApi.Controllers.Study.Collections.RequestModels.GetRepeatCollections;
+using IntervalLearningApi.Controllers.Study.RepeatsSchedules.DTOs;
 using IntervalLearningApi.Extensions;
 using IntervalLearningApi.Infrastructure.CommandManager;
 using IntervalLearningApi.Infrastructure.ValidatorResolver;
-using IntervalLearningApi.Models.ByUser;
-using IntervalLearningApi.Models.Dictionary;
-using IntervalLearningApi.Services;
 using MapsterMapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-namespace IntervalLearningApi.Controllers
+namespace IntervalLearningApi.Controllers.Study.Collections
 {
     [Route(ApiRoutes.Collections.BasePath)]
     [Authorize]

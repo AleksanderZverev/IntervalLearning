@@ -4,7 +4,7 @@ using Domain.User.ValueObjects;
 using FluentValidation;
 using IntervalLearningApi.Extensions;
 
-namespace IntervalLearningApi.Controllers.Accounts.Models.Authenticate;
+namespace IntervalLearningApi.Controllers.Accounts.Requests.Authenticate;
 
 public class AuthenticateRequestValidator : AbstractValidator<AuthenticateRequest>
 {

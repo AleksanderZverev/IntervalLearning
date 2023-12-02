@@ -5,7 +5,7 @@ using Domain.User.ValueObjects;
 using FluentValidation;
 using IntervalLearningApi.Extensions;
 
-namespace IntervalLearningApi.Controllers.Accounts.Models.Register;
+namespace IntervalLearningApi.Controllers.Accounts.Requests.Register;
 
 public class RegisterRequestValidator : AbstractValidator<RegisterRequest>
 {

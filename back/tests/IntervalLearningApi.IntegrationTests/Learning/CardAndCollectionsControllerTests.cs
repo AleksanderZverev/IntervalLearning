@@ -2,9 +2,15 @@ using DB.Models;
 using Domain.Schedule;
 using Domain.Schedule.ValueObjects;
 using Domain.User.ValueObjects;
+using IntervalLearningApi.Controllers.Study.Cards.DTOs;
+using IntervalLearningApi.Controllers.Study.Cards.Requests.RememberCard;
+using IntervalLearningApi.Controllers.Study.Cards.Requests.StartCards;
+using IntervalLearningApi.Controllers.Study.Collections.DTOs;
+using IntervalLearningApi.Controllers.Study.Collections.RequestModels.GetNotFinished;
+using IntervalLearningApi.Controllers.Study.Collections.RequestModels.GetRepeatCollections;
+using IntervalLearningApi.Controllers.Study.RepeatsSchedules.DTOs;
+using IntervalLearningApi.Controllers.Study.RepeatsSchedules.Requests.CreateSchedule;
 using IntervalLearningApi.IntegrationTests.Learning.Scenarios;
-using IntervalLearningApi.Models.ByUser;
-using IntervalLearningApi.Models.RepeatsSchedule;
 using IntervalLearningApi.Services;
 
 namespace IntervalLearningApi.IntegrationTests.Learning;

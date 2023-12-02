@@ -1,7 +1,7 @@
 ﻿using DB.Models.Dictionary;
 using Mapster;
 
-namespace IntervalLearningApi.Models.Dictionary;
+namespace IntervalLearningApi.Controllers.Dictionary.DTOs;
 
 public class TranslationRegister : IRegister
 {

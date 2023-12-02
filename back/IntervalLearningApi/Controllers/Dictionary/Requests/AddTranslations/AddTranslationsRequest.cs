@@ -1,9 +1,8 @@
-using Domain.Language;
 using Domain.Language.ValueObjects;
 using FluentValidation;
 using IntervalLearningApi.Extensions;
 
-namespace IntervalLearningApi.Controllers;
+namespace IntervalLearningApi.Controllers.Dictionary.Requests.AddTranslations;
 
 public class AddTranslationsRequestValidator : AbstractValidator<AddTranslationsRequest>
 {

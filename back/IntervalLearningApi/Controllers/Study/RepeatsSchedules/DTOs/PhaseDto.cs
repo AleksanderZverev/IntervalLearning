@@ -1,16 +1,16 @@
 ﻿using System.ComponentModel.DataAnnotations;
-using System.Diagnostics;
 using Application.Commands.Schedules.CreateSchedule;
 using Application.Commands.Schedules.UpdateSchedule;
 using DB.Models;
 using DB.Models.ValueObjects;
 using FluentValidation;
+using IntervalLearningApi.Controllers.Study.RepeatsSchedules.Requests.CreateSchedule;
+using IntervalLearningApi.Controllers.Study.RepeatsSchedules.Requests.UpdateSchedule;
 using IntervalLearningApi.Extensions;
-using IntervalLearningApi.Services;
 using Mapster;
 using Newtonsoft.Json;
 
-namespace IntervalLearningApi.Models.RepeatsSchedule;
+namespace IntervalLearningApi.Controllers.Study.RepeatsSchedules.DTOs;
 
 public class PhaseRegister : IRegister
 {

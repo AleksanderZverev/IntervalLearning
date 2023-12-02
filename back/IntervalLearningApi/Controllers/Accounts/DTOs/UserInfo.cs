@@ -2,7 +2,7 @@ using Domain.User;
 using Domain.User.ValueObjects;
 using Mapster;
 
-namespace IntervalLearningApi.Models.ByUser;
+namespace IntervalLearningApi.Controllers.Accounts.DTOs;
 
 public class UserInfoRegister : IRegister
 {

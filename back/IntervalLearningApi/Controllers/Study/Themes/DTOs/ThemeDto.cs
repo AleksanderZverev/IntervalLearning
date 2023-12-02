@@ -2,7 +2,7 @@ using DB.Models.ValueObjects;
 using Domain.Theme;
 using Mapster;
 
-namespace IntervalLearningApi.Models.ByUser;
+namespace IntervalLearningApi.Controllers.Study.Themes.DTOs;
 
 public class ThemeRegister : IRegister
 {

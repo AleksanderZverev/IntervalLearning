@@ -1,6 +1,6 @@
-using FluentValidation;
+using IntervalLearningApi.Controllers.Study.RepeatsSchedules.DTOs;
 
-namespace IntervalLearningApi.Models.RepeatsSchedule;
+namespace IntervalLearningApi.Controllers.Study.RepeatsSchedules.Requests.UpdateSchedule;
 
 public class UpdatePhaseDtoValidator : BasePhaseBodyValidator<UpdatePhaseDto>
 {

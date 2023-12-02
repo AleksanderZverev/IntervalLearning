@@ -1,11 +1,11 @@
 using System.Net.Http.Headers;
 using System.Reflection;
 using Bogus;
-using IntervalLearningApi.Controllers.Accounts.Models.Authenticate;
-using IntervalLearningApi.Controllers.Accounts.Models.Register;
+using IntervalLearningApi.Controllers.Accounts.DTOs;
+using IntervalLearningApi.Controllers.Accounts.Requests.Authenticate;
+using IntervalLearningApi.Controllers.Accounts.Requests.Register;
 using IntervalLearningApi.IntegrationTests.Common.Constants;
 using IntervalLearningApi.IntegrationTests.Common.Fakers;
-using IntervalLearningApi.Models.ByUser;
 using Microsoft.AspNetCore.Mvc.Testing;
 
 namespace IntervalLearningApi.IntegrationTests.Common.TestScopes;

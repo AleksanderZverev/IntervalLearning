@@ -1,7 +1,7 @@
 using DB.Models.Store;
 using Mapster;
 
-namespace IntervalLearningApi.Models.ByUser;
+namespace IntervalLearningApi.Controllers.Store.DTOs;
 
 public class CollectionPublicationRegister : IRegister
 {

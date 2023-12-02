@@ -1,10 +1,9 @@
-﻿using DB.Models;
-using DB.Models.ValueObjects;
+﻿using DB.Models.ValueObjects;
 using Domain.Schedule.Entities.Remember;
 using Mapster;
 using Newtonsoft.Json;
 
-namespace IntervalLearningApi.Models.ByUser;
+namespace IntervalLearningApi.Controllers.Study.RepeatsSchedules.DTOs;
 
 public class RememberRegister : IRegister
 {

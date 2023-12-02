@@ -1,6 +1,6 @@
-using IntervalLearningApi.Models.Dictionary;
+using IntervalLearningApi.Controllers.Dictionary.DTOs;
 
-namespace IntervalLearningApi.Controllers;
+namespace IntervalLearningApi.Controllers.Study.Collections.RequestModels.GetRandomWords;
 
 public class GetRandomWordResponse
 {

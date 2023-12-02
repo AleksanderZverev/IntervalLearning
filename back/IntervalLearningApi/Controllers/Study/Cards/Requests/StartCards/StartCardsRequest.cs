@@ -4,7 +4,7 @@ using Domain.User.ValueObjects;
 using FluentValidation;
 using IntervalLearningApi.Extensions;
 
-namespace IntervalLearningApi.Controllers;
+namespace IntervalLearningApi.Controllers.Study.Cards.Requests.StartCards;
 
 public class StartCardsRequestValidator : AbstractValidator<StartCardsRequest>
 {
