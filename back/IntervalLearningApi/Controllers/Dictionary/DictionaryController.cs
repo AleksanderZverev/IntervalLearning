@@ -1,10 +1,12 @@
-﻿using Application.Commands.Dictionary.GetLanguages;
+﻿using System.ComponentModel.DataAnnotations;
+using Application.Commands.Dictionary.GetLanguages;
 using Application.Commands.Dictionary.SearchWords;
 using DB.Models.Dictionary;
 using DB.Models.Dictionary.ValueObjects;
 using IntervalLearningApi.Constants;
 using IntervalLearningApi.Extensions;
 using IntervalLearningApi.Infrastructure.CommandManager;
+using IntervalLearningApi.Infrastructure.ValidatorResolver;
 using IntervalLearningApi.Models.Dictionary;
 using IntervalLearningApi.Services.Dictionary;
 using MapsterMapper;
@@ -18,15 +20,18 @@ namespace IntervalLearningApi.Controllers
     [ApiController]
     public class DictionaryController : ControllerBase
     {
+        private readonly ValidatorResolver validatorResolver;
         private readonly IMapper mapper;
         private readonly CommandManager commandManager;
         private readonly DictionaryService dictionaryService;
 
         public DictionaryController(
+            ValidatorResolver validatorResolver,
             IMapper mapper,
             CommandManager commandManager,
             DictionaryService dictionaryService)
         {
+            this.validatorResolver = validatorResolver;
             this.mapper = mapper;
             this.commandManager = commandManager;
             this.dictionaryService = dictionaryService;
@@ -74,14 +79,25 @@ namespace IntervalLearningApi.Controllers
         }
 
         [HttpPost(ApiRoutes.Dictionary.Post_AddTranslations)]
-        public async Task<ActionResult<string>> AddTranslations([FromBody] AddTranslationsRequest req)
+        public async Task<ActionResult<string>> AddTranslations(
+            [FromBody] AddTranslationsRequest req)
         {
+            var validation = validatorResolver.Validate(req);
+
+            if (validation.IsFailed)
+                return validation.ToErrorActionResult();
+            
             var userId = HttpContext.GetUserId();
 
             if (userId.IsFailed)
                 return BadRequest();
 
-            var parseWordsResult = await dictionaryService.ParseWordsWithTranslations(userId.Value, req.LanguageId, req.TranslationLanguageId, req.Text);
+            var parseWordsResult = await dictionaryService.ParseWordsWithTranslations(
+                userId.Value,
+                req.LanguageId,
+                req.TranslationLanguageId,
+                req.Text);
+            
             return parseWordsResult.ToActionResult();
         }
 
@@ -95,13 +111,6 @@ namespace IntervalLearningApi.Controllers
 
             var translationsResult = await dictionaryService.GetTranslations(userId.Value, word);
             return translationsResult.ToActionResult(translations => mapper.Map<List<TranslationDto>>(translations));
-        }
-
-        public class AddTranslationsRequest
-        {
-            public short LanguageId { get; set; }
-            public short TranslationLanguageId { get; set; }
-            public string Text { get; set; }
         }
     }
 }
