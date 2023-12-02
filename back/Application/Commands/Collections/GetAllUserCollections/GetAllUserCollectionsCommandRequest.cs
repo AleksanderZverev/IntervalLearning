@@ -2,6 +2,6 @@ using Domain.User.ValueObjects;
 
 namespace Application.Commands.Collections.GetAllUserCollections;
 
-public record GetAllUserCollectionsRequest(
+public record GetAllUserCollectionsCommandRequest(
     UserId UserId
 );

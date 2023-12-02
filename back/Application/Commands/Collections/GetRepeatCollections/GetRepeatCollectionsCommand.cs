@@ -4,7 +4,7 @@ using FluentResults;
 
 namespace Application.Commands.Collections.GetRepeatCollections;
 
-public class GetRepeatCollectionsCommand : ICommand<GetRepeatCollectionsRequest, Dictionary<DateTime, List<RepeatingPhase>>>
+public class GetRepeatCollectionsCommand : ICommand<GetRepeatCollectionsCommandRequest, Dictionary<DateTime, List<RepeatingPhase>>>
 {
     private readonly IStudyQueryRepository studyQueryRepository;
 
@@ -14,7 +14,7 @@ public class GetRepeatCollectionsCommand : ICommand<GetRepeatCollectionsRequest,
         this.studyQueryRepository = studyQueryRepository;
     }
 
-    public async Task<Result<Dictionary<DateTime, List<RepeatingPhase>>>> Handle(GetRepeatCollectionsRequest request)
+    public async Task<Result<Dictionary<DateTime, List<RepeatingPhase>>>> Handle(GetRepeatCollectionsCommandRequest request)
     {
         var userId = request.UserId;
         

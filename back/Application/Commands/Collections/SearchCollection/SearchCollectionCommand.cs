@@ -8,7 +8,7 @@ using Infrastructure.Extensions;
 
 namespace Application.Commands.Collections.SearchCollection;
 
-public class SearchCollectionCommand : ICommand<SearchCollectionRequest, List<Collection>>
+public class SearchCollectionCommand : ICommand<SearchCollectionCommandRequest, List<Collection>>
 {
     private readonly IStudyQueryRepository studyQueryRepository;
 
@@ -18,7 +18,7 @@ public class SearchCollectionCommand : ICommand<SearchCollectionRequest, List<Co
         this.studyQueryRepository = studyQueryRepository;
     }
 
-    public async Task<Result<List<Collection>>> Handle(SearchCollectionRequest request)
+    public async Task<Result<List<Collection>>> Handle(SearchCollectionCommandRequest request)
     {
         var (userId, themeId, searchName, page, count) = request;
         var toSkip = (page - 1) * count;

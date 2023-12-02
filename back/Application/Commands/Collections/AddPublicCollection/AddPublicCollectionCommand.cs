@@ -14,7 +14,7 @@ using Infrastructure.Errors;
 
 namespace Application.Commands.Collections.AddPublicCollection;
 
-public class AddPublicCollectionCommand : ICommand<AddPublicCollectionRequest, Collection>
+public class AddPublicCollectionCommand : ICommand<AddPublicCollectionCommandRequest, Collection>
 {
     private readonly ITransactionProvider transactionProvider;
     private readonly IStoreRepository storeRepository;
@@ -36,7 +36,7 @@ public class AddPublicCollectionCommand : ICommand<AddPublicCollectionRequest, C
         this.storeRepository = storeRepository;
     }
 
-    public async Task<Result<Collection>> Handle(AddPublicCollectionRequest request)
+    public async Task<Result<Collection>> Handle(AddPublicCollectionCommandRequest request)
     {
         var (publicCollectionUserId, publicCollectionId, myUserId, myCollectionId, newCollectionName, checkUnique) = request;
 
@@ -65,7 +65,7 @@ public class AddPublicCollectionCommand : ICommand<AddPublicCollectionRequest, C
         }
         else
         {
-            var createdCollectionResult = await createCollectionCommand.Handle(new CreateCollectionRequest()
+            var createdCollectionResult = await createCollectionCommand.Handle(new CreateCollectionCommandRequest()
             {
                 Title = CollectionTitle.Create(newCollectionName).Value,
                 ParentUserId = myUserId,

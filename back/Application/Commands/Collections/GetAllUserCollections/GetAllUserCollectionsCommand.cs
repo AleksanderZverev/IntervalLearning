@@ -5,7 +5,7 @@ using Infrastructure.Extensions;
 
 namespace Application.Commands.Collections.GetAllUserCollections;
 
-public class GetAllUserCollectionsCommand : ICommand<GetAllUserCollectionsRequest, List<Collection>>
+public class GetAllUserCollectionsCommand : ICommand<GetAllUserCollectionsCommandRequest, List<Collection>>
 {
     private readonly IStudyQueryRepository studyQueryRepository;
 
@@ -15,8 +15,8 @@ public class GetAllUserCollectionsCommand : ICommand<GetAllUserCollectionsReques
         this.studyQueryRepository = studyQueryRepository;
     }
 
-    public Task<Result<List<Collection>>> Handle(GetAllUserCollectionsRequest userCollectionsRequest)
+    public Task<Result<List<Collection>>> Handle(GetAllUserCollectionsCommandRequest userCollectionsCommandRequest)
     {
-        return studyQueryRepository.Collections.GetAll(userCollectionsRequest.UserId).ToResultAsync();
+        return studyQueryRepository.Collections.GetAll(userCollectionsCommandRequest.UserId).ToResultAsync();
     }
 }

@@ -11,7 +11,7 @@ using Infrastructure.Extensions;
 
 namespace Application.Commands.Collections.MakeCollectionPublic;
 
-public class MakeCollectionPublicCommand : ICommand<MakeCollectionPublicRequest, Collection>
+public class MakeCollectionPublicCommand : ICommand<MakeCollectionPublicCommandRequest, Collection>
 {
     private readonly IStudyQueryRepository studyQueryRepository; 
     private readonly IStoreRepository storeRepository;
@@ -27,7 +27,7 @@ public class MakeCollectionPublicCommand : ICommand<MakeCollectionPublicRequest,
         this.studyQueryRepository = studyQueryRepository;
     }
 
-    public async Task<Result<Collection>> Handle(MakeCollectionPublicRequest request)
+    public async Task<Result<Collection>> Handle(MakeCollectionPublicCommandRequest request)
     {
         var (userId, collectionId) = request;
         return await studyQueryRepository.Collections

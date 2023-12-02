@@ -3,7 +3,7 @@ using Domain.User.ValueObjects;
 
 namespace Application.Commands.Collections.AddPublicCollection;
 
-public record AddPublicCollectionRequest(
+public record AddPublicCollectionCommandRequest(
     UserId PublicCollectionUserId,
     CollectionId PublicCollectionId,
     UserId MyUserId,

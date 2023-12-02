@@ -8,7 +8,7 @@ using Infrastructure.Extensions;
 
 namespace Application.Commands.Collections.SearchPublicCollection;
 
-public class SearchPublicCollectionCommand : ICommand<SearchPublicCollectionRequest, List<SearchPublicCollectionItem>>
+public class SearchPublicCollectionCommand : ICommand<SearchPublicCollectionCommandRequest, List<SearchPublicCollectionItem>>
 {
     private readonly IStudyQueryRepository studyQueryRepository;
     private readonly IStoreQueryRepository storeQueryRepository;
@@ -21,7 +21,7 @@ public class SearchPublicCollectionCommand : ICommand<SearchPublicCollectionRequ
         this.storeQueryRepository = storeQueryRepository;
     }
 
-    public async Task<Result<List<SearchPublicCollectionItem>>> Handle(SearchPublicCollectionRequest request)
+    public async Task<Result<List<SearchPublicCollectionItem>>> Handle(SearchPublicCollectionCommandRequest request)
     {
         var (myUserId, themeId, searchName, page, count) = request;
 

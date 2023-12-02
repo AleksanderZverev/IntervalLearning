@@ -5,7 +5,7 @@ using FluentResults;
 
 namespace Application.Commands.Collections.GetCanStartCollections;
 
-public class GetCanStartCollectionsCommand : ICommand<GetCanStartCollectionsRequest, GetCanStartCollectionsResponse>
+public class GetCanStartCollectionsCommand : ICommand<GetCanStartCollectionsCommandRequest, GetCanStartCollectionsResponse>
 {
     private readonly IStudyQueryRepository studyQueryRepository;
 
@@ -15,7 +15,7 @@ public class GetCanStartCollectionsCommand : ICommand<GetCanStartCollectionsRequ
         this.studyQueryRepository = studyQueryRepository;
     }
 
-    public async Task<Result<GetCanStartCollectionsResponse>> Handle(GetCanStartCollectionsRequest request)
+    public async Task<Result<GetCanStartCollectionsResponse>> Handle(GetCanStartCollectionsCommandRequest request)
     {
         var (userId, scheduleUserId, scheduleId, page, count) = request;
 

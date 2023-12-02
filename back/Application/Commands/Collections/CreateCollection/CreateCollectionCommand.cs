@@ -5,7 +5,7 @@ using FluentResults;
 
 namespace Application.Commands.Collections.CreateCollection;
 
-public class CreateCollectionCommand : ICommand<CreateCollectionRequest, Collection>
+public class CreateCollectionCommand : ICommand<CreateCollectionCommandRequest, Collection>
 {
     private readonly IStudyRepository studyRepository;
 
@@ -15,7 +15,7 @@ public class CreateCollectionCommand : ICommand<CreateCollectionRequest, Collect
         this.studyRepository = studyRepository;
     }
 
-    public Task<Result<Collection>> Handle(CreateCollectionRequest request)
+    public Task<Result<Collection>> Handle(CreateCollectionCommandRequest request)
     {
         var collectionId = studyRepository.Collections.GetUniqueId(new(request.ParentUserId)).Value;
 

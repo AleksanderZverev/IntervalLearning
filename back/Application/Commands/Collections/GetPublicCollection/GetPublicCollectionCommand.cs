@@ -6,7 +6,7 @@ using Infrastructure.Extensions;
 
 namespace Application.Commands.Collections.GetPublicCollection;
 
-public class GetPublicCollectionCommand : ICommand<GetPublicCollectionRequest, Collection>
+public class GetPublicCollectionCommand : ICommand<GetPublicCollectionCommandRequest, Collection>
 {
     private readonly IStoreQueryRepository storeQueryRepository;
 
@@ -16,7 +16,7 @@ public class GetPublicCollectionCommand : ICommand<GetPublicCollectionRequest, C
         this.storeQueryRepository = storeQueryRepository;
     }
 
-    public Task<Result<Collection>> Handle(GetPublicCollectionRequest request)
+    public Task<Result<Collection>> Handle(GetPublicCollectionCommandRequest request)
     {
         return storeQueryRepository.Collections
             .Find(request.UserId, request.CollectionId)

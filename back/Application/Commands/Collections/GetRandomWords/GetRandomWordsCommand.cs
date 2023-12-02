@@ -7,7 +7,7 @@ using Infrastructure.Errors;
 
 namespace Application.Commands.Collections.GetRandomWords;
 
-public class GetRandomWordsCommand : ICommand<GetRandomWordsRequest, GetRandomWordsResponse>
+public class GetRandomWordsCommand : ICommand<GetRandomWordsCommandRequest, GetRandomWordsResponse>
 {
     private readonly IStudyQueryRepository studyQueryRepository;
     private readonly IDictionaryQueryRepository dictionaryQueryRepository;
@@ -20,7 +20,7 @@ public class GetRandomWordsCommand : ICommand<GetRandomWordsRequest, GetRandomWo
         this.dictionaryQueryRepository = dictionaryQueryRepository;
     }
 
-    public async Task<Result<GetRandomWordsResponse>> Handle(GetRandomWordsRequest request)
+    public async Task<Result<GetRandomWordsResponse>> Handle(GetRandomWordsCommandRequest request)
     {
         var (userId, collectionId) = request;
         

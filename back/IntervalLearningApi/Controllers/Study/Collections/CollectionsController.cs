@@ -18,6 +18,7 @@ using FluentResults;
 using IntervalLearningApi.Constants;
 using IntervalLearningApi.Extensions;
 using IntervalLearningApi.Infrastructure.CommandManager;
+using IntervalLearningApi.Infrastructure.ValidatorResolver;
 using IntervalLearningApi.Models.ByUser;
 using IntervalLearningApi.Models.Dictionary;
 using IntervalLearningApi.Services;
@@ -32,19 +33,23 @@ namespace IntervalLearningApi.Controllers
     [ApiController]
     public class CollectionsController : ControllerBase
     {
+        private readonly ValidatorResolver validatorResolver;
         private readonly IMapper mapper;
         private readonly CommandManager commandManager;
 
         public CollectionsController(
+            ValidatorResolver validatorResolver,
             IMapper mapper,
             CommandManager commandManager)
         {
+            this.validatorResolver = validatorResolver;
             this.mapper = mapper;
             this.commandManager = commandManager;
         }
 
         [HttpPost(ApiRoutes.Collections.Create)]
-        public async Task<ActionResult<CollectionDto>> CreateCollection([FromBody] CreateCollectionItem item)
+        public async Task<ActionResult<CollectionDto>> CreateCollection(
+            [FromBody] CreateCollectionItem item)
         {
             var userId = HttpContext.GetUserId();
 
@@ -57,7 +62,7 @@ namespace IntervalLearningApi.Controllers
             {
                 collectionResult = await commandManager
                     .GetCommand<CreateCollectionCommand>()
-                    .Handle(new CreateCollectionRequest()
+                    .Handle(new CreateCollectionCommandRequest()
                     {
                         ParentUserId = userId.Value,
                         Title = CollectionTitle.Create(item.Title).Value,
@@ -69,7 +74,7 @@ namespace IntervalLearningApi.Controllers
             {
                 collectionResult = await commandManager
                     .GetCommand<UpdateCollectionCommand>()
-                    .Handle(new UpdateCollectionRequest()
+                    .Handle(new UpdateCollectionCommandRequest()
                     {
                         ParentUserId = userId.Value,
                         CollectionId = CollectionId.Create(item.CollectionId.Value).Value,
@@ -92,7 +97,7 @@ namespace IntervalLearningApi.Controllers
 
             var collectionsResult = await commandManager
                 .GetCommand<SearchPublicCollectionCommand>()
-                .Handle(new SearchPublicCollectionRequest(
+                .Handle(new SearchPublicCollectionCommandRequest(
                     userId.Value,
                     ThemeId.Create(themeId).Value,
                     searchName ?? "",
@@ -107,7 +112,11 @@ namespace IntervalLearningApi.Controllers
         }
 
         [HttpGet(ApiRoutes.Collections.SearchPrivate)]
-        public async Task<ActionResult<List<CollectionDto>>> SearchCollection(short themeId, string? searchName = null, int page = 1, int count = 10)
+        public async Task<ActionResult<List<CollectionDto>>> SearchCollection(
+            short themeId, 
+            string? searchName = null, 
+            int page = 1, 
+            int count = 10)
         {
             var userId = HttpContext.GetUserId();
 
@@ -116,8 +125,12 @@ namespace IntervalLearningApi.Controllers
 
             var collectionsResult = await commandManager
                 .GetCommand<SearchCollectionCommand>()
-                .Handle(new SearchCollectionRequest(
-                    userId.Value, ThemeId.Create(themeId).Value, searchName ?? "", page, count));
+                .Handle(new SearchCollectionCommandRequest(
+                    userId.Value,
+                    ThemeId.Create(themeId).Value, 
+                    searchName ?? "",
+                    page,
+                    count));
 
             return collectionsResult.ToActionResult(collections => mapper.Map<List<CollectionDto>>(collections));
         }
@@ -128,7 +141,7 @@ namespace IntervalLearningApi.Controllers
         {
             var collectionResult = await commandManager
                 .GetCommand<GetPublicCollectionCommand>()
-                .Handle(new GetPublicCollectionRequest(
+                .Handle(new GetPublicCollectionCommandRequest(
                     UserId.Create(userId).Value,
                     CollectionId.Create(collectionId).Value));
 
@@ -145,7 +158,7 @@ namespace IntervalLearningApi.Controllers
 
             var collectionsResult = await commandManager
                 .GetCommand<GetAllUserCollectionsCommand>()
-                .Handle(new GetAllUserCollectionsRequest(userId.Value));
+                .Handle(new GetAllUserCollectionsCommandRequest(userId.Value));
 
             return collectionsResult.ToActionResult(collections => mapper.Map<List<CollectionDto>>(collections));
         }
@@ -160,7 +173,7 @@ namespace IntervalLearningApi.Controllers
 
             var wordsResult = await commandManager
                 .GetCommand<GetRandomWordsCommand>()
-                .Handle(new GetRandomWordsRequest(userId.Value, CollectionId.Create(collectionId).Value));
+                .Handle(new GetRandomWordsCommandRequest(userId.Value, CollectionId.Create(collectionId).Value));
 
             if (wordsResult.IsFailed)
                 return wordsResult.ToErrorActionResult();
@@ -181,7 +194,7 @@ namespace IntervalLearningApi.Controllers
 
             var dateToRepeatingCollectionsResult = await commandManager
                 .GetCommand<GetRepeatCollectionsCommand>()
-                .Handle(new GetRepeatCollectionsRequest(userId.Value));
+                .Handle(new GetRepeatCollectionsCommandRequest(userId.Value));
 
             return dateToRepeatingCollectionsResult.ToActionResult(dateToRepeatingCollections =>
                 new RepeatingCollectionResponse(dateToRepeatingCollections
@@ -204,7 +217,7 @@ namespace IntervalLearningApi.Controllers
 
             var canStartCollectionsResult = await commandManager
                 .GetCommand<GetCanStartCollectionsCommand>()
-                .Handle(new GetCanStartCollectionsRequest(
+                .Handle(new GetCanStartCollectionsCommandRequest(
                     userId.Value,
                     UserId.Create(scheduleUserId).Value,
                     ScheduleId.Create(scheduleId).Value,
@@ -227,7 +240,7 @@ namespace IntervalLearningApi.Controllers
 
             var collectionResult = await commandManager
                 .GetCommand<GetCollectionCommand>()
-                .Handle(new GetCollectionRequest(userId.Value, CollectionId.Create(collectionId).Value));
+                .Handle(new GetCollectionCommandRequest(userId.Value, CollectionId.Create(collectionId).Value));
             
             return collectionResult.ToActionResult(collection => mapper.Map<CollectionDto>(collection));
         }
@@ -242,7 +255,7 @@ namespace IntervalLearningApi.Controllers
 
             var collectionResult = await commandManager
                 .GetCommand<MakeCollectionPublicCommand>()
-                .Handle(new MakeCollectionPublicRequest(userId.Value, CollectionId.Create(collectionId).Value));
+                .Handle(new MakeCollectionPublicCommandRequest(userId.Value, CollectionId.Create(collectionId).Value));
             
             return collectionResult.ToActionResult(collection => mapper.Map<CollectionDto>(collection));
         }
@@ -260,7 +273,7 @@ namespace IntervalLearningApi.Controllers
 
             var collectionResult = await commandManager
                 .GetCommand<AddPublicCollectionCommand>()
-                .Handle(new AddPublicCollectionRequest(
+                .Handle(new AddPublicCollectionCommandRequest(
                     UserId.Create(collectionUserId).Value,
                     CollectionId.Create(collectionId).Value,
                     userId.Value,

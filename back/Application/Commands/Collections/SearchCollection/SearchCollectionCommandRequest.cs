@@ -3,7 +3,7 @@ using Domain.User.ValueObjects;
 
 namespace Application.Commands.Collections.SearchCollection;
 
-public record SearchCollectionRequest(
+public record SearchCollectionCommandRequest(
     UserId UserId,
     ThemeId ThemeId, 
     string SearchName, 

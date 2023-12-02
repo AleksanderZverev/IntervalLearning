@@ -3,7 +3,7 @@ using Domain.User.ValueObjects;
 
 namespace Application.Commands.Collections.GetCanStartCollections;
 
-public record GetCanStartCollectionsRequest(
+public record GetCanStartCollectionsCommandRequest(
     UserId UserId,
     UserId ScheduleUserId,
     ScheduleId ScheduleId,

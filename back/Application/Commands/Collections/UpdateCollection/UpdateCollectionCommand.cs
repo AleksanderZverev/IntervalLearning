@@ -8,7 +8,7 @@ using Infrastructure.Extensions;
 
 namespace Application.Commands.Collections.UpdateCollection;
 
-public class UpdateCollectionCommand : ICommand<UpdateCollectionRequest, Collection>
+public class UpdateCollectionCommand : ICommand<UpdateCollectionCommandRequest, Collection>
 {
     private readonly IStudyRepository studyRepository;
 
@@ -18,7 +18,7 @@ public class UpdateCollectionCommand : ICommand<UpdateCollectionRequest, Collect
         this.studyRepository = studyRepository;
     }
 
-    public async Task<Result<Collection>> Handle(UpdateCollectionRequest request)
+    public async Task<Result<Collection>> Handle(UpdateCollectionCommandRequest request)
     {
         return await studyRepository.Query.Collections
             .Find(request.ParentUserId, request.CollectionId)

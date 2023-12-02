@@ -7,7 +7,7 @@ using Infrastructure.Extensions;
 
 namespace Application.Commands.Collections.GetCollection;
 
-public class GetCollectionCommand : ICommand<GetCollectionRequest, Collection>
+public class GetCollectionCommand : ICommand<GetCollectionCommandRequest, Collection>
 {
     private readonly IStudyQueryRepository studyQueryRepository;
 
@@ -17,7 +17,7 @@ public class GetCollectionCommand : ICommand<GetCollectionRequest, Collection>
         this.studyQueryRepository = studyQueryRepository;
     }
 
-    public Task<Result<Collection>> Handle(GetCollectionRequest request)
+    public Task<Result<Collection>> Handle(GetCollectionCommandRequest request)
     {
         return studyQueryRepository.Collections
             .Find(request.UserId, request.CollectionId)

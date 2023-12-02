@@ -3,7 +3,7 @@ using Domain.User.ValueObjects;
 
 namespace Application.Commands.Collections.GetRandomWords;
 
-public record GetRandomWordsRequest(
+public record GetRandomWordsCommandRequest(
     UserId UserId, 
     CollectionId CollectionId
 );
