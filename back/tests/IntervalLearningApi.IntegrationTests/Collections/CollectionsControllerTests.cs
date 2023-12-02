@@ -108,7 +108,7 @@ public class CollectionsControllerTests : SharedApiTests
         //Act
         var updatedCollectionResponse = await client.PostAsJsonAsync(
             ApiRoutes.Collections.Create,
-            new CreateCollectionItem()
+            new CreateCollectionRequest()
             {
                 CollectionId = short.Parse(collection.Id),
                 Title = collectionName,
@@ -137,7 +137,7 @@ public class CollectionsControllerTests : SharedApiTests
         //Act
         await client.PostAsJsonAsync(
             ApiRoutes.Collections.Create,
-            new CreateCollectionItem()
+            new CreateCollectionRequest()
             {
                 CollectionId = short.Parse(oldCollection.Id),
                 Title = collectionName,
@@ -166,7 +166,7 @@ public class CollectionsControllerTests : SharedApiTests
         //Act
         var updateResponse = await client.PostAsJsonAsync(
             ApiRoutes.Collections.Create,
-            new CreateCollectionItem()
+            new CreateCollectionRequest()
             {
                 CollectionId = short.Parse(oldCollection.Id),
                 Title = collectionName,
@@ -190,7 +190,7 @@ public class CollectionsControllerTests : SharedApiTests
         //Act
         await client.PostAsJsonAsync(
             ApiRoutes.Collections.Create,
-            new CreateCollectionItem()
+            new CreateCollectionRequest()
             {
                 CollectionId = short.Parse(oldCollection.Id),
                 Title = collectionName,

@@ -128,7 +128,7 @@ public class SharedApiTests : BaseApiTests, IClassFixture<SharedDockerIntervalLe
         var result = new List<CollectionDto>(count);
         foreach (var randomCollection in randomCollections)
         {
-            var createdCollection = await CreateCollectionAsync(new CreateCollectionItem()
+            var createdCollection = await CreateCollectionAsync(new CreateCollectionRequest()
             {
                 Title = randomCollection.Title,
                 IsDefaultBackSide = false,
@@ -146,7 +146,7 @@ public class SharedApiTests : BaseApiTests, IClassFixture<SharedDockerIntervalLe
 
     protected Task<CollectionDto?> CreateCollectionAsync(string collectionName)
     {
-        return CreateCollectionAsync(new CreateCollectionItem()
+        return CreateCollectionAsync(new CreateCollectionRequest()
         {
             Title = collectionName,
             IsDefaultBackSide = false,
@@ -155,11 +155,11 @@ public class SharedApiTests : BaseApiTests, IClassFixture<SharedDockerIntervalLe
     }
     
 
-    private async Task<CollectionDto?> CreateCollectionAsync(CreateCollectionItem createCollectionItem)
+    private async Task<CollectionDto?> CreateCollectionAsync(CreateCollectionRequest createCollectionRequest)
     {
         var createCollectionResponse = await sharedClient.PostAsJsonAsync(
             AbsoluteQuery(ApiRoutes.Collections.BasePath, ApiRoutes.Collections.Create),
-            createCollectionItem);
+            createCollectionRequest);
         if (!createCollectionResponse.IsSuccessStatusCode)
             return null;
         var createdCollection = createCollectionResponse.ToResponseDto<CollectionDto>();
