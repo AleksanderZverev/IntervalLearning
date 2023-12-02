@@ -96,7 +96,7 @@ public class DictionaryControllerTests : SharedApiTests
         //Act
         var addTranslationResponse = await client.PostAsJsonAsync(
             ApiRoutes.Dictionary.Post_AddTranslations,
-            new DictionaryController.AddTranslationsRequest()
+            new AddTranslationsRequest()
             {
                 LanguageId = 1,
                 Text = translationText,

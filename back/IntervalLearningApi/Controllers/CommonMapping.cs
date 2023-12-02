@@ -9,7 +9,5 @@ public class CommonMapping : IRegister
     {
         config.NewConfig<SingleValueObject<string>, string>()
             .Map(_ => _, s => s.Value);
-        
-        
     }
 }

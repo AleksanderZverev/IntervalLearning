@@ -1,10 +1,5 @@
 namespace IntervalLearningApi.Models.ByUser;
 
-public record LearningStatisticModel(
-    int RepeatedCards,
-    int LearnedCards
-);
-
 public record CalendarLearningStatisticModel(
     int LearnedCards,
     Dictionary<DateTime, int> DateToLearnedCards,
