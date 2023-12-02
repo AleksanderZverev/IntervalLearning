@@ -122,7 +122,7 @@ public class CardAndCollectionsControllerTests : SharedApiTests
             path);
     
 
-    private async Task<StartCardResponse?> StartCardsAsync(
+    private async Task<StartCardsResponse?> StartCardsAsync(
         HttpClient client,
         CollectionDto collection,
         List<CardDto> cards, 
@@ -130,14 +130,14 @@ public class CardAndCollectionsControllerTests : SharedApiTests
     {
         var startCardsResponse = await client.PostAsJsonAsync(
             CardsQuery(collection.Id, ApiRoutes.Cards.Post_StartCards),
-            new CardsItem()
+            new StartCardsRequest()
             {
                 CardIds = cards.Select(c => short.Parse(c.Id)).ToList(),
                 ScheduleId = short.Parse(schedule.Id),
                 ScheduleUserId = UserId.Create(long.Parse(schedule.ParentUserId)).Value,
             }
         );
-        var startCards = startCardsResponse.ToResponseDto<StartCardResponse>();
+        var startCards = startCardsResponse.ToResponseDto<StartCardsResponse>();
         return startCards;
     }
 
@@ -683,7 +683,7 @@ public class CardAndCollectionsControllerTests : SharedApiTests
     {
         return await client.PatchAsJsonAsync(
             CardsQuery(collection.Id, ApiRoutes.Cards.Path_RememberCard),
-            new RememberRequest()
+            new RememberCardRequest()
             {
                 PhaseIndex = rememberPhaseIndex,
                 ScheduleId = short.Parse(schedule.Id),

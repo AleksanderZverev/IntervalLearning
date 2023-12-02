@@ -1,4 +1,18 @@
+using Domain.Card.ValueObjects;
+using Domain.Collection.ValueObjects;
+using FluentValidation;
+using IntervalLearningApi.Extensions;
+
 namespace IntervalLearningApi.Controllers;
+
+public class MoveCardRequestValidator : AbstractValidator<MoveCardRequest>
+{
+    public MoveCardRequestValidator()
+    {
+        RuleFor(r => r.CardId).ShouldBeCreatable(CardId.Create);
+        RuleFor(r => r.DestinationCollectionId).ShouldBeCreatable(CollectionId.Create);
+    }
+}
 
 public class MoveCardRequest
 {

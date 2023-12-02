@@ -16,9 +16,12 @@ using DB.Models.ValueObjects;
 using Domain.Card.ValueObjects;
 using Domain.Collection.ValueObjects;
 using Domain.User.ValueObjects;
+using FluentResults;
+using Infrastructure.Extensions;
 using IntervalLearningApi.Constants;
 using IntervalLearningApi.Extensions;
 using IntervalLearningApi.Infrastructure.CommandManager;
+using IntervalLearningApi.Infrastructure.ValidatorResolver;
 using IntervalLearningApi.Models.ByUser;
 using IntervalLearningApi.Models.RepeatsSchedule;
 using MapsterMapper;
@@ -32,48 +35,55 @@ namespace IntervalLearningApi.Controllers
     [ApiController]
     public class CardsController : ControllerBase
     {
+        private readonly ValidatorResolver validatorResolver;
         private readonly IMapper mapper;
         private readonly CommandManager commandManager;
         private readonly IHostEnvironment env;
 
         public CardsController(
+            ValidatorResolver validatorResolver,
             IMapper mapper,
             CommandManager commandManager,
             IHostEnvironment env)
         {
+            this.validatorResolver = validatorResolver;
             this.mapper = mapper;
             this.commandManager = commandManager;
             this.env = env;
         }
         
         [HttpPost(ApiRoutes.Cards.Post_CreateCard)]
-        public async Task<ActionResult<CardDto>> CreateCard(short collectionId, [FromBody]CreateCardItem item)
+        public async Task<ActionResult<CardDto>> CreateCard(short collectionId, [FromBody]CreateCardRequest request)
         {
-            if (item.Examples != null && item.Examples.Any(e => e.Length > 255))
+            var validationResult = validatorResolver.Validate(request);
+
+            if (validationResult.IsFailed)
             {
-                return BadRequest();
+                return validationResult.ToErrorActionResult();
             }
 
             var userId = HttpContext.GetUserId();
 
             if (userId.IsFailed)
+            {
                 return BadRequest();
+            }
 
             var collectionIdDomain = CollectionId.Create(collectionId).Value;
 
-            if (item.CardId == null)
+            if (request.CardId == null)
             {
                 var createdResult = await commandManager
                     .GetCommand<AddCardToCollectionCommand>()
                     .Handle(new AddCardToCollectionRequest(
                         userId.Value,
                         collectionIdDomain,
-                        CardText.Create(item.FrontText).Value,
-                        item.PromptText == null ? null : CardText.Create(item.PromptText).Value,
-                        CardText.Create(item.BackText).Value,
-                        item.Description != null ? CardDescription.Create(item.Description).Value : null,
-                        item.Examples != null
-                            ? item.Examples.Select(e => CardExample.Create(e).Value).ToList()
+                        CardText.Create(request.FrontText).Value,
+                        request.PromptText == null ? null : CardText.Create(request.PromptText).Value,
+                        CardText.Create(request.BackText).Value,
+                        request.Description != null ? CardDescription.Create(request.Description).Value : null,
+                        request.Examples != null
+                            ? request.Examples.Select(e => CardExample.Create(e).Value).ToList()
                             : new List<CardExample>()));
                 
                 return createdResult.ToActionResult(c => mapper.Map<CardDto>(c));
@@ -83,15 +93,15 @@ namespace IntervalLearningApi.Controllers
                 .GetCommand<UpdateCardCommand>()
                 .Handle(new UpdateCardRequest()
                 {
-                    CardId = CardId.Create(item.CardId.Value).Value,
+                    CardId = CardId.Create(request.CardId.Value).Value,
                     ParentUserId = userId.Value,
                     ParentCollectionId = collectionIdDomain,
-                    RememberingText = CardText.Create(item.FrontText).Value,
-                    PromptText = item.PromptText == null ? null : CardText.Create(item.PromptText).Value,
-                    MeaningText = CardText.Create(item.BackText).Value,
-                    Description = item.Description != null ? CardDescription.Create(item.Description).Value : null,
-                    Examples = item.Examples != null
-                        ? item.Examples.Select(e => CardExample.Create(e).Value).ToList()
+                    RememberingText = CardText.Create(request.FrontText).Value,
+                    PromptText = request.PromptText == null ? null : CardText.Create(request.PromptText).Value,
+                    MeaningText = CardText.Create(request.BackText).Value,
+                    Description = request.Description != null ? CardDescription.Create(request.Description).Value : null,
+                    Examples = request.Examples != null
+                        ? request.Examples.Select(e => CardExample.Create(e).Value).ToList()
                         : new List<CardExample>()
                 });
             
@@ -101,17 +111,26 @@ namespace IntervalLearningApi.Controllers
         [HttpGet(ApiRoutes.Cards.Get_Card)]
         public async Task<ActionResult<CardDto>> GetCard(short collectionId, short cardId)
         {
-            var userId = HttpContext.GetUserId();
+            var (
+                userId,
+                collectionIdResult,
+                cardIdResult
+                ) = (
+                HttpContext.GetUserId(),
+                CollectionId.Create(collectionId),
+                CardId.Create(cardId)
+            );
 
-            if (userId.IsFailed)
+
+            if (userId.IsFailed || collectionIdResult.IsFailed || cardIdResult.IsFailed)
                 return BadRequest();
 
             var cardResult = await commandManager
                 .GetCommand<GetCardCommand>()
                 .Handle(new GetCardRequest(
                     userId.Value,
-                    CollectionId.Create(collectionId).Value,
-                    CardId.Create(cardId).Value));
+                    collectionIdResult.Value,
+                    cardIdResult.Value));
             
             return cardResult.ToActionResult(c => mapper.Map<CardDto>(c));
         }
@@ -122,16 +141,21 @@ namespace IntervalLearningApi.Controllers
             [FromQuery] int page = 1,
             [FromQuery] int count = 10)
         {
-            var userId = HttpContext.GetUserId();
+            var argsResult = (
+                HttpContext.GetUserId(),
+                CollectionId.Create(collectionId)
+            );
 
-            if (userId.IsFailed)
+            if (argsResult.HasAnyError())
                 return BadRequest();
 
+            var (userId, collectionIdResult) = argsResult;
+            
             var cardsResult = await commandManager
                 .GetCommand<GetAllCardsCommand>()
                 .Handle(new GetAllCardsRequest(
                     userId.Value,
-                    CollectionId.Create(collectionId).Value,
+                    collectionIdResult.Value,
                     page,
                     count));
             
@@ -146,21 +170,33 @@ namespace IntervalLearningApi.Controllers
             [FromQuery] short phaseIndex,
             [FromQuery] DateTime date)
         {
-            var userId = HttpContext.GetUserId();
+            var argResults = (
+                HttpContext.GetUserId(),
+                CollectionId.Create(collectionId),
+                UserId.Create(scheduleUserId),
+                ScheduleId.Create(scheduleId)
+            );
 
-            if (userId.IsFailed)
+            if (argResults.HasAnyError())
                 return BadRequest();
             
             if (env.IsProduction() && date.Date > DateTime.UtcNow.Date)
                 return new List<CardDto>();
 
+            var (
+                userId,
+                collectionIdResult,
+                scheduleUserIdResult,
+                scheduleIdResult
+                ) = argResults;
+            
             var cardsResult = await commandManager
                 .GetCommand<GetCardsQueueCommand>()
                 .Handle(new GetCardsQueueRequest(
                     userId.Value,
-                    CollectionId.Create(collectionId).Value,
-                    UserId.Create(scheduleUserId).Value,
-                    ScheduleId.Create(scheduleId).Value,
+                    collectionIdResult.Value,
+                    scheduleUserIdResult.Value,
+                    scheduleIdResult.Value,
                     phaseIndex,
                     date));
 
@@ -174,56 +210,82 @@ namespace IntervalLearningApi.Controllers
             short scheduleId,
             [Range(1, 1000)]int count)
         {
-            var userId = HttpContext.GetUserId();
+            var argsResults = (
+                UserId.Create(scheduleUserId),
+                ScheduleId.Create(scheduleId),
+                HttpContext.GetUserId(),
+                CollectionId.Create(collectionId)
+            );
 
-            if (userId.IsFailed)
+            if (argsResults.HasAnyError())
                 return BadRequest();
 
+            var (scheduleUserIdResult, scheduleIdResult, userId, collectionIdResult) = argsResults;
             var cardsResult = await commandManager
                 .GetCommand<GetNotStartedCardsCommand>()
                 .Handle(new GetNotStartedCardsRequest(
-                    UserId.Create(scheduleUserId).Value,
-                    ScheduleId.Create(scheduleId).Value,
+                    scheduleUserIdResult.Value,
+                    scheduleIdResult.Value,
                     userId.Value,
-                    CollectionId.Create(collectionId).Value,
+                    collectionIdResult.Value,
                     count));
 
             return cardsResult.ToActionResult(cards => mapper.Map<List<CardDto>>(cards));
         }
 
         [HttpDelete(ApiRoutes.Cards.Delete_DeleteCard)]
-        public async Task<ActionResult<CardDto>> DeleteCard(short collectionId, short cardId)
+        public async Task<ActionResult<CardDto>> DeleteCard(
+            short collectionId,
+            short cardId)
         {
-            var userId = HttpContext.GetUserId();
+            var argsResult = (
+                HttpContext.GetUserId(),
+                CollectionId.Create(collectionId),
+                CardId.Create(cardId)
+            );
 
-            if (userId.IsFailed)
+            if (argsResult.HasAnyError())
                 return BadRequest();
 
+            var (userId, collectionIdResult, cardIdResult) = argsResult;
             var cardResult = await commandManager
                 .GetCommand<DeleteCardFromCollectionCommand>()
                 .Handle(new DeleteCardFromCollectionRequest(
                     userId.Value,
-                    CollectionId.Create(collectionId).Value,
-                    CardId.Create(cardId).Value));
+                    collectionIdResult.Value,
+                    cardIdResult.Value));
             
             return cardResult.ToActionResult(card => mapper.Map<CardDto>(card));
         }
 
         [HttpPost(ApiRoutes.Cards.Post_MoveCard)]
-        public async Task<ActionResult<CardDto>> MoveCard(short collectionId, [FromBody] MoveRequest request)
+        public async Task<ActionResult<CardDto>> MoveCard(
+            short collectionId,
+            [FromBody] MoveCardRequest cardRequest)
         {
-            var userId = HttpContext.GetUserId();
+            var validation = validatorResolver.Validate(cardRequest);
 
-            if (userId.IsFailed)
+            if (validation.IsFailed)
+                return validation.ToErrorActionResult();
+            
+            var argsResult = (
+                HttpContext.GetUserId(),
+                CollectionId.Create(collectionId),
+                CollectionId.Create(cardRequest.DestinationCollectionId),
+                CardId.Create(cardRequest.CardId)
+            );
+
+            if (argsResult.HasAnyError())
                 return BadRequest();
 
+            var (userId, collectionIdResult, destinationCollectionIdResult, cardIdResult) = argsResult;
             var cardResult = await commandManager
                 .GetCommand<MoveCollectionCardCommand>()
                 .Handle(new MoveCollectionCardRequest(
                     userId.Value,
-                    CollectionId.Create(collectionId).Value,
-                    CollectionId.Create(request.DestinationCollectionId).Value,
-                    CardId.Create(request.CardId).Value));
+                    collectionIdResult.Value,
+                    destinationCollectionIdResult.Value,
+                    cardIdResult.Value));
             
             return cardResult.ToActionResult(card => mapper.Map<CardDto>(card));
         }
@@ -236,16 +298,20 @@ namespace IntervalLearningApi.Controllers
             [FromQuery] int page = 1,
             [FromQuery] int count = 10)
         {
-            var userId = HttpContext.GetUserId();
+            var argsResult = (
+                HttpContext.GetUserId(),
+                CollectionId.Create(collectionId)
+            );
 
-            if (userId.IsFailed)
+            if (argsResult.HasAnyError())
                 return BadRequest();
 
+            var (userId, collectionIdResult) = argsResult;
             var cardsResult = await commandManager
                 .GetCommand<SearchCardsCommand>()
                 .Handle(new SearchCardsRequest(
                     userId.Value,
-                    CollectionId.Create(collectionId).Value,
+                    collectionIdResult.Value,
                     searchValue.ToLower(),
                     (Application.Commands.Cards.SearchCards.SearchFieldType)fieldType,
                     page,
@@ -255,24 +321,35 @@ namespace IntervalLearningApi.Controllers
         }
 
         [HttpPost(ApiRoutes.Cards.Post_StartCards)]
-        public async Task<ActionResult<StartCardResponse>> StartCards(short collectionId, [FromBody]CardsItem item)
+        public async Task<ActionResult<StartCardsResponse>> StartCards(
+            short collectionId,
+            [FromBody]StartCardsRequest request)
         {
-            var userId = HttpContext.GetUserId();
+            var validation = validatorResolver.Validate(request);
 
-            if (userId.IsFailed)
+            if (validation.IsFailed)
+                return validation.ToErrorActionResult();
+            
+            var argsResult = (
+                HttpContext.GetUserId(),
+                CollectionId.Create(collectionId)
+            );
+
+            if (argsResult.HasAnyError())
                 return BadRequest();
 
+            var (userId, collectionIdResult) = argsResult;
             var closestRepeatInfoResult = await commandManager
                 .GetCommand<StartLearnCardsCommand>()
                 .Handle(new StartLearnCardsRequest(
                     userId.Value,
-                    CollectionId.Create(collectionId).Value,
-                    UserId.Create(item.ScheduleUserId).Value,
-                    ScheduleId.Create(item.ScheduleId).Value, 
-                    item.CardIds.Select(cId => CardId.Create(cId).Value).ToList()));
+                    collectionIdResult.Value,
+                    UserId.Create(request.ScheduleUserId).Value,
+                    ScheduleId.Create(request.ScheduleId).Value, 
+                    request.CardIds.Select(cId => CardId.Create(cId).Value).ToList()));
 
             return closestRepeatInfoResult.ToActionResult(closestRepeatInfo =>
-                new StartCardResponse(
+                new StartCardsResponse(
                     closestRepeatInfo.NextRepeatDate,
                     closestRepeatInfo.NextPhase == null
                         ? null
@@ -281,22 +358,33 @@ namespace IntervalLearningApi.Controllers
         }
 
         [HttpPatch(ApiRoutes.Cards.Path_RememberCard)]
-        public async Task<ActionResult<RememberCardResponse>> RememberCard(short collectionId, [FromBody] RememberRequest request)
+        public async Task<ActionResult<RememberCardResponse>> RememberCard(
+            short collectionId, 
+            [FromBody] RememberCardRequest cardRequest)
         {
-            var userId = HttpContext.GetUserId();
+            var validation = validatorResolver.Validate(cardRequest);
 
-            if (userId.IsFailed)
+            if (validation.IsFailed)
+                return validation.ToErrorActionResult();
+            
+            var argsResult = (
+                HttpContext.GetUserId(),
+                CollectionId.Create(collectionId)
+            );
+
+            if (argsResult.HasAnyError())
                 return BadRequest();
 
+            var (userId, collectionIdResult) = argsResult;
             var closestRepeatInfoResult = await commandManager
                 .GetCommand<RememberCardCommand>()
-                .Handle(new RememberCardRequest(
+                .Handle(new Application.Commands.Cards.RememberCard.RememberCardRequest(
                     userId.Value,
-                    CollectionId.Create(collectionId).Value,
-                    UserId.Create(request.ScheduleUserId).Value,
-                    ScheduleId.Create(request.ScheduleId).Value,
-                    request.PhaseIndex,
-                    ToCardServiceRememberItems(request.RememberItems),
+                    collectionIdResult.Value,
+                    UserId.Create(cardRequest.ScheduleUserId).Value,
+                    ScheduleId.Create(cardRequest.ScheduleId).Value,
+                    cardRequest.PhaseIndex,
+                    ToCardServiceRememberItems(cardRequest.RememberItems),
                     env.IsDevelopment()));
 
             return closestRepeatInfoResult.ToActionResult(closestRepeatInfo =>
@@ -316,80 +404,5 @@ namespace IntervalLearningApi.Controllers
                 Weight = RememberWeight.Create(r.Weight).Value,
             }).ToList();
         }
-    }
-
-    public class StartCardResponse
-    {
-        public DateTime? NextRepeatDate { get; }
-        public PhaseDto? NextRepeatPhase { get; }
-        public int NextPhaseIndex { get; }
-
-        public StartCardResponse(DateTime? nextRepeatDate, PhaseDto? nextRepeatPhase, int nextPhaseIndex)
-        {
-            NextRepeatDate = nextRepeatDate;
-            NextRepeatPhase = nextRepeatPhase;
-            NextPhaseIndex = nextPhaseIndex;
-        }
-    }
-
-    public class RememberCardResponse
-    {
-        public DateTime? NextRepeatDate { get; }
-        public PhaseDto? NextRepeatPhase { get; }
-        public int NextPhaseIndex { get; }
-
-        public RememberCardResponse(DateTime? nextRepeatDate, PhaseDto? nextRepeatPhase, int nextPhaseIndex)
-        {
-            NextRepeatDate = nextRepeatDate;
-            NextRepeatPhase = nextRepeatPhase;
-            NextPhaseIndex = nextPhaseIndex;
-        }
-    }
-
-    public class CardsItem
-    {
-        public long ScheduleUserId { get; set; }
-        public short ScheduleId { get; set; }
-        public List<short> CardIds { get; set; }
-    }
-
-    public class RememberRequest
-    {
-        public List<RememberItemDto> RememberItems { get; set; }
-        public long ScheduleUserId { get; set; }
-        public short ScheduleId { get; set; }
-        public short PhaseIndex { get; set; }
-    }
-
-    public class MoveRequest
-    {
-        public short DestinationCollectionId { get; set; }
-        public short CardId { get; set; }
-    }
-
-    public class RememberItemDto
-    {
-        public short CardId { get; set; }
-        public float Weight { get; set; }
-    }
-
-    public class CreateCardItem
-    {
-        public short? CardId { get; set; }
-        [Required]
-        [StringLength(255)]
-        public string FrontText { get; set; }
-
-        [StringLength(255)] 
-        public string? PromptText { get; set; }
-
-        [Required]
-        [StringLength(255)]
-        public string BackText { get; set; }
-        [StringLength(500)]
-        public string? Description { get; set; }
-
-        [MaxLength(15)]
-        public List<string>? Examples { get; set; }
     }
 }

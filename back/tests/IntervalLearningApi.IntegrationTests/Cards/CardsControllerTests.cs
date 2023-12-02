@@ -162,7 +162,7 @@ public class CardsControllerTests : SharedApiTests
         var fakeCard = new CardFaker().Generate();
         var createdCard = await CreateCardAsync(
             short.Parse(collection.Id),
-            new CreateCardItem()
+            new CreateCardRequest()
             {
                 BackText = fakeCard.BackText,
                 PromptText = fakeCard.PromptText,
@@ -192,7 +192,7 @@ public class CardsControllerTests : SharedApiTests
         var fakeCard = new CardFaker().Generate();
         var createdCard = await CreateCardAsync(
             short.Parse(collection.Id),
-            new CreateCardItem()
+            new CreateCardRequest()
             {
                 BackText = fakeCard.BackText,
                 FrontText = fakeCard.FrontText,
@@ -217,7 +217,7 @@ public class CardsControllerTests : SharedApiTests
 
         //Act
         var fakeCard = new CardFaker().Generate();
-        var updateItem = new CreateCardItem()
+        var updateItem = new CreateCardRequest()
         {
             CardId = short.Parse(oldCard.Id),
             BackText = fakeCard.BackText,
@@ -244,7 +244,7 @@ public class CardsControllerTests : SharedApiTests
 
         //Act
         var fakeCard = new CardFaker().Generate();
-        var updateItem = new CreateCardItem()
+        var updateItem = new CreateCardRequest()
         {
             CardId = short.Parse(oldCard.Id),
             BackText = fakeCard.BackText,
@@ -276,7 +276,7 @@ public class CardsControllerTests : SharedApiTests
         var fakeCard = new CardFaker().Generate();
         var updatedCard = await CreateCardAsync(
             short.Parse(collection.Id), 
-            new CreateCardItem()
+            new CreateCardRequest()
         {
             CardId = (short)(short.Parse(card.Id) + 1),
             BackText = fakeCard.BackText,
@@ -317,7 +317,7 @@ public class CardsControllerTests : SharedApiTests
         //Act
         var createdCard = await CreateCardAsync(
             short.Parse(collection.Id),
-            new CreateCardItem()
+            new CreateCardRequest()
             {
                 BackText = backText,
                 FrontText = frontText,
@@ -420,7 +420,7 @@ public class CardsControllerTests : SharedApiTests
         //Act
         var moveCardResponse = await client.PostAsJsonAsync(
             Query(collection.Id, ApiRoutes.Cards.Post_MoveCard),
-            new MoveRequest()
+            new MoveCardRequest()
             {
                 CardId = short.Parse(createdCard.Id),
                 DestinationCollectionId = short.Parse(otherCollection.Id),
@@ -447,7 +447,7 @@ public class CardsControllerTests : SharedApiTests
         //Act
         await client.PostAsJsonAsync(
             Query(collection.Id, ApiRoutes.Cards.Post_MoveCard),
-            new MoveRequest()
+            new MoveCardRequest()
             {
                 CardId = short.Parse(createdCard.Id),
                 DestinationCollectionId = short.Parse(otherCollection.Id),
@@ -474,7 +474,7 @@ public class CardsControllerTests : SharedApiTests
         var randomCollectionId = new Faker().Random.Short(min: (short)(short.Parse(collection.Id) + 1));
         var moveCardResponse = await client.PostAsJsonAsync(
             Query(collection.Id, ApiRoutes.Cards.Post_MoveCard),
-            new MoveRequest()
+            new MoveCardRequest()
             {
                 CardId = short.Parse(createdCard.Id),
                 DestinationCollectionId = randomCollectionId,
@@ -499,7 +499,7 @@ public class CardsControllerTests : SharedApiTests
         var randomCollectionId = new Faker().Random.Short(min: (short)(short.Parse(collection.Id) + 1));
         await client.PostAsJsonAsync(
             Query(collection.Id, ApiRoutes.Cards.Post_MoveCard),
-            new MoveRequest()
+            new MoveCardRequest()
             {
                 CardId = short.Parse(createdCard.Id),
                 DestinationCollectionId = randomCollectionId,

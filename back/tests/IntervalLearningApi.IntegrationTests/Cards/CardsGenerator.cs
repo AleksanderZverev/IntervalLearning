@@ -39,7 +39,7 @@ public class CardsGenerator : LocalApiTests
         while (amount > 0)
         {
             var fakeCard = new CardFaker().Generate();
-            var randomCard = new CreateCardItem()
+            var randomCard = new CreateCardRequest()
             {
                 BackText = fakeCard.BackText,
                 FrontText = fakeCard.FrontText,

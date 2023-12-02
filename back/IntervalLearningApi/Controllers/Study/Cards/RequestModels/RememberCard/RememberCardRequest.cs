@@ -1,4 +1,22 @@
+using DB.Models.ValueObjects;
+using Domain.User.ValueObjects;
+using FluentValidation;
+using IntervalLearningApi.Extensions;
+
 namespace IntervalLearningApi.Controllers;
+
+public class RememberCardRequestValidator : AbstractValidator<RememberCardRequest>
+{
+    public RememberCardRequestValidator()
+    {
+        RuleFor(p => p.ScheduleUserId).ShouldBeCreatable(UserId.Create);
+        RuleFor(p => p.ScheduleId).ShouldBeCreatable(ScheduleId.Create);
+        RuleFor(p => p.PhaseIndex).GreaterThanOrEqualTo((short)0);
+        
+        RuleFor(p => p.RememberItems).NotNull().NotEmpty();
+        RuleForEach(p => p.RememberItems).SetValidator(new RememberItemValidator());
+    }
+}
 
 public class RememberCardRequest
 {

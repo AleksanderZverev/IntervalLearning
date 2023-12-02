@@ -74,7 +74,7 @@ public class SharedApiTests : BaseApiTests, IClassFixture<SharedDockerIntervalLe
             var fakeCard = new CardFaker().Generate();
             var createdCard = await CreateCardAsync(
                 short.Parse(collectionId),
-                new CreateCardItem()
+                new CreateCardRequest()
                 {
                     BackText = fakeCard.BackText,
                     FrontText = fakeCard.FrontText,
@@ -105,7 +105,7 @@ public class SharedApiTests : BaseApiTests, IClassFixture<SharedDockerIntervalLe
         return (collection, cards);
     }
 
-    protected async Task<CardDto?> CreateCardAsync(short collectionId, CreateCardItem card)
+    protected async Task<CardDto?> CreateCardAsync(short collectionId, CreateCardRequest card)
     {
         var createCardResponse = await sharedClient.PostAsJsonAsync(
             AbsoluteQuery(ApiRoutes.Cards.GetBasePath(collectionId), ApiRoutes.Cards.Post_CreateCard),

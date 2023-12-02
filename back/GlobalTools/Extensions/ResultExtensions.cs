@@ -1,3 +1,4 @@
+using System.Runtime.CompilerServices;
 using FluentResults;
 
 namespace Infrastructure.Extensions;
@@ -20,6 +21,19 @@ public static class ResultExtensions
     //         ? Result.Fail(error)
     //         : value;
     // }
+
+    public static bool HasAnyError(this ITuple tuple)
+    {
+        for (var i = 0; i < tuple.Length; i++)
+        {
+            var item = tuple[i];
+            
+            if (item is IResultBase { IsFailed: true }) 
+                return true;
+        }
+
+        return false;
+    }
 
     public static Task<Result<TNewValue>> ErrorIfNull<TNewValue>(
         this Task<Result<TNewValue?>> task,
