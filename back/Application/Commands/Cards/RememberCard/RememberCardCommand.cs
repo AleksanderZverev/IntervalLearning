@@ -82,11 +82,8 @@ public class RememberCardCommand : ICommand<RememberCardRequest, NextRepeatInfoR
             }
             
             var remember = CreateRemember(schedule, card, weight, queueItem.PhaseIndex, now);
-            var addRememberResult = studyRepository.CardRemembers.Add(remember);
-            var removeQueueResult = studyRepository.RepeatingQueue.Delete(queueItem);
-
-            if (addRememberResult.IsFailed || removeQueueResult.IsFailed)
-                return new InternalError();
+            studyRepository.CardRemembers.Add(remember);
+            studyRepository.RepeatingQueue.Delete(queueItem);
             
             var currentPhase = schedule.GetPhase(queueItem.PhaseIndex);
             
@@ -97,12 +94,7 @@ public class RememberCardCommand : ICommand<RememberCardRequest, NextRepeatInfoR
                 userId,
                 weight);
 
-            var phaseRememberAddResult = studyRepository.PhaseRemembers.Add(phaseRemember);
-
-            if (phaseRememberAddResult.IsFailed)
-            {
-                //LOG WARN
-            }
+            studyRepository.PhaseRemembers.Add(phaseRemember);
 
             var (nextPhaseIndex, nextPhase) = schedule.GetNextPhase(card, remember);
 
@@ -112,10 +104,7 @@ public class RememberCardCommand : ICommand<RememberCardRequest, NextRepeatInfoR
             var nextRepeatDate = nextPhase.GetNextDate(now);
             var newQueueItem = GetNextQueue(schedule, card, nextPhaseIndex, nextRepeatDate);
             
-            var addNewQueueResult = studyRepository.RepeatingQueue.Add(newQueueItem);
-
-            if (addNewQueueResult.IsFailed)
-                return new InternalError();
+            studyRepository.RepeatingQueue.Add(newQueueItem);
 
             if (nextRepeatDate < closestRepeatDate)
             {
@@ -125,8 +114,10 @@ public class RememberCardCommand : ICommand<RememberCardRequest, NextRepeatInfoR
             }
         }
 
-        // if (!await db.SoftSaveChangesAsync())
-        //     return new InternalError();
+        var saveResult = await studyRepository.SaveChangesAsync();
+
+        if (saveResult.IsFailed)
+            return saveResult;
 
         transaction.Complete();
 

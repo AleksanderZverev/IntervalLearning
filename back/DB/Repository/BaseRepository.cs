@@ -20,24 +20,24 @@ public class BaseRepository<TEntity> : IRepository<TEntity>
         return db.Set<TEntity>().AsQueryable();
     }
 
-    protected virtual void MarkAdded(TEntity entity)
+    public virtual TEntity Add(TEntity entity)
     {
-        db.Add(entity);
+        return db.Add(entity).Entity;
     }
 
-    protected virtual void MarkUpdated(TEntity entity)
+    public virtual TEntity Update(TEntity entity)
     {
-        db.Update(entity);
+        return db.Update(entity).Entity;
     }
 
-    protected virtual void MarkRemoved(TEntity entity)
+    public virtual TEntity Delete(TEntity entity)
     {
-        db.Remove(entity);
+        return db.Remove(entity).Entity;
     }
 
-    public Result<TEntity> Add(TEntity entity)
+    public Result<TEntity> AddAndSave(TEntity entity)
     {
-        MarkAdded(entity);
+        Add(entity);
         return db.SoftSaveChanges()
             ? entity
             : new InternalError();
@@ -47,7 +47,7 @@ public class BaseRepository<TEntity> : IRepository<TEntity>
     {
         foreach (var entity in entities)
         {
-            MarkAdded(entity);
+            Add(entity);
         }
         
         return db.SoftSaveChanges()
@@ -55,43 +55,39 @@ public class BaseRepository<TEntity> : IRepository<TEntity>
             : new InternalError();
     }
 
-    public Result<TEntity> Update(TEntity entity)
+    public Result<TEntity> UpdateAndSave(TEntity entity)
     {
-        MarkUpdated(entity);
+        Update(entity);
         return db.SoftSaveChanges()
             ? entity
             : new InternalError();
     }
 
-    public Result<IList<TEntity>> UpdateRange(IList<TEntity> entities)
+    public IList<TEntity> UpdateRange(IList<TEntity> entities)
     {
         foreach (var entity in entities)
         {
-            MarkUpdated(entity);
+            Update(entity);
         }
         
-        return db.SoftSaveChanges()
-            ? entities.ToResult()
-            : new InternalError();
+        return entities;
     }
 
-    public Result<TEntity> Delete(TEntity entity)
+    public Result<TEntity> DeleteAndSave(TEntity entity)
     {
-        MarkRemoved(entity);
+        Delete(entity);
         return db.SoftSaveChanges()
             ? entity
             : new InternalError();
     }
 
-    public Result<IList<TEntity>> DeleteRange(IList<TEntity> entities)
+    public IList<TEntity> DeleteRange(IList<TEntity> entities)
     {
         foreach (var entity in entities)
         {
-            MarkRemoved(entity);
+            Delete(entity);
         }
-        
-        return db.SoftSaveChanges()
-            ? entities.ToResult()
-            : new InternalError();
+
+        return entities;
     }
 }

@@ -52,10 +52,11 @@ public class StartLearnCardsCommand : ICommand<StartLearnCardsRequest, NextRepea
 
         var startedDate = DateTime.UtcNow;
 
-        var addRemembersResult = studyRepository.CardRemembers.AddRange(startedCards
+        studyRepository.CardRemembers.AddRange(startedCards
             .Select(c => CreateRemember(schedule, c, RememberWeight.Create(1f).Value, -1, startedDate))
             .ToList());
 
+        var addRemembersResult = await studyRepository.SaveChangesAsync();
         if (addRemembersResult.IsFailed)
         {
             return new InternalError();
@@ -67,6 +68,10 @@ public class StartLearnCardsCommand : ICommand<StartLearnCardsRequest, NextRepea
         {
             return nextRepeatInfoResult;
         }
+
+        var startingCardsResult = await studyRepository.SaveChangesAsync();
+        if (startingCardsResult.IsFailed)
+            return startingCardsResult;
 
         transaction.Complete();
         return nextRepeatInfoResult.Value;
@@ -107,8 +112,9 @@ public class StartLearnCardsCommand : ICommand<StartLearnCardsRequest, NextRepea
             }
         }
 
-        var addedQueuesResult = studyRepository.RepeatingQueue.AddRange(queueItems);
+        studyRepository.RepeatingQueue.AddRange(queueItems);
 
+        var addedQueuesResult = studyRepository.SaveChanges();
         if (addedQueuesResult.IsFailed)
         {
             return new InternalError();

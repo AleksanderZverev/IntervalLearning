@@ -51,7 +51,6 @@ public class MoveCardCommand : ICommand<MoveCardRequest, Card>
             Examples = card.Examples is { Count: > 0 }
                 ? card.Examples.ToList()
                 : new List<CardExample>(),
-
         });
 
         if (movedCardResult.IsFailed)
@@ -73,18 +72,15 @@ public class MoveCardCommand : ICommand<MoveCardRequest, Card>
                 r.RepeatedDate))
             .ToList();
         
-        var updateMovedCardResult = studyRepository.Cards.Update(movedCard);
+        studyRepository.Cards.Update(movedCard);
 
+        var updateMovedCardResult = await studyRepository.SaveChangesAsync();
         if (updateMovedCardResult.IsFailed)
             return updateMovedCardResult;
 
-        var deletionResult = await deleteCardCommand.Handle(
-            new DeleteCardRequest(userId, sourceCollectionId, cardId));
-
+        var deletionResult = await deleteCardCommand.Handle(new DeleteCardRequest(userId, sourceCollectionId, cardId));
         if (deletionResult.IsFailed)
-        {
             return deletionResult;
-        }
 
         transaction.Complete();
         return movedCard;

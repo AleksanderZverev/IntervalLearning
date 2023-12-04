@@ -39,6 +39,6 @@ public class CreateThemeCommand : ICommand<CreateThemeRequest>
             Name = themeTitle
         };
 
-        return studyRepository.Themes.Update(theme).ToResult();
+        return studyRepository.Themes.UpdateAndSave(theme).ToResult();
     }
 }

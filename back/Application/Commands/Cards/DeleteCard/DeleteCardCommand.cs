@@ -23,6 +23,6 @@ public class DeleteCardCommand : ICommand<DeleteCardRequest, Card>
             .Find(request.UserId, request.CollectionId, request.CardId)
             .ToResultAsync()
             .ErrorIfNull(new NotFoundError(nameof(Card)))
-            .Bind(c => studyRepository.Cards.Delete(c));
+            .Bind(c => studyRepository.Cards.DeleteAndSave(c));
     }
 }

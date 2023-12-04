@@ -130,33 +130,25 @@ public class AddPublicCollectionCommand : ICommand<AddPublicCollectionCommandReq
 
         if (subscriber == null)
         {
-            var addSubscriberResult = storeRepository.Subscribers.Add(new PublicCollectionSubscriber()
+            storeRepository.Subscribers.Add(new PublicCollectionSubscriber()
             {
                 ParentUserId = publicCollectionUserId,
                 ParentCollectionId = publicCollectionId,
                 SubscriberUserId = myUserId,
                 IsAdded = true,
             });
-
-            if (addSubscriberResult.IsFailed)
-            {
-                return new InternalError();
-            }
         }
         else
         {
             subscriber.IsAdded = true;
-            var updateSubscriberResult = storeRepository.Subscribers.Update(subscriber);
-
-            if (updateSubscriberResult.IsFailed)
-            {
-                return new InternalError();
-            }
+            storeRepository.Subscribers.Update(subscriber);
         }
         
         publication.SubscribersCount++;
-        var updatePublicationResult = storeRepository.Publications.Update(publication);
+        storeRepository.Publications.Update(publication);
 
+        var updatePublicationResult = await storeRepository.SaveChangesAsync();
+        
         if (updatePublicationResult.IsFailed)
         {
             return new InternalError();

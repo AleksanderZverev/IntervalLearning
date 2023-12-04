@@ -14,9 +14,8 @@ public class PublicCollectionRepository : IPublicCollectionRepository
         this.studyRepository = studyRepository;
     }
 
-    public Result<Collection> Update(Collection collection)
+    public Collection Update(Collection collection)
     {
-        studyRepository.Collections.Update(collection);
-        return collection;
+        return studyRepository.Collections.Update(collection);
     }
 }

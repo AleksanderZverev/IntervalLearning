@@ -48,16 +48,13 @@ public class MakeCollectionPublicCommand : ICommand<MakeCollectionPublicCommandR
                     ParentCollectionId = collectionId,
                 };
 
-                var addedPublicationResult = storeRepository.Publications.Add(publication);
-
-                if (addedPublicationResult.IsFailed)
-                {
-                    return new InternalError();
-                }
+                storeRepository.Publications.Add(publication);
 
                 collection.MakePublic();
-                var updateResult = storeRepository.Collections.Update(collection);
-        
+                storeRepository.Collections.Update(collection);
+
+                var updateResult = await storeRepository.SaveChangesAsync();
+                
                 if (updateResult.IsFailed)
                 {
                     return new InternalError();

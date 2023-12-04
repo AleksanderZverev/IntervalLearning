@@ -31,6 +31,6 @@ public class CreateCollectionCommand : ICommand<CreateCollectionCommandRequest, 
         var newCollection = newCollectionResult.Value;
         newCollection.IsDefaultBackSide = request.IsDefaultBackSide;
         
-        return Task.FromResult(studyRepository.Collections.Add(newCollection));
+        return Task.FromResult(studyRepository.Collections.AddAndSave(newCollection));
     }
 }

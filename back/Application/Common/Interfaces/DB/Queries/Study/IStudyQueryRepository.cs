@@ -8,7 +8,7 @@ using Application.Common.Interfaces.DB.Repositories;
 
 namespace Application.Common.Interfaces.DB.Queries.Study;
 
-public interface IStudyQueryRepository : IBoundedContextRepository
+public interface IStudyQueryRepository : IBoundedContextQueryRepository
 {
     public ICardsQueryResolver Cards { get; }
     public ICollectionQueryResolver Collections { get; }

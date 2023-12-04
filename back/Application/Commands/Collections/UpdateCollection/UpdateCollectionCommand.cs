@@ -29,7 +29,7 @@ public class UpdateCollectionCommand : ICommand<UpdateCollectionCommandRequest, 
                 collection.Title = CollectionTitle.Create(request.Title).Value;
                 collection.ThemeId = request.ThemeId;
                 collection.IsDefaultBackSide = request.IsDefaultBackSide;
-                return studyRepository.Collections.Update(collection);
+                return studyRepository.Collections.UpdateAndSave(collection);
             });
     }
 }

@@ -45,7 +45,7 @@ public class AuthenticateCommand : ICommand<AuthenticateCommandRequest, Authenti
         var jwtToken = jwtService.GenerateJwtToken(user);
         var refreshToken = jwtService.GenerateRefreshToken(user, ipAddress);
 
-        var addRefreshTokenResult = accountRepository.RefreshTokens.Add(refreshToken);
+        var addRefreshTokenResult = accountRepository.RefreshTokens.AddAndSave(refreshToken);
 
         if (addRefreshTokenResult.IsFailed)
             return addRefreshTokenResult.ToResult();
@@ -61,5 +61,6 @@ public class AuthenticateCommand : ICommand<AuthenticateCommandRequest, Authenti
             .ToList();
         
         accountRepository.RefreshTokens.DeleteRange(tokensToDelete);
+        accountRepository.SaveChanges();
     }
 }

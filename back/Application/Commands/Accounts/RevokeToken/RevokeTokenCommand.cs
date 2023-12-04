@@ -33,7 +33,8 @@ public class RevokeTokenCommand : ICommand<RevokeTokenCommandRequest>
             return new BadRequestError("Refresh token is invalid");
         
         refreshToken.Revoke(dateTimeProvider.UtcNow, request.IpAddress, "Revoked without replacement");
-        
-        return accountRepository.Users.Update(user).ToResult();
+
+        accountRepository.Users.Update(user);
+        return await accountRepository.SaveChangesAsync();
     }
 }

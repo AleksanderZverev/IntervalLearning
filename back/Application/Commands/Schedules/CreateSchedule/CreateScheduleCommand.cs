@@ -80,7 +80,7 @@ public class CreateScheduleCommand : ICommand<CreateScheduleCommandRequest, Repe
         var newPhases = item.Phases.Select(p => ConvertToPhase(newSchedule, p)).ToList();
         newSchedule.Phases = newPhases;
 
-        var addScheduleResult = studyRepository.RepeatsSchedules.Add(newSchedule);
+        var addScheduleResult = studyRepository.RepeatsSchedules.AddAndSave(newSchedule);
 
         if (addScheduleResult.IsFailed)
         {

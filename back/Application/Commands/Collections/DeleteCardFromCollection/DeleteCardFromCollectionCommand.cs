@@ -51,7 +51,7 @@ public class DeleteCardFromCollectionCommand : ICommand<DeleteCardFromCollection
 
         collection.CardsCount.Decrement();
         
-        var updateResult = studyRepository.Collections.Update(collection);
+        var updateResult = studyRepository.Collections.UpdateAndSave(collection);
 
         if (updateResult.IsFailed)
         {

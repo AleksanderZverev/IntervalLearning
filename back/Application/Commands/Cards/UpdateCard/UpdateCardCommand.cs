@@ -32,6 +32,6 @@ public class UpdateCardCommand : ICommand<UpdateCardRequest, Card>
                 card.Examples = request.Examples;
                 return card.ToResult();
             })
-            .Bind(updatedCard => studyRepository.Cards.Update(updatedCard));
+            .Bind(updatedCard => studyRepository.Cards.UpdateAndSave(updatedCard));
     }
 }

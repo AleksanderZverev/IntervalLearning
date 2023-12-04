@@ -52,8 +52,7 @@ public class RegisterAccountCommand : ICommand<RegisterAccountRequest>
         
         using var transaction = transactionProvider.CreateScope();
 
-        var creatingResult = Result.Ok()
-            .Bind(() => accountRepository.Users.Add(user));
+        var creatingResult = accountRepository.Users.AddAndSave(user);
 
         if (creatingResult.IsFailed)
         {

@@ -47,14 +47,12 @@ public class MoveCollectionCardCommand : ICommand<MoveCollectionCardRequest, Car
         }
 
         sourceCollection.CardsCount.Decrement();
-        destinationCollection.CardsCount.Increment();
-        
-        var updatingResult = studyRepository.Collections.UpdateRange(new List<Collection>()
-        {
-            sourceCollection,
-            destinationCollection
-        });
+        // destinationCollection.CardsCount.Increment();
 
+        studyRepository.Collections.Update(sourceCollection);
+        studyRepository.Collections.Update(destinationCollection);
+        
+        var updatingResult = await studyRepository.SaveChangesAsync();
         if (updatingResult.IsFailed)
             return new InternalError();
 

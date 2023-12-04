@@ -18,11 +18,15 @@ using Domain.Schedule;
 using Domain.Schedule.Entities.Remember;
 using Domain.Theme;
 using Domain.User.ValueObjects;
+using FluentResults;
+using Infrastructure.Errors;
 
 namespace DB.Repository.Study;
 
 public class StudyRepository : IStudyRepository
 {
+    private readonly ApplicationContext db;
+    
     public IStudyQueryRepository Query { get; }
     
     public IRepository<Theme, ThemeId, ThemeIdParams> Themes { get; }
@@ -39,6 +43,7 @@ public class StudyRepository : IStudyRepository
     public IRepository<PhaseRememberEntity> PhaseRemembers { get; }
 
     public StudyRepository(
+        ApplicationContext db,
         IStudyQueryRepository query,
         IRepository<Theme, ThemeId, ThemeIdParams> themes,
         IRepository<Collection, CollectionId, CollectionIdParams> collections,
@@ -49,6 +54,7 @@ public class StudyRepository : IStudyRepository
         IRepository<Remember, RememberId, RememberIdParams> cardRemembers,
         IRepository<PhaseRememberEntity> phaseRemembers)
     {
+        this.db = db;
         Query = query;
         Themes = themes;
         Collections = collections;
@@ -58,5 +64,15 @@ public class StudyRepository : IStudyRepository
         RepeatingQueue = repeatingQueue;
         CardRemembers = cardRemembers;
         PhaseRemembers = phaseRemembers;
+    }
+    
+    public Result SaveChanges()
+    {
+        return Result.OkIf(db.SoftSaveChanges(), new InternalError());
+    }
+
+    public async Task<Result> SaveChangesAsync()
+    {
+        return Result.OkIf(await db.SoftSaveChangesAsync(), new InternalError());
     }
 }

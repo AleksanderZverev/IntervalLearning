@@ -4,7 +4,7 @@ using Application.Common.Interfaces.DB.Repositories;
 
 namespace Application.Common.Interfaces.DB.Queries.Accounts;
 
-public interface IAccountQueryRepository : IBoundedContextRepository
+public interface IAccountQueryRepository : IBoundedContextQueryRepository
 {
     IUsersQueryRepository Users { get; }
     IRefreshTokensQueryRepository RefreshTokens { get; }

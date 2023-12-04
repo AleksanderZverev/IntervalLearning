@@ -43,10 +43,7 @@ public class RefreshTokenCommand : ICommand<RefreshTokenCommandRequest, Authenti
         if (refreshTokenItem.IsRevoked)
         {
             RevokeDescendantRefreshTokens(refreshTokenItem, user, request.IpAddress, $"Attempted reuse of revoked ancestor token: {refreshTokenItem.Token}");
-            var updateUserResult = accountRepository.Users.Update(user);
-
-            if (updateUserResult.IsFailed)
-                return updateUserResult.ToResult();
+            accountRepository.Users.Update(user);
         }
 
         if (!refreshTokenItem.IsActive)
@@ -54,10 +51,11 @@ public class RefreshTokenCommand : ICommand<RefreshTokenCommandRequest, Authenti
 
         var newRefreshToken = ReplaceOldRefreshToken(user, refreshTokenItem, request.IpAddress);
         user.RefreshTokens.Add(newRefreshToken);
-        var newRefreshTokenResult = accountRepository.RefreshTokens.Add(newRefreshToken);
+        accountRepository.RefreshTokens.Add(newRefreshToken);
 
+        var newRefreshTokenResult = await accountRepository.SaveChangesAsync();
         if (newRefreshTokenResult.IsFailed)
-            return newRefreshTokenResult.ToResult();
+            return newRefreshTokenResult;
         
         RemoveOldRefreshTokens(user);
         var jwtToken = jwtService.GenerateJwtToken(user);
@@ -98,5 +96,6 @@ public class RefreshTokenCommand : ICommand<RefreshTokenCommandRequest, Authenti
             .ToList();
         
         accountRepository.RefreshTokens.DeleteRange(tokensToDelete);
+        accountRepository.SaveChanges();
     }
 }

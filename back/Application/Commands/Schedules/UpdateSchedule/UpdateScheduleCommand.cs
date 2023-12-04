@@ -47,19 +47,15 @@ public class UpdateScheduleCommand : ICommand<UpdateScheduleCommandRequest, Repe
 
         if (item.Phases != null)
         {
-            var updatePhasesResult = Result.Ok()
-                .Bind(() => studyRepository.Phases.DeleteRange(schedule.Phases))
-                .Bind(_ =>
-                {
-                    schedule.Phases = item.Phases.Select(p => ConvertToPhase(schedule, p)).ToList();
-                    return studyRepository.Phases.AddRange(schedule.Phases);
-                });
-
-            if (updatePhasesResult.IsFailed)
-            {
-                return new InternalError();
-            }
+            studyRepository.Phases.DeleteRange(schedule.Phases);
+            
+            schedule.Phases = item.Phases.Select(p => ConvertToPhase(schedule, p)).ToList();
+            studyRepository.Phases.AddRange(schedule.Phases);
         }
+
+        var updateScheduleResult = await studyRepository.SaveChangesAsync();
+        if (updateScheduleResult.IsFailed)
+            return updateScheduleResult;
         
         transaction.Complete();
         return schedule;

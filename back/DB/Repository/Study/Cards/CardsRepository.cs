@@ -14,34 +14,40 @@ internal class CardsRepository : BaseRepository<Card>, IRepository<Card, CardId,
     {
     }
 
-    protected override void MarkAdded(Card entity)
+    public override Card Add(Card entity)
     {
-        db.Cards.Add(entity);
+        var result = db.Cards.Add(entity).Entity;
     
         if (entity.Remembers is { Count: > 0 })
         {
             db.Remembers.AddRange(entity.Remembers);
         }
+
+        return result;
     }
 
-    protected override void MarkUpdated(Card entity)
+    public override Card Update(Card entity)
     {
-        db.Cards.Update(entity);
+        var result = db.Cards.Update(entity).Entity;
     
         if (entity.Remembers is { Count: > 0 })
         {
             db.Remembers.UpdateRange(entity.Remembers);
         }
+
+        return result;
     }
 
-    protected override void MarkRemoved(Card entity)
+    public override Card Delete(Card entity)
     {
-        db.Cards.Remove(entity);
+        var result = db.Cards.Remove(entity).Entity;
         
         if (entity.Remembers is { Count: > 0 })
         {
             db.Remembers.RemoveRange(entity.Remembers);
         }
+
+        return result;
     }
 
     public Result<CardId> GetUniqueId(CardIdParams param)
