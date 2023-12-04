@@ -39,7 +39,6 @@ public class RememberCardCommand : ICommand<RememberCardRequest, NextRepeatInfoR
             return new NotFoundError("Card's collection");
         }
 
-        //GetForCards
         var queueItems = await studyRepository.Query.RepeatingQueue.GetForCards(
             userId, collectionId, scheduleUserId, scheduleId, phaseIndex, cardIds);
 
@@ -102,7 +101,7 @@ public class RememberCardCommand : ICommand<RememberCardRequest, NextRepeatInfoR
                 continue;
 
             var nextRepeatDate = nextPhase.GetNextDate(now);
-            var newQueueItem = GetNextQueue(schedule, card, nextPhaseIndex, nextRepeatDate);
+            var newQueueItem = CreateNextQueueItem(schedule, card, nextPhaseIndex, nextRepeatDate);
             
             studyRepository.RepeatingQueue.Add(newQueueItem);
 
@@ -129,7 +128,7 @@ public class RememberCardCommand : ICommand<RememberCardRequest, NextRepeatInfoR
         };
     }
     
-    private CardRepeatQueue GetNextQueue(RepeatsSchedule scheduleWithPhases, Card card, int nextPhaseIndex, DateTime nextRepeatDate)
+    private CardRepeatQueue CreateNextQueueItem(RepeatsSchedule scheduleWithPhases, Card card, int nextPhaseIndex, DateTime nextRepeatDate)
     {
         var queueId = studyRepository.RepeatingQueue.GetUniqueId(new(scheduleWithPhases, card)).Value;
         

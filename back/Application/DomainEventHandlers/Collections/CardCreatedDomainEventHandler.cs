@@ -17,7 +17,7 @@ public class CardCreatedDomainEventHandler : IDomainEventHandler<CardCreatedEven
 
     public async Task<Result> Handle(CardCreatedEvent domainEvent)
     {
-        var card = domainEvent.card;
+        var card = domainEvent.Card;
         var collection = await studyRepository.Query.Collections.Find(card.ParentUserId, card.ParentCollectionId);
 
         if (collection == null)

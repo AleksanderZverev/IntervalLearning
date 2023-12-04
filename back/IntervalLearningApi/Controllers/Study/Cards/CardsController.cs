@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using Application.Commands.Cards.CreateCard;
+using Application.Commands.Cards.DeleteCard;
 using Application.Commands.Cards.GetAllCards;
 using Application.Commands.Cards.GetCard;
 using Application.Commands.Cards.GetCardsQueueCommand;
@@ -8,7 +9,6 @@ using Application.Commands.Cards.RememberCard;
 using Application.Commands.Cards.SearchCards;
 using Application.Commands.Cards.StartLearnCards;
 using Application.Commands.Cards.UpdateCard;
-using Application.Commands.Collections.DeleteCardFromCollection;
 using Application.Commands.Collections.MoveCollectionCard;
 using DB.Models.ValueObjects;
 using Domain.Card.ValueObjects;
@@ -253,8 +253,8 @@ namespace IntervalLearningApi.Controllers.Study.Cards
 
             var (userId, collectionIdResult, cardIdResult) = argsResult;
             var cardResult = await commandManager
-                .GetCommand<DeleteCardFromCollectionCommand>()
-                .Handle(new DeleteCardFromCollectionRequest(
+                .GetCommand<DeleteCardCommand>()
+                .Handle(new DeleteCardRequest(
                     userId.Value,
                     collectionIdResult.Value,
                     cardIdResult.Value));

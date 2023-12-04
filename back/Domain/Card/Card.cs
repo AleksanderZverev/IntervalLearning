@@ -65,7 +65,12 @@ public class Card : AggregateRoot<ComplexCardId>
         Id = id;
         AddDomainEvent(new CardCreatedEvent(this));
     }
-    
+
+    public void Delete()
+    {
+        AddDomainEvent(new CardDeletedEvent(this));
+    }
+
     public Remember? FindLastRemember() 
         => Remembers.MaxBy(c => c.Id);
     
