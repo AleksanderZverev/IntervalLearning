@@ -1,4 +1,3 @@
-using Domain.Schedule;
 using Domain.Schedule.ValueObjects;
 
 namespace IntervalLearningApi.IntegrationTests.Learning.Scenarios;

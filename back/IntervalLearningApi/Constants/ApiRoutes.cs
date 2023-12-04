@@ -1,4 +1,3 @@
-using System.Diagnostics.CodeAnalysis;
 using Domain.User.ValueObjects;
 
 namespace IntervalLearningApi.Constants;

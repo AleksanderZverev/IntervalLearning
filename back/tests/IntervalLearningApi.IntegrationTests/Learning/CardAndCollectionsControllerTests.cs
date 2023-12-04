@@ -1,4 +1,3 @@
-using Domain.Schedule;
 using Domain.Schedule.ValueObjects;
 using Domain.User.ValueObjects;
 using IntervalLearningApi.Controllers.Study.Cards.DTOs;
@@ -10,7 +9,6 @@ using IntervalLearningApi.Controllers.Study.Collections.RequestModels.GetRepeatC
 using IntervalLearningApi.Controllers.Study.RepeatsSchedules.DTOs;
 using IntervalLearningApi.Controllers.Study.RepeatsSchedules.Requests.CreateSchedule;
 using IntervalLearningApi.IntegrationTests.Learning.Scenarios;
-using IntervalLearningApi.Services;
 
 namespace IntervalLearningApi.IntegrationTests.Learning;
 

@@ -1,5 +1,4 @@
 ﻿using System.ComponentModel.DataAnnotations;
-using Domain.Common.ValueObjects;
 using Domain.Common.ValueObjects.Text.SingleLine;
 using Domain.Language.ValueObjects;
 using Domain.User.ValueObjects;

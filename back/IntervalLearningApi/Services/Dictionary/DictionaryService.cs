@@ -1,19 +1,14 @@
-﻿using System.Linq;
-using Application.Common.Interfaces.DB.Transactions;
+﻿using Application.Common.Interfaces.DB.Transactions;
 using DB;
-using Domain.Common.ValueObjects;
 using Domain.Dictionary.Translation;
 using Domain.Dictionary.Translation.ValueObjects;
 using Domain.Dictionary.Word;
 using Domain.Dictionary.Word.ValueObjects;
-using Domain.Language;
 using Domain.Language.ValueObjects;
 using Domain.User.ValueObjects;
 using FluentResults;
 using Infrastructure;
 using Infrastructure.Errors;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 namespace IntervalLearningApi.Services.Dictionary
