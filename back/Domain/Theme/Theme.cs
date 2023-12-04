@@ -6,11 +6,8 @@ using Domain.Theme.ValueObjects;
 
 namespace Domain.Theme;
 
-// [Table("Themes")]
 public class Theme : Entity<ThemeId>
 {
-    // [Required]
-    // [StringLength(100)]
     public required ThemeTitle Name { get; init; }
 
     public LanguageId? LanguageId { get; set; }

@@ -63,28 +63,20 @@ public class CreatePhaseItem : PatchPhaseItem
 }
 
 //Первая фаза всегда = изучение на первом этапе
-// [Table("SchedulePhases")]
 public class Phase : Entity<ComplexPhaseId>, IParentRepeatsScheduleReference
 {
-    // public const int ShortDescriptionLength = 200;
-
-    // [DatabaseGenerated(DatabaseGeneratedOption.None)]
     public PhaseId Id { get; set; }
-
-    // [Required]
     public required uint SecondsFromLastPhase { get; set; }
-
-    // [StringLength(ShortDescriptionLength)]
-    public LongSingleLineString? ShortDescription { get; set; }
-    public LongMultiLineString? OnLearnDescription { get; set; }
-
     public bool IsDefaultValueSide { get; set; }
+    
+    public UserId ParentUserId { get; set; }
+    public User.User? ParentUser { get; set; }
 
     public ScheduleId ParentRepeatsScheduleId { get; set; }
     public RepeatsSchedule? ParentRepeatsSchedule { get; set; }
     
-    public UserId ParentUserId { get; set; }
-    public User.User? ParentUser { get; set; }
+    public LongSingleLineString? ShortDescription { get; set; }
+    public LongMultiLineString? OnLearnDescription { get; set; }
 
     public Phase(ScheduleId parentRepeatsScheduleId, UserId parentUserId, PhaseId id) 
         : base(new ComplexPhaseId()

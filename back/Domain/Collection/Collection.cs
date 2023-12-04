@@ -7,22 +7,16 @@ using FluentResults;
 
 namespace Domain.Collection;
 
-// [Table("Collections")]
 public class Collection : Entity<ComplexCollectionId>
 {
-    // [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
     public CollectionId Id { get; set; }
     
-    // [Required]
-    // [StringLength(100)]
     public CollectionTitle Title { get; set; }
-
     public bool IsDefaultBackSide { get; set; }
-
+    
     public ThemeId ThemeId { get; set; }
     public virtual Theme.Theme? Theme { get; set; }
-
-    // [Required]
+    
     public DateTime CreatedDate { get; set; } = DateTime.UtcNow;
 
     public Counter CardsCount { get; set; } = Counter.CreateEmpty();
@@ -33,7 +27,6 @@ public class Collection : Entity<ComplexCollectionId>
     // private readonly List<CardEntity> cards = new();
     // public virtual IReadOnlyCollection<CardEntity> Cards => cards.AsReadOnly();
 
-    // public long ParentUserId { get; set; }
 
     public bool IsPublic { get; private set; }
 

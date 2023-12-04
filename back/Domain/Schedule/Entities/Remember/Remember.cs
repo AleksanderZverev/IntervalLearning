@@ -8,18 +8,13 @@ using Domain.User.ValueObjects;
 
 namespace Domain.Schedule.Entities.Remember;
 
-// [Table("RememberWeights")]
 public class Remember : Entity<ComplexRememberId>, IParentCardReference
 {
-    // [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-    // [Key]
     public RememberId Id { get; set; }
 
     /// <summary>
     /// from 0.00 to 1.00
     /// </summary>
-    // [Required]
-    // [Range(0d, 1d)]
     public RememberWeight Weight { get; set; }
 
     [Required]

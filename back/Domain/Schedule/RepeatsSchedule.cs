@@ -15,38 +15,12 @@ public interface IParentRepeatsScheduleReference : IParentUserReference
     public RepeatsSchedule? ParentRepeatsSchedule { get; set; }
 }
 
-// [Table("RepeatsSchedules")]
 public class RepeatsSchedule : AggregateRoot<ComplexScheduleId>, IParentUserReference
 {
-    // private const int ShortDescriptionLength = 200;
-
-    // [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
     public ScheduleId Id { get; set; }
-
-    // [Required]
-    // [StringLength(255)]
     public required ScheduleTitle Title { get; set; }
-
-    // [StringLength(ShortDescriptionLength)]
-    public LongSingleLineString? ShortDescription { get; set; }
-
-    public LongMultiLineString? OnStartLearningDescription { get; set; }
-
-    // [StringLength(ShortDescriptionLength)]
-    public LongSingleLineString? DefaultPhaseShortDescription { get; set; }
-    public LongMultiLineString? DefaultPhaseDescription { get; set; }
-
-    // [StringLength(ShortDescriptionLength)]
-    public LongSingleLineString? DefaultRepeatPhaseShortDescription { get; set; }
-    public LongMultiLineString? DefaultRepeatPhaseDescription { get; set; }
-
-    // [Required] 
     public required short CardsCountPerPhase { get; set; }
-    // [Required]
     public required ForgottenBehavior ForgottenBehavior { get; set; }
-
-    [Required]
-    [MaxLength(50)]
     public virtual List<Phase> Phases { get; set; }
 
     public bool IsArchived { get; set; }
@@ -54,7 +28,16 @@ public class RepeatsSchedule : AggregateRoot<ComplexScheduleId>, IParentUserRefe
 
     public UserId ParentUserId { get; set; }
     public virtual User.User? ParentUser { get; set; }
-
+    
+    public LongSingleLineString? ShortDescription { get; set; }
+    public LongMultiLineString? OnStartLearningDescription { get; set; }
+    
+    public LongSingleLineString? DefaultPhaseShortDescription { get; set; }
+    public LongMultiLineString? DefaultPhaseDescription { get; set; }
+    
+    public LongSingleLineString? DefaultRepeatPhaseShortDescription { get; set; }
+    public LongMultiLineString? DefaultRepeatPhaseDescription { get; set; }
+    
     public RepeatsSchedule(
         UserId parentUserId,
         ScheduleId id) 

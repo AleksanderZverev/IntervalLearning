@@ -8,10 +8,8 @@ using Domain.User.ValueObjects;
 
 namespace Domain.Queue;
 
-// [Table("Queue")]
 public class CardRepeatQueue : AggregateRoot<ComplexQueueId>, IParentCardReference
 {
-    // [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
     public QueueId Id { get; set; }
     public short PhaseIndex { get; set; }
 

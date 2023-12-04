@@ -4,9 +4,9 @@ using FluentResults;
 
 namespace Domain.Language;
 
-public class Language
+public class Language : Entity<LanguageId>
 {
-    private Language()
+    private Language() : base()
     {
         //for EF
     }

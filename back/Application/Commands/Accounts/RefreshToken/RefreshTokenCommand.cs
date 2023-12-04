@@ -90,7 +90,6 @@ public class RefreshTokenCommand : ICommand<RefreshTokenCommandRequest, Authenti
     
     private void RemoveOldRefreshTokens(User userEntity)
     {
-        //TODO: Move to event?
         var tokensToDelete = userEntity.RefreshTokens
             .Where(refreshToken => !refreshToken.IsActive && jwtService.IsTokenExpired(refreshToken.Created))
             .ToList();
