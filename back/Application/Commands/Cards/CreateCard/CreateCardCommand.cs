@@ -14,9 +14,9 @@ public class CreateCardCommand : ICommand<CreateCardRequest, Card>
         this.studyRepository = studyRepository;
     }
 
-    public async Task<Result<Card>> Handle(CreateCardRequest request)
+    public Task<Result<Card>> Handle(CreateCardRequest request)
     {
-        return Result.Ok()
+        return Task.FromResult(Result.Ok()
             .Bind(() => studyRepository.Cards.GetUniqueId(new CardIdParams(request.ParentUserId, request.ParentCollectionId)))
             .Bind(cardId =>
             {
@@ -35,6 +35,6 @@ public class CreateCardCommand : ICommand<CreateCardRequest, Card>
 
                 return Result.Ok(card);
             })
-            .Bind(card => studyRepository.Cards.Add(card));
+            .Bind(card => studyRepository.Cards.AddAndSave(card)));
     }
 }

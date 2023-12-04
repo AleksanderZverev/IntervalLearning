@@ -1,9 +1,8 @@
 using System.Diagnostics;
-using Application.Commands.Collections.AddCardToCollection;
+using Application.Commands.Cards.CreateCard;
 using Application.Commands.Collections.CreateCollection;
 using Application.Common.Interfaces.DB.Queries.Study;
 using Application.Common.Interfaces.DB.Repositories.Store;
-using Application.Common.Interfaces.DB.Repositories.Study;
 using Application.Common.Interfaces.DB.Transactions;
 using DB.Models.Store;
 using Domain.Card;
@@ -19,19 +18,19 @@ public class AddPublicCollectionCommand : ICommand<AddPublicCollectionCommandReq
     private readonly ITransactionProvider transactionProvider;
     private readonly IStoreRepository storeRepository;
     private readonly CreateCollectionCommand createCollectionCommand;
-    private readonly AddCardToCollectionCommand addCardToCollectionCommand;
+    private readonly CreateCardCommand createCardCommand;
     private readonly IStudyQueryRepository studyQueryRepository;
 
     public AddPublicCollectionCommand(
         ITransactionProvider transactionProvider,
         CreateCollectionCommand createCollectionCommand,
-        AddCardToCollectionCommand addCardToCollectionCommand,
+        CreateCardCommand createCardCommand,
         IStudyQueryRepository studyQueryRepository,
         IStoreRepository storeRepository)
     {
         this.transactionProvider = transactionProvider;
         this.createCollectionCommand = createCollectionCommand;
-        this.addCardToCollectionCommand = addCardToCollectionCommand;
+        this.createCardCommand = createCardCommand;
         this.studyQueryRepository = studyQueryRepository;
         this.storeRepository = storeRepository;
     }
@@ -102,15 +101,17 @@ public class AddPublicCollectionCommand : ICommand<AddPublicCollectionCommandReq
             {
                 continue;
             }
-            
-            var addedCardResult = await addCardToCollectionCommand.Handle(new AddCardToCollectionRequest(
-                myUserId,
-                myCollection.Id,
-                publicCard.RememberingText,
-                publicCard.PromptText,
-                publicCard.MeaningText,
-                publicCard.Description,
-                publicCard.Examples));
+
+            var addedCardResult = await createCardCommand.Handle(new CreateCardRequest()
+            {
+                ParentUserId = myUserId,
+                ParentCollectionId = myCollection.Id,
+                RememberingText = publicCard.RememberingText,
+                PromptText = publicCard.PromptText,
+                MeaningText = publicCard.MeaningText,
+                Description = publicCard.Description,
+                Examples = publicCard.Examples
+            });
 
             if (addedCardResult.IsFailed)
             {

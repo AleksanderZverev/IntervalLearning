@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using Application.Commands.Cards.CreateCard;
 using Application.Commands.Cards.GetAllCards;
 using Application.Commands.Cards.GetCard;
 using Application.Commands.Cards.GetCardsQueueCommand;
@@ -7,7 +8,6 @@ using Application.Commands.Cards.RememberCard;
 using Application.Commands.Cards.SearchCards;
 using Application.Commands.Cards.StartLearnCards;
 using Application.Commands.Cards.UpdateCard;
-using Application.Commands.Collections.AddCardToCollection;
 using Application.Commands.Collections.DeleteCardFromCollection;
 using Application.Commands.Collections.MoveCollectionCard;
 using DB.Models.ValueObjects;
@@ -76,17 +76,19 @@ namespace IntervalLearningApi.Controllers.Study.Cards
             if (request.CardId == null)
             {
                 var createdResult = await commandManager
-                    .GetCommand<AddCardToCollectionCommand>()
-                    .Handle(new AddCardToCollectionRequest(
-                        userId.Value,
-                        collectionIdDomain,
-                        CardText.Create(request.FrontText).Value,
-                        request.PromptText == null ? null : CardText.Create(request.PromptText).Value,
-                        CardText.Create(request.BackText).Value,
-                        request.Description != null ? CardDescription.Create(request.Description).Value : null,
-                        request.Examples != null
+                    .GetCommand<CreateCardCommand>()
+                    .Handle(new Application.Commands.Cards.CreateCard.CreateCardRequest() 
+                    {
+                        ParentUserId = userId.Value,
+                        ParentCollectionId = collectionIdDomain,
+                        RememberingText = CardText.Create(request.FrontText).Value,
+                        PromptText = request.PromptText == null ? null : CardText.Create(request.PromptText).Value,
+                        MeaningText = CardText.Create(request.BackText).Value,
+                        Description = request.Description != null ? CardDescription.Create(request.Description).Value : null,
+                        Examples = request.Examples != null
                             ? request.Examples.Select(e => CardExample.Create(e).Value).ToList()
-                            : new List<CardExample>()));
+                            : new List<CardExample>()
+                    });
                 
                 return createdResult.ToActionResult(c => mapper.Map<CardDto>(c));
             }
