@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
-using DB.Models.ValueObjects;
 using Domain.Collection.ValueObjects;
+using Domain.Theme.ValueObjects;
 using FluentValidation;
 using IntervalLearningApi.Extensions;
 

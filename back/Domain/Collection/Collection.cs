@@ -1,7 +1,7 @@
-using DB.Models.Store;
-using DB.Models.ValueObjects;
 using Domain.Collection.ValueObjects;
 using Domain.Common.ValueObjects;
+using Domain.Deprecated.DbModels;
+using Domain.Theme.ValueObjects;
 using Domain.User.ValueObjects;
 using FluentResults;
 

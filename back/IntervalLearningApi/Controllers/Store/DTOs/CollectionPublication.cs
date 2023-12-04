@@ -1,4 +1,4 @@
-using DB.Models.Store;
+using Domain.Deprecated.DbModels;
 using Mapster;
 
 namespace IntervalLearningApi.Controllers.Store.DTOs;

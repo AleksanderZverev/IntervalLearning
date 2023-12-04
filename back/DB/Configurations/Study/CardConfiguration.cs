@@ -1,4 +1,3 @@
-using DB.Models;
 using Domain.Card;
 using Domain.Card.ValueObjects;
 using Domain.Collection.ValueObjects;

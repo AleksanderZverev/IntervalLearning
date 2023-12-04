@@ -4,10 +4,10 @@ using Application.Commands.Collections.CreateCollection;
 using Application.Common.Interfaces.DB.Queries.Study;
 using Application.Common.Interfaces.DB.Repositories.Store;
 using Application.Common.Interfaces.DB.Transactions;
-using DB.Models.Store;
 using Domain.Card;
 using Domain.Collection;
 using Domain.Collection.ValueObjects;
+using Domain.Deprecated.DbModels;
 using FluentResults;
 using Infrastructure.Errors;
 

@@ -1,5 +1,7 @@
 using System.ComponentModel.DataAnnotations;
-using DB.Models.ValueObjects;
+using Domain.Common.ValueObjects.Text.MultiLine;
+using Domain.Common.ValueObjects.Text.SingleLine;
+using Domain.Schedule.ValueObjects;
 using FluentValidation;
 using IntervalLearningApi.Extensions;
 

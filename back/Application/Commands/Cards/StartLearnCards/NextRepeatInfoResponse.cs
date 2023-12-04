@@ -1,4 +1,4 @@
-using DB.Models;
+using Domain.Schedule.Entities.Phase;
 
 namespace Application.Commands.Cards.StartLearnCards;
 

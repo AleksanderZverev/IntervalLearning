@@ -1,6 +1,6 @@
 using Application.Common.Interfaces.DB.Queries.Store.CollectionPublications;
-using DB.Models.Store;
 using Domain.Collection.ValueObjects;
+using Domain.Deprecated.DbModels;
 using Domain.User.ValueObjects;
 
 namespace DB.Resolvers.Store.CollectionPublications;

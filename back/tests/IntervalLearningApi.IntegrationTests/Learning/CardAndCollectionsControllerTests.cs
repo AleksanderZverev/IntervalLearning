@@ -1,4 +1,3 @@
-using DB.Models;
 using Domain.Schedule;
 using Domain.Schedule.ValueObjects;
 using Domain.User.ValueObjects;

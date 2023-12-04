@@ -1,9 +1,9 @@
 using Application.Commands.Schedules.CreateSchedule;
 using Application.Common.Interfaces.DB.Repositories.Study;
 using Application.Common.Interfaces.DB.Transactions;
-using DB.Models;
-using DB.Models.ValueObjects;
 using Domain.Schedule;
+using Domain.Schedule.Entities.Phase;
+using Domain.Schedule.Entities.Phase.ValueObjects;
 using FluentResults;
 using Infrastructure.Errors;
 

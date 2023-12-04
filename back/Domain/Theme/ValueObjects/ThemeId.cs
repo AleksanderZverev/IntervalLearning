@@ -1,9 +1,8 @@
 using System.Diagnostics;
-using Domain.Card.ValueObjects;
 using Domain.Common.ValueObjects;
 using FluentResults;
 
-namespace DB.Models.ValueObjects;
+namespace Domain.Theme.ValueObjects;
 
 public class ThemeId : SingleValueObject<short>
 {

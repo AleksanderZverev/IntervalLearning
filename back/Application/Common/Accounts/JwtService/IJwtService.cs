@@ -1,5 +1,5 @@
-﻿using DB.Models;
-using Domain.User;
+﻿using Domain.User;
+using Domain.User.Entities;
 using Domain.User.ValueObjects;
 using FluentResults;
 

@@ -1,17 +1,16 @@
 ﻿using System.ComponentModel.DataAnnotations.Schema;
-using DB.Models.ValueObjects;
-using Domain.Schedule;
-using Domain.User;
+using Domain.Schedule.Entities.Phase.ValueObjects;
+using Domain.Schedule.ValueObjects;
 using Domain.User.ValueObjects;
 
-namespace DB.Models;
+namespace Domain.Schedule.Entities.Phase.Entities;
 
 public class PhaseRememberEntity : IParentPhaseReference
 {
     [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
     public short Id { get; set; }
     public UserId RepeatedUserId { get; set; }
-    public User? RepeatedUser { get; set; }
+    public User.User? RepeatedUser { get; set; }
 
     public float Weight { get; set; }
 
@@ -30,7 +29,7 @@ public class PhaseRememberEntity : IParentPhaseReference
     }
 
     public UserId ParentUserId { get; set; }
-    public User? ParentUser { get; set; }
+    public User.User? ParentUser { get; set; }
 
     public ScheduleId ParentRepeatsScheduleId { get; set; }
     public RepeatsSchedule? ParentRepeatsSchedule { get; set; }

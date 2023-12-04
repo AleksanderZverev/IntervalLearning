@@ -1,11 +1,12 @@
 using DB;
 using DB.DependencyInjection;
-using DB.Models;
-using DB.Models.Dictionary;
-using DB.Models.Dictionary.ValueObjects;
-using DB.Models.ValueObjects;
+using Domain.Dictionary.Translation;
+using Domain.Dictionary.Translation.ValueObjects;
+using Domain.Dictionary.Word;
+using Domain.Dictionary.Word.ValueObjects;
 using Domain.Language;
 using Domain.Language.ValueObjects;
+using Domain.Theme.ValueObjects;
 using IntervalLearningApi.IntegrationTests.Common.Constants;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;

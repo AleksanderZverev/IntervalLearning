@@ -1,5 +1,5 @@
-using DB.Models.ValueObjects;
 using Domain.Theme;
+using Domain.Theme.ValueObjects;
 
 namespace Application.Common.Interfaces.DB.Queries.Study.Themes;
 

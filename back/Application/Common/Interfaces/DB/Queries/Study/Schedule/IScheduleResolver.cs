@@ -1,5 +1,5 @@
-using DB.Models.ValueObjects;
 using Domain.Schedule;
+using Domain.Schedule.ValueObjects;
 using Domain.User.ValueObjects;
 
 namespace Application.Common.Interfaces.DB.Queries.Study.Schedule;

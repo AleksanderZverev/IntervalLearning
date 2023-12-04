@@ -1,5 +1,4 @@
-﻿using DB.Models;
-using Domain.Card.ValueObjects;
+﻿using Domain.Card.ValueObjects;
 using Domain.Collection;
 
 namespace Domain.Card;

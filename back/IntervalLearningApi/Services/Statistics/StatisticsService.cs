@@ -1,5 +1,5 @@
 using DB;
-using DB.Models.ValueObjects;
+using Domain.Schedule.ValueObjects;
 using Domain.User.ValueObjects;
 using Microsoft.EntityFrameworkCore;
 

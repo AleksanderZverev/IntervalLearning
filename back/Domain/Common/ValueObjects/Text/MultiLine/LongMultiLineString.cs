@@ -1,8 +1,7 @@
 using Domain.Common.Tools;
-using Domain.Common.ValueObjects;
 using FluentResults;
 
-namespace DB.Models.ValueObjects;
+namespace Domain.Common.ValueObjects.Text.MultiLine;
 
 public class LongMultiLineString : SingleValueObject<string>
 {

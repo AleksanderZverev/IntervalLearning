@@ -1,6 +1,5 @@
-using DB.Models;
-using DB.Models.ValueObjects;
 using Domain.Schedule;
+using Domain.Schedule.ValueObjects;
 using Domain.User.ValueObjects;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;

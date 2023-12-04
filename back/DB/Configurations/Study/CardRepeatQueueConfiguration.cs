@@ -1,7 +1,6 @@
-using DB.Models;
-using DB.Models.ValueObjects;
 using Domain.Card;
 using Domain.Queue;
+using Domain.Queue.ValueObjects;
 using Domain.Schedule;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;

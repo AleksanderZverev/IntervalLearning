@@ -1,21 +1,23 @@
 ﻿using System.Data;
 using System.Numerics;
 using DB.Infrastructure.DomainEventResolver;
-using DB.Models;
-using DB.Models.Dictionary;
-using DB.Models.Store;
 using Domain;
 using Domain.Card;
 using Domain.Collection;
+using Domain.Deprecated.DbModels;
+using Domain.Dictionary.Translation;
+using Domain.Dictionary.Word;
 using Domain.Language;
 using Domain.Queue;
 using Domain.Schedule;
+using Domain.Schedule.Entities.Phase;
+using Domain.Schedule.Entities.Phase.Entities;
 using Domain.Schedule.Entities.Remember;
 using Domain.Theme;
 using Domain.User;
 using Domain.User.Entities;
 using Microsoft.EntityFrameworkCore;
-using UserMetadata = DB.Models.UserMetadata;
+using UserMetadata = Domain.User.Entities.UserMetadata;
 
 namespace DB
 {

@@ -1,10 +1,10 @@
 using System.Diagnostics;
-using Domain;
 using Domain.Card.ValueObjects;
 using Domain.Common.ValueObjects;
+using Domain.Schedule.ValueObjects;
 using FluentResults;
 
-namespace DB.Models.ValueObjects;
+namespace Domain.Queue.ValueObjects;
 
 public class QueueId : SingleValueObject<short>
 {

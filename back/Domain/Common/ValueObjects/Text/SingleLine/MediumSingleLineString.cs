@@ -1,7 +1,7 @@
 using Domain.Common.Tools;
 using FluentResults;
 
-namespace Domain.Common.ValueObjects;
+namespace Domain.Common.ValueObjects.Text.SingleLine;
 
 public class MediumSingleLineString : SingleValueObject<string>
 {

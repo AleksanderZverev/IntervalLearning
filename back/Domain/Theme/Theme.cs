@@ -1,8 +1,8 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using DB.Models.ValueObjects;
 using Domain.Common.ValueObjects;
 using Domain.Language.ValueObjects;
+using Domain.Theme.ValueObjects;
 
 namespace Domain.Theme;
 

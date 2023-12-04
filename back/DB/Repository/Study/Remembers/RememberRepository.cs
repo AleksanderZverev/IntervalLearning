@@ -1,9 +1,10 @@
 using Application.Common.Interfaces.DB.Repositories;
 using Application.Common.Interfaces.DB.Repositories.Study.CardRemembers;
 using DB.Configurations.Study;
-using DB.Models.ValueObjects;
 using DB.Repository;
 using Domain.Card.ValueObjects;
+using Domain.Schedule.Entities.Remember.ValueObjects;
+using Domain.Schedule.ValueObjects;
 using FluentResults;
 
 namespace DB.Resolvers.Study.Remember;

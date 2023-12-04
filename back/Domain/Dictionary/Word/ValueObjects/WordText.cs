@@ -2,7 +2,7 @@ using Domain.Common.Tools;
 using Domain.Common.ValueObjects;
 using FluentResults;
 
-namespace DB.Models.Dictionary.ValueObjects;
+namespace Domain.Dictionary.Word.ValueObjects;
 
 public class WordText : SingleValueObject<string>
 {

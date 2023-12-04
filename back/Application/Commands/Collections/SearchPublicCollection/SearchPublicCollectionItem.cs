@@ -1,5 +1,5 @@
-using DB.Models.Store;
 using Domain.Collection;
+using Domain.Deprecated.DbModels;
 
 namespace Application.Commands.Collections.SearchPublicCollection;
 

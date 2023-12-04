@@ -1,5 +1,5 @@
-using DB.Models.Store;
 using Domain.Collection;
+using Domain.Deprecated.DbModels;
 using IntervalLearningApi.Controllers.Accounts.DTOs;
 using IntervalLearningApi.Controllers.Study.Collections.DTOs;
 using Mapster;

@@ -1,10 +1,7 @@
-﻿using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
-using DB.Models.Dictionary.ValueObjects;
-using Domain.Language;
+﻿using Domain.Dictionary.Word.ValueObjects;
 using Domain.Language.ValueObjects;
 
-namespace DB.Models.Dictionary;
+namespace Domain.Dictionary.Word;
 
 public class LanguageWord
 {
@@ -14,5 +11,5 @@ public class LanguageWord
 
 
     public LanguageId LanguageId { get; set; }
-    public Language? Language { get; set; }
+    public Language.Language? Language { get; set; }
 }

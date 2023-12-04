@@ -1,4 +1,4 @@
-using DB.Models;
+using Domain.User.Entities;
 using Domain.User.ValueObjects;
 
 namespace Application.Common.Interfaces.DB.Queries.Accounts.RefreshTokens;

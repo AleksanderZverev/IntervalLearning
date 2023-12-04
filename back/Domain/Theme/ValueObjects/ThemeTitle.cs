@@ -2,7 +2,7 @@ using Domain.Common.ValueObjects;
 using FluentResults;
 using Infrastructure;
 
-namespace DB.Models.ValueObjects;
+namespace Domain.Theme.ValueObjects;
 
 public class ThemeTitle : SingleValueObject<string>
 {

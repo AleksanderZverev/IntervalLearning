@@ -1,9 +1,11 @@
 ﻿using System.Linq;
 using Application.Common.Interfaces.DB.Transactions;
 using DB;
-using DB.Models.Dictionary;
-using DB.Models.Dictionary.ValueObjects;
 using Domain.Common.ValueObjects;
+using Domain.Dictionary.Translation;
+using Domain.Dictionary.Translation.ValueObjects;
+using Domain.Dictionary.Word;
+using Domain.Dictionary.Word.ValueObjects;
 using Domain.Language;
 using Domain.Language.ValueObjects;
 using Domain.User.ValueObjects;

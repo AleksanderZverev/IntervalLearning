@@ -1,10 +1,10 @@
 using System.Diagnostics;
-using Domain;
 using Domain.Common.ValueObjects;
+using Domain.Schedule.ValueObjects;
 using Domain.User.ValueObjects;
 using FluentResults;
 
-namespace DB.Models.ValueObjects;
+namespace Domain.Schedule.Entities.Phase.ValueObjects;
 
 public class PhaseId : SingleValueObject<short>
 {

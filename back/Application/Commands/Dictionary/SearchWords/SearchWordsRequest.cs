@@ -1,4 +1,4 @@
-using DB.Models.Dictionary.ValueObjects;
+using Domain.Dictionary.Word.ValueObjects;
 
 namespace Application.Commands.Dictionary.SearchWords;
 

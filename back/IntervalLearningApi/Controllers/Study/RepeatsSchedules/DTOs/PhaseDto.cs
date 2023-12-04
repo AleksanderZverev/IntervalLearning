@@ -1,8 +1,8 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using Application.Commands.Schedules.CreateSchedule;
 using Application.Commands.Schedules.UpdateSchedule;
-using DB.Models;
-using DB.Models.ValueObjects;
+using Domain.Schedule.Entities.Phase;
+using Domain.Schedule.Entities.Phase.ValueObjects;
 using FluentValidation;
 using IntervalLearningApi.Controllers.Study.RepeatsSchedules.Requests.CreateSchedule;
 using IntervalLearningApi.Controllers.Study.RepeatsSchedules.Requests.UpdateSchedule;

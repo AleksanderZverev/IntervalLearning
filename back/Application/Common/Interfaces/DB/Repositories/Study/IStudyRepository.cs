@@ -5,16 +5,20 @@ using Application.Common.Interfaces.DB.Repositories.Study.Collections;
 using Application.Common.Interfaces.DB.Repositories.Study.Queue;
 using Application.Common.Interfaces.DB.Repositories.Study.Schedules;
 using Application.Common.Interfaces.DB.Repositories.Study.Themes;
-using DB.Models;
-using DB.Models.ValueObjects;
 using Domain.Card;
 using Domain.Card.ValueObjects;
 using Domain.Collection;
 using Domain.Collection.ValueObjects;
 using Domain.Queue;
+using Domain.Queue.ValueObjects;
 using Domain.Schedule;
+using Domain.Schedule.Entities.Phase;
+using Domain.Schedule.Entities.Phase.Entities;
 using Domain.Schedule.Entities.Remember;
+using Domain.Schedule.Entities.Remember.ValueObjects;
+using Domain.Schedule.ValueObjects;
 using Domain.Theme;
+using Domain.Theme.ValueObjects;
 
 namespace Application.Common.Interfaces.DB.Repositories.Study;
 

@@ -1,4 +1,4 @@
-using DB.Models.ValueObjects;
+using Domain.Schedule.ValueObjects;
 using Domain.User.ValueObjects;
 using FluentValidation;
 using IntervalLearningApi.Extensions;

@@ -1,5 +1,5 @@
-using DB.Models.Dictionary;
-using DB.Models.Dictionary.ValueObjects;
+using Domain.Dictionary.Translation;
+using Domain.Dictionary.Translation.ValueObjects;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 

@@ -1,4 +1,4 @@
-using DB.Models.Store;
+using Domain.Deprecated.DbModels;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 

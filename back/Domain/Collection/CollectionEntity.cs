@@ -1,5 +1,5 @@
-using DB.Models;
 using Domain.Collection.ValueObjects;
+using Domain.User;
 
 namespace Domain.Collection;
 

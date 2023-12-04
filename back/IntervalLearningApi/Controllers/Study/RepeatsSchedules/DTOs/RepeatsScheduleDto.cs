@@ -1,4 +1,4 @@
-﻿using DB.Models.ValueObjects;
+﻿using Domain.Schedule.ValueObjects;
 using Mapster;
 using Newtonsoft.Json;
 

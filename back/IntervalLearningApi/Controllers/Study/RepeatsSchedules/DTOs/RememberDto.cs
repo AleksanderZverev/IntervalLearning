@@ -1,5 +1,5 @@
-﻿using DB.Models.ValueObjects;
-using Domain.Schedule.Entities.Remember;
+﻿using Domain.Schedule.Entities.Remember;
+using Domain.Schedule.Entities.Remember.ValueObjects;
 using Mapster;
 using Newtonsoft.Json;
 

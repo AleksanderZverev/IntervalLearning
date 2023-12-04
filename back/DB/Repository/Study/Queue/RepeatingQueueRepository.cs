@@ -1,10 +1,10 @@
 using Application.Common.Interfaces.DB.Repositories;
 using Application.Common.Interfaces.DB.Repositories.Study.Queue;
 using DB.Configurations.Study;
-using DB.Models.ValueObjects;
 using DB.Repository;
 using Domain.Card;
 using Domain.Queue;
+using Domain.Queue.ValueObjects;
 using Domain.Schedule;
 using FluentResults;
 

@@ -1,7 +1,6 @@
-﻿using Domain.User;
-using Domain.User.ValueObjects;
+﻿using Domain.User.ValueObjects;
 
-namespace DB.Models;
+namespace Domain.User;
 
 public interface IParentUserReference
 {

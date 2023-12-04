@@ -1,5 +1,5 @@
-using DB.Models.ValueObjects;
 using Domain.Card.ValueObjects;
+using Domain.Schedule.Entities.Remember.ValueObjects;
 
 namespace Application.Commands.Cards.RememberCard;
 

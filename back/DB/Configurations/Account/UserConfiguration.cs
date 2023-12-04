@@ -1,6 +1,6 @@
-using DB.Models;
 using Domain.Collection;
 using Domain.User;
+using Domain.User.Entities;
 using Domain.User.ValueObjects;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;

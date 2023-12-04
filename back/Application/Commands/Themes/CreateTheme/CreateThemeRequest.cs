@@ -1,4 +1,4 @@
-using DB.Models.ValueObjects;
+using Domain.Theme.ValueObjects;
 
 namespace Application.Commands.Themes.CreateTheme;
 

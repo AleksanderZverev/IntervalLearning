@@ -2,7 +2,6 @@ using Application.Common.Accounts.PasswordService;
 using Application.Common.Interfaces.DB.Repositories.Accounts;
 using Application.Common.Interfaces.DB.Repositories.Accounts.Users;
 using Application.Common.Interfaces.DB.Transactions;
-using DB.Models;
 using Domain.Language.ValueObjects;
 using Domain.User;
 using Domain.User.Entities;

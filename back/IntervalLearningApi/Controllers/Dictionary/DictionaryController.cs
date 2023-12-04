@@ -1,6 +1,6 @@
 ﻿using Application.Commands.Dictionary.GetLanguages;
 using Application.Commands.Dictionary.SearchWords;
-using DB.Models.Dictionary.ValueObjects;
+using Domain.Dictionary.Word.ValueObjects;
 using IntervalLearningApi.Constants;
 using IntervalLearningApi.Controllers.Dictionary.DTOs;
 using IntervalLearningApi.Controllers.Dictionary.Requests.AddTranslations;

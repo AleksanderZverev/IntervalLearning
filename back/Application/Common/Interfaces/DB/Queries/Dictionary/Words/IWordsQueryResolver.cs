@@ -1,5 +1,5 @@
-using DB.Models.Dictionary;
-using DB.Models.Dictionary.ValueObjects;
+using Domain.Dictionary.Word;
+using Domain.Dictionary.Word.ValueObjects;
 using Domain.Language.ValueObjects;
 
 namespace Application.Common.Interfaces.DB.Queries.Dictionary.Words;

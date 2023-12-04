@@ -1,4 +1,4 @@
-using DB.Models.Dictionary;
+using Domain.Dictionary.Word;
 using Domain.Language;
 
 namespace Application.Commands.Collections.GetRandomWords;

@@ -4,6 +4,7 @@ using Application.Commands.Accounts.RefreshToken;
 using Application.Commands.Accounts.Register;
 using Application.Commands.Accounts.RevokeToken;
 using Domain.Common.ValueObjects;
+using Domain.Common.ValueObjects.Text.SingleLine;
 using Domain.Language.ValueObjects;
 using Domain.User.ValueObjects;
 using FluentResults;

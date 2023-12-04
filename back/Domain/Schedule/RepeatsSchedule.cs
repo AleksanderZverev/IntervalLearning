@@ -1,8 +1,10 @@
 ﻿using System.ComponentModel.DataAnnotations;
-using DB.Models;
-using DB.Models.ValueObjects;
+using Domain.Common.ValueObjects.Text.MultiLine;
+using Domain.Common.ValueObjects.Text.SingleLine;
+using Domain.Schedule.Entities.Phase;
 using Domain.Schedule.Entities.Remember;
 using Domain.Schedule.ValueObjects;
+using Domain.User;
 using Domain.User.ValueObjects;
 
 namespace Domain.Schedule;

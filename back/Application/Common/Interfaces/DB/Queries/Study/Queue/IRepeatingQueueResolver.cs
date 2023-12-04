@@ -1,7 +1,7 @@
-using DB.Models.ValueObjects;
 using Domain.Card.ValueObjects;
 using Domain.Collection.ValueObjects;
 using Domain.Queue;
+using Domain.Schedule.ValueObjects;
 using Domain.User.ValueObjects;
 
 namespace Application.Common.Interfaces.DB.Queries.Study.Queue;

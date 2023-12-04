@@ -1,5 +1,5 @@
-using DB.Models.ValueObjects;
 using Domain.Theme;
+using Domain.Theme.ValueObjects;
 using Mapster;
 
 namespace IntervalLearningApi.Controllers.Study.Themes.DTOs;

@@ -1,8 +1,8 @@
 using Application.Common.Interfaces.DB.Repositories;
 using Application.Common.Interfaces.DB.Repositories.Study.Schedules;
 using DB.Configurations.Study;
-using DB.Models.ValueObjects;
 using Domain.Schedule;
+using Domain.Schedule.ValueObjects;
 using FluentResults;
 
 namespace DB.Repository.Study.Schedules;

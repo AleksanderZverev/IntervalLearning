@@ -2,7 +2,7 @@ using System.Diagnostics;
 using Domain.Common.ValueObjects;
 using FluentResults;
 
-namespace DB.Models.ValueObjects;
+namespace Domain.Schedule.Entities.Remember.ValueObjects;
 
 public class RememberWeight : SingleValueObject<float>
 {

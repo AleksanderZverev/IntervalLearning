@@ -2,10 +2,9 @@
 using System.ComponentModel.DataAnnotations.Schema;
 using Domain.Collection;
 using Domain.Collection.ValueObjects;
-using Domain.User;
 using Domain.User.ValueObjects;
 
-namespace DB.Models.Store;
+namespace Domain.Deprecated.DbModels;
 
 public interface ICreateCollectionPublication
 {
@@ -17,9 +16,9 @@ public interface ICreateCollectionPublication
 public class CollectionPublicationEntity : IParentCollectionReference, ICreateCollectionPublication
 {
     public UserId ParentUserId { get; set; }
-    public User? ParentUser { get; set; }
+    public User.User? ParentUser { get; set; }
     public CollectionId ParentCollectionId { get; set; }
-    public Collection? ParentCollection { get; set; }
+    public Collection.Collection? ParentCollection { get; set; }
 
     [Required] 
     public DateOnly PublishDate { get; set; } = DateOnly.FromDateTime(DateTime.UtcNow);

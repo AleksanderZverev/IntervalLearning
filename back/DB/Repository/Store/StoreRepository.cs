@@ -2,7 +2,7 @@ using Application.Common.Interfaces.DB.Queries.Store;
 using Application.Common.Interfaces.DB.Repositories;
 using Application.Common.Interfaces.DB.Repositories.Store;
 using Application.Common.Interfaces.DB.Repositories.Store.PublicCollections;
-using DB.Models.Store;
+using Domain.Deprecated.DbModels;
 using FluentResults;
 using Infrastructure.Errors;
 

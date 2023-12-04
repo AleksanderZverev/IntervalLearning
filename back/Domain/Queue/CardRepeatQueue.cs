@@ -1,8 +1,9 @@
-﻿using DB.Models.ValueObjects;
-using Domain.Card;
+﻿using Domain.Card;
 using Domain.Card.ValueObjects;
 using Domain.Collection.ValueObjects;
+using Domain.Queue.ValueObjects;
 using Domain.Schedule;
+using Domain.Schedule.ValueObjects;
 using Domain.User.ValueObjects;
 
 namespace Domain.Queue;

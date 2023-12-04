@@ -1,6 +1,6 @@
 using Application.Common.Interfaces.DB.Queries.Store;
 using Application.Common.Interfaces.DB.Repositories.Store.PublicCollections;
-using DB.Models.Store;
+using Domain.Deprecated.DbModels;
 
 namespace Application.Common.Interfaces.DB.Repositories.Store;
 

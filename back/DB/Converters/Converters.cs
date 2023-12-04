@@ -1,7 +1,11 @@
-using DB.Models.ValueObjects;
 using Domain.Card.ValueObjects;
 using Domain.Collection.ValueObjects;
 using Domain.Common.ValueObjects;
+using Domain.Common.ValueObjects.Text.MultiLine;
+using Domain.Common.ValueObjects.Text.SingleLine;
+using Domain.Schedule.Entities.Phase.ValueObjects;
+using Domain.Schedule.ValueObjects;
+using Domain.Theme.ValueObjects;
 using Domain.User.ValueObjects;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
@@ -46,25 +50,25 @@ internal static class Converters
 
     public static ValueConverter<ThemeId, short> ThemeId = new(
         from => from.Value,
-        id => Models.ValueObjects.ThemeId.Create(id).Value
+        id => Domain.Theme.ValueObjects.ThemeId.Create(id).Value
     );
 
     public static ValueConverter<ScheduleId, short> ScheduleId = new(
         from => from.Value,
-        id => Models.ValueObjects.ScheduleId.Create(id).Value
+        id => Domain.Schedule.ValueObjects.ScheduleId.Create(id).Value
     );
 
     public static ValueConverter<LongSingleLineString, string> LongSingleLine = new(
         d => d.Value,
-        s => Models.ValueObjects.LongSingleLineString.Create(s).Value);
+        s => LongSingleLineString.Create(s).Value);
     
     public static ValueConverter<LongMultiLineString, string> LongMultiLine = new(
         d => d.Value,
-        s => Models.ValueObjects.LongMultiLineString.Create(s).Value);
+        s => LongMultiLineString.Create(s).Value);
 
     public static ValueConverter<PhaseId, short> PhaseId = new(
         d => d.Value,
-        s => Models.ValueObjects.PhaseId.Create(s).Value
+        s => Domain.Schedule.Entities.Phase.ValueObjects.PhaseId.Create(s).Value
     );
 
     public static ValueConverter<TFrom?, TTo?> ToNullable<TFrom, TTo>(this ValueConverter<TFrom, TTo> converter)

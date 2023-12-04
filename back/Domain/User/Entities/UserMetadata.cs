@@ -1,10 +1,7 @@
-using Domain;
-using Domain.Language;
 using Domain.Language.ValueObjects;
-using Domain.User;
 using Domain.User.ValueObjects;
 
-namespace DB.Models;
+namespace Domain.User.Entities;
 
 public class UserMetadata : Entity<UserId>
 {
@@ -12,7 +9,7 @@ public class UserMetadata : Entity<UserId>
     public User? ParentUser { get; set; }
 
     public LanguageId SuggestTranslationLanguageId { get; set; }
-    public Language? SuggestTranslationLanguage { get; set; }
+    public Language.Language? SuggestTranslationLanguage { get; set; }
 
     public short NotStartedCollections { get; set; }
     public short StartedCollections { get; set; }

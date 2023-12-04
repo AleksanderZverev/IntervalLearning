@@ -2,7 +2,7 @@
 using Application.Commands.Schedules.GetAvailableSchedules;
 using Application.Commands.Schedules.GetSchedule;
 using Application.Commands.Schedules.UpdateSchedule;
-using DB.Models.ValueObjects;
+using Domain.Schedule.ValueObjects;
 using Domain.User.ValueObjects;
 using Infrastructure.Extensions;
 using IntervalLearningApi.Constants;

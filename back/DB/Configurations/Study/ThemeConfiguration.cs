@@ -1,5 +1,5 @@
-using DB.Models.ValueObjects;
 using Domain.Theme;
+using Domain.Theme.ValueObjects;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 

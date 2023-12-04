@@ -1,4 +1,4 @@
-﻿using DB.Models.Dictionary;
+﻿using Domain.Dictionary.Word;
 using Mapster;
 
 namespace IntervalLearningApi.Controllers.Dictionary.DTOs

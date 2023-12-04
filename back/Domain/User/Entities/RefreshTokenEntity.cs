@@ -1,9 +1,8 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.Text.Json.Serialization;
-using Domain.User;
 using Domain.User.ValueObjects;
 
-namespace DB.Models;
+namespace Domain.User.Entities;
 
 public class RefreshTokenEntity
 {

@@ -1,13 +1,11 @@
-﻿using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
-using DB.Models.ValueObjects;
-using Domain;
-using Domain.Schedule;
-using Domain.User;
+﻿using Domain.Common.ValueObjects.Text.MultiLine;
+using Domain.Common.ValueObjects.Text.SingleLine;
+using Domain.Schedule.Entities.Phase.ValueObjects;
+using Domain.Schedule.ValueObjects;
 using Domain.User.ValueObjects;
 using Infrastructure;
 
-namespace DB.Models;
+namespace Domain.Schedule.Entities.Phase;
 
 public interface IParentPhaseReference : IParentRepeatsScheduleReference
 {
@@ -86,7 +84,7 @@ public class Phase : Entity<ComplexPhaseId>, IParentRepeatsScheduleReference
     public RepeatsSchedule? ParentRepeatsSchedule { get; set; }
     
     public UserId ParentUserId { get; set; }
-    public User? ParentUser { get; set; }
+    public User.User? ParentUser { get; set; }
 
     public Phase(ScheduleId parentRepeatsScheduleId, UserId parentUserId, PhaseId id) 
         : base(new ComplexPhaseId()

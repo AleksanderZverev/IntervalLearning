@@ -1,8 +1,8 @@
 using Application.Common.Interfaces.DB.Repositories;
 using Application.Common.Interfaces.DB.Repositories.Study.Themes;
 using DB.Configurations.Study;
-using DB.Models.ValueObjects;
 using Domain.Theme;
+using Domain.Theme.ValueObjects;
 using FluentResults;
 
 namespace DB.Repository.Study.Themes;

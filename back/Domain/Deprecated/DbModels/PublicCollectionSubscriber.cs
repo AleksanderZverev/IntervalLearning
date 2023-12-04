@@ -1,10 +1,9 @@
 ﻿using System.ComponentModel.DataAnnotations.Schema;
 using Domain.Collection;
 using Domain.Collection.ValueObjects;
-using Domain.User;
 using Domain.User.ValueObjects;
 
-namespace DB.Models.Store;
+namespace Domain.Deprecated.DbModels;
 
 interface ICreatePublicCollectionSubscriberItem
 {
@@ -17,14 +16,14 @@ interface ICreatePublicCollectionSubscriberItem
 public class PublicCollectionSubscriber : IParentCollectionReference, ICreatePublicCollectionSubscriberItem
 {
     public UserId ParentUserId { get; set; }
-    public User? ParentUser { get; set; }
+    public User.User? ParentUser { get; set; }
     public CollectionId ParentCollectionId { get; set; }
-    public Collection? ParentCollection { get; set; }
+    public Collection.Collection? ParentCollection { get; set; }
 
     public CollectionPublicationEntity? CollectionPublication { get; set; }
 
     public UserId SubscriberUserId { get; set; }
-    public User? SubscriberUser { get; set; }
+    public User.User? SubscriberUser { get; set; }
 
     public bool IsLiked { get; set; }
     public bool IsDisliked { get; set; }

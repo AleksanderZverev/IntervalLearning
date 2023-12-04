@@ -1,10 +1,9 @@
 using System.Diagnostics;
-using Domain;
 using Domain.Common.ValueObjects;
 using Domain.User.ValueObjects;
 using FluentResults;
 
-namespace DB.Models.ValueObjects;
+namespace Domain.Schedule.ValueObjects;
 
 public class ScheduleId : SingleValueObject<short>
 {

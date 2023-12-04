@@ -1,6 +1,6 @@
-using DB.Models.ValueObjects;
 using Domain.Card.ValueObjects;
 using Domain.Collection.ValueObjects;
+using Domain.Schedule.ValueObjects;
 using Domain.User.ValueObjects;
 
 namespace Application.Commands.Cards.StartLearnCards;

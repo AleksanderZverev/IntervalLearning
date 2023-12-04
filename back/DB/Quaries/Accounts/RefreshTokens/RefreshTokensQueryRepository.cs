@@ -1,5 +1,5 @@
 using Application.Common.Interfaces.DB.Queries.Accounts.RefreshTokens;
-using DB.Models;
+using Domain.User.Entities;
 using Domain.User.ValueObjects;
 using Microsoft.EntityFrameworkCore;
 

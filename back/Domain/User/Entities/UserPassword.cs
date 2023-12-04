@@ -1,6 +1,5 @@
 ﻿using System.Diagnostics;
 using System.Text.Json.Serialization;
-using DB.Models;
 using Domain.User.ValueObjects;
 using FluentResults;
 

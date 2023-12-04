@@ -1,12 +1,12 @@
 using System.Diagnostics;
 using Application.Common.Interfaces.DB.Repositories.Study;
 using Application.Common.Interfaces.DB.Transactions;
-using DB.Models;
-using DB.Models.ValueObjects;
 using Domain.Card;
 using Domain.Queue;
 using Domain.Schedule;
+using Domain.Schedule.Entities.Phase;
 using Domain.Schedule.Entities.Remember;
+using Domain.Schedule.Entities.Remember.ValueObjects;
 using FluentResults;
 using Infrastructure.Errors;
 
