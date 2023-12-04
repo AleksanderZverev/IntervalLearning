@@ -29,7 +29,7 @@ public class DockerIntervalLearningApiFactory : WebApplicationFactory<Program>, 
         {
             s.RemoveAll(typeof(DbContextOptions<ApplicationContext>));
             s.RemoveAll(typeof(DbContextOptions));
-            s.AddPersistence(dbBuilder =>
+            s.AddDbContext<ApplicationContext>(dbBuilder =>
             {
                 NpgsqlDbContextOptionsBuilderExtensions.UseNpgsql(dbBuilder, _container.GetConnectionString());
             });
