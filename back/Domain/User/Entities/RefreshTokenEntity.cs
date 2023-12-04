@@ -1,6 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
-using System.Text.Json.Serialization;
-using Domain.User.ValueObjects;
+﻿using Domain.User.ValueObjects;
 
 namespace Domain.User.Entities;
 

@@ -1,5 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
-using Domain.Common.ValueObjects.Text.MultiLine;
+﻿using Domain.Common.ValueObjects.Text.MultiLine;
 using Domain.Common.ValueObjects.Text.SingleLine;
 using Domain.Schedule.Entities.Phase;
 using Domain.Schedule.Entities.Remember;

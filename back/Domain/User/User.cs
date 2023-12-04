@@ -1,8 +1,6 @@
 using System.Text.Json.Serialization;
-using Domain.Common.ValueObjects;
 using Domain.User.Entities;
 using Domain.User.ValueObjects;
-using FluentResults;
 using UserMetadata = Domain.User.Entities.UserMetadata;
 
 namespace Domain.User;
