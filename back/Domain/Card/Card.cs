@@ -1,5 +1,6 @@
 using DB.Models;
 using DB.Models.ValueObjects;
+using Domain.Card.Events;
 using Domain.Card.ValueObjects;
 using Domain.Collection.ValueObjects;
 using Domain.Schedule.Entities.Remember;
@@ -43,6 +44,11 @@ public class Card : AggregateRoot<ComplexCardId>
     public CollectionId ParentCollectionId { get; set; }
     public virtual Collection.Collection? ParentCollection { get; set; }
 
+    protected Card() : base()
+    {
+        //For EF
+    }
+
     public Card(
         UserId parentUserId,
         CollectionId parentCollectionId,
@@ -57,18 +63,8 @@ public class Card : AggregateRoot<ComplexCardId>
         ParentUserId = parentUserId;
         ParentCollectionId = parentCollectionId;
         Id = id;
+        AddDomainEvent(new CardCreatedEvent(this));
     }
-
-    // public static Result<Card> Create(
-    //     CardId id,
-    //     CardText frontSideText,
-    //     CardText promptText,
-    //     CardText backSideText,
-    //     CardDescription description,
-    //     List<CardExample> examples)
-    // {
-    //     return new Card(id, frontSideText, promptText, backSideText, description, examples);
-    // }
     
     public Remember? FindLastRemember() 
         => Remembers.MaxBy(c => c.Id);

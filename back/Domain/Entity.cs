@@ -2,15 +2,25 @@ namespace Domain;
 
 public interface IDomainEvent
 {
-    
 }
 
-public class Entity<TId> : IEquatable<Entity<TId>>
+public interface IEntity
+{
+    IReadOnlyCollection<IDomainEvent> DomainEvents { get; }
+    public void ClearDomainEvents();
+}
+
+public class Entity<TId> : IEquatable<Entity<TId>>, IEntity
     where TId : notnull
 {
+    protected Entity()
+    {
+        //For EF
+    }
+
     public TId Id { get; }
     
-    private readonly List<IDomainEvent> domainEvents = new();
+    private List<IDomainEvent> domainEvents = new();
     public IReadOnlyCollection<IDomainEvent> DomainEvents => domainEvents.AsReadOnly();
 
     protected Entity(TId id)
@@ -21,6 +31,11 @@ public class Entity<TId> : IEquatable<Entity<TId>>
     public void AddDomainEvent(IDomainEvent domainEvent)
     {
         domainEvents.Add(domainEvent);
+    }
+
+    public void ClearDomainEvents()
+    {
+        domainEvents = new();
     }
 
     public override int GetHashCode()

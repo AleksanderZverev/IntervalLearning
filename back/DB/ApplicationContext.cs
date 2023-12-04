@@ -1,8 +1,10 @@
 ﻿using System.Data;
 using System.Numerics;
+using DB.Infrastructure.DomainEventResolver;
 using DB.Models;
 using DB.Models.Dictionary;
 using DB.Models.Store;
+using Domain;
 using Domain.Card;
 using Domain.Collection;
 using Domain.Language;
@@ -19,8 +21,21 @@ namespace DB
 {
     public class ApplicationContext : DbContext
     {
-        public ApplicationContext(DbContextOptions<ApplicationContext> options) : base(options) { }
-        protected ApplicationContext(DbContextOptions options) : base(options) { }
+        private readonly DomainEventDispatcher domainEventDispatcher;
+        
+        public ApplicationContext(
+            DomainEventDispatcher domainEventDispatcher,
+            DbContextOptions<ApplicationContext> options) : base(options)
+        {
+            this.domainEventDispatcher = domainEventDispatcher;
+        }
+        
+        protected ApplicationContext(
+            DomainEventDispatcher domainEventDispatcher, 
+            DbContextOptions options) : base(options)
+        {
+            this.domainEventDispatcher = domainEventDispatcher;
+        }
 
         public DbSet<User> Users { get; set; }
         public DbSet<UserPassword> UsersPasswords { get; set; }
@@ -103,6 +118,39 @@ namespace DB
                 connection.Close();
             }
             return nextValue;
+        }
+
+        public override int SaveChanges()
+        {
+            HandleEvents().GetAwaiter().GetResult();
+            return base.SaveChanges();
+        }
+
+        public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = new CancellationToken())
+        {
+            await HandleEvents();
+            return await base.SaveChangesAsync(cancellationToken);
+        }
+
+        private async Task HandleEvents()
+        {
+            foreach (var entry in ChangeTracker.Entries())
+            {
+                if (entry.Entity is not IEntity entity || entity.DomainEvents.Count == 0)
+                    continue;
+
+                var domainEvents = entity.DomainEvents.ToList();
+                entity.ClearDomainEvents();
+
+                foreach (var domainEvent in domainEvents)
+                {
+                    //TODO 1: Make repositories with unit of work (Save changes calls multiple times while dispatching handlers)
+                    //TODO 2: Try to get rid of parameterless constructor
+                    var result = await domainEventDispatcher.Dispatch(domainEvent);
+                     if (result.IsFailed)
+                         throw new NotSupportedException();
+                }
+            }
         }
     }
 }

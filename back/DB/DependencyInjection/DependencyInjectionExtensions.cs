@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using Application.Common.Interfaces.DB.Queries.Accounts;
 using Application.Common.Interfaces.DB.Queries.Accounts.RefreshTokens;
 using Application.Common.Interfaces.DB.Queries.Accounts.Users;
@@ -28,6 +29,9 @@ using Application.Common.Interfaces.DB.Repositories.Study.Queue;
 using Application.Common.Interfaces.DB.Repositories.Study.Schedules;
 using Application.Common.Interfaces.DB.Repositories.Study.Themes;
 using Application.Common.Interfaces.DB.Transactions;
+using Application.DomainEventHandlers;
+using Application.DomainEventHandlers.Collections;
+using DB.Infrastructure.DomainEventResolver;
 using DB.Models;
 using DB.Models.Store;
 using DB.Models.ValueObjects;
@@ -58,6 +62,7 @@ using DB.Resolvers.Study.Remember;
 using DB.Resolvers.Study.Schedule;
 using DB.Resolvers.Themes;
 using DB.Transactions;
+using Domain;
 using Domain.Card;
 using Domain.Card.ValueObjects;
 using Domain.Collection;
@@ -71,6 +76,7 @@ using Domain.User.Entities;
 using Domain.User.ValueObjects;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace DB.DependencyInjection;
 
@@ -79,7 +85,8 @@ public static class DependencyInjectionExtensions
     public static IServiceCollection AddPersistence(this IServiceCollection services, Action<DbContextOptionsBuilder> optionsBuilder)
     {
         services.AddDbContext<ApplicationContext>(optionsBuilder);
-        
+        services.AddScoped<DomainEventDispatcher>();
+
         //===BoundedContextRepository===
         services.AddScoped<IAccountRepository, AccountRepository>();
         services.AddScoped<IAccountQueryRepository, AccountQueryRepository>();
