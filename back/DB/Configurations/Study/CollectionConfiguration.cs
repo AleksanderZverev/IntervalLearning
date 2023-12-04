@@ -1,6 +1,5 @@
 using Domain.Collection;
 using Domain.Collection.ValueObjects;
-using Domain.Common.ValueObjects;
 using Domain.Deprecated.DbModels;
 using Domain.User.ValueObjects;
 using Microsoft.EntityFrameworkCore;

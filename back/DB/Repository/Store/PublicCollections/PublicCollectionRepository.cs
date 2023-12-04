@@ -1,7 +1,6 @@
 using Application.Common.Interfaces.DB.Repositories.Store.PublicCollections;
 using Application.Common.Interfaces.DB.Repositories.Study;
 using Domain.Collection;
-using FluentResults;
 
 namespace DB.Repository.Store.PublicCollections;
 

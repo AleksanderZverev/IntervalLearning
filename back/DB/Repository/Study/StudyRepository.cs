@@ -21,7 +21,6 @@ using Domain.Schedule.Entities.Remember.ValueObjects;
 using Domain.Schedule.ValueObjects;
 using Domain.Theme;
 using Domain.Theme.ValueObjects;
-using Domain.User.ValueObjects;
 using FluentResults;
 using Infrastructure.Errors;
 

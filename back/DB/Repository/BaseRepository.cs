@@ -1,4 +1,3 @@
-using Application.Common.Interfaces.DB;
 using Application.Common.Interfaces.DB.Repositories;
 using FluentResults;
 using Infrastructure.Errors;

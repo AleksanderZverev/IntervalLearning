@@ -3,7 +3,6 @@ using Application.Common.Interfaces.DB.Repositories.Study.Collections;
 using DB.Configurations.Study;
 using Domain.Collection;
 using Domain.Collection.ValueObjects;
-using Domain.User.ValueObjects;
 using FluentResults;
 
 namespace DB.Repository.Study.Collections;

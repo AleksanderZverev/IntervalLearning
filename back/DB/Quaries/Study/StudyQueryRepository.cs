@@ -5,7 +5,6 @@ using Application.Common.Interfaces.DB.Queries.Study.Queue;
 using Application.Common.Interfaces.DB.Queries.Study.Remember;
 using Application.Common.Interfaces.DB.Queries.Study.Schedule;
 using Application.Common.Interfaces.DB.Queries.Study.Themes;
-using Application.Common.Interfaces.DB.Repositories.Study;
 
 namespace DB.Quaries.Study;
 

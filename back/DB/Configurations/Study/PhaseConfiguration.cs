@@ -1,5 +1,4 @@
 using Domain.Schedule.Entities.Phase;
-using Domain.User.ValueObjects;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
