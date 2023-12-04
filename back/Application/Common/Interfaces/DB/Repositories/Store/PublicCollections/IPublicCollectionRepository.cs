@@ -1,5 +1,4 @@
 using Domain.Collection;
-using FluentResults;
 
 namespace Application.Common.Interfaces.DB.Repositories.Store.PublicCollections;
 

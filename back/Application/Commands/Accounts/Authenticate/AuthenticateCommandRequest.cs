@@ -1,4 +1,3 @@
-using Domain.Common.ValueObjects;
 using Domain.Common.ValueObjects.Text.SingleLine;
 using Domain.User.ValueObjects;
 

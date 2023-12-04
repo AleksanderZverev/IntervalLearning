@@ -1,5 +1,4 @@
 using Application.Common.Interfaces.DB.Repositories.Study;
-using Domain.Card;
 using Domain.Card.Events;
 using FluentResults;
 using FluentResults.Extensions;

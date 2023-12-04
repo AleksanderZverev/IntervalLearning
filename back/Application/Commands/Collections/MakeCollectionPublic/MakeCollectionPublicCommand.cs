@@ -1,6 +1,5 @@
 using Application.Common.Interfaces.DB.Queries.Study;
 using Application.Common.Interfaces.DB.Repositories.Store;
-using Application.Common.Interfaces.DB.Repositories.Study;
 using Application.Common.Interfaces.DB.Transactions;
 using Domain.Collection;
 using Domain.Deprecated.DbModels;

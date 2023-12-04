@@ -1,6 +1,5 @@
 using Application.Common.Interfaces.DB.Queries.Dictionary;
 using Application.Common.Interfaces.DB.Queries.Study;
-using Application.Common.Interfaces.DB.Repositories.Study;
 using FluentResults;
 using Infrastructure;
 using Infrastructure.Errors;
