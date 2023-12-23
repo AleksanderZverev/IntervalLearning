@@ -5,7 +5,6 @@ global using Xunit;
 global using FluentAssertions;
 
 global using IntervalLearningApi.Constants;
-global using IntervalLearningApi.Models;
 global using IntervalLearningApi.Controllers;
 
 global using IntervalLearningApi.IntegrationTests.Common.Api;

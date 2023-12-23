@@ -1,7 +1,11 @@
+using IntervalLearningApi.Controllers.Study.Cards.DTOs;
+using IntervalLearningApi.Controllers.Study.Cards.Requests;
+using IntervalLearningApi.Controllers.Study.Collections.DTOs;
+using IntervalLearningApi.Controllers.Study.Collections.RequestModels.CreateCollection;
+using IntervalLearningApi.Controllers.Study.RepeatsSchedules.DTOs;
+using IntervalLearningApi.Controllers.Study.RepeatsSchedules.Requests.CreateSchedule;
 using IntervalLearningApi.IntegrationTests.Common.Constants;
 using IntervalLearningApi.IntegrationTests.Common.Fakers.Api;
-using IntervalLearningApi.Models.ByUser;
-using IntervalLearningApi.Models.RepeatsSchedule;
 
 namespace IntervalLearningApi.IntegrationTests.Common.TestScopes;
 
@@ -21,41 +25,62 @@ public class SharedApiTests : BaseApiTests, IClassFixture<SharedDockerIntervalLe
         SharedScope = await GetRandomUserScope();
     }
     
-    protected async Task<List<Collection>?> GetAllCollectionsAsync()
+    protected async Task<List<CollectionDto>?> GetAllCollectionsAsync()
     {
         var getAllResponse = await sharedClient.GetAsync(
             AbsoluteQuery(ApiRoutes.Collections.BasePath, ApiRoutes.Collections.GetAll));
-        var allCollections = getAllResponse.ToResponseDto<List<Collection>>();
+        var allCollections = getAllResponse.ToResponseDto<List<CollectionDto>>();
         return allCollections;
     }
     
-    protected async Task<Collection?> GetCollectionAsync(string collectionId)
+    protected async Task<CollectionDto?> GetCollectionAsync(string collectionId)
     {
         var getCollectionResponse = await sharedClient.GetAsync(
             AbsoluteQuery(ApiRoutes.Collections.BasePath, ApiRoutes.Collections.GetCollectionPath(int.Parse(collectionId))));
-        var collection = getCollectionResponse.ToResponseDto<Collection>();
+        var collection = getCollectionResponse.ToResponseDto<CollectionDto>();
         return collection;
     }
 
-    protected async Task<Schedule> CreateSchedule(RepeatsScheduleController.CreateScheduleRequest createScheduleRequest)
+    protected async Task<RepeatsScheduleDto> CreateSchedule(CreateScheduleRequest createScheduleRequest)
     {
         var createScheduleResponse = await sharedClient.PostAsJsonAsync(
             AbsoluteQuery(ApiRoutes.Schedule.BasePath, ApiRoutes.Schedule.Post_CreateSchedule),
             createScheduleRequest);
 
-        var schedule = createScheduleResponse.ToResponseDto<Schedule>();
+        var schedule = createScheduleResponse.ToResponseDto<RepeatsScheduleDto>();
         return schedule ?? throw new InvalidOperationException();
     }
-
-    protected async Task<List<Card>> AddRandomCardsToCollection(string collectionId, int count)
+    
+    protected async Task<(RepeatsScheduleDto, RepeatsScheduleDto)> CreateRandomSchedule()
     {
-        var cards = new List<Card>(count);
+        var scheduleInfo = new ScheduleFaker().Generate();
+        var createdSchedule = await CreateSchedule(new CreateScheduleRequest()
+        {
+            Title = scheduleInfo.Title,
+            Description = scheduleInfo.Description,
+            ForgottenBehavior = scheduleInfo.ForgottenBehavior,
+            CardsCountPerPhase = scheduleInfo.CardsCountPerPhase,
+            Phases = scheduleInfo.Phases.Select(p => new CreatePhaseDto()
+            {
+                Id = p.Id,
+                Description = p.Description,
+                SecondsFromLastPhase = p.SecondsFromLastPhase,
+                ShortDescription = p.ShortDescription,
+                IsDefaultValueSide = p.IsDefaultValueSide,
+            }).ToList(),
+        });
+        return (createdSchedule, scheduleInfo);
+    }
+
+    protected async Task<List<CardDto>> AddRandomCardsToCollection(string collectionId, int count)
+    {
+        var cards = new List<CardDto>(count);
         for (var i = 0; i < count; i++)
         {
             var fakeCard = new CardFaker().Generate();
             var createdCard = await CreateCardAsync(
                 short.Parse(collectionId),
-                new CreateCardItem()
+                new CreateCardRequest()
                 {
                     BackText = fakeCard.BackText,
                     FrontText = fakeCard.FrontText,
@@ -73,20 +98,20 @@ public class SharedApiTests : BaseApiTests, IClassFixture<SharedDockerIntervalLe
         return cards;
     }
 
-    protected async Task<(Collection Collection, Card Card)> CreateRandomCardAsync()
+    protected async Task<(CollectionDto Collection, CardDto Card)> CreateRandomCardAsync()
     {
         var (collection, cards) = await CreateRandomCardsAsync(1);
         return (collection, cards.Single());
     }
 
-    protected async Task<(Collection Collection, List<Card> Cards)> CreateRandomCardsAsync(int count)
+    protected async Task<(CollectionDto Collection, List<CardDto> Cards)> CreateRandomCardsAsync(int count)
     {
         var collection = await CreateRandomCollectionAsync();
         var cards = await AddRandomCardsToCollection(collection.Id, count);
         return (collection, cards);
     }
 
-    protected async Task<Card?> CreateCardAsync(short collectionId, CreateCardItem card)
+    protected async Task<CardDto?> CreateCardAsync(short collectionId, CreateCardRequest card)
     {
         var createCardResponse = await sharedClient.PostAsJsonAsync(
             AbsoluteQuery(ApiRoutes.Cards.GetBasePath(collectionId), ApiRoutes.Cards.Post_CreateCard),
@@ -95,21 +120,21 @@ public class SharedApiTests : BaseApiTests, IClassFixture<SharedDockerIntervalLe
         if (!createCardResponse.IsSuccessStatusCode)
             return null;
         
-        var createdCard = createCardResponse.ToResponseDto<Card>();
+        var createdCard = createCardResponse.ToResponseDto<CardDto>();
         return createdCard;
     }
 
-    protected async Task<Collection> CreateRandomCollectionAsync()
+    protected async Task<CollectionDto> CreateRandomCollectionAsync()
         => (await CreateRandomCollectionsAsync(1)).Single(); 
     
-    protected async Task<List<Collection>> CreateRandomCollectionsAsync(int count)
+    protected async Task<List<CollectionDto>> CreateRandomCollectionsAsync(int count)
     {
         var randomCollections = new CollectionFaker().Generate(count);
 
-        var result = new List<Collection>(count);
+        var result = new List<CollectionDto>(count);
         foreach (var randomCollection in randomCollections)
         {
-            var createdCollection = await CreateCollectionAsync(new CreateCollectionItem()
+            var createdCollection = await CreateCollectionAsync(new CreateCollectionRequest()
             {
                 Title = randomCollection.Title,
                 IsDefaultBackSide = false,
@@ -125,9 +150,9 @@ public class SharedApiTests : BaseApiTests, IClassFixture<SharedDockerIntervalLe
         return result;
     }
 
-    protected Task<Collection?> CreateCollectionAsync(string collectionName)
+    protected Task<CollectionDto?> CreateCollectionAsync(string collectionName)
     {
-        return CreateCollectionAsync(new CreateCollectionItem()
+        return CreateCollectionAsync(new CreateCollectionRequest()
         {
             Title = collectionName,
             IsDefaultBackSide = false,
@@ -136,14 +161,14 @@ public class SharedApiTests : BaseApiTests, IClassFixture<SharedDockerIntervalLe
     }
     
 
-    private async Task<Collection?> CreateCollectionAsync(CreateCollectionItem createCollectionItem)
+    private async Task<CollectionDto?> CreateCollectionAsync(CreateCollectionRequest createCollectionRequest)
     {
         var createCollectionResponse = await sharedClient.PostAsJsonAsync(
             AbsoluteQuery(ApiRoutes.Collections.BasePath, ApiRoutes.Collections.Create),
-            createCollectionItem);
+            createCollectionRequest);
         if (!createCollectionResponse.IsSuccessStatusCode)
             return null;
-        var createdCollection = createCollectionResponse.ToResponseDto<Collection>();
+        var createdCollection = createCollectionResponse.ToResponseDto<CollectionDto>();
         return createdCollection;
     }
 

@@ -1,4 +1,4 @@
-using IntervalLearningApi.Models.Common;
+using Infrastructure;
 
 namespace IntervalLearningApi.IntegrationTests.Common.Services;
 

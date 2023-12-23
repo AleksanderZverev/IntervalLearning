@@ -1,14 +1,12 @@
+using Application.DI;
 using DB;
+using DB.DependencyInjection;
+using Infrastructure.BoundedContexts.Accounts.Jwt;
+using Infrastructure.DI;
 using IntervalLearningApi;
 using IntervalLearningApi.Extensions;
 using Microsoft.AspNetCore.HttpLogging;
 using Microsoft.EntityFrameworkCore;
-using Newtonsoft.Json.Serialization;
-using NodaTime;
-using NodaTime.Serialization.JsonNet;
-using DB.DependencyInjection;
-using IntervalLearningApi.Models;
-using Newtonsoft.Json;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -31,6 +29,10 @@ services.AddPersistence((o) =>
 {
     o.UseNpgsql(connectionString);
 });
+
+services.AddInfrastructure();
+services.AddApplication();
+
 services.AddWeb(new SecretConfig()
 {
     JwtSettings = jwtSettings,
@@ -92,7 +94,6 @@ builder.Services.AddSwaggerGen(options =>
     });
 });
 
-
 var app = builder.Build();
 
 using (var scope = app.Services.CreateScope())
@@ -104,7 +105,7 @@ using (var scope = app.Services.CreateScope())
     }
     catch (Exception ex)
     {
-        var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
+        var logger = scope.ServiceProvider.GetRequiredService<ILogger<IntervalLearningApi.Program>>();
         logger.LogError(ex, "An error occurred while migrating the database.");
         throw;
     }
@@ -148,4 +149,7 @@ app.MapControllers();
 
 app.Run();
 
-public partial class Program { }
+namespace IntervalLearningApi
+{
+    public partial class Program { }
+}

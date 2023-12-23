@@ -1,6 +1,7 @@
 using Bogus;
+using IntervalLearningApi.Controllers.Study.Collections.DTOs;
+using IntervalLearningApi.Controllers.Study.Collections.RequestModels.CreateCollection;
 using IntervalLearningApi.IntegrationTests.Common.Constants;
-using IntervalLearningApi.Models.ByUser;
 
 namespace IntervalLearningApi.IntegrationTests.Collections;
 
@@ -70,10 +71,14 @@ public class CollectionsControllerTests : SharedApiTests
         await CreateCollectionAsync(collectionName);
 
         //Assert
-        var newCollections = await GetAllCollectionsAsync();
         oldCollections.Should().BeEmpty();
+        var newCollections = await GetAllCollectionsAsync();
         newCollections.Should().NotBeNull().And.HaveCount(1);
-        newCollections.Single().Title.Should().BeEquivalentTo(collectionName);
+        var collection = newCollections.Single();
+        collection.Title.Should().BeEquivalentTo(collectionName);
+        collection.ThemeId.Should().NotBe(0);
+        collection.CardsCount.Should().Be(0);
+        collection.IsPublic.Should().BeFalse();
     }
 
     public static IEnumerable<object[]> IncorrectNames = new object[][]
@@ -108,14 +113,14 @@ public class CollectionsControllerTests : SharedApiTests
         //Act
         var updatedCollectionResponse = await client.PostAsJsonAsync(
             ApiRoutes.Collections.Create,
-            new CreateCollectionItem()
+            new CreateCollectionRequest()
             {
                 CollectionId = short.Parse(collection.Id),
                 Title = collectionName,
                 IsDefaultBackSide = false,
                 ThemeId = TestConstants.Theme.TestId,
             });
-        var updatedCollection = updatedCollectionResponse.ToResponseDto<Collection>();
+        var updatedCollection = updatedCollectionResponse.ToResponseDto<CollectionDto>();
 
 
         //Assert
@@ -137,7 +142,7 @@ public class CollectionsControllerTests : SharedApiTests
         //Act
         await client.PostAsJsonAsync(
             ApiRoutes.Collections.Create,
-            new CreateCollectionItem()
+            new CreateCollectionRequest()
             {
                 CollectionId = short.Parse(oldCollection.Id),
                 Title = collectionName,
@@ -166,7 +171,7 @@ public class CollectionsControllerTests : SharedApiTests
         //Act
         var updateResponse = await client.PostAsJsonAsync(
             ApiRoutes.Collections.Create,
-            new CreateCollectionItem()
+            new CreateCollectionRequest()
             {
                 CollectionId = short.Parse(oldCollection.Id),
                 Title = collectionName,
@@ -190,7 +195,7 @@ public class CollectionsControllerTests : SharedApiTests
         //Act
         await client.PostAsJsonAsync(
             ApiRoutes.Collections.Create,
-            new CreateCollectionItem()
+            new CreateCollectionRequest()
             {
                 CollectionId = short.Parse(oldCollection.Id),
                 Title = collectionName,
@@ -221,7 +226,7 @@ public class CollectionsControllerTests : SharedApiTests
             var getCollectionResponse = await client.GetAsync(
                 ApiRoutes.Collections.GetCollectionPath(
                         short.Parse(testCollection.Id)));
-            var collection = getCollectionResponse.ToResponseDto<Collection>();
+            var collection = getCollectionResponse.ToResponseDto<CollectionDto>();
             
             //Assert
             collection.Id.Should().Be(testCollection.Id.ToString());
@@ -265,7 +270,7 @@ public class CollectionsControllerTests : SharedApiTests
                 //TODO: move Theme Id to class property 
                 .Add("themeId", TestConstants.Theme.TestId.ToString())
                 .Add("searchName", searchRequestName));
-        var searchResult = searchResponse.ToResponseDto<List<Collection>>();
+        var searchResult = searchResponse.ToResponseDto<List<CollectionDto>>();
 
         //Assert
         searchResult.Should().NotBeNull().And.NotBeEmpty();
@@ -282,7 +287,7 @@ public class CollectionsControllerTests : SharedApiTests
         var preAddedCollections = await CreateRandomCollectionsAsync(countPerPage * pages);
 
         //Act
-        var pageToCollections = new List<(int Page, List<Collection>? Collections)>();
+        var pageToCollections = new List<(int Page, List<CollectionDto>? Collections)>();
         for (var i = 0; i < pages; i++)
         {
             var pageNumber = i + 1;
@@ -293,7 +298,7 @@ public class CollectionsControllerTests : SharedApiTests
                     .Add("themeId", TestConstants.Theme.TestId.ToString())
                         .Add("page", pageNumber.ToString())
                     .Add("count", countPerPage.ToString()));
-            var pageCollections = pageResponse.ToResponseDto<List<Collection>>();
+            var pageCollections = pageResponse.ToResponseDto<List<CollectionDto>>();
             pageToCollections.Add((pageNumber, pageCollections));
         }
         
@@ -327,7 +332,7 @@ public class CollectionsControllerTests : SharedApiTests
                 .Add("themeId", TestConstants.Theme.TestId.ToString())
                 .Add("page", pageNumber.ToString())
                 .Add("count", countPerPage.ToString()));
-        var firstPageCollections = fistPageResponse.ToResponseDto<List<Collection>>();
+        var firstPageCollections = fistPageResponse.ToResponseDto<List<CollectionDto>>();
 
         var secondPageResponse = await client.GetAsync(
             ApiRoutes.Collections.SearchPrivate +
@@ -335,7 +340,7 @@ public class CollectionsControllerTests : SharedApiTests
                 .Add("themeId", TestConstants.Theme.TestId.ToString())
                 .Add("page", pageNumber.ToString())
                 .Add("count", countPerPage.ToString()));
-        var secondPageCollections = secondPageResponse.ToResponseDto<List<Collection>>();
+        var secondPageCollections = secondPageResponse.ToResponseDto<List<CollectionDto>>();
 
         //Assert
         firstPageCollections.Should().NotBeNull().And.NotBeEmpty();
@@ -362,7 +367,7 @@ public class CollectionsControllerTests : SharedApiTests
                 //TODO: move Theme Id to class property 
                 .Add("themeId", TestConstants.Theme.TestId.ToString())
                 .Add("searchName", searchRequestName));
-        var searchResult = searchResponse.ToResponseDto<List<Collection>>();
+        var searchResult = searchResponse.ToResponseDto<List<CollectionDto>>();
 
         //Assert
         searchResult.Should().NotBeNull().And.BeEmpty();
@@ -385,7 +390,7 @@ public class CollectionsControllerTests : SharedApiTests
                 //TODO: move Theme Id to class property 
                 .Add("themeId", TestConstants.Theme.TestId.ToString())
                 .Add("searchName", searchRequestName));
-        var searchResult = searchResponse.ToResponseDto<List<Collection>>();
+        var searchResult = searchResponse.ToResponseDto<List<CollectionDto>>();
 
         //Assert
         searchResult.Should().NotBeNull().And.BeEmpty();
@@ -411,7 +416,7 @@ public class CollectionsControllerTests : SharedApiTests
                 //TODO: move Theme Id to class property 
                 .Add("themeId", TestConstants.Theme.TestId.ToString())
                 .Add("searchName", searchRequestName));
-        var searchResult = searchResponse.ToResponseDto<List<Collection>>();
+        var searchResult = searchResponse.ToResponseDto<List<CollectionDto>>();
 
         //Assert
         searchResult.Should().NotBeNull().And.BeEmpty();

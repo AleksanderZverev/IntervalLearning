@@ -1,4 +1,4 @@
-﻿using IntervalLearningApi.Models;
+﻿using Infrastructure.BoundedContexts.Accounts.Jwt;
 
 namespace IntervalLearningApi.Extensions;
 

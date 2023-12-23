@@ -1,9 +1,11 @@
 using System.Net.Http.Headers;
 using System.Reflection;
 using Bogus;
+using IntervalLearningApi.Controllers.Accounts.DTOs;
+using IntervalLearningApi.Controllers.Accounts.Requests.Authenticate;
+using IntervalLearningApi.Controllers.Accounts.Requests.Register;
 using IntervalLearningApi.IntegrationTests.Common.Constants;
 using IntervalLearningApi.IntegrationTests.Common.Fakers;
-using IntervalLearningApi.Models.ByUser;
 using Microsoft.AspNetCore.Mvc.Testing;
 
 namespace IntervalLearningApi.IntegrationTests.Common.TestScopes;
@@ -41,6 +43,7 @@ public class BaseApiTests : IAsyncLifetime
     }
 
     public record TestUserInfo(
+        string Id,
         string Email,
         string Password,
         string FirstName,
@@ -83,6 +86,7 @@ public class BaseApiTests : IAsyncLifetime
 
         var faker = new Faker();
         var testUserInfo = new TestUserInfo(
+            "0",
             faker.Person.Email,
             faker.Internet.Password(),
             faker.Person.FirstName,
@@ -96,14 +100,14 @@ public class BaseApiTests : IAsyncLifetime
                 Password = testUserInfo.Password,
                 FirstName = testUserInfo.FirstName,
                 LastName = testUserInfo.LastName,
-                SuggestLanguageId = TestConstants.Language.TestId,
+                SuggestLanguageId = TestConstants.Language.SuggestTranslationLanguageId,
             });
 
-        await AuthorizeClientAsync(client, testUserInfo.Email, testUserInfo.Password);
-        return new Scope(client, testUserInfo);
+        var authResponse = await AuthorizeClientAsync(client, testUserInfo.Email, testUserInfo.Password);
+        return new Scope(client, testUserInfo with { Id = authResponse.Id});
     }
     
-    protected async Task<AuthenticateResponse> AuthorizeClientAsync(HttpClient client, string email, string password)
+    public async Task<AuthenticateResponse> AuthorizeClientAsync(HttpClient client, string email, string password)
     {
         var authResponse = await client.PostAsJsonAsync(
             AbsoluteQuery(ApiRoutes.Accounts.BasePath, ApiRoutes.Accounts.Authenticate),

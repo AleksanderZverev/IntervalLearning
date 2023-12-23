@@ -1,14 +1,15 @@
 using Bogus;
+using IntervalLearningApi.Controllers.Study.Cards.Requests;
 
 namespace IntervalLearningApi.IntegrationTests.Common.Fakers.Api;
 
-public class CardFaker : Faker<CreateCardItem>
+public class CardFaker : Faker<CreateCardRequest>
 {
     public CardFaker()
     {
         CustomInstantiator((f) =>
         {
-            return new CreateCardItem
+            return new CreateCardRequest
             {
                 FrontText = f.Lorem.Word(),
                 BackText = f.Lorem.Word(),

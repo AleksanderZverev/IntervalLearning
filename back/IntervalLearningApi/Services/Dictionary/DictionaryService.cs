@@ -1,23 +1,35 @@
-﻿using System.Linq;
+﻿using Application.Common.Interfaces.DB.Transactions;
 using DB;
-using DB.Models.Dictionary;
+using Domain.Dictionary.Translation;
+using Domain.Dictionary.Translation.ValueObjects;
+using Domain.Dictionary.Word;
+using Domain.Dictionary.Word.ValueObjects;
+using Domain.Language.ValueObjects;
+using Domain.User.ValueObjects;
+using FluentResults;
 using Infrastructure;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
+using Infrastructure.Errors;
 using Microsoft.EntityFrameworkCore;
 
 namespace IntervalLearningApi.Services.Dictionary
 {
     public class DictionaryService
     {
+        private readonly ITransactionProvider transactionProvider;
         private readonly ApplicationContext db;
+        private readonly IHostEnvironment env;
 
-        public DictionaryService(ApplicationContext db)
+        public DictionaryService(
+            ITransactionProvider transactionProvider,
+            ApplicationContext db,
+            IHostEnvironment env)
         {
+            this.transactionProvider = transactionProvider;
             this.db = db;
+            this.env = env;
         }
 
-        public async Task<(List<TranslationEntity>? translations, string? error)> GetTranslations(long userId, string word)
+        public async Task<Result<List<WordTranslation>>> GetTranslations(UserId userId, string word)
         {
             var metadata = await db.UserMetadata.FindAsync(userId);
 
@@ -29,11 +41,11 @@ namespace IntervalLearningApi.Services.Dictionary
 
             if (words.Count > 1)
             {
-                return (null, "Many words found");
+                return new BadRequestError("Found more than 1 word");
             }
 
             if (words.Count == 0)
-                return (new List<TranslationEntity>(0), null);
+                return new List<WordTranslation>();
 
             var foundWord = words[0];
 
@@ -41,28 +53,28 @@ namespace IntervalLearningApi.Services.Dictionary
                 .Where(t => t.WordId == foundWord.Id && t.LanguageId == metadata.SuggestTranslationLanguageId)
                 .ToListAsync();
 
-            return (translations, null);
+            return translations;
         }
 
-        public async Task<(string? okText, string? error)> ParseWordsWithTranslations(
-            long userId, 
+        public async Task<Result<string>> ParseWordsWithTranslations(
+            UserId userId, 
             short languageId, 
             short translationLanguageId, 
             string text)
         {
             var user = await db.Users.FindAsync(userId);
 
-            if (user is not {Email: "sam998980@mail.ru"})
-                return (null, "Forbidden");
+            if (env.IsProduction() && user is not {Email.Value: "sam998980@mail.ru"})
+                return new ForbiddenError();
 
             var lines = text.Split("\n", StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
 
             var errors = new List<string>(5);
 
             var allWords = await db.Words.ToListAsync();
-            var wordIdToTranslations = new Dictionary<int, List<TranslationEntity>>();
+            var wordIdToTranslations = new Dictionary<int, List<WordTranslation>>();
 
-            db.Database.BeginTransaction();
+            using var transaction = transactionProvider.CreateScope();
 
             foreach (var line in lines)
             {
@@ -74,8 +86,8 @@ namespace IntervalLearningApi.Services.Dictionary
                     continue;
                 }
 
-                var wordText = split[0].ToLowerInvariant();
-                var pronunciation = split[1].ToLowerInvariant();
+                var wordText = WordText.Create(split[0]).Value;
+                var pronunciation = WordPronunciation.Create(split[1]).Value;
                 var translationsLine = split[2];
 
                 var word = allWords.FirstOrDefault(w => string.Equals(w.Word, wordText, StringComparison.InvariantCultureIgnoreCase));
@@ -84,11 +96,7 @@ namespace IntervalLearningApi.Services.Dictionary
                 {
                     word.Pronunciation = pronunciation;
 
-                    try
-                    {
-                        db.SaveChanges();
-                    }
-                    catch
+                    if (!db.SoftSaveChanges())
                     {
                         errors.Add(line + " - on update pronunciation");
                     }
@@ -96,9 +104,9 @@ namespace IntervalLearningApi.Services.Dictionary
 
                 if (word == null)
                 { 
-                    word = new WordEntity
+                    word = new LanguageWord
                     {
-                        LanguageId = languageId,
+                        LanguageId = LanguageId.Create(languageId).Value,
                         Word = wordText,
                         Pronunciation = pronunciation
                     };
@@ -122,7 +130,7 @@ namespace IntervalLearningApi.Services.Dictionary
                     .ToListAsync();
 
                 if (!wordIdToTranslations.ContainsKey(word.Id))
-                    wordIdToTranslations.Add(word.Id, new List<TranslationEntity>(translationsFromDb));
+                    wordIdToTranslations.Add(word.Id, new List<WordTranslation>(translationsFromDb));
 
                 var translations = wordIdToTranslations[word.Id];
                 var translationsSplit = translationsLine.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
@@ -160,11 +168,11 @@ namespace IntervalLearningApi.Services.Dictionary
                         continue;
                     }
 
-                    var translation = new TranslationEntity()
+                    var translation = new WordTranslation()
                     {
                         Id = id,
-                        LanguageId = translationLanguageId,
-                        Translation = lowerTranslation,
+                        LanguageId = LanguageId.Create(translationLanguageId).Value,
+                        Translation = TranslationText.Create(lowerTranslation).Value,
                         WordId = word.Id,
                     };
 
@@ -184,26 +192,8 @@ namespace IntervalLearningApi.Services.Dictionary
                 }
             }
 
-            db.Database.CommitTransaction();
-
-            return (string.Join("\n\n", errors), null);
-        }
-
-        public async Task<List<LanguageEntity>> GetLanguages()
-        {
-            return await db.Languages.ToListAsync();
-        }
-
-        public async Task<List<WordEntity>> FindWord(string word)
-        {
-            var lowerWord = word.ToLowerInvariant();
-            return await db.Words.Where(w => w.Word.StartsWith(lowerWord)).Take(30).ToListAsync();
-        }
-
-        public async Task<List<WordEntity>> FindWordByPronunciation(string pronunciation)
-        {
-            var lowerPronounce = pronunciation.ToLowerInvariant();
-            return await db.Words.Where(w => w.Pronunciation != null && w.Pronunciation.StartsWith(lowerPronounce)).Take(30).ToListAsync();
+            transaction.Complete();
+            return string.Join("\n\n", errors);
         }
     }
 }

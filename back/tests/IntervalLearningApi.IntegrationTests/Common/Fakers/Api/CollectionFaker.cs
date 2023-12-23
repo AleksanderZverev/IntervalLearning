@@ -1,15 +1,15 @@
 using Bogus;
-using IntervalLearningApi.Models.ByUser;
+using IntervalLearningApi.Controllers.Study.Collections.RequestModels.CreateCollection;
 
 namespace IntervalLearningApi.IntegrationTests.Common.Fakers.Api;
 
-public class CollectionFaker : Faker<CreateCollectionItem>
+public class CollectionFaker : Faker<CreateCollectionRequest>
 {
     public CollectionFaker()
     {
         CustomInstantiator((f) =>
         {
-            return new CreateCollectionItem()
+            return new CreateCollectionRequest()
             {
                 Title = f.Lorem.Sentence(wordCount: 4),
                 IsDefaultBackSide = false,

@@ -1,11 +1,12 @@
 ﻿using System.Security.Claims;
+using Application.Common.Accounts.JwtService;
 using DB;
-using IntervalLearningApi.Models;
+using Domain.User.ValueObjects;
+using Infrastructure.BoundedContexts.Accounts.Jwt;
 using IntervalLearningApi.Services.Jwt;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
-using Microsoft.Extensions.Options;
 
 namespace IntervalLearningApi;
 
@@ -52,12 +53,13 @@ public class JwtMiddleware
 
     private static async Task<ClaimsIdentity?> ValidateCustom(string securityToken, ApplicationContext db, IJwtService jwtService)
     {
-        var userId = jwtService.ValidateJwtToken(securityToken);
+        var userIdResult = jwtService.ValidateJwtToken(securityToken);
 
-        if (userId == null)
+        if (userIdResult.IsFailed)
             return null;
 
-        var user = await db.Users.FindAsync(userId);
+        var userId = userIdResult.Value;
+        var user = await db.Users.FindAsync(UserId.Create(userId.Value).Value);
 
         if (user == null)
             return null;

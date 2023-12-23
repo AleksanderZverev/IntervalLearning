@@ -1,0 +1,23 @@
+using System.Diagnostics;
+using Domain.Common.ValueObjects;
+using FluentResults;
+
+namespace Domain.Theme.ValueObjects;
+
+public class ThemeId : SingleValueObject<short>
+{
+    private ThemeId(short value) : base(value)
+    {
+    }
+
+    public static Result<ThemeId> Create(short id)
+    {
+        if (id == default)
+        {
+            Debug.Fail("Passed default id");
+            return Result.Fail("Incorrect theme id");
+        }
+
+        return new ThemeId(id);
+    }
+}

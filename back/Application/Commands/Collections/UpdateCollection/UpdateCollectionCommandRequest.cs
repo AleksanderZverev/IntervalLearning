@@ -1,0 +1,14 @@
+using Domain.Collection.ValueObjects;
+using Domain.Theme.ValueObjects;
+using Domain.User.ValueObjects;
+
+namespace Application.Commands.Collections.UpdateCollection;
+
+public record UpdateCollectionCommandRequest
+{
+    public required CollectionId CollectionId { get; init; }
+    public required UserId ParentUserId { get; init; }
+    public required ThemeId ThemeId { get; init; }
+    public required CollectionTitle Title { get; init; }
+    public bool IsDefaultBackSide { get; init; }
+}

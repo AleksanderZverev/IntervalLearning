@@ -1,8 +1,14 @@
-using DB.Models;
+using Domain.Schedule.ValueObjects;
+using Domain.User.ValueObjects;
+using IntervalLearningApi.Controllers.Study.Cards.DTOs;
+using IntervalLearningApi.Controllers.Study.Cards.Requests.RememberCard;
+using IntervalLearningApi.Controllers.Study.Cards.Requests.StartCards;
+using IntervalLearningApi.Controllers.Study.Collections.DTOs;
+using IntervalLearningApi.Controllers.Study.Collections.RequestModels.GetNotFinished;
+using IntervalLearningApi.Controllers.Study.Collections.RequestModels.GetRepeatCollections;
+using IntervalLearningApi.Controllers.Study.RepeatsSchedules.DTOs;
+using IntervalLearningApi.Controllers.Study.RepeatsSchedules.Requests.CreateSchedule;
 using IntervalLearningApi.IntegrationTests.Learning.Scenarios;
-using IntervalLearningApi.Models.ByUser;
-using IntervalLearningApi.Models.RepeatsSchedule;
-using IntervalLearningApi.Services;
 
 namespace IntervalLearningApi.IntegrationTests.Learning;
 
@@ -72,17 +78,17 @@ public class CardAndCollectionsControllerTests : SharedApiTests
     public static IEnumerable<object[]> TestBehaviors =
         Behaviors.Select(behavior => new object[] { behavior });
 
-    private async Task<Schedule> CreateTestSchedule(ForgottenBehavior forgottenBehavior)
+    private async Task<RepeatsScheduleDto> CreateTestSchedule(ForgottenBehavior forgottenBehavior)
     {
-        var createSchedule = await CreateSchedule(new RepeatsScheduleController.CreateScheduleRequest()
+        var createSchedule = await CreateSchedule(new CreateScheduleRequest()
         {
             Title = "[For tests] Test schedule",
             Description = "Only for tests",
             ForgottenBehavior = (int)forgottenBehavior,
             CardsCountPerPhase = 10,
-            Phases = phasesDuration.Select((d, i) => new PhaseInfo()
+            Phases = phasesDuration.Select((d, i) => new CreatePhaseDto()
             {
-                Id = (short)(i + 1),
+                Id = (i + 1).ToString(),
                 SecondsFromLastPhase = (uint)d.TotalSeconds,
             }).ToList(),
         });
@@ -90,17 +96,17 @@ public class CardAndCollectionsControllerTests : SharedApiTests
         return createSchedule;
     } 
     
-    private async Task<Schedule> CreateTestScheduleWithRepetitions(ForgottenBehavior forgottenBehavior)
+    private async Task<RepeatsScheduleDto> CreateTestScheduleWithRepetitions(ForgottenBehavior forgottenBehavior)
     {
-        var createSchedule = await CreateSchedule(new RepeatsScheduleController.CreateScheduleRequest()
+        var createSchedule = await CreateSchedule(new CreateScheduleRequest()
         {
             Title = "[For tests] Test schedule with repetitions",
             Description = "Only for tests",
             ForgottenBehavior = (int)forgottenBehavior,
             CardsCountPerPhase = 10,
-            Phases = phasesDurationWithRepetitions.Select((d, i) => new PhaseInfo()
+            Phases = phasesDurationWithRepetitions.Select((d, i) => new CreatePhaseDto()
             {
-                Id = (short)(i + 1),
+                Id = (i + 1).ToString(),
                 SecondsFromLastPhase = (uint)d.TotalSeconds,
             }).ToList(),
         });
@@ -119,22 +125,22 @@ public class CardAndCollectionsControllerTests : SharedApiTests
             path);
     
 
-    private async Task<StartCardResponse?> StartCardsAsync(
+    private async Task<StartCardsResponse?> StartCardsAsync(
         HttpClient client,
-        Collection collection,
-        List<Card> cards, 
-        Schedule schedule)
+        CollectionDto collection,
+        List<CardDto> cards, 
+        RepeatsScheduleDto schedule)
     {
         var startCardsResponse = await client.PostAsJsonAsync(
             CardsQuery(collection.Id, ApiRoutes.Cards.Post_StartCards),
-            new CardsItem()
+            new StartCardsRequest()
             {
                 CardIds = cards.Select(c => short.Parse(c.Id)).ToList(),
                 ScheduleId = short.Parse(schedule.Id),
-                ScheduleUserId = long.Parse(schedule.ParentUserId),
+                ScheduleUserId = UserId.Create(long.Parse(schedule.ParentUserId)).Value,
             }
         );
-        var startCards = startCardsResponse.ToResponseDto<StartCardResponse>();
+        var startCards = startCardsResponse.ToResponseDto<StartCardsResponse>();
         return startCards;
     }
 
@@ -144,7 +150,7 @@ public class CardAndCollectionsControllerTests : SharedApiTests
     {
         public override string ToString()
         {
-            return $"{Behavior}: " + string.Join(" → ", Steps.Select(s => $"{s.Weight}({s.NextPhaseIndexDiff})")) + $" = {ResultStep}";
+            return $"{Behavior}: " + string.Join(" → ", Steps.Select(s => $"w:{s.Weight}({s.NextPhaseIndexDiff})")) + $" = {ResultStep}";
         }
     };
     
@@ -649,9 +655,9 @@ public class CardAndCollectionsControllerTests : SharedApiTests
     private async Task AssertRememberedCardsMovedToStep(
         IReadOnlyList<TimeSpan> phases, 
         HttpClient client,
-        Collection collection,
-        List<Card> cards,
-        Schedule schedule,
+        CollectionDto collection,
+        List<CardDto> cards,
+        RepeatsScheduleDto schedule,
         short shouldMoveToPhaseIndex)
     {
         //ASSERT
@@ -672,20 +678,20 @@ public class CardAndCollectionsControllerTests : SharedApiTests
 
     private async Task<HttpResponseMessage> RememberCardsAsync(
         HttpClient client,
-        Collection collection,
-        List<Card> cards,
-        Schedule schedule,
+        CollectionDto collection,
+        List<CardDto> cards,
+        RepeatsScheduleDto schedule,
         short rememberPhaseIndex,
         float rememberWeight)
     {
         return await client.PatchAsJsonAsync(
             CardsQuery(collection.Id, ApiRoutes.Cards.Path_RememberCard),
-            new RememberRequest()
+            new RememberCardRequest()
             {
                 PhaseIndex = rememberPhaseIndex,
                 ScheduleId = short.Parse(schedule.Id),
-                ScheduleUserId = long.Parse(schedule.ParentUserId),
-                RememberItems = cards.Select(c => new RememberItem()
+                ScheduleUserId = UserId.Create(long.Parse(schedule.ParentUserId)).Value,
+                RememberItems = cards.Select(c => new RememberItemDto()
                 {
                     CardId = short.Parse(c.Id),
                     Weight = rememberWeight,
@@ -710,7 +716,7 @@ public class CardAndCollectionsControllerTests : SharedApiTests
             var phase = phases[phaseIndex];
             var date = now.Add(phase);
             
-            dates.Should().OnlyContain(d => d.Date == date.Date);
+            dates.Should().OnlyContain(d => d.Date == date.Date, "next date is {0}", date.Date);
         }
     }
     
@@ -733,9 +739,10 @@ public class CardAndCollectionsControllerTests : SharedApiTests
             var repeatablePhase = repeatablePhases
                 .Where(p => p.ScheduleId == scheduleId)
                 .SingleOrDefault(p => TimeSpan.FromSeconds(p.SecondsFromLastPhase) == duration);
-            
-            repeatablePhase.Should().NotBeNull();
-            repeatablePhase.RepeatingCollections.Should().NotBeEmpty();
+
+            var because = $"should contain {phaseDate}";
+            repeatablePhase.Should().NotBeNull(because);
+            repeatablePhase.RepeatingCollections.Should().NotBeEmpty(because);
         }
     }
 

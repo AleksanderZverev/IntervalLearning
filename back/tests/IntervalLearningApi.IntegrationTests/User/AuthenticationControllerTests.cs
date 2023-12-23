@@ -1,3 +1,6 @@
+using IntervalLearningApi.Controllers.Accounts.Requests.Authenticate;
+using IntervalLearningApi.Controllers.Accounts.Requests.RevokeToken;
+
 namespace IntervalLearningApi.IntegrationTests.User;
 
 [UseBasePath(ApiRoutes.Accounts.BasePath)]
@@ -43,6 +46,7 @@ public class AuthenticationControllerTests : ScopeApiTests
         responseModel.Email.Should().BeEquivalentTo(email);
         responseModel.JwtToken.Should().NotBeEmpty();
         responseModel.RefreshToken.Should().NotBeEmpty();
+        responseModel.SuggestTranslationLanguageId.Should().NotBeEmpty();
     }
     
     [Fact]
@@ -73,5 +77,25 @@ public class AuthenticationControllerTests : ScopeApiTests
         newAuth.Should().NotBeNull();
         newAuth.JwtToken.Should().NotBeNull();
         oldAuth.JwtToken.Should().BeEquivalentTo(newAuth.JwtToken);
+    }
+    
+    [Fact]
+    public async Task RevokeToken_ShouldRevokeByRefreshToken()
+    {
+        //Arrange
+        var client = await GetEmptyClient();
+        var (email, password, _) = await RegisterRandomUserAsync(client);
+        var oldAuth = await AuthorizeClientAsync(client, email, password);
+        
+        //Act
+        var revokeResponse = await client.PostAsJsonAsync(ApiRoutes.Accounts.RevokeToken, new RevokeTokenRequest()
+        {
+            Token = oldAuth.RefreshToken,
+        });
+
+        //Assert
+        oldAuth.Should().NotBeNull();
+        oldAuth.JwtToken.Should().NotBeEmpty();
+        revokeResponse.IsSuccessStatusCode.Should().BeTrue();
     }
 }

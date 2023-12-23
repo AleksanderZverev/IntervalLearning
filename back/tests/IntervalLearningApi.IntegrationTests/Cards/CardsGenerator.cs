@@ -1,5 +1,6 @@
+using IntervalLearningApi.Controllers.Study.Cards.Requests;
+using IntervalLearningApi.Controllers.Study.Collections.DTOs;
 using IntervalLearningApi.IntegrationTests.Common.Fakers.Api;
-using IntervalLearningApi.Models.ByUser;
 
 namespace IntervalLearningApi.IntegrationTests.Cards;
 
@@ -22,7 +23,7 @@ public class CardsGenerator : LocalApiTests
                 .Add("themeId", "1")
                 .Add("searchName", collectionName));
 
-        var collections = collectionsResponse.ToResponseDto<List<Collection>>();
+        var collections = collectionsResponse.ToResponseDto<List<CollectionDto>>();
 
         if (collections == null || collections.Count == 0)
         {
@@ -39,7 +40,7 @@ public class CardsGenerator : LocalApiTests
         while (amount > 0)
         {
             var fakeCard = new CardFaker().Generate();
-            var randomCard = new CreateCardItem()
+            var randomCard = new CreateCardRequest()
             {
                 BackText = fakeCard.BackText,
                 FrontText = fakeCard.FrontText,

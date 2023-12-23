@@ -1,15 +1,19 @@
-﻿using DB;
-using DB.DependencyInjection;
-using IntervalLearningApi.Controllers;
-using IntervalLearningApi.Models;
-using IntervalLearningApi.Models.Common;
-using IntervalLearningApi.Services;
-using IntervalLearningApi.Services.Authentication;
+﻿using System.Reflection;
+using Application.Common.Accounts.JwtService;
+using DB;
+using FluentValidation;
+using Infrastructure;
+using Infrastructure.BoundedContexts.Accounts.Jwt;
+using IntervalLearningApi.Controllers.Accounts.Requests.Authenticate;
+using IntervalLearningApi.Controllers.Study.Cards;
+using IntervalLearningApi.Infrastructure.CommandManager;
+using IntervalLearningApi.Infrastructure.ValidatorResolver;
 using IntervalLearningApi.Services.Dictionary;
 using IntervalLearningApi.Services.Jwt;
+using IntervalLearningApi.Services.Statistics;
+using Mapster;
+using MapsterMapper;
 using Newtonsoft.Json.Serialization;
-using NodaTime;
-using NodaTime.Serialization.JsonNet;
 
 namespace IntervalLearningApi.Extensions;
 
@@ -23,21 +27,20 @@ public static class ServiceCollectionExtensions
     public static void AddWeb(this IServiceCollection services, SecretConfig config)
     {
         services.AddTransient<IDateTimeProvider, DateTimeProvider>();
+
+        services.AddScoped<CommandManager>();
+        services.AddScoped<ValidatorResolver>();
         
         services.AddScoped<IJwtService, JwtService>();
-        services.AddScoped<IAuthenticationService, AuthenticationService>();
-        services.AddScoped<UserService>();
 
-        services.AddScoped<CollectionService>();
-        services.AddScoped<CardsService>();
         services.AddScoped<StatisticsService>();
-        services.AddScoped<RepeatsScheduleService>();
-        services.AddScoped<ThemeService>();
-        services.AddScoped<UserMetadataService>();
         services.AddScoped<DictionaryService>();
         services.AddScoped(typeof(Repository<>));
 
         services.AddSingleton(config.JwtSettings);
+        
+        services.AddWebMapper();
+        services.AddWebValidator();
 
         // services.AddScoped<SessionUser>(provider =>
         // {
@@ -54,8 +57,28 @@ public static class ServiceCollectionExtensions
         {
             opts.SerializerSettings.ContractResolver = new DefaultContractResolver()
                 {NamingStrategy = new CamelCaseNamingStrategy()};
-            opts.SerializerSettings.ConfigureForNodaTime(DateTimeZoneProviders.Tzdb);
         });
+    }
 
+    private static void AddWebMapper(this IServiceCollection services)
+    {
+        var config = TypeAdapterConfig.GlobalSettings;
+        config.RequireExplicitMapping = true;
+        config.RequireDestinationMemberSource = true;
+        config.AllowImplicitDestinationInheritance = true;
+
+        config.Scan(Assembly.GetExecutingAssembly());
+
+        services.AddSingleton(config);
+        services.AddScoped<IMapper, ServiceMapper>();
+
+#if DEBUG
+        config.Compile();
+#endif
+    }
+
+    private static void AddWebValidator(this IServiceCollection services)
+    {
+        services.AddValidatorsFromAssemblyContaining<AuthenticateRequestValidator>();
     }
 }

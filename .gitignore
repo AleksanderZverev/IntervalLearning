@@ -241,8 +241,3 @@ interval-learning-web/.vscode/
 .env
 /back/.idea/.idea.IntervalLearningApi/.idea/
 /interval-learning-web/.idea/
-
-
-#TEMPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPP
-/back/Domain
-/back/Application

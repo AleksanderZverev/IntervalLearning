@@ -1,4 +1,4 @@
-using System.Diagnostics.CodeAnalysis;
+using Domain.User.ValueObjects;
 
 namespace IntervalLearningApi.Constants;
 
@@ -23,7 +23,7 @@ public static class ApiRoutes
         public const string SearchPrivate = "search/private";
         
         public const string GetPublicCollection = "public/{userId:long}-{collectionId}";
-        public static string GetPublicCollectionPath(long userId, long collectionId)
+        public static string GetPublicCollectionPath(UserId userId, long collectionId)
             => $"public/{userId}-{collectionId}";
 
         public const string GetAll = "";
@@ -40,7 +40,7 @@ public static class ApiRoutes
             => $"{collectionId}/public";
         
         public const string AddCardsToMyCollection = "{collectionUserId}-{collectionId}/add";
-        public static string AddCardsToMyCollectionPath(long userId, int collectionId)  
+        public static string AddCardsToMyCollectionPath(UserId userId, int collectionId)  
             => $"{userId}-{collectionId}/add";
     }
     
@@ -51,6 +51,9 @@ public static class ApiRoutes
             => $"api/collections/{collectionId}/cards";
         
         public const string Get_Card = "{cardId}";
+        public static string GetCardPath(string cardId)
+            => cardId;
+        
         public const string Get_GetAll = "";
         public const string Get_GetCardQueue = "repeat";
         public const string Get_GetNotStartedCards = "not-started";
@@ -73,15 +76,15 @@ public static class ApiRoutes
         public const string Get_GetAll = "";
         
         public const string Get_GetUserSchedule = "{userId}/{scheduleId}";
-        public static string GetGetUserSchedulePath(long userId, short scheduleId)
+        public static string GetGetUserSchedulePath(UserId userId, string scheduleId)
             => $"{userId}/{scheduleId}";
         
         public const string Get_GetMySchedule = "my/{scheduleId}";
-        public static string GetGetMySchedulePath(short scheduleId)
+        public static string GetGetMySchedulePath(string scheduleId)
             => $"my/{scheduleId}";
         
         public const string Patch_EditSchedule = "{scheduleId}";
-        public static string GetEditSchedulePath(short scheduleId)
+        public static string GetEditSchedulePath(string scheduleId)
             => $"{scheduleId}";
         
         public const string Post_CreateSchedule = "";
@@ -93,5 +96,22 @@ public static class ApiRoutes
 
         public const string Get_LearningStatistic = "learning";
         public const string Get_DetailedCalendarStatistic = "calendar/detailed";
+    }
+    
+    public class Themes
+    {
+        public const string BasePath = "api/themes";
+
+        public const string Get_GetAll = "";
+    }
+
+    public class Dictionary
+    {
+        public const string BasePath = "api/dictionary";
+
+        public const string Get_GenLanguages = "languages";
+        public const string Post_AddTranslations = "translations";
+        public const string Get_GetTranslation = "translations";
+        public const string Get_SearchWords = "words/search";
     }
 }
