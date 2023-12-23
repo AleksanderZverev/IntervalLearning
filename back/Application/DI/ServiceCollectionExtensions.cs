@@ -46,7 +46,7 @@ public static class ServiceCollectionExtensions
         foreach (var tuple in handlerInfos)
         {
             var descriptor = new ServiceDescriptor(interfaceType, tuple.handler, ServiceLifetime.Scoped);
-            services.Replace(descriptor);
+            services.Add(descriptor);
         }
     }
 }
