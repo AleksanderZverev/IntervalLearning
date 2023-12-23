@@ -71,10 +71,14 @@ public class CollectionsControllerTests : SharedApiTests
         await CreateCollectionAsync(collectionName);
 
         //Assert
-        var newCollections = await GetAllCollectionsAsync();
         oldCollections.Should().BeEmpty();
+        var newCollections = await GetAllCollectionsAsync();
         newCollections.Should().NotBeNull().And.HaveCount(1);
-        newCollections.Single().Title.Should().BeEquivalentTo(collectionName);
+        var collection = newCollections.Single();
+        collection.Title.Should().BeEquivalentTo(collectionName);
+        collection.ThemeId.Should().NotBe(0);
+        collection.CardsCount.Should().Be(0);
+        collection.IsPublic.Should().BeFalse();
     }
 
     public static IEnumerable<object[]> IncorrectNames = new object[][]

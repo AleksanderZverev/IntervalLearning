@@ -1,6 +1,7 @@
 ﻿using Domain.Collection;
 using Domain.Collection.ValueObjects;
 using Domain.Common.ValueObjects;
+using Domain.Theme.ValueObjects;
 using IntervalLearningApi.Controllers.Store.DTOs;
 using Mapster;
 using Newtonsoft.Json;
@@ -16,7 +17,10 @@ public class CollectionsRegister : IRegister
 
         config.NewConfig<Counter, short>()
             .Map(d => d, s => (short)s.Value);
-        
+
+        config.NewConfig<ThemeId, short>()
+            .MapWith(t => t.Value);
+
         config.NewConfig<Collection, CollectionDto>()
             .Map(d => d.Publication, s => s.CollectionPublicationEntity)
             .Map(d => d.CreatedAt, s => s.CreatedDate)

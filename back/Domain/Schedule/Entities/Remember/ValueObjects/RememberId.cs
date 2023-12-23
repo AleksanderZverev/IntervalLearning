@@ -20,8 +20,8 @@ public class RememberId : SingleValueObject<short>
             return Result.Fail("Incorrect remember id");
         }
         
-        if (id <= 0 || id >= 1000)
-            return Result.Fail("Remember id should be between 0 and 1000");
+        if (id <= 0)
+            return Result.Fail("Remember id can't be less or equal 0");
 
         return new RememberId(id);
     }

@@ -1,8 +1,9 @@
-import {createSlice, PayloadAction} from '@reduxjs/toolkit';
-import {Card} from '../../types/Collection';
-import {RootState} from '../store';
-import {getCollectionKey} from "./collectionsSlice";
-import {adapter} from "next/dist/server/web/adapter";
+import { createSlice, PayloadAction } from '@reduxjs/toolkit';
+import { Card } from '../../types/Collection';
+import { RootState } from '../store';
+import { getCollectionKey } from './collectionsSlice';
+import { adapter } from 'next/dist/server/web/adapter';
+import _ from 'lodash';
 
 export const getCardKey = (userId: string, collectionId: string) => `${userId}-${collectionId}`;
 
@@ -14,9 +15,13 @@ interface State {
     userToCollectionToCard: { [userId: string]: { [collectionId: string]: { [cardId: string]: Card } } };
 }
 
-const initialState: State = {userToCollectionToCard: {}};
+const initialState: State = { userToCollectionToCard: {} };
 
 const setCard = (state: State, card: Card) => {
+    if (card.remembers && card.remembers.length > 0) {
+        card.remembers = [..._.orderBy(card.remembers, (r) => new Date(r.repeatedDate), 'asc')];
+    }
+
     const root = state.userToCollectionToCard;
 
     if (!(card.userId in root)) {
@@ -45,9 +50,9 @@ export const cardsSlice = createSlice({
                 setCard(state, card);
             }
         },
-        deleteCard: (state, action: PayloadAction<{userId: string, collectionId: string, cardId: string}>) => {
+        deleteCard: (state, action: PayloadAction<{ userId: string; collectionId: string; cardId: string }>) => {
             const root = state.userToCollectionToCard;
-            const {userId, collectionId, cardId} = action.payload;
+            const { userId, collectionId, cardId } = action.payload;
             if (!(userId in root)) {
                 return;
             }
@@ -59,7 +64,7 @@ export const cardsSlice = createSlice({
 
             const collection = collectionsIndex[collectionId];
             delete collection[cardId];
-        }
+        },
     },
 });
 
@@ -98,4 +103,4 @@ export const selectCardById = (
     return cardsIndex[cardId];
 };
 
-export const {addCard, addManyCards, deleteCard} = cardsSlice.actions;
+export const { addCard, addManyCards, deleteCard } = cardsSlice.actions;

@@ -55,9 +55,16 @@ public class Card : AggregateRoot<ComplexCardId>
     public Remember? FindLastRemember() 
         => Remembers.MaxBy(c => c.Id);
     
-    public Remember? FindPreviousRemember(RememberId rememberId) 
-        => Remembers.FindLast(r => r.Id < rememberId);
-    
+    public Remember? FindPreviousRemember(RememberId rememberId)
+    {
+        //Because of bug the less ID ≠ previous remember
+        return Remembers
+            .OrderByDescending(r => r.RepeatedDate)
+            .SkipWhile(r => r.Id != rememberId)
+            .SkipWhile(r => r.Id == rememberId)
+            .FirstOrDefault();
+    }
+
     public DateTime GetLearnedDate()
     {
         return Remembers

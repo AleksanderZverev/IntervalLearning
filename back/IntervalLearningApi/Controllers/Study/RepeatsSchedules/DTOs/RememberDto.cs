@@ -9,7 +9,8 @@ public class RememberRegister : IRegister
 {
     public void Register(TypeAdapterConfig config)
     {
-        config.NewConfig<RememberWeight, float>();
+        config.NewConfig<RememberWeight, float>()
+            .MapWith(r => r.Value);
         config.NewConfig<Remember, RememberDto>();
     }
 }

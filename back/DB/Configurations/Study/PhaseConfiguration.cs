@@ -21,10 +21,10 @@ public class PhaseConfiguration : IEntityTypeConfiguration<Phase>
 
         builder.Property(p => p.ShortDescription)
             .HasMaxLength(200)
-            .HasConversion(Converters.LongSingleLine.ToNullable());
+            .HasConversion(Converters.LongSingleLine.ToEmptyString());
 
         builder.Property(p => p.OnLearnDescription)
-            .HasConversion(Converters.LongMultiLine.ToNullable());
+            .HasConversion(Converters.LongMultiLine.ToEmptyString());
 
         builder.ConfigureUserReference();
 
