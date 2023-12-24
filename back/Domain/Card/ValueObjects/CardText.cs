@@ -15,10 +15,10 @@ public class CardText : SingleValueObject<string>
         text = TextMaster.RemoveWhiteSpaces(text);
         
         if (string.IsNullOrWhiteSpace(text))
-            return Result.Fail("Name is empty");
+            return Result.Fail("Card text is empty");
 
         if (text.Length > 255)
-            return Result.Fail("Name is too long");
+            return Result.Fail("Card text is too long");
 
         return new CardText(text);
     }

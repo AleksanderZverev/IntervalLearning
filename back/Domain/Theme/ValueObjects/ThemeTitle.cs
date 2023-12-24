@@ -15,10 +15,10 @@ public class ThemeTitle : SingleValueObject<string>
         text = TextMaster.RemoveWhiteSpaces(text);
         
         if (string.IsNullOrWhiteSpace(text))
-            return Result.Fail("Name is empty");
+            return Result.Fail("Theme title is empty");
 
         if (text.Length > 100)
-            return Result.Fail("Name is too long");
+            return Result.Fail("Theme title is too long");
 
         return new ThemeTitle(text.ToLowerInvariant());
     }

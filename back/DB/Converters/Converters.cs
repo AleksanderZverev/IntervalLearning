@@ -92,7 +92,7 @@ internal static class Converters
             domainModel => (string)(domainModel == null
                 ? string.Empty
                 : converter.ConvertToProvider.Invoke(domainModel) ?? string.Empty),
-            databaseModel => string.IsNullOrEmpty(databaseModel)
+            databaseModel => string.IsNullOrWhiteSpace(databaseModel)
                 ? null
                 : (TFrom?)converter.ConvertFromProvider.Invoke(databaseModel)
         );

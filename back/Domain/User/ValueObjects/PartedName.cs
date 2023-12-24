@@ -12,12 +12,12 @@ public class PartedName : SingleValueObject<string>
     public static Result<PartedName> Create(string name)
     {
         if (string.IsNullOrWhiteSpace(name))
-            return Result.Fail("Name is empty");
+            return Result.Fail("Name of the user is empty");
 
         name = name.Trim();
 
         if (name.Length > 50)
-            return Result.Fail("Name is too long");
+            return Result.Fail("Name of the user is too long");
 
         return new PartedName(name);
     }

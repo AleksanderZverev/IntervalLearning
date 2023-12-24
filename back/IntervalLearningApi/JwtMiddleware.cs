@@ -1,6 +1,8 @@
 ﻿using System.Security.Claims;
 using Application.Common.Accounts.JwtService;
+using Application.Common.Interfaces.DB.Queries.Accounts;
 using DB;
+using DB.Quaries.Accounts;
 using Domain.User.ValueObjects;
 using Infrastructure.BoundedContexts.Accounts.Jwt;
 using IntervalLearningApi.Services.Jwt;
@@ -25,7 +27,7 @@ public class JwtMiddleware
         _jwtSettings = appSettings;
     }
 
-    public async Task Invoke(HttpContext context, ApplicationContext db, IJwtService jwtService)
+    public async Task Invoke(HttpContext context, IAccountQueryRepository accountRep, IJwtService jwtService)
     {
         var authorizationHeader = context.Request.Headers["Authorization"].FirstOrDefault();
 
@@ -40,7 +42,7 @@ public class JwtMiddleware
 
         var securityToken = authorizationHeader[BearerPrefix.Length..];
 
-        var customIdentity = await ValidateCustom(securityToken, db, jwtService);
+        var customIdentity = await ValidateCustom(securityToken, accountRep, jwtService);
 
         if (customIdentity != null)
         {
@@ -51,7 +53,7 @@ public class JwtMiddleware
         await _next(context);
     }
 
-    private static async Task<ClaimsIdentity?> ValidateCustom(string securityToken, ApplicationContext db, IJwtService jwtService)
+    private static async Task<ClaimsIdentity?> ValidateCustom(string securityToken, IAccountQueryRepository accountRep, IJwtService jwtService)
     {
         var userIdResult = jwtService.ValidateJwtToken(securityToken);
 
@@ -59,7 +61,7 @@ public class JwtMiddleware
             return null;
 
         var userId = userIdResult.Value;
-        var user = await db.Users.FindAsync(UserId.Create(userId.Value).Value);
+        var user = await accountRep.Users.Find(userId);
 
         if (user == null)
             return null;

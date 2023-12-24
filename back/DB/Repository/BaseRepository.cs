@@ -36,57 +36,64 @@ public class BaseRepository<TEntity> : IRepository<TEntity>
 
     public Result<TEntity> AddAndSave(TEntity entity)
     {
-        Add(entity);
+        var addedEntity = Add(entity);
         return db.SoftSaveChanges()
-            ? entity
+            ? addedEntity
             : new InternalError();
     }
 
     public Result<IList<TEntity>> AddRange(IList<TEntity> entities)
     {
+        var addedEntities = new List<TEntity>(entities.Count);
+        
         foreach (var entity in entities)
         {
-            Add(entity);
+            addedEntities.Add(Add(entity));
         }
         
         return db.SoftSaveChanges()
-            ? entities.ToResult()
+            ? addedEntities
             : new InternalError();
     }
 
     public Result<TEntity> UpdateAndSave(TEntity entity)
     {
-        Update(entity);
+        var updatedEntity = Update(entity);
+        
         return db.SoftSaveChanges()
-            ? entity
+            ? updatedEntity
             : new InternalError();
     }
 
     public IList<TEntity> UpdateRange(IList<TEntity> entities)
     {
+        var updatedEntities = new List<TEntity>(entities.Count);
+        
         foreach (var entity in entities)
         {
-            Update(entity);
+            updatedEntities.Add(Update(entity));
         }
-        
-        return entities;
+
+        return updatedEntities;
     }
 
     public Result<TEntity> DeleteAndSave(TEntity entity)
     {
-        Delete(entity);
+        var deletedEntity = Delete(entity);
         return db.SoftSaveChanges()
-            ? entity
+            ? deletedEntity
             : new InternalError();
     }
 
     public IList<TEntity> DeleteRange(IList<TEntity> entities)
     {
+        var deletedEntities = new List<TEntity>(entities.Count);
+        
         foreach (var entity in entities)
         {
-            Delete(entity);
+            deletedEntities.Add(Delete(entity));
         }
 
-        return entities;
+        return deletedEntities;
     }
 }
