@@ -12,12 +12,12 @@ public class CollectionTitle : SingleValueObject<string>
     public static Result<CollectionTitle> Create(string collectionName)
     {
         if (string.IsNullOrWhiteSpace(collectionName))
-            return Result.Fail("Name is empty");
+            return Result.Fail("Collection name is empty");
 
         collectionName = collectionName.Trim();
 
         if (collectionName.Length > 100)
-            return Result.Fail("Name is too long");
+            return Result.Fail("Collection name is too long");
 
         return new CollectionTitle(collectionName);
     }
