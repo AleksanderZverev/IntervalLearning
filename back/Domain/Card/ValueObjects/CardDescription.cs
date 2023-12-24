@@ -15,7 +15,7 @@ public class CardDescription : SingleValueObject<string>
         description = TextMaster.RemoveWhiteSpaces(description);
 
         if (description.Length > 500)
-            return Result.Fail("Description is too long");
+            return Result.Fail("Card description is too long");
 
         return new CardDescription(description);
     }
