@@ -1,9 +1,8 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { Card } from '../../types/Collection';
 import { RootState } from '../store';
-import { getCollectionKey } from './collectionsSlice';
-import { adapter } from 'next/dist/server/web/adapter';
 import _ from 'lodash';
+import dayjs from 'dayjs';
 
 export const getCardKey = (userId: string, collectionId: string) => `${userId}-${collectionId}`;
 
@@ -18,10 +17,6 @@ interface State {
 const initialState: State = { userToCollectionToCard: {} };
 
 const setCard = (state: State, card: Card) => {
-    if (card.remembers && card.remembers.length > 0) {
-        card.remembers = [..._.orderBy(card.remembers, (r) => new Date(r.repeatedDate), 'asc')];
-    }
-
     const root = state.userToCollectionToCard;
 
     if (!(card.userId in root)) {
@@ -35,7 +30,13 @@ const setCard = (state: State, card: Card) => {
     }
 
     const collection = collectionsIndex[card.collectionId];
-    collection[card.id] = card;
+    collection[card.id] = {
+        ...card,
+        remembers:
+            card.remembers && card.remembers.length > 0
+                ? [...card.remembers].sort((f, s) => dayjs(f.repeatedDate).diff(dayjs(s.repeatedDate)))
+                : [],
+    };
 };
 
 export const cardsSlice = createSlice({
