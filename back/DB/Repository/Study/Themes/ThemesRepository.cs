@@ -16,7 +16,8 @@ public class ThemesRepository : BaseRepository<Theme>, IRepository<Theme, ThemeI
     public Result<ThemeId> GetUniqueId(ThemeIdParams param)
     {
         var seqName = ThemeConfiguration.GetSequenceName();
-        db.EnsureSequenceCreated(seqName);
+        const int themesStartValue = 10;
+        db.EnsureSequenceCreated(seqName, themesStartValue);
         var themeId = db.GetSequenceNextValue16(seqName);
         return ThemeId.Create(themeId);
     }

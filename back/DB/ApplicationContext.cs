@@ -70,7 +70,7 @@ namespace DB
             modelBuilder.ApplyConfigurationsFromAssembly(GetType().Assembly);
         }
 
-        public void EnsureSequenceCreated(string sequenceName)
+        public void EnsureSequenceCreated(string sequenceName, int ensureStartValue = 1)
         {
             var connection = Database.GetDbConnection();
             
@@ -80,14 +80,50 @@ namespace DB
                 connection.Open();
             }
 
+            void OnReturn()
+            {
+                if (!isConnectionOpened)
+                {
+                    connection.Close();
+                }
+            }
+
+            using var checkSequenceExistsCommand = connection.CreateCommand();
+            checkSequenceExistsCommand.CommandText =
+                $"SELECT relname FROM pg_class WHERE relkind = 'S' AND relname = '{sequenceName}'";
+            var reader = checkSequenceExistsCommand.ExecuteReader();
+            var canRead = reader.Read();
+            var foundSequence = canRead ? reader.GetString(0) : string.Empty;
+            reader.Close();
+
+            if (!string.IsNullOrEmpty(foundSequence) && foundSequence == sequenceName)
+            {
+                OnReturn();
+                return;
+            }
+            
             using var createSequenceCommand = connection.CreateCommand();
-            createSequenceCommand.CommandText = $"create sequence if not exists {sequenceName}";
+            createSequenceCommand.CommandText = $"create sequence {sequenceName}";
             createSequenceCommand.ExecuteNonQuery();
 
-            if (!isConnectionOpened)
+            if (ensureStartValue < 2)
             {
-                connection.Close();
+                OnReturn();
+                return;
             }
+            
+            using var setValueCommand = connection.CreateCommand();
+            setValueCommand.CommandText = $"select setval('{sequenceName}', {ensureStartValue - 2})";
+            setValueCommand.ExecuteNonQuery();
+
+            var minValue = GetSequenceNextValue64(sequenceName);
+            if (minValue != ensureStartValue - 1)
+            {
+                throw new InvalidOperationException(
+                    $"Failure on setting start value for sequence {sequenceName}");
+            }
+            
+            OnReturn();
         }
 
         public short GetSequenceNextValue16(string sequenceName)
