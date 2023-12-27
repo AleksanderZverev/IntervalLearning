@@ -1,5 +1,5 @@
 /* eslint-disable react-hooks/rules-of-hooks */
-import { Add, Casino, Public } from '@mui/icons-material';
+import { Add, Casino, Public, Visibility } from '@mui/icons-material';
 import { Autocomplete, Button, CircularProgress, Pagination, Stack, TableCell, TextField } from '@mui/material';
 import dayjs from 'dayjs';
 import { FC, useEffect, useMemo, useRef, useState } from 'react';
@@ -152,6 +152,9 @@ const CollectionPageContent: FC = () => {
                     <Stack direction={'row'} gap="10px">
                         <Button variant="contained" endIcon={<Casino />} onClick={() => navigate('words/random')}>
                             Случайные
+                        </Button>
+                        <Button variant="contained" endIcon={<Visibility />} onClick={() => navigate('words/review')}>
+                            Пересмотр
                         </Button>
                         <Button variant="contained" endIcon={<Add />} onClick={() => setShowCreateCardModal(true)}>
                             Слово
