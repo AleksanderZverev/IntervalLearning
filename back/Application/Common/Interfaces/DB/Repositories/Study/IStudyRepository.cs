@@ -11,6 +11,7 @@ using Domain.Collection;
 using Domain.Collection.ValueObjects;
 using Domain.Queue;
 using Domain.Queue.ValueObjects;
+using Domain.RelearningCard;
 using Domain.Schedule;
 using Domain.Schedule.Entities.Phase;
 using Domain.Schedule.Entities.Phase.Entities;
@@ -38,4 +39,5 @@ public interface IStudyRepository : IBoundedContextRepository
     
     public IRepository<Remember, RememberId, RememberIdParams> CardRemembers { get; }
     public IRepository<PhaseRememberEntity> PhaseRemembers { get; }
+    public IRepository<RelearningCard> RelearnCards { get; }
 }

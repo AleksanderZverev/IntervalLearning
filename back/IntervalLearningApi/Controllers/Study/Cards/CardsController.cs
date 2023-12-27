@@ -5,6 +5,7 @@ using Application.Commands.Cards.GetAllCards;
 using Application.Commands.Cards.GetCard;
 using Application.Commands.Cards.GetCardsQueueCommand;
 using Application.Commands.Cards.GetNotStartedCardsCommand;
+using Application.Commands.Cards.RelearnCard;
 using Application.Commands.Cards.RememberCard;
 using Application.Commands.Cards.SearchCards;
 using Application.Commands.Cards.StartLearnCards;
@@ -236,6 +237,29 @@ namespace IntervalLearningApi.Controllers.Study.Cards
                     count));
 
             return cardsResult.ToActionResult(cards => mapper.Map<List<CardDto>>(cards));
+        }
+
+        [HttpPatch(ApiRoutes.Cards.Patch_RelearnCard)]
+        public async Task<ActionResult> RelearnCard(short collectionId, short cardId)
+        {
+            var argsResults = (
+                HttpContext.GetUserId(),
+                CollectionId.Create(collectionId),
+                CardId.Create(cardId)
+            );
+            
+            if (argsResults.HasAnyError())
+                return BadRequest();
+
+            var (userIdResult, collectionIdResult, cardIdResult) = argsResults;
+            var relearnResult = await commandManager
+                .GetCommand<RelearnCardCommand>()
+                .Handle(new RelearnCardCommandRequest(
+                    userIdResult.Value,
+                    collectionIdResult.Value,
+                    cardIdResult.Value));
+
+            return relearnResult.ToActionResult();
         }
 
         [HttpDelete(ApiRoutes.Cards.Delete_DeleteCard)]

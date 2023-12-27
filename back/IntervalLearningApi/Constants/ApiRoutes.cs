@@ -57,6 +57,7 @@ public static class ApiRoutes
         public const string Get_GetAll = "";
         public const string Get_GetCardQueue = "repeat";
         public const string Get_GetNotStartedCards = "not-started";
+        public const string Patch_RelearnCard = "relearn";
         public const string Post_CreateCard = "";
         
         public const string Delete_DeleteCard = "{cardId}";

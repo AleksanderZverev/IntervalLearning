@@ -63,6 +63,7 @@ using Domain.Collection.ValueObjects;
 using Domain.Deprecated.DbModels;
 using Domain.Queue;
 using Domain.Queue.ValueObjects;
+using Domain.RelearningCard;
 using Domain.Schedule;
 using Domain.Schedule.Entities.Phase;
 using Domain.Schedule.Entities.Phase.Entities;
@@ -141,6 +142,9 @@ public static class DependencyInjectionExtensions
         
         //PhaseRemember
         services.AddScoped<IRepository<PhaseRememberEntity>, BaseRepository<PhaseRememberEntity>>();
+        
+        //RelearnCard
+        services.AddScoped<IRepository<RelearningCard>, BaseRepository<RelearningCard>>();
         
         //===STORE===
         

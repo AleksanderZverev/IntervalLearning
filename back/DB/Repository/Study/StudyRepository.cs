@@ -13,6 +13,7 @@ using Domain.Collection;
 using Domain.Collection.ValueObjects;
 using Domain.Queue;
 using Domain.Queue.ValueObjects;
+using Domain.RelearningCard;
 using Domain.Schedule;
 using Domain.Schedule.Entities.Phase;
 using Domain.Schedule.Entities.Phase.Entities;
@@ -44,6 +45,7 @@ public class StudyRepository : IStudyRepository
     
     public IRepository<Remember, RememberId, RememberIdParams> CardRemembers { get; }
     public IRepository<PhaseRememberEntity> PhaseRemembers { get; }
+    public IRepository<RelearningCard> RelearnCards { get; }
 
     public StudyRepository(
         ApplicationContext db,
@@ -55,7 +57,8 @@ public class StudyRepository : IStudyRepository
         IRepository<Phase> phases,
         IRepository<CardRepeatQueue, QueueId, RepeatingQueueIdParams> repeatingQueue,
         IRepository<Remember, RememberId, RememberIdParams> cardRemembers,
-        IRepository<PhaseRememberEntity> phaseRemembers)
+        IRepository<PhaseRememberEntity> phaseRemembers, 
+        IRepository<RelearningCard> relearnCards)
     {
         this.db = db;
         Query = query;
@@ -67,6 +70,7 @@ public class StudyRepository : IStudyRepository
         RepeatingQueue = repeatingQueue;
         CardRemembers = cardRemembers;
         PhaseRemembers = phaseRemembers;
+        RelearnCards = relearnCards;
     }
     
     public Result SaveChanges()
