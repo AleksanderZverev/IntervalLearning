@@ -14,11 +14,11 @@ import classNames from 'classnames';
 import { FC, useEffect, useRef, useState } from 'react';
 import { ShowCardModal } from '../../../../controls/Modals/ShowCardModal';
 import { PaperCard } from '../../../../controls/PaperCard/PaperCard';
-import { useEventListener } from '../../../../hooks/useEventListener';
 import { getCardUniqueKey } from '../../../../redux/slices/cardsSlice';
 import { Card } from '../../../../types/Collection';
 import { RememberList } from './RememberList/RememberList';
 import styles from './styles.module.css';
+import { HidableText } from '../../../../controls/HidableText/HidableText';
 
 interface RepeatCardProps {
     card: Card;
@@ -36,8 +36,7 @@ interface RepeatCardProps {
 }
 
 interface CardProps {
-    backIsHidden: boolean;
-    promptIsHidden: boolean;
+    isValuesHidden: boolean;
 }
 
 export const RepeatCard: FC<RepeatCardProps> = ({
@@ -53,28 +52,20 @@ export const RepeatCard: FC<RepeatCardProps> = ({
     onChange,
     isValueSideDefault,
 }) => {
-    const [backIsHidden, setBackIsHidden] = useState(true);
-    const [promptIsHidden, setPromptIsHidden] = useState(true);
+    const [isValuesHidden, setValuesHidden] = useState(true);
     const { current: cardIdToProps } = useRef<Record<string, CardProps>>({});
 
     useEffect(() => {
-        cardIdToProps[getCardUniqueKey(card)] = { backIsHidden, promptIsHidden };
-    }, [backIsHidden, promptIsHidden]);
+        cardIdToProps[getCardUniqueKey(card)] = { isValuesHidden: isValuesHidden };
+    }, [isValuesHidden]);
 
     useEffect(() => {
         const saveItem = cardIdToProps[getCardUniqueKey(card)];
-        setBackIsHidden(saveItem ? saveItem.backIsHidden : true);
-        setPromptIsHidden(saveItem ? saveItem.promptIsHidden : true);
+        setValuesHidden(saveItem ? saveItem.isValuesHidden : true);
     }, [card]);
 
     const [isError, setIsError] = useState(false);
     const [showCardInfoModal, setShowCardInfoModal] = useState(false);
-
-    useEventListener('keydown', (e) => {
-        e.key === '1' && onChange(0);
-        e.key === '2' && onChange(0.5);
-        e.key === '3' && onChange(1);
-    });
 
     const frontText = isValueSideDefault ? card.backSideText : card.frontSideText;
     const backText = isValueSideDefault ? card.frontSideText : card.backSideText;
@@ -165,22 +156,20 @@ export const RepeatCard: FC<RepeatCardProps> = ({
                             {frontText}
                         </Typography>
 
-                        <div
-                            className={classNames(styles.backContainer, { [styles.backHidden]: promptIsHidden })}
-                            onClick={() => setPromptIsHidden(!promptIsHidden)}
-                        >
-                            {card.promptText}
-                        </div>
+                        <HidableText
+                            size="small"
+                            text={card.promptText || ''}
+                            forceVisible={!isValuesHidden}
+                            onChange={() => setValuesHidden(true)}
+                        />
                     </Stack>
 
-                    <div
-                        className={classNames(styles.backContainer, { [styles.backHidden]: backIsHidden })}
-                        onClick={() => setBackIsHidden(!backIsHidden)}
-                    >
-                        <Typography variant="h5" fontSize={24}>
-                            {backText}
-                        </Typography>
-                    </div>
+                    <HidableText
+                        size="medium"
+                        text={backText}
+                        forceVisible={!isValuesHidden}
+                        onChange={() => setValuesHidden(true)}
+                    />
                 </Stack>
                 <RadioGroup
                     onKeyDownCapture={(e) => e.preventDefault()}
@@ -194,8 +183,7 @@ export const RepeatCard: FC<RepeatCardProps> = ({
                         const newValue = parseFloat(v);
                         onChange(newValue);
                         if (newValue > 0.95 || newValue < 0.05) {
-                            setBackIsHidden(false);
-                            setPromptIsHidden(false);
+                            setValuesHidden(false);
                         }
                     }}
                 >
