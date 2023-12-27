@@ -1,6 +1,7 @@
 using Application.Common.Interfaces.DB.Queries.Study.Cards;
 using Application.Common.Interfaces.DB.Queries.Study.Collections;
 using Application.Common.Interfaces.DB.Queries.Study.Queue;
+using Application.Common.Interfaces.DB.Queries.Study.RelearningCards;
 using Application.Common.Interfaces.DB.Queries.Study.Remember;
 using Application.Common.Interfaces.DB.Queries.Study.Schedule;
 using Application.Common.Interfaces.DB.Queries.Study.Themes;
@@ -16,4 +17,5 @@ public interface IStudyQueryRepository : IBoundedContextQueryRepository
     public IRememberQueryResolver CardRemembers { get; }
     public IScheduleResolver Schedules { get; }
     public IThemesQueryResolver Themes { get; }
+    public IRelearningCardsResolver RelearningCards { get; }
 }

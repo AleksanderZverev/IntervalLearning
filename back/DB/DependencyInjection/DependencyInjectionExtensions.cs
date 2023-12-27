@@ -12,6 +12,7 @@ using Application.Common.Interfaces.DB.Queries.Study;
 using Application.Common.Interfaces.DB.Queries.Study.Cards;
 using Application.Common.Interfaces.DB.Queries.Study.Collections;
 using Application.Common.Interfaces.DB.Queries.Study.Queue;
+using Application.Common.Interfaces.DB.Queries.Study.RelearningCards;
 using Application.Common.Interfaces.DB.Queries.Study.Remember;
 using Application.Common.Interfaces.DB.Queries.Study.Schedule;
 using Application.Common.Interfaces.DB.Queries.Study.Themes;
@@ -35,6 +36,7 @@ using DB.Quaries.Accounts.Users;
 using DB.Quaries.Dictionary;
 using DB.Quaries.Store;
 using DB.Quaries.Study;
+using DB.Quaries.Study.RelearningCard;
 using DB.Repository;
 using DB.Repository.Accounts;
 using DB.Repository.Accounts.Users;
@@ -143,7 +145,8 @@ public static class DependencyInjectionExtensions
         //PhaseRemember
         services.AddScoped<IRepository<PhaseRememberEntity>, BaseRepository<PhaseRememberEntity>>();
         
-        //RelearnCard
+        //RelearningCard
+        services.AddScoped<IRelearningCardsResolver, RelearningCardsResolver>();
         services.AddScoped<IRepository<RelearningCard>, BaseRepository<RelearningCard>>();
         
         //===STORE===

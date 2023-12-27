@@ -5,6 +5,7 @@ using Application.Commands.Cards.GetAllCards;
 using Application.Commands.Cards.GetCard;
 using Application.Commands.Cards.GetCardsQueueCommand;
 using Application.Commands.Cards.GetNotStartedCardsCommand;
+using Application.Commands.Cards.GetRelearningCards;
 using Application.Commands.Cards.RelearnCard;
 using Application.Commands.Cards.RememberCard;
 using Application.Commands.Cards.SearchCards;
@@ -236,6 +237,27 @@ namespace IntervalLearningApi.Controllers.Study.Cards
                     collectionIdResult.Value,
                     count));
 
+            return cardsResult.ToActionResult(cards => mapper.Map<List<CardDto>>(cards));
+        }
+
+        [HttpGet(ApiRoutes.Cards.Get_GetAllRelearningCards)]
+        public async Task<ActionResult<List<CardDto>>> GetRelearningCard(
+            short collectionId,
+            [Range(1, 200)]int count)
+        {
+            var argsResults = (
+                HttpContext.GetUserId(),
+                CollectionId.Create(collectionId)
+            );
+
+            if (argsResults.HasAnyError())
+                return BadRequest();
+
+            var (userIdResult, collectionIdResult) = argsResults;
+            var cardsResult = await commandManager
+                .GetCommand<GetRelearningCardsCommand>()
+                .Handle(new GetRelearningCardsCommandRequest(userIdResult.Value, collectionIdResult.Value, count));
+            
             return cardsResult.ToActionResult(cards => mapper.Map<List<CardDto>>(cards));
         }
 

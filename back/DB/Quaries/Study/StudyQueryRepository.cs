@@ -2,6 +2,7 @@ using Application.Common.Interfaces.DB.Queries.Study;
 using Application.Common.Interfaces.DB.Queries.Study.Cards;
 using Application.Common.Interfaces.DB.Queries.Study.Collections;
 using Application.Common.Interfaces.DB.Queries.Study.Queue;
+using Application.Common.Interfaces.DB.Queries.Study.RelearningCards;
 using Application.Common.Interfaces.DB.Queries.Study.Remember;
 using Application.Common.Interfaces.DB.Queries.Study.Schedule;
 using Application.Common.Interfaces.DB.Queries.Study.Themes;
@@ -16,13 +17,15 @@ public class StudyQueryRepository : IStudyQueryRepository
     public IRememberQueryResolver CardRemembers { get; }
     public IScheduleResolver Schedules { get; }
     public IThemesQueryResolver Themes { get; }
-    
+    public IRelearningCardsResolver RelearningCards { get; }
+
     public StudyQueryRepository(ICardsQueryResolver cards,
         ICollectionQueryResolver collections,
         IRepeatingQueueResolver repeatingQueue,
         IRememberQueryResolver cardRemembers,
         IScheduleResolver schedules,
-        IThemesQueryResolver themes)
+        IThemesQueryResolver themes, 
+        IRelearningCardsResolver relearningCards)
     {
         Cards = cards;
         Collections = collections;
@@ -30,5 +33,6 @@ public class StudyQueryRepository : IStudyQueryRepository
         CardRemembers = cardRemembers;
         Schedules = schedules;
         Themes = themes;
+        RelearningCards = relearningCards;
     }
 }

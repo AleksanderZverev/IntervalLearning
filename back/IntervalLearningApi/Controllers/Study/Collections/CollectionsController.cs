@@ -273,9 +273,12 @@ namespace IntervalLearningApi.Controllers.Study.Collections
                     count));
 
             return canStartCollectionsResult.ToActionResult(response =>
-                new GetNotFinishedResponse(
-                    response.TotalCollections,
-                    mapper.Map<List<CollectionDto>>(response.CanStartCollections)));
+                new GetNotFinishedResponse()
+                {
+                    TotalCollections = response.TotalCollections,
+                    CanStartCollections = mapper.Map<List<CollectionDto>>(response.CanStartCollections),
+                    CanRelearnCollections = mapper.Map<List<CollectionDto>>(response.CollectionsWithRelearningWords),
+                });
         }
 
         [HttpGet(ApiRoutes.Collections.GetCollection)]

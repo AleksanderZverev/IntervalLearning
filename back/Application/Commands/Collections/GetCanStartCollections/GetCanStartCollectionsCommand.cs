@@ -46,6 +46,11 @@ public class GetCanStartCollectionsCommand : ICommand<GetCanStartCollectionsComm
             collection.NotStartedCardsCount = Counter.Create(notStartedCards).Value;
         }
 
-        return new GetCanStartCollectionsResponse(totalCollectionsCount, canStartCollections);
+        var canRelearnCardIds = await studyQueryRepository.RelearningCards.GetAll(userId);
+        var canRelearnCollections = await studyQueryRepository.Collections.GetRange(
+            userId,
+            canRelearnCardIds.Select(c => c.CollectionId).Distinct().ToList());
+
+        return new GetCanStartCollectionsResponse(totalCollectionsCount, canStartCollections, canRelearnCollections);
     }
 }
