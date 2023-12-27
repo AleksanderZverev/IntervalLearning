@@ -8,6 +8,7 @@ using Domain.Dictionary.Translation;
 using Domain.Dictionary.Word;
 using Domain.Language;
 using Domain.Queue;
+using Domain.RelearningCard;
 using Domain.Schedule;
 using Domain.Schedule.Entities.Phase;
 using Domain.Schedule.Entities.Phase.Entities;
@@ -51,6 +52,7 @@ namespace DB
         public DbSet<Phase> Phases { get; set; }
 
         public DbSet<CardRepeatQueue> Queue { get; set; }
+        public DbSet<RelearningCard> RelearningCards { get; set; }
 
         public DbSet<UserMetadata> UserMetadata { get; set; }
 
