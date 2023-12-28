@@ -8,61 +8,13 @@ using IntervalLearningApi.Controllers.Study.Collections.RequestModels.GetNotFini
 using IntervalLearningApi.Controllers.Study.Collections.RequestModels.GetRepeatCollections;
 using IntervalLearningApi.Controllers.Study.RepeatsSchedules.DTOs;
 using IntervalLearningApi.Controllers.Study.RepeatsSchedules.Requests.CreateSchedule;
+using IntervalLearningApi.IntegrationTests.Learning.Common;
 using IntervalLearningApi.IntegrationTests.Learning.Scenarios;
 
 namespace IntervalLearningApi.IntegrationTests.Learning;
 
 public class CardAndCollectionsControllerTests : SharedApiTests
 {
-    private static IReadOnlyList<TimeSpan> phasesDuration = new List<TimeSpan>()
-    {
-        TimeSpan.FromDays(1),
-            
-        TimeSpan.FromDays(3),
-            
-        TimeSpan.FromDays(7),
-            
-        TimeSpan.FromDays(14),
-        TimeSpan.FromDays(1),
-            
-        TimeSpan.FromDays(28),
-            
-        TimeSpan.FromDays(28),
-            
-        TimeSpan.FromDays(40),
-    };
-    
-    private static IReadOnlyList<TimeSpan> phasesDurationWithRepetitions = new List<TimeSpan>()
-    {
-        TimeSpan.FromDays(1),
-        TimeSpan.FromSeconds(1),
-            
-        TimeSpan.FromDays(3),
-        TimeSpan.FromSeconds(1),
-            
-        TimeSpan.FromDays(7),
-        TimeSpan.FromSeconds(1),
-            
-        TimeSpan.FromDays(14),
-        TimeSpan.FromSeconds(1),
-        
-        TimeSpan.FromDays(1),
-        TimeSpan.FromSeconds(1),
-            
-        TimeSpan.FromDays(28),
-        TimeSpan.FromSeconds(1),
-            
-        TimeSpan.FromDays(28),
-        TimeSpan.FromSeconds(1),
-            
-        TimeSpan.FromDays(40),
-        TimeSpan.FromSeconds(1),
-    };
-    
-    private const float RememberedWeight = 1f;
-    private const float ForgottenWeight = 0f;
-    private const float UnknownWeight = 0.5f;
-    
     public CardAndCollectionsControllerTests(SharedDockerIntervalLearningApiFactory apiFactory) : base(apiFactory)
     {
     }
@@ -86,7 +38,7 @@ public class CardAndCollectionsControllerTests : SharedApiTests
             Description = "Only for tests",
             ForgottenBehavior = (int)forgottenBehavior,
             CardsCountPerPhase = 10,
-            Phases = phasesDuration.Select((d, i) => new CreatePhaseDto()
+            Phases = LearningCommons.phasesDuration.Select((d, i) => new CreatePhaseDto()
             {
                 Id = (i + 1).ToString(),
                 SecondsFromLastPhase = (uint)d.TotalSeconds,
@@ -104,7 +56,7 @@ public class CardAndCollectionsControllerTests : SharedApiTests
             Description = "Only for tests",
             ForgottenBehavior = (int)forgottenBehavior,
             CardsCountPerPhase = 10,
-            Phases = phasesDurationWithRepetitions.Select((d, i) => new CreatePhaseDto()
+            Phases = LearningCommons.phasesDurationWithRepetitions.Select((d, i) => new CreatePhaseDto()
             {
                 Id = (i + 1).ToString(),
                 SecondsFromLastPhase = (uint)d.TotalSeconds,
@@ -154,172 +106,10 @@ public class CardAndCollectionsControllerTests : SharedApiTests
         }
     };
     
-    public static List<Scenario> TestOnTheStartScenarios = new()
-    {
-        new Scenario(ForgottenBehavior.MoveToNextStep, new List<ScenarioStep>()
-        {
-            new(ForgottenWeight, 1),
-        }, ResultStep: 2),
-        new Scenario(ForgottenBehavior.MoveToNextStep, new List<ScenarioStep>()
-        {
-            new(UnknownWeight, 1),
-        }, ResultStep: 2),
-        
-        
-        new Scenario(ForgottenBehavior.MoveToPreviousStep, new List<ScenarioStep>()
-        {
-            new(ForgottenWeight, -1),
-        }, ResultStep: 1),
-        new Scenario(ForgottenBehavior.MoveToPreviousStep, new List<ScenarioStep>()
-        {
-            new(UnknownWeight, 0),
-        }, ResultStep: 1),
-        
-        
-        new Scenario(ForgottenBehavior.StartFromFirstStep, new List<ScenarioStep>()
-        {
-            new(ForgottenWeight, -99),
-        }, ResultStep: 1),
-        new Scenario(ForgottenBehavior.StartFromFirstStep, new List<ScenarioStep>()
-        {
-            new(UnknownWeight, 0),
-        }, ResultStep: 1),
-        
-        
-        new Scenario(ForgottenBehavior.StayOnCurrentStep, new List<ScenarioStep>()
-        {
-            new(ForgottenWeight, 0),
-        }, ResultStep: 1),
-        new Scenario(ForgottenBehavior.StayOnCurrentStep, new List<ScenarioStep>()
-        {
-            new(UnknownWeight, 0),
-        }, ResultStep: 1),
-    };
-    
-    public static IEnumerable<object[]> TestOnTheStartMoveScenarios = 
-        TestOnTheStartScenarios.Select(s => new object[] { s });
-    
-
-    public static List<Scenario> MoveScenarios = new()
-    {
-        new Scenario(ForgottenBehavior.MoveToNextStep, new List<ScenarioStep>()
-        {
-            new(RememberedWeight, 1),
-            new(UnknownWeight, 1),
-            new(ForgottenWeight, 1),
-        }, ResultStep: 4),
-        
-        
-        new Scenario(ForgottenBehavior.MoveToPreviousStep, new List<ScenarioStep>()
-        {
-            new(RememberedWeight, 1),
-            new(RememberedWeight, 1),
-            new(ForgottenWeight, -1),
-        }, ResultStep: 2),
-        new Scenario(ForgottenBehavior.MoveToPreviousStep, new List<ScenarioStep>()
-        {
-            new(RememberedWeight, 1),
-            new(RememberedWeight, 1),
-            new(UnknownWeight, 0),
-        }, ResultStep: 3),
-        
-        
-        new Scenario(ForgottenBehavior.StartFromFirstStep, new List<ScenarioStep>()
-        {
-            new(RememberedWeight, 1),
-            new(RememberedWeight, 1),
-            new(ForgottenWeight, -99),
-        }, ResultStep: 1),
-        new Scenario(ForgottenBehavior.StartFromFirstStep, new List<ScenarioStep>()
-        {
-            new(RememberedWeight, 1),
-            new(RememberedWeight, 1),
-            new(UnknownWeight, 0),
-        }, ResultStep: 3),
-        
-        
-        new Scenario(ForgottenBehavior.StayOnCurrentStep, new List<ScenarioStep>()
-        {
-            new(RememberedWeight, 1),
-            new(RememberedWeight, 1),
-            new(ForgottenWeight, 0),
-        }, ResultStep: 3),
-        new Scenario(ForgottenBehavior.StayOnCurrentStep, new List<ScenarioStep>()
-        {
-            new(RememberedWeight, 1),
-            new(RememberedWeight, 1),
-            new(UnknownWeight, 0),
-        }, ResultStep: 3),
-    };
-
-    public static IEnumerable<object[]> TestMoveScenarios = 
-        MoveScenarios.Select(s => new object[] { s });
-    
-    
-    
-
-    private static List<ScenarioStep> stepsToTheLastStep = phasesDuration
-        .Select(_ => new ScenarioStep(RememberedWeight, 1))
-        .Skip(1)
-        .ToList();
-
-    public static List<Scenario> ReachedEndScenarios = new()
-    {
-        new Scenario(ForgottenBehavior.MoveToPreviousStep, new List<ScenarioStep>(stepsToTheLastStep)
-        {
-            new(ForgottenWeight, -1),
-        }, ResultStep: phasesDuration.Count - 1),
-        new Scenario(ForgottenBehavior.MoveToPreviousStep, new List<ScenarioStep>(stepsToTheLastStep)
-        {
-            new(UnknownWeight, 0),
-        }, ResultStep: phasesDuration.Count),
-        
-        
-        new Scenario(ForgottenBehavior.StartFromFirstStep, new List<ScenarioStep>(stepsToTheLastStep)
-        {
-            new(ForgottenWeight, -99),
-        }, ResultStep: 1),
-        new Scenario(ForgottenBehavior.StartFromFirstStep, new List<ScenarioStep>(stepsToTheLastStep)
-        {
-            new(UnknownWeight, 0),
-        }, ResultStep: phasesDuration.Count),
-        
-        
-        new Scenario(ForgottenBehavior.StayOnCurrentStep, new List<ScenarioStep>(stepsToTheLastStep)
-        {
-            new(ForgottenWeight, 0),
-        }, ResultStep: phasesDuration.Count),
-        new Scenario(ForgottenBehavior.StayOnCurrentStep, new List<ScenarioStep>(stepsToTheLastStep)
-        {
-            new(UnknownWeight, 0),
-        }, ResultStep: phasesDuration.Count),
-    };
-    
-    public static IEnumerable<object[]> TestOnTheLastStepScenarios = 
-        ReachedEndScenarios.Select(s => new object[] { s });
-    
-    public static List<Scenario> OnCompletingScenarios = new()
-    {
-        new Scenario(ForgottenBehavior.MoveToNextStep, new List<ScenarioStep>(stepsToTheLastStep)
-        {
-            new(RememberedWeight, 1),
-        }, ResultStep: phasesDuration.Count + 1),
-        new Scenario(ForgottenBehavior.MoveToPreviousStep, new List<ScenarioStep>(stepsToTheLastStep)
-        {
-            new(RememberedWeight, 1),
-        }, ResultStep: phasesDuration.Count + 1),
-        new Scenario(ForgottenBehavior.StartFromFirstStep, new List<ScenarioStep>(stepsToTheLastStep)
-        {
-            new(RememberedWeight, 1),
-        }, ResultStep: phasesDuration.Count + 1),
-        new Scenario(ForgottenBehavior.StayOnCurrentStep, new List<ScenarioStep>(stepsToTheLastStep)
-        {
-            new(RememberedWeight, 1),
-        }, ResultStep: phasesDuration.Count + 1),
-    };
-    
-    public static IEnumerable<object[]> TestOnCompletingScenarios = 
-        OnCompletingScenarios.Select(s => new object[] { s });
+    public static IEnumerable<object[]> TestOnTheStartMoveScenarios = LearningScenarios.TestOnTheStartScenarios.ToMemberData();
+    public static IEnumerable<object[]> TestMoveScenarios = LearningScenarios.MoveScenarios.ToMemberData();
+    public static IEnumerable<object[]> TestOnTheLastStepScenarios = LearningScenarios.ReachedEndScenarios.ToMemberData();
+    public static IEnumerable<object[]> TestOnCompletingScenarios = LearningScenarios.OnCompletingScenarios.ToMemberData();
 
     [Theory]
     [MemberData(nameof(TestBehaviors))]
@@ -336,12 +126,12 @@ public class CardAndCollectionsControllerTests : SharedApiTests
 
         //Assert
         startCards.Should().NotBeNull();
-        var expectedRepeatDate = startDate.Add(phasesDuration.First());
+        var expectedRepeatDate = startDate.Add(LearningCommons.phasesDuration.First());
         startCards.NextRepeatDate.Should().BeCloseTo(
             expectedRepeatDate, TimeSpan.FromMinutes(5));
         startCards.NextPhaseIndex.Should().Be(0);
         TimeSpan.FromSeconds(startCards.NextRepeatPhase.SecondsFromLastPhase).Should()
-            .Be(phasesDuration.First());
+            .Be(LearningCommons.phasesDuration.First());
         startCards.NextRepeatPhase.Id.Should().Be("1");
     }
     
@@ -364,9 +154,9 @@ public class CardAndCollectionsControllerTests : SharedApiTests
 
         repeatCollections.DateToRepeatingPhases.Should().NotBeNull().And.NotBeEmpty();
         repeatCollections.DateToRepeatingPhases.Keys.Should().HaveCount(1);
-        AssertHasDate(phasesDuration, repeatCollections, schedule.Id, 0);
-        AssertHasPhasesAtDate(phasesDuration, repeatCollections, schedule.Id, 0, 0);
-        AssertHasCollectionsAtDatePhase(phasesDuration, repeatCollections, schedule.Id, 0, 0,
+        AssertHasDate(LearningCommons.phasesDuration, repeatCollections, schedule.Id, 0);
+        AssertHasPhasesAtDate(LearningCommons.phasesDuration, repeatCollections, schedule.Id, 0, 0);
+        AssertHasCollectionsAtDatePhase(LearningCommons.phasesDuration, repeatCollections, schedule.Id, 0, 0,
             new CollectionAssertion(collection.Id, cards.Count));
     }
 
@@ -512,7 +302,7 @@ public class CardAndCollectionsControllerTests : SharedApiTests
             
             var shouldBeNextPhaseIndex = Math.Max(0, currentPhaseIndex + step.NextPhaseIndexDiff);
             await AssertRememberedCardsMovedToStep(
-                phasesDuration,
+                LearningCommons.phasesDuration,
                 client,
                 collection,
                 preAddedCards,
@@ -558,7 +348,7 @@ public class CardAndCollectionsControllerTests : SharedApiTests
             
             var shouldBeNextPhaseIndex = Math.Max(0, currentPhaseIndex + step.NextPhaseIndexDiff);
             await AssertRememberedCardsMovedToStep(
-                phasesDurationWithRepetitions,
+                LearningCommons.phasesDurationWithRepetitions,
                 client,
                 collection,
                 preAddedCards,
@@ -601,7 +391,7 @@ public class CardAndCollectionsControllerTests : SharedApiTests
         //Assert
         currentPhaseIndex.Should().Be(scenario.ResultStep - 1);
         await AssertRememberedCardsMovedToStep(
-            phasesDuration,
+            LearningCommons.phasesDuration,
             client,
             collection,
             preAddedCards,
