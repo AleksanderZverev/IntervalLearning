@@ -27,8 +27,7 @@ public class CardAndCollectionsControllerTests : SharedApiTests
         ForgottenBehavior.MoveToPreviousStep,
     };
 
-    public static IEnumerable<object[]> TestBehaviors =
-        Behaviors.Select(behavior => new object[] { behavior });
+    public static IEnumerable<object[]> TestBehaviors = Behaviors.Select(behavior => new object[] { behavior });
 
     private async Task<RepeatsScheduleDto> CreateTestSchedule(ForgottenBehavior forgottenBehavior)
     {
@@ -94,6 +93,27 @@ public class CardAndCollectionsControllerTests : SharedApiTests
         );
         var startCards = startCardsResponse.ToResponseDto<StartCardsResponse>();
         return startCards;
+    }
+    
+    private async Task RelearnCardAsync(
+        HttpClient client,
+        CollectionDto collection,
+        CardDto card)
+    {
+        var relearnCardResponse = await client.PatchAsJsonAsync(
+            CardsQuery(collection.Id, ApiRoutes.Cards.Patch_RelearnCard) + new QueryString().Add("cardId", card.Id),
+            new object()
+        );
+    }
+
+    private async Task<List<CardDto>> GetRelearningCardsAsync(
+        HttpClient client,
+        CollectionDto collection)
+    {
+        var relearningCardsResponse = await client.GetAsync(
+            CardsQuery(collection.Id, ApiRoutes.Cards.Get_GetAllRelearningCards) + new QueryString().Add("count", "100")
+        );
+        return relearningCardsResponse.ToResponseDto<List<CardDto>>();
     }
 
     public record ScenarioStep(float Weight, int NextPhaseIndexDiff);
@@ -176,6 +196,28 @@ public class CardAndCollectionsControllerTests : SharedApiTests
         //Assert
         var newCollection = await GetCollectionAsync(collection.Id);
         newCollection.NotStartedCards.Should().Be(0);
+    }
+    
+    [Theory]
+    [MemberData(nameof(TestBehaviors))]
+    public async Task StartCards_ShouldDeleteRelearningCards(ForgottenBehavior behavior)
+    {
+        //Arrange
+        var (client, user) = SharedScope;
+        var schedule = await CreateTestSchedule(behavior);
+        var cardsCount = 10;
+        var (collection, cards) = await CreateRandomCardsAsync(cardsCount);
+        foreach (var card in cards)
+        {
+            await RelearnCardAsync(client, collection, card);
+        }
+
+        //Act
+        await StartCardsAsync(client, collection, cards, schedule);
+        
+        //Assert
+        var relearningCards = await GetRelearningCardsAsync(client, collection);
+        relearningCards.Should().BeNullOrEmpty();
     }
     
     [Theory(Skip = "Not implemented logic")]
@@ -271,6 +313,54 @@ public class CardAndCollectionsControllerTests : SharedApiTests
         var canStartCollection = notFinishedCollections.CanStartCollections.Single();
         canStartCollection.Id.Should().Be(collection.Id);
         canStartCollection.NotStartedCards.Should().Be((short)newCards.Count);
+    }
+    
+    [Theory]
+    [MemberData(nameof(TestBehaviors))]
+    public async Task GetNotFinished_ShouldReturnRelearningCollections(ForgottenBehavior behavior)
+    {
+        //Arrange
+        var (client, user) = SharedScope;
+        var schedule = await CreateTestSchedule(behavior);
+        var (collection, addedCards) = await CreateRandomCardsAsync(10);
+        foreach (var addedCard in addedCards)
+            await RelearnCardAsync(client, collection, addedCard);
+
+        //Act
+        var getNotFinishedCollectionsResponse = await client.GetAsync(
+            CollectionsQuery(ApiRoutes.Collections.GetNotFinished)
+            + new QueryString()
+                .Add("scheduleUserId", schedule.ParentUserId)
+                .Add("scheduleId", schedule.Id));
+        var notFinishedCollections = getNotFinishedCollectionsResponse.ToResponseDto<GetNotFinishedResponse>();
+
+        //Assert
+        notFinishedCollections.Should().NotBeNull();
+        notFinishedCollections.CanRelearnCollections.Should().HaveCount(1);
+        notFinishedCollections.CanRelearnCollections.Single().Id.Should().Be(collection.Id);
+        notFinishedCollections.CanRelearnCollections.Single().CanRelearnCardCount.Should().Be((short)addedCards.Count);
+    }
+    
+    [Theory]
+    [MemberData(nameof(TestBehaviors))]
+    public async Task GetNotFinished_ShouldReturnEmptyRelearningCollection_WhenNoCardsAdded(ForgottenBehavior behavior)
+    {
+        //Arrange
+        var (client, user) = SharedScope;
+        var schedule = await CreateTestSchedule(behavior);
+        var (collection, addedCards) = await CreateRandomCardsAsync(10);
+
+        //Act
+        var getNotFinishedCollectionsResponse = await client.GetAsync(
+            CollectionsQuery(ApiRoutes.Collections.GetNotFinished)
+            + new QueryString()
+                .Add("scheduleUserId", schedule.ParentUserId)
+                .Add("scheduleId", schedule.Id));
+        var notFinishedCollections = getNotFinishedCollectionsResponse.ToResponseDto<GetNotFinishedResponse>();
+
+        //Assert
+        notFinishedCollections.Should().NotBeNull();
+        notFinishedCollections.CanRelearnCollections.Should().BeNullOrEmpty();
     }
     
     [Theory]
@@ -435,6 +525,26 @@ public class CardAndCollectionsControllerTests : SharedApiTests
 
         repeatCollections.Should().NotBeNull();
         repeatCollections.DateToRepeatingPhases.Should().BeEmpty();
+    }
+    
+    [Fact]
+    public async Task RelearnCard_ShouldAddRelearningCards()
+    {
+        //Arrange
+        var (client, user) = SharedScope;
+        var cardsCount = 10;
+        var (collection, cards) = await CreateRandomCardsAsync(cardsCount);
+        
+        //Act
+        foreach (var card in cards)
+        {
+            await RelearnCardAsync(client, collection, card);
+        }
+
+        //Assert
+        var relearningCards = await GetRelearningCardsAsync(client, collection);
+        relearningCards.Should().NotBeNullOrEmpty();
+        relearningCards.Should().BeEquivalentTo(cards, o => o.ForCard());
     }
 
     public async Task Controller_Method_Should()

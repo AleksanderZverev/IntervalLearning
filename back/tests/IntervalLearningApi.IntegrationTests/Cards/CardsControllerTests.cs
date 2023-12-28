@@ -54,13 +54,7 @@ public class CardsControllerTests : SharedApiTests
 
         //Assert
         card.Should().NotBeNull();
-        card.Should().BeEquivalentTo(addedCard, (options) =>
-        {
-            options.Using<DateTime>(ctx => 
-                ctx.Subject.Should().BeCloseTo(ctx.Expectation, TimeSpan.FromMilliseconds(100)))
-                .WhenTypeIs<DateTime>();
-            return options;
-        });
+        card.Should().BeEquivalentTo(addedCard, (options) => options.ForCard());
     }
     
     [Fact]
