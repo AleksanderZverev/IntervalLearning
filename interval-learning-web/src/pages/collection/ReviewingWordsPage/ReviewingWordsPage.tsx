@@ -5,17 +5,19 @@ import { PageHeader } from '../../../controls/PageHeader/PageHeader';
 import useTypedSelector from '../../../hooks/useTypedSelector';
 import { selectCollectionById } from '../../../redux/slices/collectionsSlice';
 import { selectTheme } from '../../../redux/slices/themeSlice';
-import { useParams } from 'react-router-dom';
-import { useGetCardsQuery } from '../../../redux/cardsApi';
+import { useNavigate, useParams } from 'react-router-dom';
+import { useGetCardsQuery, useRelearnCardMutation } from '../../../redux/cardsApi';
 import { CenterContainer } from '../../../controls/CenterContainer/CenterContainer';
 import { PaperCard } from '../../../controls/PaperCard/PaperCard';
 import { Button, CircularProgress, IconButton, Portal, Stack, Typography } from '@mui/material';
 import { InfoOutlined, KeyboardReturn } from '@mui/icons-material';
-import { HintButton } from '../../../controls/HintButton/HintButton';
 import { HidableText } from '../../../controls/HidableText/HidableText';
 import { ShowCardModal } from '../../../controls/Modals/ShowCardModal';
+import { WithMutationResolverProps, withMutationResolver, withQueryResolver } from '../../../hoc/withQueryResolver';
+import { useGetCollectionQuery } from '../../../redux/collectionApi';
+import { useLocalStorageValue } from '../../../hooks/useLocalStorageValue';
 
-interface ReviewingWordsPageContentProps {
+interface ReviewingWordsPageContentProps extends WithMutationResolverProps<typeof useRelearnCardMutation> {
     userId: string;
     collectionId: string;
 }
@@ -26,7 +28,11 @@ interface State {
     isFinished: boolean;
 }
 
-const ReviewingWordsPageContent: FC<ReviewingWordsPageContentProps> = ({ userId, collectionId }) => {
+const ReviewingWordsPageContent: FC<ReviewingWordsPageContentProps> = ({
+    userId,
+    collectionId,
+    mutationProps: { mutate: relearnCardAsync, ...relearnState },
+}) => {
     const collection = useTypedSelector((state) => selectCollectionById(state, userId, collectionId));
 
     if (!collection) {
@@ -39,8 +45,15 @@ const ReviewingWordsPageContent: FC<ReviewingWordsPageContentProps> = ({ userId,
         throw new Error();
     }
 
-    const [state, setState] = useState<State>({ page: 1, cardIndex: 0, isFinished: false });
+    const navigate = useNavigate();
+    const [state, setState] = useLocalStorageValue<State>(`ReviewingWordsPageContent-${collectionId}`, {
+        page: 1,
+        cardIndex: 0,
+        isFinished: false,
+    });
     const [showCardInfoModal, setShowCardInfoModal] = useState(false);
+
+    if (!state) throw new Error();
 
     const count = 30;
     const totalCards = collection.cardsCount;
@@ -59,16 +72,23 @@ const ReviewingWordsPageContent: FC<ReviewingWordsPageContentProps> = ({ userId,
         },
     });
 
-    const BigPaperCardText = (text: string) => {
+    const BigPaperCardText = (text: string, buttonText: string, onClick: () => void) => {
         return (
             <PageContainer transparent>
                 <PageHeader title={collection.title} subTitle={theme.name} />
                 <div>
                     <CenterContainer>
                         <PaperCard>
-                            <Typography variant="h3" fontSize={32}>
-                                {text}
-                            </Typography>
+                            <Stack gap={'8px'} alignItems={'center'}>
+                                <Typography variant="h3" fontSize={32}>
+                                    {text}
+                                </Typography>
+                                <div>
+                                    <Button variant="outlined" onClick={onClick}>
+                                        {buttonText}
+                                    </Button>
+                                </div>
+                            </Stack>
                         </PaperCard>
                     </CenterContainer>
                 </div>
@@ -85,11 +105,19 @@ const ReviewingWordsPageContent: FC<ReviewingWordsPageContentProps> = ({ userId,
     }
 
     if (state.isFinished) {
-        return BigPaperCardText("You've repeated all cards");
+        return BigPaperCardText("You've repeated all cards", 'Review cards', () => {
+            setState({
+                page: 1,
+                isFinished: false,
+                cardIndex: 0,
+            });
+        });
     }
 
     if (cards.length == 0) {
-        return BigPaperCardText('No words in the collection');
+        return BigPaperCardText('No words in the collection', 'Back', () => {
+            navigate(`/collections/${userId}-${collectionId}`);
+        });
     }
 
     const onBack = () => {
@@ -124,11 +152,15 @@ const ReviewingWordsPageContent: FC<ReviewingWordsPageContentProps> = ({ userId,
         }
     };
 
-    const onLearnWord = async () => {
-        // TODO: API CALL
+    const onLearnWord = async (cardId: string) => {
+        if (relearnState.isLoading || relearnState.isSuccess) return;
 
-        //
-        onNext();
+        try {
+            await relearnCardAsync({ userId: userId, collectionId: collectionId, request: { cardId: cardId } });
+            onNext();
+        } catch {
+            relearnState.showRetryModal(() => onLearnWord(cardId));
+        }
     };
 
     const currentCard = cards[state.cardIndex];
@@ -161,7 +193,7 @@ const ReviewingWordsPageContent: FC<ReviewingWordsPageContentProps> = ({ userId,
                             </IconButton>
                         }
                         leftButton={
-                            <Button variant="outlined" onClick={onLearnWord}>
+                            <Button variant="outlined" onClick={() => onLearnWord(currentCard.id)}>
                                 Изучить
                             </Button>
                         }
@@ -174,9 +206,9 @@ const ReviewingWordsPageContent: FC<ReviewingWordsPageContentProps> = ({ userId,
                     >
                         <Stack direction={'column'} gap="6px" alignItems={'center'} style={{ marginBottom: '20px' }}>
                             <Typography variant="h3" fontSize={32}>
-                                {currentCard.backSideText}
+                                {currentCard.frontSideText}
                             </Typography>
-                            <HidableText size="small" text={currentCard.frontSideText} />
+                            <HidableText size="small" text={currentCard.backSideText} />
                         </Stack>
                     </PaperCard>
                 </CenterContainer>
@@ -185,6 +217,12 @@ const ReviewingWordsPageContent: FC<ReviewingWordsPageContentProps> = ({ userId,
     );
 };
 
+const WithRelearnMutation = withMutationResolver(
+    useRelearnCardMutation,
+    'Не удалось добавить карточку'
+)(ReviewingWordsPageContent);
+const CollectionConnected = withQueryResolver(useGetCollectionQuery)(WithRelearnMutation);
+
 export const ReviewingWordsPage: FC = () => {
     const { userId, collectionId } = useParams();
 
@@ -192,5 +230,5 @@ export const ReviewingWordsPage: FC = () => {
         throw new Error();
     }
 
-    return <ReviewingWordsPageContent userId={userId} collectionId={collectionId} />;
+    return <CollectionConnected userId={userId} queryArg={{ collectionId: collectionId }} />;
 };

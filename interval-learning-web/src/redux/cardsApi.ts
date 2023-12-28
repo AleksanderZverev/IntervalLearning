@@ -97,6 +97,10 @@ export interface GetCardRequest {
     cardId: string;
 }
 
+export interface RelearnCardRequest {
+    cardId: string;
+}
+
 export const cardsApi = api.injectEndpoints({
     endpoints: (build) => ({
         getCard: build.query<Card, BaseRequestItem<GetCardRequest>>({
@@ -263,6 +267,13 @@ export const cardsApi = api.injectEndpoints({
             providesTags: (result, error, arg) =>
                 result ? [...result.map((c) => ({ type: tagTypes.card, id: getCardUniqueKey(c) }))] : [],
         }),
+        relearnCard: build.mutation<void, BaseRequestItem<RelearnCardRequest>>({
+            query: ({ userId, collectionId, request: { cardId } }) => ({
+                url: `/collections/${collectionId}/cards/relearn`,
+                method: 'PATCH',
+                params: { cardId: cardId },
+            }),
+        }),
     }),
 });
 
@@ -277,4 +288,5 @@ export const {
     useDeleteCardMutation,
     useMoveCardMutation,
     useSearchCardsQuery,
+    useRelearnCardMutation,
 } = cardsApi;
