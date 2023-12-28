@@ -8,6 +8,7 @@ export interface Collection {
     themeId: number;
     cardsCount: number;
     notStartedCards: number;
+    canRelearnCardCount: number;
     isPublic: boolean;
     publication?: CollectionPublication;
 }

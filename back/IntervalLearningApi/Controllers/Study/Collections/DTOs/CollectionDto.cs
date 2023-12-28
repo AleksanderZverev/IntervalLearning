@@ -25,6 +25,7 @@ public class CollectionsRegister : IRegister
             .Map(d => d.Publication, s => s.CollectionPublicationEntity)
             .Map(d => d.CreatedAt, s => s.CreatedDate)
             .Map(d => d.NotStartedCards, s => s.NotStartedCardsCount.Value)
+            .Map(d => d.CanRelearnCardCount, s => s.CanRelearnCardCount.Value)
             .Map(d => d.CardsCount, s => s.CardsCount.Value);
     }
 }
@@ -40,6 +41,7 @@ public class CollectionDto
 
     public short CardsCount { get; set; }
     public short NotStartedCards { get; set; }
+    public short CanRelearnCardCount { get; set; }
     public bool IsPublic { get; set; }
     public CollectionPublication? Publication { get; set; }
 }

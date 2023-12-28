@@ -13,7 +13,7 @@ export interface CreateCollectionItem {
 export interface GetNotFinishedResponse {
     totalCollections: number;
     canStartCollections: Collection[];
-    сanRelearnCollections: Collection[];
+    canRelearnCollections: Collection[];
 }
 
 export interface RepeatingCollectionResponse {
