@@ -4,17 +4,21 @@ export function useLocalStorageValue<TValue>(
     key: string,
     defaultValue?: TValue | (() => TValue)
 ): [TValue | undefined, (newValue: TValue | undefined) => void] {
+    const getDefaultValue = () => {
+        if (!defaultValue) return;
+        return typeof defaultValue === 'function' ? (defaultValue as Function)() : defaultValue;
+    };
+
     const [value, setValueInternal] = useState(() => {
+        const defaultV = getDefaultValue();
+
         const item = localStorage.getItem(key);
         if (item) {
-            return JSON.parse(item) as TValue;
+            const parsedValue = JSON.parse(item) as TValue;
+            return { ...defaultV, ...parsedValue };
         }
 
-        if (!defaultValue) {
-            return;
-        }
-
-        return typeof defaultValue === 'function' ? (defaultValue as Function)() : defaultValue;
+        return defaultV;
     });
 
     const setValue = (newValue: TValue | undefined) => {
