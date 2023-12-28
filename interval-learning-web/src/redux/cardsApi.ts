@@ -101,6 +101,10 @@ export interface RelearnCardRequest {
     cardId: string;
 }
 
+export interface GetRelearningCardsRequest {
+    count: number;
+}
+
 export const cardsApi = api.injectEndpoints({
     endpoints: (build) => ({
         getCard: build.query<Card, BaseRequestItem<GetCardRequest>>({
@@ -274,6 +278,22 @@ export const cardsApi = api.injectEndpoints({
                 params: { cardId: cardId },
             }),
         }),
+        getRelearningCards: build.query<string[], BaseRequestItem<GetRelearningCardsRequest>>({
+            query: ({ collectionId, request: { count } }) => ({
+                url: `/collections/${collectionId}/cards/relearn`,
+                method: 'GET',
+                params: { count: count },
+                onSuccess: async (dispatch, data) => {
+                    const cards = data as Card[];
+                    dispatch(addManyCards(cards));
+                },
+            }),
+            transformResponse: (result, meta, arg) => {
+                const cards = result as Card[];
+                return cards.map((c) => c.id);
+            },
+            keepUnusedDataFor: 0,
+        }),
     }),
 });
 
@@ -289,4 +309,5 @@ export const {
     useMoveCardMutation,
     useSearchCardsQuery,
     useRelearnCardMutation,
+    useGetRelearningCardsQuery,
 } = cardsApi;

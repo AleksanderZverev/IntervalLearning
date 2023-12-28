@@ -11,7 +11,7 @@ export const tagTypes = {
     repeatCardsList: 'RepeatCardsList,',
 } as const;
 
-export type TagType = typeof tagTypes[keyof typeof tagTypes];
+export type TagType = (typeof tagTypes)[keyof typeof tagTypes];
 
 export const api = createApi({
     reducerPath: 'api',
