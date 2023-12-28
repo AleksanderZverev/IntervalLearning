@@ -1,12 +1,16 @@
 using System.Diagnostics;
 using Application.Common.Interfaces.DB.Repositories.Study;
 using Application.Common.Interfaces.DB.Transactions;
+using Application.Services.Study.Remember;
 using Domain.Card;
+using Domain.Card.ValueObjects;
+using Domain.Collection.ValueObjects;
 using Domain.Queue;
 using Domain.Schedule;
 using Domain.Schedule.Entities.Phase;
 using Domain.Schedule.Entities.Remember;
 using Domain.Schedule.Entities.Remember.ValueObjects;
+using Domain.User.ValueObjects;
 using FluentResults;
 using Infrastructure.Errors;
 
@@ -15,14 +19,20 @@ namespace Application.Commands.Cards.StartLearnCards;
 public class StartLearnCardsCommand : ICommand<StartLearnCardsRequest, NextRepeatInfoResponse>
 {
     private readonly IStudyRepository studyRepository;
+    private readonly CardRepeatQueueService cardRepeatQueueService;
+    private readonly RememberService rememberService;
     private readonly ITransactionProvider transactionProvider;
 
     public StartLearnCardsCommand(
         ITransactionProvider transactionProvider, 
-        IStudyRepository studyRepository)
+        IStudyRepository studyRepository,
+        CardRepeatQueueService cardRepeatQueueService,
+        RememberService rememberService)
     {
         this.transactionProvider = transactionProvider;
         this.studyRepository = studyRepository;
+        this.cardRepeatQueueService = cardRepeatQueueService;
+        this.rememberService = rememberService;
     }
 
     public async Task<Result<NextRepeatInfoResponse>> Handle(StartLearnCardsRequest request)
@@ -53,7 +63,7 @@ public class StartLearnCardsCommand : ICommand<StartLearnCardsRequest, NextRepea
         var startedDate = DateTime.UtcNow;
 
         studyRepository.CardRemembers.AddRange(startedCards
-            .Select(c => CreateRemember(schedule, c, RememberWeight.Create(1f).Value, -1, startedDate))
+            .Select(c => rememberService.CreateLearnedRemember(schedule, c, RememberWeight.Create(1f).Value, startedDate))
             .ToList());
 
         var addRemembersResult = await studyRepository.SaveChangesAsync();
@@ -69,12 +79,25 @@ public class StartLearnCardsCommand : ICommand<StartLearnCardsRequest, NextRepea
             return nextRepeatInfoResult;
         }
 
+        var relearningCardIdsDeletedResult = await DeleteRelearningItem(userId, collectionId, cardIds);
+
+        if (relearningCardIdsDeletedResult.IsFailed)
+            return relearningCardIdsDeletedResult;
+
         var startingCardsResult = await studyRepository.SaveChangesAsync();
         if (startingCardsResult.IsFailed)
             return startingCardsResult;
-
+        
         transaction.Complete();
         return nextRepeatInfoResult.Value;
+    }
+
+    private async Task<Result> DeleteRelearningItem(UserId userId, CollectionId collectionId, List<CardId> cardIds)
+    {
+        var relearningCards = await studyRepository.Query.RelearningCards.GetAllFor(userId, collectionId);
+        var relearningToDelete = relearningCards.Where(c => cardIds.Contains(c.CardId)).ToList();
+        studyRepository.RelearnCards.DeleteRange(relearningToDelete);
+        return await studyRepository.SaveChangesAsync();
     }
     
     private Result<NextRepeatInfoResponse> AddToQueue(
@@ -84,7 +107,6 @@ public class StartLearnCardsCommand : ICommand<StartLearnCardsRequest, NextRepea
         var closestRepeatDate = DateTime.MaxValue;
         var closestPhaseIndex = -1;
         Phase? closestPhaseInfo = null;
-        var queueItems = new List<CardRepeatQueue>(cards.Count);
 
         foreach (var card in cards)
         {
@@ -97,13 +119,23 @@ public class StartLearnCardsCommand : ICommand<StartLearnCardsRequest, NextRepea
             }
 
             var nextRepeatDate = startPhase.GetNextDate(DateTime.UtcNow);
-            var nextQueueItem = GetNextQueue(
+            var nextQueueItem = cardRepeatQueueService.Create(
                 scheduleWithPhases,
                 card,
                 phaseIndex,
                 nextRepeatDate);
-            queueItems.Add(nextQueueItem);
-            
+            studyRepository.RepeatingQueue.Add(nextQueueItem);
+
+            var existingCardQueues = studyRepository.Query.RepeatingQueue.GetAllForCard(
+                card.ParentUserId,
+                card.ParentCollectionId,
+                card.Id,
+                scheduleWithPhases.ParentUserId,
+                scheduleWithPhases.Id).GetAwaiter().GetResult();
+
+            if (existingCardQueues.Count > 0)
+                studyRepository.RepeatingQueue.DeleteRange(existingCardQueues);
+
             if (nextRepeatDate <= closestRepeatDate)
             {
                 closestRepeatDate = nextRepeatDate;
@@ -111,9 +143,7 @@ public class StartLearnCardsCommand : ICommand<StartLearnCardsRequest, NextRepea
                 closestPhaseIndex = phaseIndex;
             }
         }
-
-        studyRepository.RepeatingQueue.AddRange(queueItems);
-
+        
         var addedQueuesResult = studyRepository.SaveChanges();
         if (addedQueuesResult.IsFailed)
         {
@@ -127,39 +157,5 @@ public class StartLearnCardsCommand : ICommand<StartLearnCardsRequest, NextRepea
             NextPhaseIndex = closestPhaseIndex,
             NextRepeatDate = closestRepeatDate,
         };
-    }
-    
-    private CardRepeatQueue GetNextQueue(RepeatsSchedule scheduleWithPhases, Card card, int nextPhaseIndex, DateTime nextRepeatDate)
-    {
-        var queueId = studyRepository.RepeatingQueue.GetUniqueId(new(scheduleWithPhases, card)).Value;
-        
-        var queueItem = new CardRepeatQueue(
-            scheduleWithPhases.ParentUserId,
-            scheduleWithPhases.Id,
-            card.ParentUserId,
-            card.ParentCollectionId,
-            card.Id,
-            queueId,
-            (short)nextPhaseIndex,
-            nextRepeatDate
-        );
-        
-        return queueItem;
-    }
-    
-    private Remember CreateRemember(RepeatsSchedule schedule, Card card, RememberWeight weight, int phaseIndex, DateTime date)
-    {
-        var rememberId = studyRepository.CardRemembers.GetUniqueId(new(schedule, card)).Value;
-        
-        return new Remember(
-            schedule.ParentUserId, 
-            schedule.Id,
-            card.ParentUserId,
-            card.ParentCollectionId,
-            card.Id,
-            rememberId,
-            weight, 
-            (short)phaseIndex,
-            date);
     }
 }

@@ -53,7 +53,7 @@ public class Card : AggregateRoot<ComplexCardId>
     }
 
     public Remember? FindLastRemember() 
-        => Remembers.MaxBy(c => c.Id);
+        => Remembers.MaxBy(c => c.RepeatedDate);
     
     public Remember? FindPreviousRemember(RememberId rememberId)
     {
@@ -69,15 +69,14 @@ public class Card : AggregateRoot<ComplexCardId>
     {
         return Remembers
             .OrderBy(r => r.RepeatedDate)
-            .First()
+            .Last(r => r.IsAtLearnedDate())
             .RepeatedDate;
     }
     
     public List<Remember> GetRepeatingRemembers()
     {
-        var learnedDate = GetLearnedDate();
         return Remembers
-            .Where(r => r.RepeatedDate.Date != learnedDate.Date)
+            .Where(r => !r.IsAtLearnedDate())
             .ToList();
     }
 }

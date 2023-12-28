@@ -31,6 +31,11 @@ public class RelearnCardCommand : ICommand<RelearnCardCommandRequest>
             return new NotFoundError("Card");
         }
 
+        var existingRelearnCard = await studyRepository.Query.RelearningCards.Find(userId, collectionId, cardId);
+
+        if (existingRelearnCard != null)
+            return Result.Ok();
+
         return studyRepository.RelearnCards
             .AddAndSave(new RelearningCard(userId, collectionId, cardId))
             .ToResult();

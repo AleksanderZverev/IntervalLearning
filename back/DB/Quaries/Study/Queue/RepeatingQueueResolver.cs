@@ -80,4 +80,20 @@ public class RepeatingQueueResolver : IRepeatingQueueResolver
                         && cardIds.Contains(q.ParentCardId))
             .ToListAsync();
     }
+
+    public Task<List<CardRepeatQueue>> GetAllForCard(
+        UserId userId,
+        CollectionId collectionId,
+        CardId cardId,
+        UserId scheduleUserId,
+        ScheduleId scheduleId)
+    {
+        return db.Queue
+            .Where(q => q.ParentUserId == userId
+                        && q.ParentCollectionId == collectionId
+                        && q.ParentCardId == cardId
+                        && q.ParentRepeatsScheduleUserId == scheduleUserId
+                        && q.ParentRepeatsScheduleId == scheduleId)
+            .ToListAsync();
+    }
 }

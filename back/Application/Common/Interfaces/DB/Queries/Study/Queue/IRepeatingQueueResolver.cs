@@ -32,4 +32,11 @@ public interface IRepeatingQueueResolver
         ScheduleId scheduleId,
         DateTime from,
         DateTime to);
+
+    Task<List<CardRepeatQueue>> GetAllForCard(
+        UserId userId,
+        CollectionId collectionId,
+        CardId cardId,
+        UserId scheduleUserId,
+        ScheduleId scheduleId);
 }

@@ -1,4 +1,5 @@
 using Application.Common.Interfaces.DB.Queries.Study.RelearningCards;
+using Domain.Card.ValueObjects;
 using Domain.Collection;
 using Domain.Collection.ValueObjects;
 using Domain.User.ValueObjects;
@@ -27,5 +28,12 @@ public class RelearningCardsResolver : IRelearningCardsResolver
         return db.RelearningCards
             .Where(c => c.UserId == userId && c.CollectionId == collectionId)
             .ToListAsync();
+    }
+
+    public Task<Domain.RelearningCard.RelearningCard?> Find(UserId userId, CollectionId collectionId, CardId cardId)
+    {
+        return db.RelearningCards
+            .Where(c => c.UserId == userId && c.CollectionId == collectionId && c.CardId == cardId)
+            .SingleOrDefaultAsync();
     }
 }

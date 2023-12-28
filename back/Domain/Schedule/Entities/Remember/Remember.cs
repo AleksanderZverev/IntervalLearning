@@ -82,4 +82,14 @@ public class Remember : Entity<ComplexRememberId>, IParentCardReference
     {
         return Weight >= 0.40f && Weight < 0.70f;
     }
+
+    public bool IsAtLearnedDate()
+    {
+        return PhaseIndex == -1;
+    }
+
+    public void MakeLearnedRemember()
+    {
+        PhaseIndex = -1;
+    }
 }

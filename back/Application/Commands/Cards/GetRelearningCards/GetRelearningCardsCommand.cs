@@ -16,10 +16,11 @@ public class GetRelearningCardsCommand : ICommand<GetRelearningCardsCommandReque
     public async Task<Result<List<Card>>> Handle(GetRelearningCardsCommandRequest request)
     {
         var (userId, collectionId, count) = request;
-        var cardIds = await studyQueryRepository.RelearningCards.GetAllFor(userId, collectionId);
+        var relearningCards = await studyQueryRepository.RelearningCards.GetAllFor(userId, collectionId);
         return await studyQueryRepository.Cards.GetRange(
             userId,
             collectionId,
-            cardIds.Select(c => c.CardId).Take(count).ToList());
+            relearningCards.Select(c => c.CardId).Take(count).ToList()
+        );
     }
 }
