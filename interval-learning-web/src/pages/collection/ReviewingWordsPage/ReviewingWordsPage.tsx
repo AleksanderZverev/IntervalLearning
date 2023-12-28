@@ -26,7 +26,17 @@ interface State {
     page: number;
     cardIndex: number;
     isFinished: boolean;
+    cardsAdded: number;
+    watchedCards: number;
 }
+
+const getDefaultState = (): State => ({
+    page: 1,
+    cardIndex: 0,
+    isFinished: false,
+    cardsAdded: 0,
+    watchedCards: 0,
+});
 
 const ReviewingWordsPageContent: FC<ReviewingWordsPageContentProps> = ({
     userId,
@@ -46,11 +56,11 @@ const ReviewingWordsPageContent: FC<ReviewingWordsPageContentProps> = ({
     }
 
     const navigate = useNavigate();
-    const [state, setState] = useLocalStorageValue<State>(`ReviewingWordsPageContent-${collectionId}`, {
-        page: 1,
-        cardIndex: 0,
-        isFinished: false,
-    });
+
+    const [state, setState] = useLocalStorageValue<State>(
+        `ReviewingWordsPageContent-${collectionId}`,
+        getDefaultState()
+    );
     const [showCardInfoModal, setShowCardInfoModal] = useState(false);
 
     if (!state) throw new Error();
@@ -106,11 +116,7 @@ const ReviewingWordsPageContent: FC<ReviewingWordsPageContentProps> = ({
 
     if (state.isFinished) {
         return BigPaperCardText("You've repeated all cards", 'Review cards', () => {
-            setState({
-                page: 1,
-                isFinished: false,
-                cardIndex: 0,
-            });
+            setState(getDefaultState());
         });
     }
 
@@ -126,6 +132,7 @@ const ReviewingWordsPageContent: FC<ReviewingWordsPageContentProps> = ({
         const nextIndex = state.cardIndex - 1;
 
         if (nextIndex >= 0) {
+            state.watchedCards--;
             setState({ ...state, cardIndex: nextIndex });
             return;
         }
@@ -135,6 +142,7 @@ const ReviewingWordsPageContent: FC<ReviewingWordsPageContentProps> = ({
         if (state.isFinished) return;
 
         const nextIndex = state.cardIndex + 1;
+        state.watchedCards++;
 
         if (nextIndex < cards.length) {
             setState({ ...state, cardIndex: nextIndex });
@@ -142,7 +150,7 @@ const ReviewingWordsPageContent: FC<ReviewingWordsPageContentProps> = ({
         }
 
         if (!isLastPage) {
-            setState({ ...state, cardIndex: 0, page: state.page });
+            setState({ ...state, cardIndex: 0, page: state.page + 1 });
             return;
         }
 
@@ -153,10 +161,11 @@ const ReviewingWordsPageContent: FC<ReviewingWordsPageContentProps> = ({
     };
 
     const onLearnWord = async (cardId: string) => {
-        if (relearnState.isLoading || relearnState.isSuccess) return;
+        if (relearnState.isLoading) return;
 
         try {
             await relearnCardAsync({ userId: userId, collectionId: collectionId, request: { cardId: cardId } });
+            state.cardsAdded++;
             onNext();
         } catch {
             relearnState.showRetryModal(() => onLearnWord(cardId));
@@ -167,7 +176,15 @@ const ReviewingWordsPageContent: FC<ReviewingWordsPageContentProps> = ({
 
     return (
         <PageContainer transparent>
-            <PageHeader title={collection.title} subTitle={theme.name} />
+            <PageHeader
+                title={collection.title}
+                subTitle={theme.name}
+                subMenu={
+                    <Button variant="outlined" onClick={() => setState(getDefaultState())}>
+                        С начала
+                    </Button>
+                }
+            />
             <Portal>
                 {showCardInfoModal && (
                     <ShowCardModal
@@ -180,6 +197,10 @@ const ReviewingWordsPageContent: FC<ReviewingWordsPageContentProps> = ({
                 )}
             </Portal>
             <div>
+                <div>Added cards: {state.cardsAdded}</div>
+                <div>
+                    Watched cards: {state.watchedCards} / {totalCards}
+                </div>
                 <CenterContainer>
                     <PaperCard
                         topRightControl={
