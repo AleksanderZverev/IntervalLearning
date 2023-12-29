@@ -1,8 +1,9 @@
-import { Construction, InfoOutlined, RefreshOutlined, TimerOff } from '@mui/icons-material';
+import { Construction, InfoOutlined, MoreTime, RefreshOutlined, TimerOff } from '@mui/icons-material';
 import {
     Button,
     CircularProgress,
     colors,
+    Divider,
     FormControlLabel,
     IconButton,
     ListItemIcon,
@@ -25,7 +26,7 @@ import { RememberList } from './RememberList/RememberList';
 import styles from './styles.module.css';
 import { HidableText } from '../../../../controls/HidableText/HidableText';
 import { AssertionModal } from '../../../../controls/Modals/AssertionModal';
-import { useStopRepeatingCardMutation } from '../../../../redux/cardsApi';
+import { usePostponeRepeatingCardMutation, useStopRepeatingCardMutation } from '../../../../redux/cardsApi';
 import { Schedule } from '../../../../types/schedule';
 
 interface RepeatCardProps {
@@ -75,6 +76,9 @@ export const RepeatCard: FC<RepeatCardProps> = ({
     const [stoppedRepeatingCardIds, setIsStoppedRepeatingCardIds] = useState<string[]>([]);
     const canStopRepeating = !stoppedRepeatingCardIds.includes(card.id);
 
+    const [showPostponeRepeatingModel, setPostponeRepeatingModel] = useState(false);
+    const [postponeRepeatingCard, postponeRepeatingCardState] = usePostponeRepeatingCardMutation();
+
     useEffect(() => {
         cardIdToProps[getCardUniqueKey(card)] = { isValuesHidden: isValuesHidden };
     }, [isValuesHidden]);
@@ -111,6 +115,25 @@ export const RepeatCard: FC<RepeatCardProps> = ({
         } catch {}
     };
 
+    const onPostponeRepeatingCard = async () => {
+        setPostponeRepeatingModel(false);
+        setMenuAnchorEl(null);
+        try {
+            const cardId = card.id;
+            await postponeRepeatingCard({
+                userId: card.userId,
+                collectionId: card.collectionId,
+                request: {
+                    cardId: card.id,
+                    scheduleUserId: schedule.userId,
+                    scheduleId: schedule.id,
+                    postponeDays: 1,
+                },
+            });
+            props.onCardDeletedFromRepeating(cardId);
+        } catch {}
+    };
+
     return (
         <PaperCard
             topRightControl={
@@ -136,6 +159,16 @@ export const RepeatCard: FC<RepeatCardProps> = ({
                             </ListItemIcon>
                             <ListItemText>Сбросить выбор</ListItemText>
                         </MenuItem>
+                        <MenuItem
+                            disabled={postponeRepeatingCardState.isLoading}
+                            onClick={() => setPostponeRepeatingModel(true)}
+                        >
+                            <ListItemIcon>
+                                {postponeRepeatingCardState.isLoading ? <CircularProgress size={16} /> : <MoreTime />}
+                            </ListItemIcon>
+                            <ListItemText>Отложить до завтра</ListItemText>
+                        </MenuItem>
+                        <Divider />
                         <MenuItem
                             disabled={stopRepeatingCardState.isLoading || !canStopRepeating}
                             onClick={() => setStopRepeatingModel(true)}
@@ -212,6 +245,15 @@ export const RepeatCard: FC<RepeatCardProps> = ({
                             assertTitle="Подтвердить"
                             onClose={() => setStopRepeatingModel(false)}
                             onAssert={() => onStopRepeatingCard()}
+                        />
+                    )}
+                    {showPostponeRepeatingModel && (
+                        <AssertionModal
+                            title="Отладка карточки до следующего дня"
+                            message={`Карточка «${card.backSideText} - ${card.frontSideText}» будет отложена до завтрашнего дня`}
+                            assertTitle="Отложить"
+                            onClose={() => setPostponeRepeatingModel(false)}
+                            onAssert={() => onPostponeRepeatingCard()}
                         />
                     )}
                 </Portal>

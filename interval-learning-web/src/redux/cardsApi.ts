@@ -111,6 +111,13 @@ export interface StopRepeatingCardRequest {
     scheduleId: string;
 }
 
+export interface PostponeRepeatingCardRequest {
+    cardId: string;
+    scheduleUserId: string;
+    scheduleId: string;
+    postponeDays: number;
+}
+
 export const cardsApi = api.injectEndpoints({
     endpoints: (build) => ({
         getCard: build.query<Card, BaseRequestItem<GetCardRequest>>({
@@ -307,6 +314,13 @@ export const cardsApi = api.injectEndpoints({
                 params: { scheduleUserId: scheduleUserId, scheduleId: scheduleId },
             }),
         }),
+        postponeRepeatingCard: build.mutation<void, BaseRequestItem<PostponeRepeatingCardRequest>>({
+            query: ({ userId, collectionId, request: { cardId, scheduleUserId, scheduleId, postponeDays } }) => ({
+                url: `/collections/${collectionId}/cards/${cardId}/learn/postpone`,
+                method: 'PATCH',
+                params: { scheduleUserId: scheduleUserId, scheduleId: scheduleId, postponeDays: postponeDays },
+            }),
+        }),
     }),
 });
 
@@ -324,4 +338,5 @@ export const {
     useRelearnCardMutation,
     useGetRelearningCardsQuery,
     useStopRepeatingCardMutation,
+    usePostponeRepeatingCardMutation,
 } = cardsApi;
