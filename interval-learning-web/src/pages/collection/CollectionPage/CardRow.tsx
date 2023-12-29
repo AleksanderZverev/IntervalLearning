@@ -1,5 +1,6 @@
-import { ArrowForward, Construction, Delete, Edit, KeyboardArrowRight } from '@mui/icons-material';
+import { ArrowForward, Construction, Delete, Edit, KeyboardArrowRight, Replay } from '@mui/icons-material';
 import {
+    CircularProgress,
     Collapse,
     Divider,
     IconButton,
@@ -15,19 +16,22 @@ import { CreateCardModal } from '../../../controls/Modals/CreateCardModal';
 import { TableCell, TableRow } from '../../../controls/Table/Table';
 import { Card } from '../../../types/Collection';
 import { withMutationResolver, WithMutationResolverProps } from '../../../hoc/withQueryResolver';
-import { useDeleteCardMutation } from '../../../redux/cardsApi';
+import { useRelearnCardMutation } from '../../../redux/cardsApi';
 import { MoveCardModal } from '../../../controls/Modals/MoveCardModal';
 import { DeleteCardModal } from '../../../controls/Modals/DeleteCardModal';
+import { AssertionModal } from '../../../controls/Modals/AssertionModal';
 
-interface CardRowProps extends WithMutationResolverProps<typeof useDeleteCardMutation> {
+interface CardRowProps extends WithMutationResolverProps<typeof useRelearnCardMutation> {
     card: Card;
 }
 
-const CardRowComponent: FC<CardRowProps> = ({ mutationProps: { mutate: deleteCard }, card }) => {
+const CardRowComponent: FC<CardRowProps> = ({ mutationProps: { mutate: relearnCard, ...mutateProps }, card }) => {
     const [showDetails, setShowDetails] = useState(false);
     const [showEditCardModal, setShowEditCardModal] = useState(false);
     const [showMoveCardModal, setShowMoveCardModal] = useState(false);
     const [showDeleteCardModal, setShowDeleteCardModal] = useState(false);
+    const [showAssertRelearnCardModal, setAssertRelearnCardModal] = useState(false);
+    const [isAddedToRelearn, setAddedToRelearn] = useState(false);
 
     const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
     const open = Boolean(anchorEl);
@@ -45,6 +49,25 @@ const CardRowComponent: FC<CardRowProps> = ({ mutationProps: { mutate: deleteCar
     const onShowDetails = () => {
         if (hasExamples) {
             setShowDetails(!showDetails);
+        }
+    };
+
+    const onRelearnCard = async () => {
+        setAssertRelearnCardModal(false);
+
+        try {
+            await relearnCard({
+                userId: card.userId,
+                collectionId: card.collectionId,
+                request: {
+                    cardId: card.id,
+                },
+            });
+            setAddedToRelearn(true);
+            onCloseMenu();
+        } catch {
+            setAddedToRelearn(false);
+            mutateProps.showRetryModal(() => onRelearnCard());
         }
     };
 
@@ -70,6 +93,15 @@ const CardRowComponent: FC<CardRowProps> = ({ mutationProps: { mutate: deleteCar
                         onClose={() => setShowDeleteCardModal(false)}
                     />
                 )}
+                {showAssertRelearnCardModal && (
+                    <AssertionModal
+                        title={`Добавление карточки в список переизучения`}
+                        message={`Будет добавлена карточка «${card.backSideText} - ${card.frontSideText}»`}
+                        onClose={() => setAssertRelearnCardModal(false)}
+                        assertTitle="Подтвердить"
+                        onAssert={() => onRelearnCard()}
+                    />
+                )}
             </Portal>
             <TableRow borderless hover={Boolean(hasExamples)} onClick={() => onShowDetails()}>
                 <TableCell>{card.frontSideText}</TableCell>
@@ -84,23 +116,47 @@ const CardRowComponent: FC<CardRowProps> = ({ mutationProps: { mutate: deleteCar
                         anchorEl={anchorEl}
                         open={open}
                         onClose={onCloseMenu}
-                        onClick={onCloseMenu}
                         transformOrigin={{ horizontal: 'center', vertical: 'top' }}
                     >
-                        <MenuItem onClick={() => setShowEditCardModal(true)}>
+                        <MenuItem
+                            onClick={() => {
+                                setShowEditCardModal(true);
+                                onCloseMenu();
+                            }}
+                        >
                             <ListItemIcon>
                                 <Edit fontSize="small" />
                             </ListItemIcon>
                             <ListItemText>Изменить</ListItemText>
                         </MenuItem>
-                        <MenuItem onClick={() => setShowMoveCardModal(true)}>
+
+                        <MenuItem
+                            onClick={() => {
+                                setShowMoveCardModal(true);
+                                onCloseMenu();
+                            }}
+                        >
                             <ListItemIcon>
                                 <ArrowForward fontSize={'small'} />
                             </ListItemIcon>
                             <ListItemText>Переместить</ListItemText>
                         </MenuItem>
+                        <MenuItem
+                            disabled={isAddedToRelearn || mutateProps.isLoading}
+                            onClick={() => setAssertRelearnCardModal(true)}
+                        >
+                            <ListItemIcon>
+                                {mutateProps.isLoading ? <CircularProgress size={16} /> : <Replay fontSize={'small'} />}
+                            </ListItemIcon>
+                            <ListItemText>Изучить снова</ListItemText>
+                        </MenuItem>
                         <Divider />
-                        <MenuItem onClick={() => setShowDeleteCardModal(true)}>
+                        <MenuItem
+                            onClick={() => {
+                                setShowDeleteCardModal(true);
+                                onCloseMenu();
+                            }}
+                        >
                             <ListItemIcon>
                                 <Delete fontSize="small" color={'error'} />
                             </ListItemIcon>
@@ -131,4 +187,7 @@ const CardRowComponent: FC<CardRowProps> = ({ mutationProps: { mutate: deleteCar
     );
 };
 
-export const CardRow = withMutationResolver(useDeleteCardMutation, 'Не удалось удалить карточку')(CardRowComponent);
+export const CardRow = withMutationResolver(
+    useRelearnCardMutation,
+    'Не добавить карточку в список переизучения'
+)(CardRowComponent);
