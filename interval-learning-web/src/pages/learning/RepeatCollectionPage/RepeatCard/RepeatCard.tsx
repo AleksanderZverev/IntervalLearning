@@ -1,9 +1,14 @@
-import { InfoOutlined, RefreshOutlined } from '@mui/icons-material';
+import { Construction, InfoOutlined, RefreshOutlined, TimerOff } from '@mui/icons-material';
 import {
     Button,
+    CircularProgress,
     colors,
     FormControlLabel,
     IconButton,
+    ListItemIcon,
+    ListItemText,
+    Menu,
+    MenuItem,
     Portal,
     Radio,
     RadioGroup,
@@ -19,9 +24,13 @@ import { Card } from '../../../../types/Collection';
 import { RememberList } from './RememberList/RememberList';
 import styles from './styles.module.css';
 import { HidableText } from '../../../../controls/HidableText/HidableText';
+import { AssertionModal } from '../../../../controls/Modals/AssertionModal';
+import { useStopRepeatingCardMutation } from '../../../../redux/cardsApi';
+import { Schedule } from '../../../../types/schedule';
 
 interface RepeatCardProps {
     card: Card;
+    schedule: Schedule;
     showNext: boolean;
     showPrevious: boolean;
     errorMessage?: string;
@@ -30,6 +39,7 @@ interface RepeatCardProps {
     onPrevious: () => void;
     onChange: (weight: number | undefined) => void;
     onFinish: () => void;
+    onCardDeletedFromRepeating: (cardId: string) => void;
     isActive: boolean;
     forceShowError: boolean;
     isValueSideDefault: boolean;
@@ -41,6 +51,7 @@ interface CardProps {
 
 export const RepeatCard: FC<RepeatCardProps> = ({
     card,
+    schedule,
     showNext,
     showPrevious,
     value,
@@ -51,9 +62,18 @@ export const RepeatCard: FC<RepeatCardProps> = ({
     isActive,
     onChange,
     isValueSideDefault,
+    ...props
 }) => {
     const [isValuesHidden, setValuesHidden] = useState(true);
     const { current: cardIdToProps } = useRef<Record<string, CardProps>>({});
+
+    const [showStopRepeatingModel, setStopRepeatingModel] = useState(false);
+    const [menuAnchorEl, setMenuAnchorEl] = useState<null | HTMLElement>(null);
+    const openMenu = Boolean(menuAnchorEl);
+
+    const [stopRepeatingCard, stopRepeatingCardState] = useStopRepeatingCardMutation();
+    const [stoppedRepeatingCardIds, setIsStoppedRepeatingCardIds] = useState<string[]>([]);
+    const canStopRepeating = !stoppedRepeatingCardIds.includes(card.id);
 
     useEffect(() => {
         cardIdToProps[getCardUniqueKey(card)] = { isValuesHidden: isValuesHidden };
@@ -70,6 +90,27 @@ export const RepeatCard: FC<RepeatCardProps> = ({
     const frontText = isValueSideDefault ? card.backSideText : card.frontSideText;
     const backText = isValueSideDefault ? card.frontSideText : card.backSideText;
 
+    const onStopRepeatingCard = async () => {
+        if (!canStopRepeating) return;
+
+        setStopRepeatingModel(false);
+        setMenuAnchorEl(null);
+        try {
+            const cardId = card.id;
+            await stopRepeatingCard({
+                userId: card.userId,
+                collectionId: card.collectionId,
+                request: {
+                    cardId: card.id,
+                    scheduleUserId: schedule.userId,
+                    scheduleId: schedule.id,
+                },
+            });
+            setIsStoppedRepeatingCardIds([...stoppedRepeatingCardIds, cardId]);
+            props.onCardDeletedFromRepeating(cardId);
+        } catch {}
+    };
+
     return (
         <PaperCard
             topRightControl={
@@ -78,16 +119,34 @@ export const RepeatCard: FC<RepeatCardProps> = ({
                 </IconButton>
             }
             topLeftControl={
-                isActive && (
-                    <IconButton
-                        onClick={() => {
-                            setIsError(false);
-                            onChange(undefined);
-                        }}
-                    >
-                        <RefreshOutlined />
+                <>
+                    <IconButton onClick={(e) => setMenuAnchorEl(e.currentTarget)}>
+                        <Construction />
                     </IconButton>
-                )
+                    <Menu open={openMenu} anchorEl={menuAnchorEl} onClose={() => setMenuAnchorEl(null)}>
+                        <MenuItem
+                            onClick={() => {
+                                setIsError(false);
+                                onChange(undefined);
+                            }}
+                            disabled={!isActive}
+                        >
+                            <ListItemIcon>
+                                <RefreshOutlined />
+                            </ListItemIcon>
+                            <ListItemText>Сбросить выбор</ListItemText>
+                        </MenuItem>
+                        <MenuItem
+                            disabled={stopRepeatingCardState.isLoading || !canStopRepeating}
+                            onClick={() => setStopRepeatingModel(true)}
+                        >
+                            <ListItemIcon>
+                                {stopRepeatingCardState.isLoading ? <CircularProgress size={16} /> : <TimerOff />}
+                            </ListItemIcon>
+                            <ListItemText>Перестать повторять</ListItemText>
+                        </MenuItem>
+                    </Menu>
+                </>
             }
             leftButton={
                 showPrevious && (
@@ -144,6 +203,15 @@ export const RepeatCard: FC<RepeatCardProps> = ({
                             userId={card.userId}
                             collectionId={card.collectionId}
                             cardId={card.id}
+                        />
+                    )}
+                    {showStopRepeatingModel && (
+                        <AssertionModal
+                            title="Завершение повторения карточки"
+                            message={`Карточка «${card.backSideText} - ${card.frontSideText}» будет удалена из повторения`}
+                            assertTitle="Подтвердить"
+                            onClose={() => setStopRepeatingModel(false)}
+                            onAssert={() => onStopRepeatingCard()}
                         />
                     )}
                 </Portal>

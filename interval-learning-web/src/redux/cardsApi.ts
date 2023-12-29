@@ -105,6 +105,12 @@ export interface GetRelearningCardsRequest {
     count: number;
 }
 
+export interface StopRepeatingCardRequest {
+    cardId: string;
+    scheduleUserId: string;
+    scheduleId: string;
+}
+
 export const cardsApi = api.injectEndpoints({
     endpoints: (build) => ({
         getCard: build.query<Card, BaseRequestItem<GetCardRequest>>({
@@ -294,6 +300,13 @@ export const cardsApi = api.injectEndpoints({
             },
             keepUnusedDataFor: 0,
         }),
+        stopRepeatingCard: build.mutation<void, BaseRequestItem<StopRepeatingCardRequest>>({
+            query: ({ userId, collectionId, request: { cardId, scheduleUserId, scheduleId } }) => ({
+                url: `/collections/${collectionId}/cards/${cardId}/learn`,
+                method: 'DELETE',
+                params: { scheduleUserId: scheduleUserId, scheduleId: scheduleId },
+            }),
+        }),
     }),
 });
 
@@ -310,4 +323,5 @@ export const {
     useSearchCardsQuery,
     useRelearnCardMutation,
     useGetRelearningCardsQuery,
+    useStopRepeatingCardMutation,
 } = cardsApi;

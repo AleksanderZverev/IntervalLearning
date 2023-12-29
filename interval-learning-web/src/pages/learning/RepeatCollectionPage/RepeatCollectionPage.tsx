@@ -74,7 +74,9 @@ export const RepeatCollectionPageContent: FC<RepeatCollectionPageContentProps> =
 
     const navigate = useNavigate();
     const theme = useTypedSelector((state) => selectTheme(state, collection.themeId));
-    const repeatCards = useTypedSelector((state) => selectCardsByIds(state, userId, collectionId, cardIds));
+    const [deletedCards, setDeletedCards] = useState<string[]>([]);
+    const mergedCardIds = cardIds.filter((c) => !deletedCards.includes(c));
+    const repeatCards = useTypedSelector((state) => selectCardsByIds(state, userId, collectionId, mergedCardIds));
     const [showAssertionModal, setShowAssertionModal] = useState(false);
     const [showCurrentCardError, setShowCurrentCardError] = useState(false);
     const [showStartModal, setShowStartModal] = useState(true);
@@ -189,6 +191,10 @@ export const RepeatCollectionPageContent: FC<RepeatCollectionPageContentProps> =
 
         setRememberWeights({ ...rememberWeights });
         saveWeights(false);
+    };
+
+    const onDeleteCardFromRepeating = (cardId: string) => {
+        setDeletedCards([...deletedCards, cardId]);
     };
 
     const onNext = () => {
@@ -344,6 +350,8 @@ export const RepeatCollectionPageContent: FC<RepeatCollectionPageContentProps> =
                                 <RepeatCard
                                     value={rememberWeights[card.id] ?? null}
                                     card={currentCard}
+                                    schedule={schedule}
+                                    onCardDeletedFromRepeating={(cardId) => onDeleteCardFromRepeating(cardId)}
                                     showNext={cardIndex < maxCards - 1}
                                     showPrevious={cardIndex !== 0}
                                     isActive={notActiveIndex - 1 === cardIndex}
