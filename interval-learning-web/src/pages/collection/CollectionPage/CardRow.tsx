@@ -1,5 +1,15 @@
-import { ArrowForward, Delete, Edit, KeyboardArrowRight } from '@mui/icons-material';
-import { Collapse, IconButton, Portal, Stack } from '@mui/material';
+import { ArrowForward, Construction, Delete, Edit, KeyboardArrowRight } from '@mui/icons-material';
+import {
+    Collapse,
+    Divider,
+    IconButton,
+    ListItemIcon,
+    ListItemText,
+    Menu,
+    MenuItem,
+    Portal,
+    Stack,
+} from '@mui/material';
 import { FC, useState } from 'react';
 import { CreateCardModal } from '../../../controls/Modals/CreateCardModal';
 import { TableCell, TableRow } from '../../../controls/Table/Table';
@@ -18,6 +28,17 @@ const CardRowComponent: FC<CardRowProps> = ({ mutationProps: { mutate: deleteCar
     const [showEditCardModal, setShowEditCardModal] = useState(false);
     const [showMoveCardModal, setShowMoveCardModal] = useState(false);
     const [showDeleteCardModal, setShowDeleteCardModal] = useState(false);
+
+    const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+    const open = Boolean(anchorEl);
+
+    const onShowMenu = (element: HTMLElement) => {
+        setAnchorEl(element);
+    };
+
+    const onCloseMenu = () => {
+        setAnchorEl(null);
+    };
 
     const hasExamples = card.examples && card.examples.length > 0;
 
@@ -55,23 +76,37 @@ const CardRowComponent: FC<CardRowProps> = ({ mutationProps: { mutate: deleteCar
                 <TableCell>{card.promptText}</TableCell>
                 <TableCell>{card.backSideText}</TableCell>
                 <TableCell>{card.description}</TableCell>
-                <TableCell sx={{ position: 'relative', paddingRight: 5 }}>
-                    <Stack direction={'row'} sx={{ position: 'absolute', right: 20, top: 10 }}>
-                        <IconButton
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                setShowEditCardModal(true);
-                            }}
-                        >
-                            <Edit fontSize="small" />
-                        </IconButton>
-                        <IconButton onClick={() => setShowMoveCardModal(true)}>
-                            <ArrowForward fontSize={'small'} />
-                        </IconButton>
-                        <IconButton onClick={() => setShowDeleteCardModal(true)}>
-                            <Delete fontSize="small" color={'error'} />
-                        </IconButton>
-                    </Stack>
+                <TableCell width={1}>
+                    <IconButton onClick={(e) => onShowMenu(e.currentTarget)}>
+                        <Construction />
+                    </IconButton>
+                    <Menu
+                        anchorEl={anchorEl}
+                        open={open}
+                        onClose={onCloseMenu}
+                        onClick={onCloseMenu}
+                        transformOrigin={{ horizontal: 'center', vertical: 'top' }}
+                    >
+                        <MenuItem onClick={() => setShowEditCardModal(true)}>
+                            <ListItemIcon>
+                                <Edit fontSize="small" />
+                            </ListItemIcon>
+                            <ListItemText>Изменить</ListItemText>
+                        </MenuItem>
+                        <MenuItem onClick={() => setShowMoveCardModal(true)}>
+                            <ListItemIcon>
+                                <ArrowForward fontSize={'small'} />
+                            </ListItemIcon>
+                            <ListItemText>Переместить</ListItemText>
+                        </MenuItem>
+                        <Divider />
+                        <MenuItem onClick={() => setShowDeleteCardModal(true)}>
+                            <ListItemIcon>
+                                <Delete fontSize="small" color={'error'} />
+                            </ListItemIcon>
+                            <ListItemText>Удалить</ListItemText>
+                        </MenuItem>
+                    </Menu>
                 </TableCell>
             </TableRow>
             <TableRow>
