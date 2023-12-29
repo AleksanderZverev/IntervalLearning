@@ -8,6 +8,7 @@ using IntervalLearningApi.Controllers.Study.Collections.RequestModels.GetNotFini
 using IntervalLearningApi.Controllers.Study.Collections.RequestModels.GetRepeatCollections;
 using IntervalLearningApi.Controllers.Study.RepeatsSchedules.DTOs;
 using IntervalLearningApi.Controllers.Study.RepeatsSchedules.Requests.CreateSchedule;
+using IntervalLearningApi.IntegrationTests.Common.Services;
 using IntervalLearningApi.IntegrationTests.Learning.Common;
 using IntervalLearningApi.IntegrationTests.Learning.Scenarios;
 
@@ -120,6 +121,22 @@ public class CardAndCollectionsControllerTests : SharedApiTests
         );
     }
 
+    private async Task PostponeRepeatingCardAsync(
+        HttpClient client,
+        CollectionDto collection,
+        CardDto card,
+        RepeatsScheduleDto schedule, 
+        int postponeDays)
+    {
+        var postponeResult = await client.PatchAsync(
+            CardsQuery(collection.Id, ApiRoutes.Cards.GetPostponeRepeatingCardPath(card.Id)) 
+            + new QueryString()
+                .Add("scheduleUserId", schedule.ParentUserId)
+                .Add("scheduleId", schedule.Id)
+                .Add("postponeDays", postponeDays.ToString()),
+            new StringContent(string.Empty)
+        );
+    }
 
     private async Task<List<CardDto>> GetRelearningCardsAsync(
         HttpClient client,
@@ -585,6 +602,39 @@ public class CardAndCollectionsControllerTests : SharedApiTests
         var repeatCollections = getRepeatCollectionsResponse.ToResponseDto<RepeatingCollectionResponse>();
 
         repeatCollections.DateToRepeatingPhases.Should().BeNullOrEmpty();
+    }
+    
+    [Theory]
+    [InlineData(1)]
+    [InlineData(5)]
+    [InlineData(14)]
+    public async Task PostponeRepeatingCard_ShouldPostponeCard(int postponeDays)
+    {
+        //Arrange
+        var (client, user) = SharedScope;
+        var cardsCount = 10;
+        var (collection, cards) = await CreateRandomCardsAsync(cardsCount);
+        var schedule = await CreateTestSchedule(ForgottenBehavior.MoveToNextStep);
+        await StartCardsAsync(client, collection, cards, schedule);
+        var getOldRepeatCollectionsResponse = await client.GetAsync(
+            CollectionsQuery(ApiRoutes.Collections.GetRepeatCollections));
+        var oldRepeatCollections = getOldRepeatCollectionsResponse.ToResponseDto<RepeatingCollectionResponse>();
+        var oldRepeatingDate = oldRepeatCollections.DateToRepeatingPhases.Keys.First(); 
+
+        //Act
+        foreach (var card in cards)
+        {
+             await PostponeRepeatingCardAsync(client, collection, card, schedule, postponeDays);
+        }
+        
+        //Assert
+        var getRepeatCollectionsResponse = await client.GetAsync(
+            CollectionsQuery(ApiRoutes.Collections.GetRepeatCollections));
+        var repeatCollections = getRepeatCollectionsResponse.ToResponseDto<RepeatingCollectionResponse>();
+        repeatCollections.DateToRepeatingPhases.Should().NotBeNullOrEmpty();
+        repeatCollections.DateToRepeatingPhases.Keys.Should().HaveCount(1);
+        var repeatingDate = repeatCollections.DateToRepeatingPhases.Keys.First();
+        repeatingDate.Should().BeCloseTo(DateTime.UtcNow.Date.AddDays(postponeDays), TimeSpan.FromHours(1));
     }
 
     public async Task Controller_Method_Should()

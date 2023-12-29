@@ -6,6 +6,7 @@ using Application.Commands.Cards.GetCard;
 using Application.Commands.Cards.GetCardsQueueCommand;
 using Application.Commands.Cards.GetNotStartedCardsCommand;
 using Application.Commands.Cards.GetRelearningCards;
+using Application.Commands.Cards.PostponeRepeatingCard;
 using Application.Commands.Cards.RelearnCard;
 using Application.Commands.Cards.RememberCard;
 using Application.Commands.Cards.SearchCards;
@@ -197,6 +198,39 @@ namespace IntervalLearningApi.Controllers.Study.Cards
                     scheduleUserIdResult.Value, scheduleIdResult.Value));
 
             return stopResult.ToActionResult();
+        }
+        
+        [HttpPatch(ApiRoutes.Cards.Patch_PostponeRepeatingCard)]
+        public async Task<ActionResult> PostponeRepeatingCard(
+            short collectionId,
+            short cardId,
+            [FromQuery] long scheduleUserId,
+            [FromQuery] short scheduleId,
+            [FromQuery, Range(1, 14)] int postponeDays)
+        {
+            var argResults = (
+                HttpContext.GetUserId(),
+                CollectionId.Create(collectionId),
+                CardId.Create(cardId),
+                UserId.Create(scheduleUserId),
+                ScheduleId.Create(scheduleId)
+            );
+
+            if (argResults.HasAnyError())
+                return BadRequest();
+
+            var (userIdResult, collectionIdResult, cardIdResult, scheduleUserIdResult, scheduleIdResult) = argResults;
+
+            var postponeResult = await commandManager
+                .GetCommand<PostponeRepeatingCardCommand>()
+                .Handle(new PostponeRepeatingCardCommandRequest(
+                    userIdResult.Value, collectionIdResult.Value, cardIdResult.Value,
+                    scheduleUserIdResult.Value, scheduleIdResult.Value,
+                    postponeDays,
+                    !env.IsProduction()
+                ));
+
+            return postponeResult.ToActionResult();
         }
 
         [HttpGet(ApiRoutes.Cards.Get_GetCardQueue)]

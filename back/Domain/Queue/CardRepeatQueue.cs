@@ -5,6 +5,7 @@ using Domain.Queue.ValueObjects;
 using Domain.Schedule;
 using Domain.Schedule.ValueObjects;
 using Domain.User.ValueObjects;
+using Infrastructure;
 
 namespace Domain.Queue;
 
@@ -13,7 +14,7 @@ public class CardRepeatQueue : AggregateRoot<ComplexQueueId>, IParentCardReferen
     public QueueId Id { get; set; }
     public short PhaseIndex { get; set; }
 
-    public DateTime Date { get; set; }
+    public DateTime Date { get; private set; }
 
     public CardRepeatQueue(
         UserId parentRepeatsScheduleUserId,
@@ -62,4 +63,9 @@ public class CardRepeatQueue : AggregateRoot<ComplexQueueId>, IParentCardReferen
     public UserId ParentRepeatsScheduleUserId { get; set; }
     public ScheduleId ParentRepeatsScheduleId { get; set; }
     public RepeatsSchedule? ParentRepeatsSchedule { get; set; }
+
+    public void PostponeOnDays(IDateTimeProvider dateTimeProvider, int days)
+    {
+        Date = dateTimeProvider.UtcNow.AddDays(days);
+    }
 }
