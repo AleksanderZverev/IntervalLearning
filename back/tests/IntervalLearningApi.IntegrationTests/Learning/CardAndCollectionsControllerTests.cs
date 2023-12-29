@@ -100,11 +100,26 @@ public class CardAndCollectionsControllerTests : SharedApiTests
         CollectionDto collection,
         CardDto card)
     {
-        var relearnCardResponse = await client.PatchAsJsonAsync(
-            CardsQuery(collection.Id, ApiRoutes.Cards.Patch_RelearnCard) + new QueryString().Add("cardId", card.Id),
-            new object()
+        var relearnCardResponse = await client.PatchAsync(
+            CardsQuery(collection.Id, ApiRoutes.Cards.Patch_RelearnCard) + new QueryString().Add("cardId", card.Id), 
+            new StringContent(string.Empty)
         );
     }
+    
+    private async Task StopLearningCardAsync(
+        HttpClient client,
+        CollectionDto collection,
+        CardDto card,
+        RepeatsScheduleDto schedule)
+    {
+        await client.DeleteAsync(
+            CardsQuery(collection.Id, ApiRoutes.Cards.GetStopRepeatingCardPath(card.Id)) 
+            + new QueryString()
+                .Add("scheduleUserId", schedule.ParentUserId)
+                .Add("scheduleId", schedule.Id)
+        );
+    }
+
 
     private async Task<List<CardDto>> GetRelearningCardsAsync(
         HttpClient client,
@@ -545,6 +560,31 @@ public class CardAndCollectionsControllerTests : SharedApiTests
         var relearningCards = await GetRelearningCardsAsync(client, collection);
         relearningCards.Should().NotBeNullOrEmpty();
         relearningCards.Should().BeEquivalentTo(cards, o => o.ForCard());
+    }
+    
+    [Theory]
+    [MemberData(nameof(TestBehaviors))]
+    public async Task StopRepeatingCard_ShouldStopCard(ForgottenBehavior behavior)
+    {
+        //Arrange
+        var (client, user) = SharedScope;
+        var cardsCount = 10;
+        var (collection, cards) = await CreateRandomCardsAsync(cardsCount);
+        var schedule = await CreateTestSchedule(behavior);
+        await StartCardsAsync(client, collection, cards, schedule);
+        
+        //Act
+        foreach (var card in cards)
+        {
+            await StopLearningCardAsync(client, collection, card, schedule);
+        }
+        
+        //Assert
+        var getRepeatCollectionsResponse = await client.GetAsync(
+            CollectionsQuery(ApiRoutes.Collections.GetRepeatCollections));
+        var repeatCollections = getRepeatCollectionsResponse.ToResponseDto<RepeatingCollectionResponse>();
+
+        repeatCollections.DateToRepeatingPhases.Should().BeNullOrEmpty();
     }
 
     public async Task Controller_Method_Should()

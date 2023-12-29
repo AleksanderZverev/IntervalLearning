@@ -64,6 +64,10 @@ public static class ApiRoutes
         public const string Delete_DeleteCard = "{cardId}";
         public static string GetDeleteCardPath(short cardId) 
             => $"{cardId}";
+
+        public const string Delete_StopRepeatingCard = "{cardId}/learn";
+        public static string GetStopRepeatingCardPath(string cardId) 
+            => $"{cardId}/learn";
         
         public const string Post_MoveCard = "move";
         public const string Get_SearchCard = "search";

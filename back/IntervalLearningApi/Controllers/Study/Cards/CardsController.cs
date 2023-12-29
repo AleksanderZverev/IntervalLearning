@@ -10,6 +10,7 @@ using Application.Commands.Cards.RelearnCard;
 using Application.Commands.Cards.RememberCard;
 using Application.Commands.Cards.SearchCards;
 using Application.Commands.Cards.StartLearnCards;
+using Application.Commands.Cards.StopRepeatingCard;
 using Application.Commands.Cards.UpdateCard;
 using Application.Commands.Collections.MoveCollectionCard;
 using Domain.Card.ValueObjects;
@@ -167,6 +168,35 @@ namespace IntervalLearningApi.Controllers.Study.Cards
                     count));
             
             return cardsResult.ToActionResult(cards => mapper.Map<List<CardDto>>(cards));
+        }
+
+        [HttpDelete(ApiRoutes.Cards.Delete_StopRepeatingCard)]
+        public async Task<ActionResult> StopRepeatingCard(
+            short collectionId,
+            short cardId,
+            [FromQuery] long scheduleUserId,
+            [FromQuery] short scheduleId)
+        {
+            var argResults = (
+                HttpContext.GetUserId(),
+                CollectionId.Create(collectionId),
+                CardId.Create(cardId),
+                UserId.Create(scheduleUserId),
+                ScheduleId.Create(scheduleId)
+            );
+
+            if (argResults.HasAnyError())
+                return BadRequest();
+
+            var (userIdResult, collectionIdResult, cardIdResult, scheduleUserIdResult, scheduleIdResult) = argResults;
+
+            var stopResult = await commandManager
+                .GetCommand<StopRepeatingCardCommand>()
+                .Handle(new StopRepeatingCardCommandRequest(
+                    userIdResult.Value, collectionIdResult.Value, cardIdResult.Value,
+                    scheduleUserIdResult.Value, scheduleIdResult.Value));
+
+            return stopResult.ToActionResult();
         }
 
         [HttpGet(ApiRoutes.Cards.Get_GetCardQueue)]
