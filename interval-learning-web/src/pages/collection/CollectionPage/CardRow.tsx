@@ -108,7 +108,7 @@ const CardRowComponent: FC<CardRowProps> = ({ mutationProps: { mutate: relearnCa
                 <TableCell>{card.promptText}</TableCell>
                 <TableCell>{card.backSideText}</TableCell>
                 <TableCell>{card.description}</TableCell>
-                <TableCell width={1}>
+                <TableCell width={1} onClick={(e) => e.stopPropagation()}>
                     <IconButton onClick={(e) => onShowMenu(e.currentTarget)}>
                         <Construction />
                     </IconButton>
