@@ -98,11 +98,11 @@ public class RepeatsSchedule : AggregateRoot<ComplexScheduleId>, IParentUserRefe
 
         var previousPhaseAnswers = new PhaseAnswers(
             MainAnswer: ToMemorizedDegree(
-                previousNotRepeatingPhase != null && previousNotRepeatingPhase.Id != currentNotRepeatingPhase.Id
+                previousNotRepeatingPhase != null
                     ? cardEntity.FindRememberByPhaseIndex(IndexOf(previousNotRepeatingPhase))
                     : null),
             RepetitionAnswer: ToMemorizedDegree(
-                previousRepeatingPhase != null && previousRepeatingPhase.Id != currentRepeatPhase.Id
+                previousRepeatingPhase != null
                     ? cardEntity.FindRememberByPhaseIndex(IndexOf(previousRepeatingPhase))
                     : null)
         );

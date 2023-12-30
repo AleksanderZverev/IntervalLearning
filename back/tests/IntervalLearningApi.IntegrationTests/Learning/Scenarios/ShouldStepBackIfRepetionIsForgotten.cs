@@ -52,7 +52,7 @@ public static partial class LearningScenarios
             new(ForgottenWeight, 1),    //4
             new(ForgottenWeight, -3),   //1
         }, ResultStep: 1),
-        new Scenario(ForgottenBehavior.MoveToPreviousStep, new List<ScenarioStep>() // Forgotten → Forgotten
+        new Scenario(ForgottenBehavior.MoveToPreviousStep, new List<ScenarioStep>() // Forgotten → Forgotten → DOUBLE BACK
         {
             new(RememberedWeight, 2),   //0
             
@@ -67,6 +67,18 @@ public static partial class LearningScenarios
             
             new(ForgottenWeight, 1),    //6
             new(RememberedWeight, -5),  //7 - 5 → 2
+        }, ResultStep: 2),
+        new Scenario(ForgottenBehavior.MoveToPreviousStep, new List<ScenarioStep>() //NotClear → NotClear → BACK
+        {
+            new(RememberedWeight, 2),   //0
+            
+            new(RememberedWeight, 2),   //2 ← going on second unclear answer
+            
+            new(UnknownWeight, 1),      //4 ← staying here for the first time
+            new(RememberedWeight, -1),  //5 - 1 = 4
+            
+            new(UnknownWeight, 1),      //4 
+            new(RememberedWeight, -3),  //5 - 3 = 2
         }, ResultStep: 2),
         
         
