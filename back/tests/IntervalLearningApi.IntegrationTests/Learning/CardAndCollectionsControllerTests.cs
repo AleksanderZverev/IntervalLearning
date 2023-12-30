@@ -159,7 +159,7 @@ public class CardAndCollectionsControllerTests : SharedApiTests
     };
     
     public static IEnumerable<object[]> TestOnTheStartMoveScenarios = LearningScenarios.TestOnTheStartScenarios.ToMemberData();
-    public static IEnumerable<object[]> TestMoveScenarios = LearningScenarios.MoveScenarios.ToMemberData();
+    public static IEnumerable<object[]> TestMovingStepBackScenarios = LearningScenarios.ShouldStepStayOrStepBackScenarios.ToMemberData();
     public static IEnumerable<object[]> TestOnTheLastStepScenarios = LearningScenarios.ReachedEndScenarios.ToMemberData();
     public static IEnumerable<object[]> TestOnCompletingScenarios = LearningScenarios.OnCompletingScenarios.ToMemberData();
 
@@ -178,13 +178,14 @@ public class CardAndCollectionsControllerTests : SharedApiTests
 
         //Assert
         startCards.Should().NotBeNull();
+        
         var expectedRepeatDate = startDate.Add(LearningCommons.phasesDuration.First());
-        startCards.NextRepeatDate.Should().BeCloseTo(
-            expectedRepeatDate, TimeSpan.FromMinutes(5));
+        startCards.NextRepeatDate.Should().BeCloseTo(expectedRepeatDate, TimeSpan.FromMinutes(5));
         startCards.NextPhaseIndex.Should().Be(0);
+        
+        startCards.NextRepeatPhase.Id.Should().Be("1");
         TimeSpan.FromSeconds(startCards.NextRepeatPhase.SecondsFromLastPhase).Should()
             .Be(LearningCommons.phasesDuration.First());
-        startCards.NextRepeatPhase.Id.Should().Be("1");
     }
     
     [Theory]
@@ -320,7 +321,7 @@ public class CardAndCollectionsControllerTests : SharedApiTests
     }
     
     [Theory]
-    [MemberData(nameof(TestMoveScenarios))]
+    [MemberData(nameof(TestMovingStepBackScenarios))]
     public async Task GetNotFinished_ShouldReturnNotEmptyWhenNewCardsAdded(Scenario scenario)
     {
         //Arrange
@@ -397,7 +398,7 @@ public class CardAndCollectionsControllerTests : SharedApiTests
     
     [Theory]
     [MemberData(nameof(TestOnTheStartMoveScenarios))]
-    [MemberData(nameof(TestMoveScenarios))]
+    [MemberData(nameof(TestMovingStepBackScenarios))]
     [MemberData(nameof(TestOnTheLastStepScenarios))]
     public async Task RememberCard_ShouldMoveEveryStep(Scenario scenario)
     {
@@ -440,7 +441,7 @@ public class CardAndCollectionsControllerTests : SharedApiTests
         LearningScenarios.ShouldStepOnRepetitionScenarios.ToMemberData();
 
     public static IEnumerable<object[]> TestShouldMoveAfterRepetition =
-        LearningScenarios.ShouldMoveAfterRepetition.ToMemberData();
+        LearningScenarios.ShouldMoveAfterRepetitionCorreclty_IfForgotten.ToMemberData();
 
     [Theory]
     [MemberData(nameof(TestShouldStepOnRepetitionScenarios))]
@@ -452,6 +453,11 @@ public class CardAndCollectionsControllerTests : SharedApiTests
         var schedule = await CreateTestScheduleWithRepetitions(scenario.Behavior);
         var (collection, preAddedCards) = await CreateRandomCardsAsync(10);
         await StartCardsAsync(client, collection, preAddedCards, schedule);
+
+        if (scenario.Behavior == ForgottenBehavior.MoveToPreviousStep)
+        {
+            
+        }
         
         //Act
         var currentPhaseIndex = 0;
@@ -484,7 +490,7 @@ public class CardAndCollectionsControllerTests : SharedApiTests
     
     [Theory]
     [MemberData(nameof(TestOnTheStartMoveScenarios))]
-    [MemberData(nameof(TestMoveScenarios))]
+    [MemberData(nameof(TestMovingStepBackScenarios))]
     [MemberData(nameof(TestOnTheLastStepScenarios))]
     public async Task RememberCard_ShouldReachExpectedResult(Scenario scenario)
     {

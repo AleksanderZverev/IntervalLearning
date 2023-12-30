@@ -55,14 +55,50 @@ public class Card : AggregateRoot<ComplexCardId>
     public Remember? FindLastRemember() 
         => Remembers.MaxBy(c => c.RepeatedDate);
     
-    public Remember? FindPreviousRemember(RememberId rememberId)
+    public Remember? FindPreviousByPhaseIndex(int phaseIndex)
     {
         //Because of bug the less ID ≠ previous remember
         return Remembers
             .OrderByDescending(r => r.RepeatedDate)
-            .SkipWhile(r => r.Id != rememberId)
-            .SkipWhile(r => r.Id == rememberId)
+            .SkipWhile(r => r.PhaseIndex != phaseIndex)
+            .SkipWhile(r => r.PhaseIndex == phaseIndex)
             .FirstOrDefault();
+    }
+
+    public Remember? FindNotRepeatingRemember(DateTime date)
+    {
+        var remembers = GetRemembersByDate(date);
+        
+        if (remembers.Count == 0)
+            return null;
+
+        return remembers.First();
+    }
+
+    
+    public Remember? FindRememberByPhaseIndex(int phaseIndex)
+    {
+        return Remembers
+            .OrderBy(r => r.RepeatedDate)
+            .LastOrDefault(r => r.PhaseIndex == phaseIndex);
+    }
+
+    public Remember? FindRepeatingRemember(DateTime date)
+    {
+        var remembers = GetRemembersByDate(date);
+        
+        if (remembers.Count < 2)
+            return null;
+
+        return remembers.Skip(1).First();
+    }
+
+    private List<Remember> GetRemembersByDate(DateTime date)
+    {
+        return Remembers
+            .Where(r => r.RepeatedDate.Date == date.Date)
+            .OrderBy(r => r.RepeatedDate)
+            .ToList();
     }
 
     public DateTime GetLearnedDate()

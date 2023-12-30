@@ -4,11 +4,11 @@ namespace IntervalLearningApi.IntegrationTests.Learning.Scenarios;
 
 public static partial class LearningScenarios
 {
-    public static List<Scenario> MoveScenarios = new()
+    public static List<Scenario> ShouldStepStayOrStepBackScenarios = new()
     {
         new Scenario(ForgottenBehavior.MoveToNextStep, new List<ScenarioStep>()
         {
-            new(LearningScenarios.RememberedWeight, 1),
+            new(RememberedWeight, 1),
             new(UnknownWeight, 1),
             new(ForgottenWeight, 1),
         }, ResultStep: 4),
