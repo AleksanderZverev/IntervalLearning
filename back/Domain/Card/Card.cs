@@ -24,6 +24,10 @@ public class Card : AggregateRoot<ComplexCardId>
 
     public CollectionId ParentCollectionId { get; set; }
     public virtual Collection.Collection? ParentCollection { get; set; }
+    
+
+    private List<Remember>? _orderedRemembers;
+    private List<Remember> OrderedRemembers => _orderedRemembers ??= Remembers.OrderBy(r => r.RepeatedDate).ToList();
 
     protected Card() : base()
     {
@@ -55,64 +59,30 @@ public class Card : AggregateRoot<ComplexCardId>
     public Remember? FindLastRemember() 
         => Remembers.MaxBy(c => c.RepeatedDate);
     
-    public Remember? FindPreviousByPhaseIndex(int phaseIndex)
+    public Remember? FindPreviousRememberByPhaseIndex(int phaseIndex)
     {
-        //Because of bug the less ID ≠ previous remember
-        return Remembers
-            .OrderByDescending(r => r.RepeatedDate)
+        //Less ID ≠ previous remember
+        return OrderedRemembers
+            .AsEnumerable()
+            .Reverse()
             .SkipWhile(r => r.PhaseIndex != phaseIndex)
             .SkipWhile(r => r.PhaseIndex == phaseIndex)
             .FirstOrDefault();
     }
 
-    public Remember? FindNotRepeatingRemember(DateTime date)
-    {
-        var remembers = GetRemembersByDate(date);
-        
-        if (remembers.Count == 0)
-            return null;
-
-        return remembers.First();
-    }
-
     
     public Remember? FindRememberByPhaseIndex(int phaseIndex)
     {
-        return Remembers
-            .OrderBy(r => r.RepeatedDate)
-            .LastOrDefault(r => r.PhaseIndex == phaseIndex);
-    }
-
-    public Remember? FindRepeatingRemember(DateTime date)
-    {
-        var remembers = GetRemembersByDate(date);
-        
-        if (remembers.Count < 2)
-            return null;
-
-        return remembers.Skip(1).First();
-    }
-
-    private List<Remember> GetRemembersByDate(DateTime date)
-    {
-        return Remembers
-            .Where(r => r.RepeatedDate.Date == date.Date)
-            .OrderBy(r => r.RepeatedDate)
-            .ToList();
+        return OrderedRemembers.LastOrDefault(r => r.PhaseIndex == phaseIndex);
     }
 
     public DateTime GetLearnedDate()
     {
-        return Remembers
-            .OrderBy(r => r.RepeatedDate)
-            .Last(r => r.IsAtLearnedDate())
-            .RepeatedDate;
+        return OrderedRemembers.Last(r => r.IsAtLearnedDate()).RepeatedDate;
     }
     
     public List<Remember> GetRepeatingRemembers()
     {
-        return Remembers
-            .Where(r => !r.IsAtLearnedDate())
-            .ToList();
+        return Remembers.Where(r => !r.IsAtLearnedDate()).ToList();
     }
 }

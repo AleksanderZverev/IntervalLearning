@@ -1,4 +1,5 @@
-﻿using System.Net.NetworkInformation;
+﻿using System.Diagnostics;
+using System.Net.NetworkInformation;
 using Domain.Common.ValueObjects.Text.MultiLine;
 using Domain.Common.ValueObjects.Text.SingleLine;
 using Domain.Schedule.Entities.Phase;
@@ -52,82 +53,19 @@ public class RepeatsSchedule : AggregateRoot<ComplexScheduleId>, IParentUserRefe
         Id = id;
     }
 
+    private List<Phase>? _orderedPhases;
+    private List<Phase> OrderedPhases => _orderedPhases ??= Phases.OrderBy(p => p.Id).ToList();
 
-    private enum StepAnswers
+
+    private enum MemorizedDegree
     {
         Any = 0,
         Forgotten = 1,
         NotClear = 2,
         Remembered = 4,
     }
-
-    private record Scenario(StepAnswers Answer, StepAnswers RepetitionAnswer)
-    {
-        // public Scenario(StepAnswers answer, StepAnswers repetitionAnswer)
-        // {
-        //     Answer = answer;
-        //     RepetitionAnswer = repetitionAnswer;
-        // }
-        //
-        // public StepAnswers Answer { get; }
-        // public StepAnswers RepetitionAnswer { get; }
-        //
-        // public override string ToString()
-        // {
-        //     return $"{Answer}/{RepetitionAnswer}";
-        // }
-        //
-        // public override int GetHashCode()
-        // {
-        //     return (int)Answer + (int)RepetitionAnswer;
-        // }
-    }
-
-    //TODO: Check in test room retrieving scenarios
-    // private static Dictionary<Scenario, Dictionary<Scenario, Func<int>>> Scenarios = new()
-    // {
-    //     {
-    //         new(StepAnswers.Forgotten, StepAnswers.Any), new()
-    //         {
-    //             { new Scenario(StepAnswers.Forgotten, StepAnswers.Any), () => -2 },
-    //             { new Scenario(StepAnswers.NotClear, StepAnswers.Any), () => 0 },
-    //             { new Scenario(StepAnswers.Remembered, StepAnswers.Any), () => 1 },
-    //         }
-    //     },
-    //     {
-    //         new Scenario(StepAnswers.NotClear, StepAnswers.Any), new()
-    //         {
-    //             { new Scenario(StepAnswers.Forgotten, StepAnswers.Any), () => -1 },
-    //             { new Scenario(StepAnswers.NotClear, StepAnswers.Any), () => -1 },
-    //             { new Scenario(StepAnswers.Remembered, StepAnswers.Any), () => 1 },
-    //         }
-    //     },
-    //     {
-    //         new Scenario(StepAnswers.Any, StepAnswers.Any), new()
-    //         {
-    //             { new Scenario(StepAnswers.Forgotten, StepAnswers.Any), () => -1 },
-    //             { new Scenario(StepAnswers.NotClear, StepAnswers.Any), () => 0 },
-    //             { new Scenario(StepAnswers.Remembered, StepAnswers.Any), () => 1 },
-    //         }
-    //     }
-    // };
-
-    // private (int nextPhaseIndex, Phase? nextPhase) MoveNextStep(
-    //     Remember currentRemember)
-    // {
-    //     var currentPhaseIndex = currentRemember.PhaseIndex;
-    //     var currentPhase = GetPhase(currentPhaseIndex);
-    //     
-    //     var nextPhaseIndex = FindNextPhaseIndex(currentPhaseIndex);
-    //     var nextPhase = FindPhase(nextPhaseIndex);
-    // }
-
-    private bool ShouldMoveOnRepeatingStep(Scenario current, Scenario previous)
-    {
-        return current.Answer is not StepAnswers.Remembered;
-    }
-
-    enum StepMovements
+    
+    enum PhaseMovement
     {
         Back = -1,
         DoubleBack = -2,
@@ -135,104 +73,9 @@ public class RepeatsSchedule : AggregateRoot<ComplexScheduleId>, IParentUserRefe
         Stay = 0,
         ToStart = -99,
     }
+
+    private record PhaseAnswers(MemorizedDegree MainAnswer, MemorizedDegree RepetitionAnswer);
     
-
-    private StepMovements GetNextStep(Scenario current, Scenario previous)
-    {
-        if (ForgottenBehavior is ForgottenBehavior.MoveToNextStep)
-        {
-            return StepMovements.Forward;
-        }
-
-        if (ForgottenBehavior is ForgottenBehavior.StartFromFirstStep)
-        {
-            return current.Answer is StepAnswers.Remembered
-                ? StepMovements.Forward
-                : current.Answer is StepAnswers.NotClear 
-                ? StepMovements.Stay
-                : StepMovements.ToStart;
-        }
-
-        if (ForgottenBehavior is ForgottenBehavior.StayOnCurrentStep)
-        {
-            return current.Answer is StepAnswers.Remembered
-                ? StepMovements.Forward
-                : StepMovements.Stay;
-        }
-
-        if (ForgottenBehavior is not ForgottenBehavior.MoveToPreviousStep)
-        {
-            throw new ArgumentOutOfRangeException("Unknown forgotten behaviour");
-        } 
-        
-        if (current.Answer is StepAnswers.Remembered)
-        {
-            return StepMovements.Forward;
-        }
-        
-        // NotClear + NotClear → step back
-        // NotClear + Forgotten → step back
-        // NotClear + (R)Forgotten → step back
-        // NotClear + (R)(NotClear or Remembered) → stay
-        if (current.Answer is StepAnswers.NotClear)
-        {
-            if (previous.Answer is StepAnswers.NotClear or StepAnswers.Forgotten)
-            {
-                return StepMovements.Back;
-            }
-            
-            if (current.RepetitionAnswer is StepAnswers.Forgotten)
-            {
-                return StepMovements.Back;
-            }
-            
-            return StepMovements.Stay;
-        }
-
-        // Forgotten + Forgotten → double step back
-        // Forgotten + NotClear → step back
-        // Forgotten + Remembered → step back
-        if (current.Answer is StepAnswers.Forgotten)
-        {
-            if (previous.Answer is StepAnswers.Forgotten)
-            {
-                return StepMovements.DoubleBack;
-            }
-            
-            return StepMovements.Back;
-        }
-
-        throw new ArgumentOutOfRangeException("Unknown answer");
-    }
-
-    private Phase? CalculateNextNotRepeatingPhase(StepMovements movements, Phase currentPhase)
-    {
-        if (movements is StepMovements.ToStart)
-            return FindNotRepeatingPhaseOf(GetPhase(0).Id);
-
-        if (movements is StepMovements.Forward)
-            return FindNextNotRepeatingPhase(currentPhase.Id);
-        
-        var currentNonRepeatingPhase = FindNotRepeatingPhaseOf(currentPhase.Id);
-
-        if (movements is StepMovements.Stay)
-            return currentNonRepeatingPhase;
-        
-        var prevStep = FindPreviousNotRepeatingPhase(currentPhase.Id);
-
-        if (prevStep == null)
-            return currentNonRepeatingPhase;
-
-        if (movements is StepMovements.Back)
-            return prevStep;
-        
-        var prevPrevStep = FindPreviousNotRepeatingPhase(prevStep.Id);
-        
-        return prevPrevStep == null
-            ? prevStep
-            : prevPrevStep;
-    }
-
     public Phase? GetNextPhase(Card.Card cardEntity)
     {
         var currentRemember = cardEntity.FindLastRemember() ?? throw new InvalidOperationException("Failure on searching last remember");
@@ -241,32 +84,34 @@ public class RepeatsSchedule : AggregateRoot<ComplexScheduleId>, IParentUserRefe
         var currentNotRepeatingPhase = FindNotRepeatingPhaseOf(currentPhase.Id);
         var currentRepeatPhase = FindRepeatingPhaseOf(currentNotRepeatingPhase.Id);
 
-        var previousRemember = cardEntity.FindPreviousByPhaseIndex(IndexOf(currentNotRepeatingPhase));
+        var currentNotRepeatingRemember = cardEntity.FindRememberByPhaseIndex(IndexOf(currentNotRepeatingPhase));
+        var currentRepeatingRemember = currentRepeatPhase != null ? cardEntity.FindRememberByPhaseIndex(IndexOf(currentRepeatPhase)) : null;
+        var currentPhaseAnswers = new PhaseAnswers(
+            MainAnswer: ToMemorizedDegree(currentNotRepeatingRemember),
+            RepetitionAnswer: ToMemorizedDegree(currentRepeatingRemember)
+        );
+
+        var previousRemember = cardEntity.FindPreviousRememberByPhaseIndex(IndexOf(currentNotRepeatingPhase));
         var previousPhase = previousRemember != null ? FindPhase(previousRemember.PhaseIndex) : null;
         var previousNotRepeatingPhase = previousPhase != null ? FindNotRepeatingPhaseOf(previousPhase.Id) : null;
         var previousRepeatingPhase = previousNotRepeatingPhase != null ? FindRepeatingPhaseOf(previousNotRepeatingPhase.Id) : null;
 
-        var currentDateRemember = cardEntity.FindRememberByPhaseIndex(IndexOf(currentNotRepeatingPhase));
-        var currentDateRepeatingRemember = currentRepeatPhase != null ? cardEntity.FindRememberByPhaseIndex(IndexOf(currentRepeatPhase)) : null;
-        var currentDateScenario = new Scenario(
-            ToAnswers(currentDateRemember),
-            ToAnswers(currentDateRepeatingRemember)
+        var previousPhaseAnswers = new PhaseAnswers(
+            MainAnswer: ToMemorizedDegree(
+                previousNotRepeatingPhase != null && previousNotRepeatingPhase.Id != currentNotRepeatingPhase.Id
+                    ? cardEntity.FindRememberByPhaseIndex(IndexOf(previousNotRepeatingPhase))
+                    : null),
+            RepetitionAnswer: ToMemorizedDegree(
+                previousRepeatingPhase != null && previousRepeatingPhase.Id != currentRepeatPhase.Id
+                    ? cardEntity.FindRememberByPhaseIndex(IndexOf(previousRepeatingPhase))
+                    : null)
         );
 
-        var prevDateScenario = new Scenario(
-            ToAnswers(previousNotRepeatingPhase != null && previousNotRepeatingPhase.Id != currentNotRepeatingPhase.Id 
-                ? cardEntity.FindRememberByPhaseIndex(IndexOf(previousNotRepeatingPhase)) 
-                : null),
-            ToAnswers(previousRepeatingPhase != null && previousRepeatingPhase.Id != currentRepeatPhase.Id 
-                ? cardEntity.FindRememberByPhaseIndex(IndexOf(previousRepeatingPhase)) 
-                : null)
-        );
-
-        var movement = GetNextStep(currentDateScenario, prevDateScenario);
+        var movement = GetNextStep(currentPhaseAnswers, previousPhaseAnswers);
 
         if (!currentPhase.IsRepeat() && currentRepeatPhase != null)
         {
-            var shouldStepOnRepeatStep = ShouldMoveOnRepeatingStep(currentDateScenario, prevDateScenario);
+            var shouldStepOnRepeatStep = ShouldMoveOnRepeatingStep(currentPhaseAnswers, previousPhaseAnswers);
 
             if (shouldStepOnRepeatStep)
                 return currentRepeatPhase;
@@ -275,106 +120,191 @@ public class RepeatsSchedule : AggregateRoot<ComplexScheduleId>, IParentUserRefe
         return CalculateNextNotRepeatingPhase(movement, currentNotRepeatingPhase);
     }
 
-    private StepAnswers ToAnswers(Remember? currentDateRemember)
+    private Phase? CalculateNextNotRepeatingPhase(PhaseMovement movements, Phase currentPhase)
+    {
+        if (movements is PhaseMovement.ToStart)
+            return FindNotRepeatingPhaseOf(GetFirstPhase().Id);
+
+        if (movements is PhaseMovement.Forward)
+            return FindNextNotRepeatingPhase(currentPhase.Id);
+        
+        var currentNonRepeatingPhase = FindNotRepeatingPhaseOf(currentPhase.Id);
+
+        if (movements is PhaseMovement.Stay)
+            return currentNonRepeatingPhase;
+        
+        var prevStep = FindPreviousNotRepeatingPhase(currentPhase.Id);
+
+        if (prevStep == null)
+            return currentNonRepeatingPhase;
+
+        if (movements is PhaseMovement.Back)
+            return prevStep;
+
+        if (movements is PhaseMovement.DoubleBack)
+        {
+            var prevPrevStep = FindPreviousNotRepeatingPhase(prevStep.Id);
+
+            return prevPrevStep == null
+                ? prevStep
+                : prevPrevStep;
+        }
+
+        Debug.Fail("Unknown movement");
+        throw new ArgumentOutOfRangeException("Unknown movement");
+    }
+
+    private PhaseMovement GetNextStep(PhaseAnswers current, PhaseAnswers previous)
+    {
+        if (ForgottenBehavior is ForgottenBehavior.MoveToNextStep)
+        {
+            return PhaseMovement.Forward;
+        }
+
+        if (ForgottenBehavior is ForgottenBehavior.StartFromFirstStep)
+        {
+            return current.MainAnswer is MemorizedDegree.Remembered
+                ? PhaseMovement.Forward
+                : current.MainAnswer is MemorizedDegree.NotClear 
+                    ? PhaseMovement.Stay
+                    : PhaseMovement.ToStart;
+        }
+
+        if (ForgottenBehavior is ForgottenBehavior.StayOnCurrentStep)
+        {
+            return current.MainAnswer is MemorizedDegree.Remembered
+                ? PhaseMovement.Forward
+                : PhaseMovement.Stay;
+        }
+
+        if (ForgottenBehavior is not ForgottenBehavior.MoveToPreviousStep)
+        {
+            throw new ArgumentOutOfRangeException("Unknown forgotten behaviour");
+        } 
+        
+        if (current.MainAnswer is MemorizedDegree.Remembered)
+        {
+            return PhaseMovement.Forward;
+        }
+        
+        // NotClear + NotClear → step back
+        // NotClear + Forgotten → step back
+        // NotClear + (R)Forgotten → step back
+        // NotClear + (R)(NotClear or Remembered) → stay
+        if (current.MainAnswer is MemorizedDegree.NotClear)
+        {
+            if (previous.MainAnswer is MemorizedDegree.NotClear or MemorizedDegree.Forgotten)
+            {
+                return PhaseMovement.Back;
+            }
+            
+            if (current.RepetitionAnswer is MemorizedDegree.Forgotten)
+            {
+                return PhaseMovement.Back;
+            }
+            
+            return PhaseMovement.Stay;
+        }
+
+        // Forgotten + Forgotten → double step back
+        // Forgotten + NotClear → step back
+        // Forgotten + Remembered → step back
+        if (current.MainAnswer is MemorizedDegree.Forgotten)
+        {
+            if (previous.MainAnswer is MemorizedDegree.Forgotten)
+            {
+                return PhaseMovement.DoubleBack;
+            }
+            
+            return PhaseMovement.Back;
+        }
+
+        throw new ArgumentOutOfRangeException("Unknown answer");
+    }
+
+    private bool ShouldMoveOnRepeatingStep(PhaseAnswers current, PhaseAnswers previous)
+    {
+        return current.MainAnswer is not MemorizedDegree.Remembered;
+    }
+
+    private MemorizedDegree ToMemorizedDegree(Remember? currentDateRemember)
     {
         if (currentDateRemember == null)
-            return StepAnswers.Any;
+            return MemorizedDegree.Any;
 
         if (currentDateRemember.IsRemembered())
-            return StepAnswers.Remembered;
+            return MemorizedDegree.Remembered;
 
         if (currentDateRemember.IsNotClearRemember())
-            return StepAnswers.NotClear;
+            return MemorizedDegree.NotClear;
 
-        return StepAnswers.Forgotten;
-    }
-
-    private int FindNextPhaseIndex(int currentPhaseIndex)
-    {
-        return currentPhaseIndex + 1 < Phases.Count
-            ? currentPhaseIndex + 1
-            : -1;
+        return MemorizedDegree.Forgotten;
     }
 
-    public (Phase?, int) FindFirstPhase()
+    public Phase GetFirstPhase()
     {
-        return (FindPhase(0), 0);
+        return FindPhase(0) ?? throw new ArgumentOutOfRangeException("First phase is not found");
     }
-    
-    public Phase? FindNextPhase(PhaseId currentPhaseId)
+
+    private Phase? FindNextNotRepeatingPhase(PhaseId currentPhaseId)
     {
-        return Phases
-            .OrderBy(p => p.Id)
-            .SkipWhile(p => p.Id != currentPhaseId)
-            .SkipWhile(p => p.Id == currentPhaseId)
-            .FirstOrDefault();
-    }
-    
-    public Phase? FindNextNotRepeatingPhase(PhaseId currentPhaseId)
-    {
-        return Phases
-            .OrderBy(p => p.Id)
+        return OrderedPhases
             .SkipWhile(p => p.Id != currentPhaseId)
             .SkipWhile(p => p.Id == currentPhaseId)
             .FirstOrDefault(p => !p.IsRepeat());
     }
-    
-    public Phase? FindPreviousNotRepeatingPhase(PhaseId currentPhaseId)
+
+    private Phase? FindPreviousNotRepeatingPhase(PhaseId currentPhaseId)
     {
-        return Phases
-            .OrderBy(p => p.Id)
+        return OrderedPhases
+            .AsEnumerable()
             .Reverse()
             .SkipWhile(p => p.Id != currentPhaseId)
             .SkipWhile(p => p.Id == currentPhaseId)
             .FirstOrDefault(p => !p.IsRepeat());
     }
 
-    public Phase? FindNotRepeatingPhaseOf(PhaseId phaseId)
+    private Phase? FindNotRepeatingPhaseOf(PhaseId phaseId)
     {
-        var phase = Phases.Single(p => p.Id == phaseId);
+        var unknownPhaseIndex = OrderedPhases.FindIndex(p => p.Id == phaseId);
+        var unknownPhase = OrderedPhases[unknownPhaseIndex];
 
-        if (!phase.IsRepeat())
-            return phase;
+        if (!unknownPhase.IsRepeat())
+            return unknownPhase;
 
-        var phases = Phases.OrderBy(p => p.Id).ToList();
-        var repeatPhaseIndex = phases.FindIndex(p => p.Id == phaseId);
-        var phaseIndex = repeatPhaseIndex - 1;
+        var phaseIndex = unknownPhaseIndex - 1;
 
-        if (phaseIndex < 0 || phaseIndex >= phases.Count)
+        if (phaseIndex < 0 || phaseIndex >= OrderedPhases.Count)
             return null;
 
-        var phaseSupposedNotToBeRepeating = phases[phaseIndex];
+        var phaseSupposedNotToBeRepeating = OrderedPhases[phaseIndex];
         
         return !phaseSupposedNotToBeRepeating.IsRepeat() 
             ? phaseSupposedNotToBeRepeating 
             : null;
     }
-    
-    public Phase? FindRepeatingPhaseOf(PhaseId phaseId)
+
+    private Phase? FindRepeatingPhaseOf(PhaseId phaseId)
     {
-        var phase = Phases.Single(p => p.Id == phaseId);
+        var unknownPhaseIndex = OrderedPhases.FindIndex(p => p.Id == phaseId);
+        var unknownPhase = OrderedPhases[unknownPhaseIndex];
 
-        if (phase.IsRepeat())
-            return phase;
+        if (unknownPhase.IsRepeat())
+            return unknownPhase;
 
-        var phases = Phases.OrderBy(p => p.Id).ToList();
-        var repeatPhaseIndex = phases.FindIndex(p => p.Id == phaseId);
-        var phaseIndex = repeatPhaseIndex + 1;
+        var phaseIndex = unknownPhaseIndex + 1;
 
-        if (phaseIndex < 0 || phaseIndex >= phases.Count)
+        if (phaseIndex < 0 || phaseIndex >= OrderedPhases.Count)
             return null;
 
-        var phaseSupposedToBeRepeating = phases[phaseIndex];
+        var phaseSupposedToBeRepeating = OrderedPhases[phaseIndex];
         return phaseSupposedToBeRepeating.IsRepeat() ? phaseSupposedToBeRepeating : null;
     }
 
 
     public int IndexOf(Phase phase)
     {
-        return Phases
-            .OrderBy(p => p.Id)
-            .ToList()
-            .FindIndex(p => p.Id == phase.Id);
+        return OrderedPhases.FindIndex(p => p.Id == phase.Id);
     }
 
     public Phase? FindPhase(int phaseIndex)
@@ -382,8 +312,7 @@ public class RepeatsSchedule : AggregateRoot<ComplexScheduleId>, IParentUserRefe
         if (phaseIndex < 0 || phaseIndex >= Phases.Count)
             return null;
         
-        var sortedPhases = Phases.OrderBy(p => p.Id).ToList();
-        return sortedPhases[phaseIndex];
+        return OrderedPhases[phaseIndex];
     }
 
     public Phase GetPhase(int phaseIndex)
@@ -391,7 +320,6 @@ public class RepeatsSchedule : AggregateRoot<ComplexScheduleId>, IParentUserRefe
         if (phaseIndex < 0 || phaseIndex >= Phases.Count)
             throw new ArgumentOutOfRangeException();
         
-        var sortedPhases = Phases.OrderBy(p => p.Id).ToList();
-        return sortedPhases[phaseIndex];
+        return OrderedPhases[phaseIndex];
     }
 }

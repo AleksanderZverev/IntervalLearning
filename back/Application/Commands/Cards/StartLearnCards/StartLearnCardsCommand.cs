@@ -110,14 +110,9 @@ public class StartLearnCardsCommand : ICommand<StartLearnCardsRequest, NextRepea
 
         foreach (var card in cards)
         {
-            var (startPhase, phaseIndex) = scheduleWithPhases.FindFirstPhase();
-
-            if (startPhase == null)
-            {
-                Debug.Fail("An error in algorithm work: nextPhase == null");
-                return new InternalError();
-            }
-
+            var startPhase = scheduleWithPhases.GetFirstPhase();
+            var phaseIndex = scheduleWithPhases.IndexOf(startPhase);
+            
             var nextRepeatDate = startPhase.GetNextDate(DateTime.UtcNow);
             var nextQueueItem = cardRepeatQueueService.Create(
                 scheduleWithPhases,

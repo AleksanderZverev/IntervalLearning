@@ -77,10 +77,8 @@ public class CreateScheduleCommand : ICommand<CreateScheduleCommandRequest, Repe
             DefaultPhaseDescription = item.DefaultPhaseDescription,
             DefaultRepeatPhaseShortDescription = item.DefaultRepeatPhaseShortDescription,
             DefaultRepeatPhaseDescription = item.DefaultRepeatPhaseDescription,
+            Phases =  item.Phases.Select(p => ConvertToPhase(userId, scheduleId, p)).ToList(),
         };
-
-        var newPhases = item.Phases.Select(p => ConvertToPhase(newSchedule, p)).ToList();
-        newSchedule.Phases = newPhases;
 
         var addScheduleResult = studyRepository.RepeatsSchedules.AddAndSave(newSchedule);
 
@@ -93,10 +91,10 @@ public class CreateScheduleCommand : ICommand<CreateScheduleCommandRequest, Repe
         return newSchedule;
     }
     
-    private static Phase ConvertToPhase(RepeatsSchedule newSchedule, PhaseInfo phase)
+    private static Phase ConvertToPhase(UserId scheduleUserId, ScheduleId scheduleId, PhaseInfo phase)
     {
         var phaseId = PhaseId.Create(phase.Id).Value;
-        return new Phase(newSchedule.Id, newSchedule.ParentUserId, phaseId)
+        return new Phase(scheduleId, scheduleUserId, phaseId)
         {
             SecondsFromLastPhase = phase.SecondsFromLastPhase,
             IsDefaultValueSide = phase.IsDefaultValueSide,
