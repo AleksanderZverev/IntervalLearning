@@ -1,5 +1,6 @@
 using Application.Common.Interfaces.DB.Repositories.Study;
 using Domain.Card;
+using Domain.Common.ValueObjects.Text.SingleLine;
 using Domain.Schedule;
 using Domain.Schedule.Entities.Remember.ValueObjects;
 
@@ -14,7 +15,8 @@ public class RememberService
         this.studyRepository = studyRepository;
     }
 
-    public Domain.Schedule.Entities.Remember.Remember Create(RepeatsSchedule schedule, Card card, RememberWeight weight, int phaseIndex, DateTime date)
+    public Domain.Schedule.Entities.Remember.Remember Create(RepeatsSchedule schedule, Card card, RememberWeight weight,
+        int phaseIndex, DateTime date, MediumSingleLineString? comment)
     {
         var rememberId = studyRepository.CardRemembers.GetUniqueId(new(schedule, card)).Value;
         
@@ -27,7 +29,10 @@ public class RememberService
             rememberId,
             weight, 
             (short)phaseIndex,
-            date);
+            date)
+        {
+            Comment = comment,
+        };
     }
     
     public Domain.Schedule.Entities.Remember.Remember CreateLearnedRemember(RepeatsSchedule schedule, Card card, RememberWeight weight, DateTime date)

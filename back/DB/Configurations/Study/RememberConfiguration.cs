@@ -43,6 +43,10 @@ public class RememberConfiguration: IEntityTypeConfiguration<Remember>
             .HasConversion(
                 d => d.Value,
                 s => RememberWeight.Create(s).Value);
+
+        builder.Property(r => r.Comment)
+            .HasMaxLength(255)
+            .HasConversion(Converters.MediumSingleLine.ToNullable());
         
         builder.ConfigureUserReference();
 

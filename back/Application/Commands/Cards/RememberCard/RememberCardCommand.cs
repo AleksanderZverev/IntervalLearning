@@ -88,7 +88,7 @@ public class RememberCardCommand : ICommand<RememberCardRequest, NextRepeatInfoR
                 return new BadRequestError("It's too early to repeat now");
             }
             
-            var remember = rememberService.Create(schedule, card, weight, queueItem.PhaseIndex, now);
+            var remember = rememberService.Create(schedule, card, weight, queueItem.PhaseIndex, now, rememberItem.Comment);
             studyRepository.CardRemembers.Add(remember);
             studyRepository.RepeatingQueue.Delete(queueItem);
             

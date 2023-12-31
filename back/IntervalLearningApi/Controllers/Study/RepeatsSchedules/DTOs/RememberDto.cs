@@ -1,4 +1,5 @@
-﻿using Domain.Schedule.Entities.Remember;
+﻿using Domain.Common.ValueObjects.Text.SingleLine;
+using Domain.Schedule.Entities.Remember;
 using Domain.Schedule.Entities.Remember.ValueObjects;
 using Mapster;
 using Newtonsoft.Json;
@@ -11,7 +12,11 @@ public class RememberRegister : IRegister
     {
         config.NewConfig<RememberWeight, float>()
             .MapWith(r => r.Value);
-        config.NewConfig<Remember, RememberDto>();
+        config.NewConfig<MediumSingleLineString, string>()
+            .MapWith(r => r.Value);
+        
+        config.NewConfig<Remember, RememberDto>()
+            .IgnoreNullValues(true);
     }
 }
 
@@ -27,4 +32,5 @@ public class RememberDto
     public float Weight { get; set; }
     public short PhaseIndex { get; set; }
     public DateTime RepeatedDate { get; set; }
+    public string? Comment { get; set; }
 }
