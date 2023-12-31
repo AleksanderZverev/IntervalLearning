@@ -26,3 +26,9 @@
     background-color: #c4c4c4;
     color: white;
 }
+
+.memoInput {
+    justify-self: flex-end;
+    width: 320px;
+    height: 64px;
+}

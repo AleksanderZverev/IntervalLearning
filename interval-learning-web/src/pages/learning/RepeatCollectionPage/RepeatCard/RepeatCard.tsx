@@ -28,6 +28,8 @@ import { HidableText } from '../../../../controls/HidableText/HidableText';
 import { AssertionModal } from '../../../../controls/Modals/AssertionModal';
 import { usePostponeRepeatingCardMutation, useStopRepeatingCardMutation } from '../../../../redux/cardsApi';
 import { Schedule } from '../../../../types/schedule';
+import { RememberForm } from '../RepeatCollectionPage.logic';
+import { FormField } from '../../../../controls/Form/Form';
 
 interface RepeatCardProps {
     card: Card;
@@ -35,13 +37,13 @@ interface RepeatCardProps {
     showNext: boolean;
     showPrevious: boolean;
     errorMessage?: string;
-    value: number | null;
+    value: RememberForm | null;
     onNext: () => void;
     onPrevious: () => void;
-    onChange: (weight: number | undefined) => void;
+    onChange: (weight: number | undefined, comment: string | undefined | null) => void;
     onFinish: () => void;
     onCardDeletedFromRepeating: (cardId: string) => void;
-    isActive: boolean;
+    canDropAnswer: boolean;
     forceShowError: boolean;
     isValueSideDefault: boolean;
 }
@@ -60,7 +62,7 @@ export const RepeatCard: FC<RepeatCardProps> = ({
     onPrevious,
     onFinish: onEndButtonClick,
     errorMessage,
-    isActive,
+    canDropAnswer,
     onChange,
     isValueSideDefault,
     ...props
@@ -150,9 +152,10 @@ export const RepeatCard: FC<RepeatCardProps> = ({
                         <MenuItem
                             onClick={() => {
                                 setIsError(false);
-                                onChange(undefined);
+                                onChange(undefined, value?.comment);
+                                setMenuAnchorEl(null);
                             }}
-                            disabled={!isActive}
+                            disabled={!canDropAnswer}
                         >
                             <ListItemIcon>
                                 <RefreshOutlined />
@@ -201,7 +204,7 @@ export const RepeatCard: FC<RepeatCardProps> = ({
                         tabIndex={2}
                         variant="outlined"
                         onClick={() => {
-                            if (value === null) {
+                            if (typeof value?.weight !== 'number') {
                                 setIsError(true);
                             } else {
                                 onNext();
@@ -215,7 +218,7 @@ export const RepeatCard: FC<RepeatCardProps> = ({
                         tabIndex={2}
                         variant="contained"
                         onClick={() => {
-                            if (value === null) {
+                            if (typeof value?.weight !== 'number') {
                                 setIsError(true);
                             } else {
                                 onEndButtonClick();
@@ -291,7 +294,7 @@ export const RepeatCard: FC<RepeatCardProps> = ({
                             setIsError(false);
                         }
                         const newValue = parseFloat(v);
-                        onChange(newValue);
+                        onChange(newValue, value?.comment);
                         if (newValue > 0.95 || newValue < 0.05) {
                             setValuesHidden(false);
                         }
@@ -299,29 +302,48 @@ export const RepeatCard: FC<RepeatCardProps> = ({
                 >
                     <FormControlLabel
                         tabIndex={0}
-                        checked={value === 0}
+                        checked={value?.weight === 0}
                         value={0}
                         control={<Radio />}
                         label="Не помню"
                     />
                     <FormControlLabel
                         tabIndex={0}
-                        checked={value === 0.5}
+                        checked={value?.weight === 0.5}
                         value={0.5}
                         control={<Radio />}
                         label="Помню частично"
                     />
-                    <FormControlLabel tabIndex={0} checked={value === 1} value={1} control={<Radio />} label="Помню" />
+                    <FormControlLabel
+                        tabIndex={0}
+                        checked={value?.weight === 1}
+                        value={1}
+                        control={<Radio />}
+                        label="Помню"
+                    />
                 </RadioGroup>
 
-                <div
-                    className={styles.errorMessage}
-                    style={{
-                        border: `1px solid ${colors.red[400]}`,
-                        visibility: isError ? 'visible' : 'hidden',
-                    }}
-                >
-                    {errorMessage}
+                <div className={styles.memoInput}>
+                    {isError ? (
+                        <div
+                            className={styles.errorMessage}
+                            style={{
+                                border: `1px solid ${colors.red[400]}`,
+                                visibility: isError ? 'visible' : 'hidden',
+                            }}
+                        >
+                            {errorMessage}
+                        </div>
+                    ) : (
+                        <FormField
+                            size="small"
+                            variant="outlined"
+                            label="Заметка"
+                            fontSize={16}
+                            value={value?.comment || ''}
+                            onChange={(e) => onChange(value?.weight, e.target.value || undefined)}
+                        />
+                    )}
                 </div>
             </div>
         </PaperCard>

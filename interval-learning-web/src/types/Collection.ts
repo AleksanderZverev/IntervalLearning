@@ -48,6 +48,7 @@ export interface Remember {
     weight: number;
     phaseId: number;
     repeatedDate: string;
+    comment: string | null | undefined;
 }
 
 export interface LearningStatistic {

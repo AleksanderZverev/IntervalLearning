@@ -54,7 +54,8 @@ export const RememberList: FC<RememberListProps> = ({ remembers }) => {
                                                     {lastRememberDate && (
                                                         <span>{` (${DateHelper.getDifferenceString(
                                                             lastRememberDate,
-                                                            dayjs(r.repeatedDate)
+                                                            dayjs(r.repeatedDate),
+                                                            ''
                                                         )})`}</span>
                                                     )}
                                                 </div>
