@@ -20,6 +20,7 @@ type FormFieldOtherProps = Omit<TextFieldProps, 'helperText' | 'error' | 'fullWi
 
 export interface FormFieldProps extends FormFieldOtherProps {
     label?: string;
+    fontSize?: number;
     error?: boolean;
     errorMessage?: string;
     withoutErrorMessage?: boolean;
@@ -75,7 +76,7 @@ export const TextAreaFormField = forwardRef<HTMLDivElement, FormFieldProps>(
 );
 
 export const FormField = forwardRef<HTMLDivElement, FormFieldProps>(
-    ({ label, error, errorMessage, withoutErrorMessage, ...otherProps }, ref) => {
+    ({ label, error, errorMessage, withoutErrorMessage, fontSize, ...otherProps }, ref) => {
         return (
             <TextField
                 ref={ref}
@@ -86,7 +87,7 @@ export const FormField = forwardRef<HTMLDivElement, FormFieldProps>(
                         fontSize: 16,
                     },
                     '& input': {
-                        fontSize: 20,
+                        fontSize: fontSize ?? 20,
                     },
                 }}
                 label={label}
