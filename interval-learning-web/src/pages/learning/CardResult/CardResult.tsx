@@ -36,7 +36,7 @@ export const CardResult: FC<CardResultProps> = ({ nextRepeatDate, wordsLearned, 
                         ? 'Неизвестно'
                         : diffMinutes < 10
                         ? 'Сегодня'
-                        : `${date.format('L')} (через ${DateHelper.getDifferenceString(now, date)})`}
+                        : `${date.format('L')} (${DateHelper.getDifferenceString(now, date, 'через')})`}
                 </div>
             </div>
         </PaperCard>

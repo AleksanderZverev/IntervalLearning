@@ -22,6 +22,7 @@ import { Theme } from '../../../../types/global';
 import useTypedSelector from '../../../../hooks/useTypedSelector';
 import { selectThemes } from '../../../../redux/slices/themeSlice';
 import { useGetStatisticQuery } from '../../../../redux/api/statisticsApi';
+import { getRepeatingCards, isRepeatingInProgress } from '../../RepeatCollectionPage/RepeatCollectionPage.logic';
 
 export const getRepeatingNavigationLink = (
     collectionUserId: string,
@@ -267,15 +268,17 @@ const InProgressCollectionsContent: FC<InProgressCollectionsProps> = ({ queryDat
                                                 {isToday
                                                     ? 'Сегодня'
                                                     : isWarn
-                                                    ? `Просрочено на ${DateHelper.getDifferenceString(
+                                                    ? `${DateHelper.getDifferenceString(
                                                           now,
-                                                          date
+                                                          date,
+                                                          'Просрочено на'
                                                       )} (${date.format('L')})`
                                                     : isTomorrow
                                                     ? 'Завтра'
-                                                    : `Через ${DateHelper.getDifferenceString(
+                                                    : `${DateHelper.getDifferenceString(
                                                           date,
-                                                          now
+                                                          now,
+                                                          'Через'
                                                       )} (${date.format('L')})`}
                                             </TableCell>
                                         </TableRow>
@@ -338,16 +341,12 @@ const InProgressCollectionsContent: FC<InProgressCollectionsProps> = ({ queryDat
                                                             dateString
                                                         );
 
-                                                        const weights = LocalStorageHelper.getRepeatingCards(
+                                                        const isInProgress = isRepeatingInProgress(
                                                             p.scheduleUserId,
                                                             p.scheduleId,
                                                             p.phaseIndex,
                                                             dateString,
                                                             c.collection.id
-                                                        );
-
-                                                        const hasSavings = Boolean(
-                                                            weights && Object.values(weights).length > 0
                                                         );
 
                                                         return (
@@ -356,7 +355,7 @@ const InProgressCollectionsContent: FC<InProgressCollectionsProps> = ({ queryDat
                                                                 collection={c.collection}
                                                                 cardsToRepeatCount={c.cardsToRepeatCount}
                                                                 hover={allowFutureSelect || isToday || isWarn}
-                                                                notFinished={hasSavings}
+                                                                notFinished={isInProgress}
                                                                 onClick={() => navigate(repeatingLink)}
                                                             />
                                                         );
