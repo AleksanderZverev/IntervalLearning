@@ -55,7 +55,7 @@ public static class ApiRoutes
             => cardId;
         
         public const string Get_GetAll = "";
-        public const string Get_GetCardQueue = "repeat";
+        public const string Get_GetCardsQueue = "repeat";
         public const string Get_GetNotStartedCards = "not-started";
         public const string Get_GetAllRelearningCards = "relearn";
         public const string Patch_RelearnCard = "relearn";

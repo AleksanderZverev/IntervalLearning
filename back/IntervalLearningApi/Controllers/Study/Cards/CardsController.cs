@@ -16,6 +16,7 @@ using Application.Commands.Cards.UpdateCard;
 using Application.Commands.Collections.MoveCollectionCard;
 using Domain.Card.ValueObjects;
 using Domain.Collection.ValueObjects;
+using Domain.Common.ValueObjects.Text.SingleLine;
 using Domain.Schedule.Entities.Remember.ValueObjects;
 using Domain.Schedule.ValueObjects;
 using Domain.User.ValueObjects;
@@ -233,7 +234,7 @@ namespace IntervalLearningApi.Controllers.Study.Cards
             return postponeResult.ToActionResult();
         }
 
-        [HttpGet(ApiRoutes.Cards.Get_GetCardQueue)]
+        [HttpGet(ApiRoutes.Cards.Get_GetCardsQueue)]
         public async Task<ActionResult<List<CardDto>>> GetCardsQueue(
             short collectionId,
             [FromQuery] long scheduleUserId,
@@ -517,6 +518,9 @@ namespace IntervalLearningApi.Controllers.Study.Cards
             {
                 CardId = CardId.Create(r.CardId).Value,
                 Weight = RememberWeight.Create(r.Weight).Value,
+                Comment = string.IsNullOrWhiteSpace(r.Comment) 
+                    ? null 
+                    : MediumSingleLineString.Create(r.Comment).Value,
             }).ToList();
         }
     }

@@ -412,6 +412,60 @@ public class CardAndCollectionsControllerTests : SharedApiTests
         //Assert
         notFinishedCollections.Should().NotBeNull();
         notFinishedCollections.CanRelearnCollections.Should().BeNullOrEmpty();
+        
+        
+    }
+    
+    [Theory]
+    [InlineData("Some comment")]
+    [InlineData("Какой-то комментарий по русски")]
+    public async Task RememberCard_ShouldSaveComments(string comment)
+    {
+        //Arrange
+        var (client, user) = SharedScope;
+        var schedule = await CreateTestSchedule(ForgottenBehavior.MoveToPreviousStep);
+        var (collection, preAddedCards) = await CreateRandomCardsAsync(10);
+        await StartCardsAsync(client, collection, preAddedCards, schedule);
+        
+        //Act
+        var currentPhaseIndex = 0;
+        var rememberResponse = await RememberCardsAsync(
+            client,
+            collection,
+            preAddedCards,
+            schedule,
+            (short)currentPhaseIndex,
+            0f,
+            comment);
+        
+        //ASSERT
+        rememberResponse.IsSuccessStatusCode.Should().BeTrue("should fail with comment");
+        
+        var getRepeatCollectionsResponse = await client.GetAsync(
+            CollectionsQuery(ApiRoutes.Collections.GetRepeatCollections));
+        var repeatCollections = getRepeatCollectionsResponse.ToResponseDto<RepeatingCollectionResponse>();
+        
+        var repeatingDates = repeatCollections.DateToRepeatingPhases.Keys.ToList();
+        repeatingDates.Should().NotBeNullOrEmpty("should contain one date").And.HaveCount(1, "should contain one date");
+
+        var repeatingDate = repeatingDates.Single();
+        var repeatingPhases = repeatCollections.DateToRepeatingPhases[repeatingDate];
+        repeatingPhases.Should().NotBeNullOrEmpty("should contain one phase").And.HaveCount(1, "should contain one phase");
+
+        var phase = repeatingPhases.Single();
+        var cardsResponse = await client.GetAsync(
+            CardsQuery(collection.Id, ApiRoutes.Cards.Get_GetCardsQueue) + new QueryString()
+                .Add("scheduleUserId", schedule.ParentUserId)
+                .Add("scheduleId", schedule.Id)
+                .Add("phaseIndex", phase.PhaseIndex.ToString())
+                .Add("date", repeatingDate.ToString("O")));
+        var cards = cardsResponse.ToResponseDto<List<CardDto>>();
+        var remembers = cards.SelectMany(c => c.Remembers).Where(r => r.PhaseIndex == phase.PhaseIndex).ToList();
+        foreach (var remember in remembers)
+        {
+            remember.Comment.Should().NotBeNullOrEmpty();
+            remember.Comment.Should().BeEquivalentTo(comment);
+        }
     }
     
     [Theory]
@@ -736,7 +790,8 @@ public class CardAndCollectionsControllerTests : SharedApiTests
         List<CardDto> cards,
         RepeatsScheduleDto schedule,
         short rememberPhaseIndex,
-        float rememberWeight)
+        float rememberWeight,
+        string? comment = null)
     {
         return await client.PatchAsJsonAsync(
             CardsQuery(collection.Id, ApiRoutes.Cards.Path_RememberCard),
@@ -749,6 +804,7 @@ public class CardAndCollectionsControllerTests : SharedApiTests
                 {
                     CardId = short.Parse(c.Id),
                     Weight = rememberWeight,
+                    Comment = comment,
                 }).ToList(),
             });
     }
