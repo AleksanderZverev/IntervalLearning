@@ -19,7 +19,7 @@ public class LearningCommons
             
         TimeSpan.FromDays(40),
     };
-    
+
     public static IReadOnlyList<TimeSpan> phasesDurationWithRepetitions = new List<TimeSpan>()
     {
         TimeSpan.FromDays(1),
@@ -72,5 +72,16 @@ public class LearningCommons
         
         TimeSpan.FromDays(14),
         TimeSpan.FromSeconds(1),
+    };
+
+    public static IReadOnlyList<TimeSpan> phasesDurationWithStartRepetition = new List<TimeSpan>()
+    {
+        TimeSpan.FromSeconds(1),
+        TimeSpan.FromDays(1),
+        TimeSpan.FromDays(3),
+        TimeSpan.FromDays(7),
+        TimeSpan.FromDays(14),
+        TimeSpan.FromDays(28),
+        TimeSpan.FromDays(40),
     };
 }

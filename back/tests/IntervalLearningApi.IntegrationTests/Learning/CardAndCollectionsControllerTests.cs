@@ -83,6 +83,24 @@ public class CardAndCollectionsControllerTests : SharedApiTests
 
         return createSchedule;
     } 
+    
+    private async Task<RepeatsScheduleDto> CreateTestScheduleWithStartRepetition(ForgottenBehavior forgottenBehavior)
+    {
+        var createSchedule = await CreateSchedule(new CreateScheduleRequest()
+        {
+            Title = "[For tests] Test schedule with duplicate durations",
+            Description = "Only for tests",
+            ForgottenBehavior = (int)forgottenBehavior,
+            CardsCountPerPhase = 10,
+            Phases = LearningCommons.phasesDurationWithStartRepetition.Select((d, i) => new CreatePhaseDto()
+            {
+                Id = (i + 1).ToString(),
+                SecondsFromLastPhase = (uint)d.TotalSeconds,
+            }).ToList(),
+        });
+
+        return createSchedule;
+    } 
 
     private string CardsQuery(string collectionId, string path)
         => AbsoluteQuery(
@@ -589,6 +607,47 @@ public class CardAndCollectionsControllerTests : SharedApiTests
             var shouldBeNextPhaseIndex = Math.Max(0, currentPhaseIndex + step.NextPhaseIndexDiff);
             await AssertRememberedCardsMovedToStep(
                 LearningCommons.PhasesDurationWithDuplications,
+                client,
+                collection,
+                preAddedCards,
+                schedule,
+                (short)shouldBeNextPhaseIndex
+            );
+            
+            currentPhaseIndex = shouldBeNextPhaseIndex;
+        }
+    }
+    
+    public static IEnumerable<object[]> TestShouldStepForwardWhenThereIsStartRepetition = LearningScenarios.ShouldStepForwardWhenThereIsStartRepetition.ToMemberData();
+    
+    [Theory]
+    [MemberData(nameof(TestShouldStepForwardWhenThereIsStartRepetition))]
+    public async Task RememberCard_ShouldMoveEveryStep_WhenThereIsStartRepetition(Scenario scenario)
+    {
+        //Arrange
+        var (client, user) = SharedScope;
+        var schedule = await CreateTestScheduleWithStartRepetition(scenario.Behavior);
+        var (collection, preAddedCards) = await CreateRandomCardsAsync(10);
+        await StartCardsAsync(client, collection, preAddedCards, schedule);
+
+        //Act
+        var currentPhaseIndex = 0;
+        foreach (var step in scenario.Steps)
+        {
+            var rememberResponse = await RememberCardsAsync(
+                client,
+                collection,
+                preAddedCards,
+                schedule, 
+                (short)currentPhaseIndex,
+                step.Weight);
+            
+            //Assert
+            rememberResponse.IsSuccessStatusCode.Should().BeTrue();
+            
+            var shouldBeNextPhaseIndex = Math.Max(0, currentPhaseIndex + step.NextPhaseIndexDiff);
+            await AssertRememberedCardsMovedToStep(
+                LearningCommons.phasesDurationWithStartRepetition,
                 client,
                 collection,
                 preAddedCards,
