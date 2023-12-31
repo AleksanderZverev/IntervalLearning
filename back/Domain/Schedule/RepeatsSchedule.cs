@@ -81,6 +81,11 @@ public class RepeatsSchedule : AggregateRoot<ComplexScheduleId>, IParentUserRefe
         var currentRemember = cardEntity.FindLastRemember() ?? throw new InvalidOperationException("Failure on searching last remember");
         var currentPhase = GetPhase(currentRemember.PhaseIndex);
 
+        if (currentPhase.IsRepeat() && currentPhase.Id == GetFirstPhase().Id)
+        {
+            return CalculateNextNotRepeatingPhase(PhaseMovement.Forward, currentPhase);
+        }
+
         var currentNotRepeatingPhase = FindNotRepeatingPhaseOf(currentPhase.Id);
         var currentRepeatPhase = FindRepeatingPhaseOf(currentNotRepeatingPhase.Id);
 
