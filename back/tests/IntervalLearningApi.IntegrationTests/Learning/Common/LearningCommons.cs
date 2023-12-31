@@ -46,4 +46,31 @@ public class LearningCommons
         TimeSpan.FromDays(40),
         TimeSpan.FromSeconds(1),
     };
+
+    public static IReadOnlyList<TimeSpan> PhasesDurationWithDuplications = new List<TimeSpan>()
+    {
+        TimeSpan.FromDays(1),
+        TimeSpan.FromSeconds(1),
+        
+        TimeSpan.FromDays(1),
+        TimeSpan.FromSeconds(1),
+        
+        TimeSpan.FromDays(3),
+        TimeSpan.FromSeconds(1),
+        
+        TimeSpan.FromDays(3),
+        TimeSpan.FromSeconds(1),
+        
+        TimeSpan.FromDays(7),
+        TimeSpan.FromSeconds(1),
+        
+        TimeSpan.FromDays(7),
+        TimeSpan.FromSeconds(1),
+        
+        TimeSpan.FromDays(14),
+        TimeSpan.FromSeconds(1),
+        
+        TimeSpan.FromDays(14),
+        TimeSpan.FromSeconds(1),
+    };
 }

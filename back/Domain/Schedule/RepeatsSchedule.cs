@@ -133,7 +133,7 @@ public class RepeatsSchedule : AggregateRoot<ComplexScheduleId>, IParentUserRefe
         if (movements is PhaseMovement.Stay)
             return currentNonRepeatingPhase;
         
-        var prevStep = FindPreviousNotRepeatingPhase(currentPhase.Id);
+        var prevStep = FindPreviousNotRepeatingPhaseByDuration(currentPhase.Id);
 
         if (prevStep == null)
             return currentNonRepeatingPhase;
@@ -143,7 +143,7 @@ public class RepeatsSchedule : AggregateRoot<ComplexScheduleId>, IParentUserRefe
 
         if (movements is PhaseMovement.DoubleBack)
         {
-            var prevPrevStep = FindPreviousNotRepeatingPhase(prevStep.Id);
+            var prevPrevStep = FindPreviousNotRepeatingPhaseByDuration(prevStep.Id);
 
             return prevPrevStep == null
                 ? prevStep
@@ -254,14 +254,24 @@ public class RepeatsSchedule : AggregateRoot<ComplexScheduleId>, IParentUserRefe
             .FirstOrDefault(p => !p.IsRepeat());
     }
 
-    private Phase? FindPreviousNotRepeatingPhase(PhaseId currentPhaseId)
+    private Phase? FindPreviousNotRepeatingPhaseByDuration(PhaseId currentPhaseId)
     {
-        return OrderedPhases
-            .AsEnumerable()
-            .Reverse()
-            .SkipWhile(p => p.Id != currentPhaseId)
-            .SkipWhile(p => p.Id == currentPhaseId)
-            .FirstOrDefault(p => !p.IsRepeat());
+        var phase = FindNotRepeatingPhaseOf(currentPhaseId);
+        var phaseIndex = OrderedPhases.FindIndex(p => p.Id == phase.Id);
+
+        for (var i = phaseIndex - 1; i >= 0; i--)
+        {
+            var targetPhase = OrderedPhases[i];
+            
+            if (targetPhase.IsRepeat())
+                continue;
+
+            var daysDiff = Math.Abs(targetPhase.GetDurationToNextPhase().TotalDays - phase.GetDurationToNextPhase().TotalDays);
+            if (daysDiff >= 0.5)
+                return targetPhase;
+        }
+
+        return null;
     }
 
     private Phase? FindNotRepeatingPhaseOf(PhaseId phaseId)
