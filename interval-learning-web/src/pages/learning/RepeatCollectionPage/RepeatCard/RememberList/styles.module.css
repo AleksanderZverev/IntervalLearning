@@ -1,7 +1,7 @@
 .rememberList {
     position: absolute;
     right: 5px;
-    top: -30px;
+    top: -44px;
 
     display: flex;
     flex-direction: row-reverse;
@@ -10,9 +10,17 @@
     list-style: none;
 }
 
-.rememberList li {
+.dateList {
+    display: flex;
+    flex-direction: column-reverse;
+    gap: 1px;
+    height: 40px;
     width: 10px;
-    height: 25px;
+}
+
+.dateList li {
+    min-height: 1px;
+    height: 12px;
 }
 
 .rememberList .good {
@@ -25,4 +33,11 @@
 
 .rememberList .bad {
     background-color: #dc5d5d;
+}
+
+.tooltip {
+    display: flex;
+    flex-direction: column;
+
+    font-weight: 400;
 }
