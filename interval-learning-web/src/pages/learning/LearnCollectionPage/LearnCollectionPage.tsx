@@ -341,18 +341,21 @@ const LearnCollectionPageCardsLoader: FC<LearnCollectionPageCardsLoaderProps> = 
     relearning,
     ...props
 }) => {
+    //SKIP loading if there is a finish stage
+    const isFinishedRepeating = props.mutationProps.isSuccess;
+
     const { data: notStartedCards, isFetching: notStartedIsFetching } = useGetNotStartedCardsQuery(
         {
             userId,
             collectionId,
             request: { scheduleUserId: scheduleUserId, scheduleId: scheduleId, count: cardsCount },
         },
-        { skip: Boolean(relearning) }
+        { skip: Boolean(relearning) || isFinishedRepeating }
     );
 
     const { data: relearningCards, isFetching: relearnCardsIsFetching } = useGetRelearningCardsQuery(
         { userId, collectionId, request: { count: cardsCount } },
-        { skip: !Boolean(relearning) }
+        { skip: !Boolean(relearning) || isFinishedRepeating }
     );
 
     if (notStartedIsFetching || relearnCardsIsFetching) {
