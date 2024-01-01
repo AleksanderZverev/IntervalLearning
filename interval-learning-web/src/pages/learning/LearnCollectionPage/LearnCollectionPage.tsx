@@ -304,6 +304,7 @@ export const LearnCollectionPageContent: FC<LearnCollectionPageContentProps> = (
                     {isSuccess && mutationData && (
                         <CardResult
                             nextRepeatDate={mutationData.nextRepeatDate}
+                            cardMovementInfos={mutationData.cardMovementInfos}
                             wordsLearned={cardIndex + 1}
                             onEndButtonClick={() => onSuccessFinish(false)}
                         />

@@ -4,14 +4,21 @@ import { FC } from 'react';
 import { PaperCard } from '../../../controls/PaperCard/PaperCard';
 import { DateHelper } from '../../../helpers/DateHelper';
 import styles from './styles.module.css';
+import { CardMovementInfo } from '../../../redux/cardsApi';
 
 interface CardResultProps {
     wordsLearned: number;
     nextRepeatDate: string | null;
+    cardMovementInfos: CardMovementInfo[];
     onEndButtonClick: () => void;
 }
 
-export const CardResult: FC<CardResultProps> = ({ nextRepeatDate, wordsLearned, onEndButtonClick }) => {
+export const CardResult: FC<CardResultProps> = ({
+    nextRepeatDate,
+    wordsLearned,
+    onEndButtonClick,
+    cardMovementInfos,
+}) => {
     const date = dayjs(nextRepeatDate);
     const now = dayjs();
     const diffMinutes = date.diff(now, 'minutes');
@@ -37,6 +44,20 @@ export const CardResult: FC<CardResultProps> = ({ nextRepeatDate, wordsLearned, 
                         : diffMinutes < 10
                         ? 'Сегодня'
                         : `${date.format('L')} (${DateHelper.getDifferenceString(now, date, 'через')})`}
+                </div>
+                <div>
+                    {cardMovementInfos &&
+                        cardMovementInfos.length > 1 &&
+                        cardMovementInfos.map((c) => {
+                            const cardIds = c.cardIds;
+                            const date = dayjs(c.nextRepetitionDate);
+                            return (
+                                <div key={c.nextRepetitionDate}>
+                                    {cardIds.length} → {date.format('DD.MM.YYYY')}{' '}
+                                    {`(${DateHelper.getDifferenceString(now, date, 'через')})`}
+                                </div>
+                            );
+                        })}
                 </div>
             </div>
         </PaperCard>

@@ -70,12 +70,19 @@ export interface StartCardResponse {
     nextRepeatDate: string | null;
     nextRepeatPhase: PhaseInfo | null;
     nextPhaseIndex: number;
+    cardMovementInfos: CardMovementInfo[];
+}
+
+export interface CardMovementInfo {
+    cardIds: string[];
+    nextRepetitionDate: string;
 }
 
 export interface RememberCardResponse {
     nextRepeatDate: string | null;
     nextRepeatPhase: PhaseInfo | null;
     nextPhaseIndex: number;
+    cardMovementInfos: CardMovementInfo[];
 }
 
 export interface GetNotStartedCardsRequest {
