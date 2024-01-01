@@ -5,7 +5,6 @@ export class DateHelper {
         const diffMilliseconds = now.diff(date);
         const timeStamp = dayjs.duration(diffMilliseconds);
 
-        console.log(timeStamp, timeStamp.asSeconds());
         if (Math.abs(timeStamp.asSeconds()) < 10) {
             return 'сразу';
         }

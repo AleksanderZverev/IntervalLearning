@@ -27,7 +27,7 @@ export interface State {
 export const getDefaultState = (): State => ({
     rememberWeights: {},
     currentCardIndex: 0,
-    repeatedCardIndex: 0,
+    repeatedCardIndex: -1,
 });
 
 export const saveRepeatingCardsState = (
@@ -96,6 +96,6 @@ export const getRepeatingCards = (
     return {
         rememberWeights: item.cardIdToForm,
         currentCardIndex: item.currentCardIndex || 0,
-        repeatedCardIndex: item.repeatedCardIndex || 0,
+        repeatedCardIndex: item.repeatedCardIndex || -1,
     };
 };
