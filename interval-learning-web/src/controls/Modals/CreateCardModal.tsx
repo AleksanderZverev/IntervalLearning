@@ -47,7 +47,7 @@ const schema = yup
     .object({
         frontText: yup.string().required('Обязательное поле').max(255),
         backText: yup.string().required('Обязательное поле').max(255),
-        description: yup.string().max(500),
+        description: yup.string().max(500).nullable(),
         examples: yup.array().of(exampleSchema),
     })
     .required();
