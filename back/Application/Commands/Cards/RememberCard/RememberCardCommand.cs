@@ -109,7 +109,12 @@ public class RememberCardCommand : ICommand<RememberCardRequest, NextRepeatInfoR
             var nextPhase = schedule.GetNextPhase(card);
 
             if (nextPhase == null)
+            {
+                var finishDate = DateTime.MinValue;
+                nextRepeatingDateToInfo.TryAdd(finishDate, new CardMovementInfo(new List<CardId>(), finishDate));
+                nextRepeatingDateToInfo[finishDate.Date].CardIds.Add(cardId);
                 continue;
+            }
 
             var nextPhaseIndex = schedule.IndexOf(nextPhase);
             var nextRepeatDate = nextPhase.GetNextDate(now);
