@@ -5,6 +5,7 @@ export const tagTypes = {
     collection: 'Collection',
     themes: 'Themes',
     card: 'Card',
+    collectionCards: 'CollectionCards',
     notStartedCardsList: 'NotStartedCardsList',
     queueCollectionsList: 'QueueCollectionsList',
     notFinishedCollectionsList: 'NotFinishedCollectionsList',

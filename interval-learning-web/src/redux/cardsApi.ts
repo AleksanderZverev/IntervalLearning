@@ -2,7 +2,12 @@ import { PhaseInfo } from '../types/schedule';
 import { Card } from '../types/Collection';
 import { api, tagTypes } from './apiSlice';
 import { addCard, addManyCards, deleteCard, getCardUniqueKey } from './slices/cardsSlice';
-import { addStartedCards, cardAddedToCollection, cardDeletedFromCollection } from './slices/collectionsSlice';
+import {
+    addStartedCards,
+    cardAddedToCollection,
+    cardDeletedFromCollection,
+    getCollectionKey,
+} from './slices/collectionsSlice';
 
 interface BaseRequestItem<T> {
     userId: string;
@@ -148,7 +153,12 @@ export const cardsApi = api.injectEndpoints({
                 },
             }),
             providesTags: (result, error, arg) =>
-                result ? [...result.map((c) => ({ type: tagTypes.card, id: getCardUniqueKey(c) }))] : [],
+                result
+                    ? [
+                          { type: tagTypes.collectionCards, id: getCollectionKey(arg.userId, arg.collectionId) },
+                          ...result.map((c) => ({ type: tagTypes.card, id: getCardUniqueKey(c) })),
+                      ]
+                    : [],
         }),
         addCard: build.mutation<Card, BaseRequestItem<CreateCardItem>>({
             query: ({ collectionId, request }) => ({
@@ -166,7 +176,10 @@ export const cardsApi = api.injectEndpoints({
                     }
                 } catch {}
             },
-            invalidatesTags: [tagTypes.notFinishedCollectionsList],
+            invalidatesTags: (r, e, a) => [
+                tagTypes.notFinishedCollectionsList,
+                { type: tagTypes.collectionCards, id: getCollectionKey(a.userId, a.collectionId) },
+            ],
         }),
         getNotStartedCards: build.query<string[], BaseRequestItem<GetNotStartedCardsRequest>>({
             query: ({ collectionId, request }) => ({
