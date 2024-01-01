@@ -63,8 +63,11 @@ export const isRepeatingInProgress = (
     date: string,
     collectionId: string
 ): boolean => {
-    const weights = getRepeatingCards(scheduleUserId, scheduleId, phaseIndex, date, collectionId);
-    return Boolean(weights && Object.values(weights).length > 0);
+    const state = getRepeatingCards(scheduleUserId, scheduleId, phaseIndex, date, collectionId);
+    return Boolean(
+        state?.rememberWeights &&
+            Object.values(state.rememberWeights).filter((w) => typeof w?.weight === 'number').length > 0
+    );
 };
 
 export const getRepeatingCards = (
@@ -96,6 +99,6 @@ export const getRepeatingCards = (
     return {
         rememberWeights: item.cardIdToForm,
         currentCardIndex: item.currentCardIndex || 0,
-        repeatedCardIndex: item.repeatedCardIndex || -1,
+        repeatedCardIndex: typeof item.repeatedCardIndex === 'number' ? item.repeatedCardIndex : -1,
     };
 };
