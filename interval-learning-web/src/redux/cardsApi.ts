@@ -2,7 +2,12 @@ import { PhaseInfo } from '../types/schedule';
 import { Card } from '../types/Collection';
 import { api, tagTypes } from './apiSlice';
 import { addCard, addManyCards, deleteCard, getCardUniqueKey } from './slices/cardsSlice';
-import { addStartedCards, cardAddedToCollection, cardDeletedFromCollection } from './slices/collectionsSlice';
+import {
+    addStartedCards,
+    cardAddedToCollection,
+    cardDeletedFromCollection,
+    getCollectionKey,
+} from './slices/collectionsSlice';
 
 interface BaseRequestItem<T> {
     userId: string;
@@ -70,12 +75,19 @@ export interface StartCardResponse {
     nextRepeatDate: string | null;
     nextRepeatPhase: PhaseInfo | null;
     nextPhaseIndex: number;
+    cardMovementInfos: CardMovementInfo[];
+}
+
+export interface CardMovementInfo {
+    cardIds: string[];
+    nextRepetitionDate: string;
 }
 
 export interface RememberCardResponse {
     nextRepeatDate: string | null;
     nextRepeatPhase: PhaseInfo | null;
     nextPhaseIndex: number;
+    cardMovementInfos: CardMovementInfo[];
 }
 
 export interface GetNotStartedCardsRequest {
@@ -95,6 +107,27 @@ export interface DeleteCardRequest {
 
 export interface GetCardRequest {
     cardId: string;
+}
+
+export interface RelearnCardRequest {
+    cardId: string;
+}
+
+export interface GetRelearningCardsRequest {
+    count: number;
+}
+
+export interface StopRepeatingCardRequest {
+    cardId: string;
+    scheduleUserId: string;
+    scheduleId: string;
+}
+
+export interface PostponeRepeatingCardRequest {
+    cardId: string;
+    scheduleUserId: string;
+    scheduleId: string;
+    postponeDays: number;
 }
 
 export const cardsApi = api.injectEndpoints({
@@ -120,7 +153,12 @@ export const cardsApi = api.injectEndpoints({
                 },
             }),
             providesTags: (result, error, arg) =>
-                result ? [...result.map((c) => ({ type: tagTypes.card, id: getCardUniqueKey(c) }))] : [],
+                result
+                    ? [
+                          { type: tagTypes.collectionCards, id: getCollectionKey(arg.userId, arg.collectionId) },
+                          ...result.map((c) => ({ type: tagTypes.card, id: getCardUniqueKey(c) })),
+                      ]
+                    : [],
         }),
         addCard: build.mutation<Card, BaseRequestItem<CreateCardItem>>({
             query: ({ collectionId, request }) => ({
@@ -138,7 +176,10 @@ export const cardsApi = api.injectEndpoints({
                     }
                 } catch {}
             },
-            invalidatesTags: [tagTypes.notFinishedCollectionsList],
+            invalidatesTags: (r, e, a) => [
+                tagTypes.notFinishedCollectionsList,
+                { type: tagTypes.collectionCards, id: getCollectionKey(a.userId, a.collectionId) },
+            ],
         }),
         getNotStartedCards: build.query<string[], BaseRequestItem<GetNotStartedCardsRequest>>({
             query: ({ collectionId, request }) => ({
@@ -190,9 +231,6 @@ export const cardsApi = api.injectEndpoints({
                 return item;
             },
             providesTags: [tagTypes.repeatCardsList],
-            // providesTags: (result) => (
-            //     result ? [...result.cardIds.map(cardId => {type: tagTypes.card, id: })] : []
-            // )
         }),
         patchRememberCards: build.mutation<RememberCardResponse, BaseRequestItem<RememberRequest>>({
             query: ({ collectionId, request }) => ({
@@ -212,10 +250,11 @@ export const cardsApi = api.injectEndpoints({
                     dispatch(cardDeletedFromCollection({ collectionId: card.collectionId, userId: card.userId }));
                 },
             }),
-            invalidatesTags: [
-                tagTypes.repeatCardsList,
+            invalidatesTags: (r, e, a) => [
                 tagTypes.notFinishedCollectionsList,
+                tagTypes.repeatCardsList,
                 tagTypes.queueCollectionsList,
+                { type: tagTypes.collectionCards, id: getCollectionKey(a.userId, a.collectionId) },
             ],
         }),
         moveCard: build.mutation<Card, BaseRequestItem<MoveCardRequest>>({
@@ -244,10 +283,11 @@ export const cardsApi = api.injectEndpoints({
                     );
                 } catch {}
             },
-            invalidatesTags: [
-                tagTypes.repeatCardsList,
+            invalidatesTags: (r, e, a) => [
                 tagTypes.notFinishedCollectionsList,
+                tagTypes.repeatCardsList,
                 tagTypes.queueCollectionsList,
+                { type: tagTypes.collectionCards, id: getCollectionKey(a.userId, a.collectionId) },
             ],
         }),
         searchCards: build.query<Card[], BaseRequestItem<SearchCardsItem>>({
@@ -263,6 +303,43 @@ export const cardsApi = api.injectEndpoints({
             providesTags: (result, error, arg) =>
                 result ? [...result.map((c) => ({ type: tagTypes.card, id: getCardUniqueKey(c) }))] : [],
         }),
+        relearnCard: build.mutation<void, BaseRequestItem<RelearnCardRequest>>({
+            query: ({ userId, collectionId, request: { cardId } }) => ({
+                url: `/collections/${collectionId}/cards/relearn`,
+                method: 'PATCH',
+                params: { cardId: cardId },
+            }),
+        }),
+        getRelearningCards: build.query<string[], BaseRequestItem<GetRelearningCardsRequest>>({
+            query: ({ collectionId, request: { count } }) => ({
+                url: `/collections/${collectionId}/cards/relearn`,
+                method: 'GET',
+                params: { count: count },
+                onSuccess: async (dispatch, data) => {
+                    const cards = data as Card[];
+                    dispatch(addManyCards(cards));
+                },
+            }),
+            transformResponse: (result, meta, arg) => {
+                const cards = result as Card[];
+                return cards.map((c) => c.id);
+            },
+            keepUnusedDataFor: 0,
+        }),
+        stopRepeatingCard: build.mutation<void, BaseRequestItem<StopRepeatingCardRequest>>({
+            query: ({ userId, collectionId, request: { cardId, scheduleUserId, scheduleId } }) => ({
+                url: `/collections/${collectionId}/cards/${cardId}/learn`,
+                method: 'DELETE',
+                params: { scheduleUserId: scheduleUserId, scheduleId: scheduleId },
+            }),
+        }),
+        postponeRepeatingCard: build.mutation<void, BaseRequestItem<PostponeRepeatingCardRequest>>({
+            query: ({ userId, collectionId, request: { cardId, scheduleUserId, scheduleId, postponeDays } }) => ({
+                url: `/collections/${collectionId}/cards/${cardId}/learn/postpone`,
+                method: 'PATCH',
+                params: { scheduleUserId: scheduleUserId, scheduleId: scheduleId, postponeDays: postponeDays },
+            }),
+        }),
     }),
 });
 
@@ -277,4 +354,8 @@ export const {
     useDeleteCardMutation,
     useMoveCardMutation,
     useSearchCardsQuery,
+    useRelearnCardMutation,
+    useGetRelearningCardsQuery,
+    useStopRepeatingCardMutation,
+    usePostponeRepeatingCardMutation,
 } = cardsApi;

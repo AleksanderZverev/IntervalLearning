@@ -1,3 +1,5 @@
+using FluentAssertions.Equivalency;
+using IntervalLearningApi.Controllers.Study.Cards.DTOs;
 using Newtonsoft.Json;
 
 namespace IntervalLearningApi.IntegrationTests.Common.Extensions;
@@ -20,5 +22,14 @@ public static class BaseExtensions
             return null;
         
         return JsonConvert.DeserializeObject<TResponse>(responseJson);
+    }
+
+    public static EquivalencyAssertionOptions<CardDto> ForCard(this EquivalencyAssertionOptions<CardDto> options)
+    {
+        options.Using<DateTime>(ctx => 
+                ctx.Subject.Should().BeCloseTo(ctx.Expectation, TimeSpan.FromMilliseconds(100)))
+            .WhenTypeIs<DateTime>();
+        
+        return options;
     }
 }

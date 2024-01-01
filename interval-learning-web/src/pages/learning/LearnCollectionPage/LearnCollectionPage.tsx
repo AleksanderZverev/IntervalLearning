@@ -1,4 +1,4 @@
-import { FC, useMemo, useState } from 'react';
+import { FC, PropsWithChildren, useMemo, useState } from 'react';
 import useTypedSelector from '../../../hooks/useTypedSelector';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { selectCollectionById } from '../../../redux/slices/collectionsSlice';
@@ -9,7 +9,12 @@ import {
     WithQueryResolverData,
     WithMutationResolverProps,
 } from '../../../hoc/withQueryResolver';
-import { CardsItem, useGetNotStartedCardsQuery, useStartCardsMutation } from '../../../redux/cardsApi';
+import {
+    CardsItem,
+    useGetNotStartedCardsQuery,
+    useGetRelearningCardsQuery,
+    useStartCardsMutation,
+} from '../../../redux/cardsApi';
 import { PageContainer } from '../../../controls/PageContainer/PageContainer';
 import { PageHeader } from '../../../controls/PageHeader/PageHeader';
 import { selectTheme } from '../../../redux/slices/themeSlice';
@@ -29,6 +34,8 @@ import { useGetScheduleQuery } from '../../../redux/schedulesSlice';
 import { ArrayHelper } from '../../../helpers/ArrayHelper';
 import { PageContent } from '../../../controls/PageContent/PageContent';
 import { useDocumentTitle } from '../../../hooks/useCollectionTitle';
+import { CenterContainer } from '../../../controls/CenterContainer/CenterContainer';
+import { Loader } from '../../../controls/Loader/Loader';
 
 type WithResolvers = WithQueryResolverData<typeof useGetNotStartedCardsQuery> &
     WithMutationResolverProps<typeof useStartCardsMutation>;
@@ -297,6 +304,7 @@ export const LearnCollectionPageContent: FC<LearnCollectionPageContentProps> = (
                     {isSuccess && mutationData && (
                         <CardResult
                             nextRepeatDate={mutationData.nextRepeatDate}
+                            cardMovementInfos={mutationData.cardMovementInfos}
                             wordsLearned={cardIndex + 1}
                             onEndButtonClick={() => onSuccessFinish(false)}
                         />
@@ -320,8 +328,59 @@ export const LearnCollectionPageContent: FC<LearnCollectionPageContentProps> = (
     );
 };
 
-const ConnectedLearnCollectionPage = withQueryResolver(useGetNotStartedCardsQuery)(LearnCollectionPageContent);
-const ConnectedCollectionResolver = withOtherQueryResolver(useGetCollectionQuery)(ConnectedLearnCollectionPage);
+interface LearnCollectionPageCardsLoaderProps extends LearnCollectionPageContentProps {
+    relearning: boolean;
+    cardsCount: number;
+}
+
+const LearnCollectionPageCardsLoader: FC<LearnCollectionPageCardsLoaderProps> = ({
+    userId,
+    collectionId,
+    scheduleUserId,
+    scheduleId,
+    cardsCount,
+    relearning,
+    ...props
+}) => {
+    //SKIP loading if there is a finish stage
+    const isFinishedRepeating = props.mutationProps.isSuccess;
+
+    const { data: notStartedCards, isFetching: notStartedIsFetching } = useGetNotStartedCardsQuery(
+        {
+            userId,
+            collectionId,
+            request: { scheduleUserId: scheduleUserId, scheduleId: scheduleId, count: cardsCount },
+        },
+        { skip: Boolean(relearning) || isFinishedRepeating }
+    );
+
+    const { data: relearningCards, isFetching: relearnCardsIsFetching } = useGetRelearningCardsQuery(
+        { userId, collectionId, request: { count: cardsCount } },
+        { skip: !Boolean(relearning) || isFinishedRepeating }
+    );
+
+    if (notStartedIsFetching || relearnCardsIsFetching) {
+        return (
+            <CenterContainer>
+                <Loader textColor="black" />
+            </CenterContainer>
+        );
+    }
+
+    return (
+        <LearnCollectionPageContent
+            queryData={(relearning ? relearningCards : notStartedCards) || []}
+            userId={userId}
+            collectionId={collectionId}
+            scheduleUserId={scheduleUserId}
+            scheduleId={scheduleId}
+            mutationProps={props.mutationProps}
+            setDisableLoading={props.setDisableLoading}
+        />
+    );
+};
+
+const ConnectedCollectionResolver = withOtherQueryResolver(useGetCollectionQuery)(LearnCollectionPageCardsLoader);
 const ConnectedScheduleResolver = withOtherQueryResolver(useGetScheduleQuery)(ConnectedCollectionResolver);
 
 const ConnectedMutationResolver = withMutationResolver(
@@ -342,6 +401,7 @@ export const LearnCollection: FC = () => {
     const scheduleUserId = params.get('scheduleUserId');
     const scheduleId = params.get('scheduleId');
     const cardsCountString = params.get('cardsCount');
+    const relearn = params.get('relearn');
 
     if (!collectionId || !userId || !scheduleUserId || !scheduleId || !cardsCountString) {
         throw new Error();
@@ -363,16 +423,18 @@ export const LearnCollection: FC = () => {
     return (
         <ConnectedMutationResolver
             queryArg={{
-                userId,
                 scheduleUserId,
                 scheduleId,
                 collectionId,
-                request: { scheduleUserId, scheduleId, count: cardsCount },
             }}
-            disableLoading={disableLoading}
+            userId={userId}
+            collectionId={collectionId}
+            cardsCount={cardsCount}
+            queryData={[]}
             scheduleUserId={scheduleUserId}
             scheduleId={scheduleId}
             setDisableLoading={(disable) => setDisableLoading(disable)}
+            relearning={relearn === 'true' ? true : false}
         />
     );
 };

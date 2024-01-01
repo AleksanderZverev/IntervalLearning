@@ -16,8 +16,9 @@ internal class CollectionRepository : BaseRepository<Collection>, IRepository<Co
     public Result<CollectionId> GetUniqueId(CollectionIdParams param)
     {
         var sequenceName = CollectionConfiguration.GetSequenceName(param.UserId);
-        db.EnsureSequenceCreated(sequenceName);
-        var collectionNextId = db.GetSequenceNextValue16(sequenceName);
+        const int collectionsStartValue = 100;
+        db.EnsureSequenceCreated(sequenceName, collectionsStartValue);
+        var collectionNextId = db.GetSequenceNextValue16(sequenceName, collectionsStartValue);
         return CollectionId.Create(collectionNextId);
     }
 }

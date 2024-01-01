@@ -5,14 +5,8 @@ namespace IntervalLearningApi.Controllers.Study.Cards.Requests.StartCards;
 
 public class StartCardsResponse
 {
-    public DateTime? NextRepeatDate { get; }
-    public PhaseDto? NextRepeatPhase { get; }
-    public int NextPhaseIndex { get; }
-
-    public StartCardsResponse(DateTime? nextRepeatDate, PhaseDto? nextRepeatPhase, int nextPhaseIndex)
-    {
-        NextRepeatDate = nextRepeatDate;
-        NextRepeatPhase = nextRepeatPhase;
-        NextPhaseIndex = nextPhaseIndex;
-    }
+    public DateTime? NextRepeatDate { get; init; }
+    public PhaseDto? NextRepeatPhase { get; init; }
+    public int NextPhaseIndex { get; init; }
+    public required List<CardMovementInfoDto> CardMovementInfos { get; init; }
 }

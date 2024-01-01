@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations.Schema;
 using Domain.Collection.ValueObjects;
 using Domain.Common.ValueObjects;
 using Domain.Deprecated.DbModels;
@@ -21,6 +22,9 @@ public class Collection : Entity<ComplexCollectionId>
 
     public Counter CardsCount { get; set; } = Counter.CreateEmpty();
     public Counter NotStartedCardsCount { get; set; } = Counter.CreateEmpty();
+
+    [NotMapped]
+    public Counter CanRelearnCardCount { get; set; } = Counter.CreateEmpty();
     // public Counter StartedCards { get; set; }
     // public Counter FinishedCards { get; set; }
 

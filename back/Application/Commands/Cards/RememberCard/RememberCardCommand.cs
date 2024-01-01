@@ -1,6 +1,7 @@
 using Application.Commands.Cards.StartLearnCards;
 using Application.Common.Interfaces.DB.Repositories.Study;
 using Application.Common.Interfaces.DB.Transactions;
+using Application.Services.Study.Remember;
 using Domain.Card;
 using Domain.Card.ValueObjects;
 using Domain.Queue;
@@ -17,14 +18,20 @@ namespace Application.Commands.Cards.RememberCard;
 public class RememberCardCommand : ICommand<RememberCardRequest, NextRepeatInfoResponse>
 {
     private readonly IStudyRepository studyRepository;
+    private readonly CardRepeatQueueService cardRepeatQueueService;
+    private readonly RememberService rememberService;
     private readonly ITransactionProvider transactionProvider;
 
     public RememberCardCommand(
         ITransactionProvider transactionProvider, 
-        IStudyRepository studyRepository)
+        IStudyRepository studyRepository,
+        CardRepeatQueueService cardRepeatQueueService,
+        RememberService rememberService)
     {
         this.transactionProvider = transactionProvider;
         this.studyRepository = studyRepository;
+        this.cardRepeatQueueService = cardRepeatQueueService;
+        this.rememberService = rememberService;
     }
 
     public async Task<Result<NextRepeatInfoResponse>> Handle(RememberCardRequest request)
@@ -54,6 +61,8 @@ public class RememberCardCommand : ICommand<RememberCardRequest, NextRepeatInfoR
         }
         
         using var transaction = transactionProvider.CreateScope();
+
+        var nextRepeatingDateToInfo = new Dictionary<DateTime, CardMovementInfo>();
         
         var closestRepeatDate = DateTime.MaxValue;
         var closestPhaseIndex = -1;
@@ -81,7 +90,7 @@ public class RememberCardCommand : ICommand<RememberCardRequest, NextRepeatInfoR
                 return new BadRequestError("It's too early to repeat now");
             }
             
-            var remember = CreateRemember(schedule, card, weight, queueItem.PhaseIndex, now);
+            var remember = rememberService.Create(schedule, card, weight, queueItem.PhaseIndex, now, rememberItem.Comment);
             studyRepository.CardRemembers.Add(remember);
             studyRepository.RepeatingQueue.Delete(queueItem);
             
@@ -95,16 +104,27 @@ public class RememberCardCommand : ICommand<RememberCardRequest, NextRepeatInfoR
                 weight);
 
             studyRepository.PhaseRemembers.Add(phaseRemember);
-
-            var (nextPhaseIndex, nextPhase) = schedule.GetNextPhase(card, remember);
+            
+            card.Remembers.Add(remember);
+            var nextPhase = schedule.GetNextPhase(card);
 
             if (nextPhase == null)
+            {
+                var finishDate = DateTime.MinValue;
+                nextRepeatingDateToInfo.TryAdd(finishDate, new CardMovementInfo(new List<CardId>(), finishDate));
+                nextRepeatingDateToInfo[finishDate.Date].CardIds.Add(cardId);
                 continue;
+            }
 
+            var nextPhaseIndex = schedule.IndexOf(nextPhase);
             var nextRepeatDate = nextPhase.GetNextDate(now);
-            var newQueueItem = CreateNextQueueItem(schedule, card, nextPhaseIndex, nextRepeatDate);
-            
+            var newQueueItem = cardRepeatQueueService.Create(schedule, card, nextPhaseIndex, nextRepeatDate);
+
             studyRepository.RepeatingQueue.Add(newQueueItem);
+
+            nextRepeatingDateToInfo.TryAdd(nextRepeatDate.Date, new CardMovementInfo(new List<CardId>(), nextRepeatDate));
+            var repeatingInfo = nextRepeatingDateToInfo[nextRepeatDate.Date];
+            repeatingInfo.CardIds.Add(cardId);
 
             if (nextRepeatDate < closestRepeatDate)
             {
@@ -126,40 +146,7 @@ public class RememberCardCommand : ICommand<RememberCardRequest, NextRepeatInfoR
             NextPhase = closestPhaseInfo,
             NextPhaseIndex = closestPhaseIndex,
             NextRepeatDate = closestRepeatDate == DateTime.MaxValue ? null : closestRepeatDate,
+            CardMovementInfos = nextRepeatingDateToInfo.Values.ToList(),
         };
-    }
-    
-    private CardRepeatQueue CreateNextQueueItem(RepeatsSchedule scheduleWithPhases, Card card, int nextPhaseIndex, DateTime nextRepeatDate)
-    {
-        var queueId = studyRepository.RepeatingQueue.GetUniqueId(new(scheduleWithPhases, card)).Value;
-        
-        var queueItem = new CardRepeatQueue(
-            scheduleWithPhases.ParentUserId,
-            scheduleWithPhases.Id,
-            card.ParentUserId,
-            card.ParentCollectionId,
-            card.Id,
-            queueId,
-            (short)nextPhaseIndex,
-            nextRepeatDate
-        );
-        
-        return queueItem;
-    }
-    
-    private Remember CreateRemember(RepeatsSchedule schedule, Card card, RememberWeight weight, int phaseIndex, DateTime date)
-    {
-        var rememberId = studyRepository.CardRemembers.GetUniqueId(new(schedule, card)).Value;
-        
-        return new Remember(
-            schedule.ParentUserId, 
-            schedule.Id,
-            card.ParentUserId,
-            card.ParentCollectionId,
-            card.Id,
-            rememberId,
-            weight, 
-            (short)phaseIndex,
-            date);
     }
 }

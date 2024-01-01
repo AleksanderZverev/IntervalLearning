@@ -1,5 +1,5 @@
 /* eslint-disable react-hooks/rules-of-hooks */
-import { Add, Casino, Public } from '@mui/icons-material';
+import { Add, Casino, Public, Visibility } from '@mui/icons-material';
 import { Autocomplete, Button, CircularProgress, Pagination, Stack, TableCell, TextField } from '@mui/material';
 import dayjs from 'dayjs';
 import { FC, useEffect, useMemo, useRef, useState } from 'react';
@@ -18,6 +18,8 @@ import { CardRow } from './CardRow';
 import { FormField } from '../../../controls/Form/Form';
 import { useDocumentTitle } from '../../../hooks/useCollectionTitle';
 import { withQueryResolver } from '../../../hoc/withQueryResolver';
+import { boolean } from 'yup';
+import { Card } from '../../../types/Collection';
 
 const cardsCountPerPage = 50;
 const defaultSearchFieldType = 'Слово';
@@ -60,7 +62,11 @@ const CollectionPageContent: FC = () => {
     };
 
     const { isFetching: isCollectionFetching, isError: isCollectionError } = useGetCollectionQuery({ collectionId });
-    const { isFetching: isCardsFetching, isError: isCardsError } = useGetCardsQuery({
+    const {
+        data: currentPageCards,
+        isFetching: isCardsFetching,
+        isError: isCardsError,
+    } = useGetCardsQuery({
         userId,
         collectionId,
         request: { page, count: cardsCountPerPage },
@@ -73,7 +79,7 @@ const CollectionPageContent: FC = () => {
             request: {
                 searchValue: filter.input,
                 page: filter.page,
-                count: cardsCountPerPage,
+                count: 50,
                 fieldType: mapTextToFieldType[filter.fieldType],
             },
         },
@@ -86,43 +92,20 @@ const CollectionPageContent: FC = () => {
     const theme = useRequiredTypedSelector((state) => selectTheme(state, collection.themeId));
     const storageCards = useTypedSelector((state) => selectCards(state, collection?.userId, collection?.id));
 
+    const cardsToList = (useSearch ? foundCards : currentPageCards) ?? [];
     //for the case when card updates it should be updated in the list
-    const searchedCards = (foundCards ?? []).map((c) => {
-        const cardFromStorage = storageCards.find((sc) => sc.id === c.id);
-        if (!cardFromStorage) throw new Error();
-        return cardFromStorage;
-    });
+    const cardsFromStorage: Card[] = cardsToList
+        .map((c) => {
+            const cardFromStorage = storageCards.find((sc) => sc.id === c.id);
+            if (!cardFromStorage) return undefined;
+            return cardFromStorage;
+        })
+        .filter(Boolean) as Card[];
 
     useDocumentTitle(collection?.title, '📘');
-
-    const sortedCards = useMemo(() => {
-        if (useSearch) {
-            return searchedCards ?? [];
-        }
-
-        return [...storageCards].sort((f, s) => dayjs(s.createdDate).diff(dayjs(f.createdDate)));
-    }, [useSearch, searchedCards, storageCards]);
-
-    const cards = useMemo(() => {
-        if (useSearch) {
-            return sortedCards;
-        }
-
-        const skip = ((useSearch ? filter.page : page) - 1) * cardsCountPerPage;
-
-        const workingCards = [...sortedCards];
-        workingCards.splice(0, skip);
-        workingCards.splice(cardsCountPerPage);
-
-        return workingCards;
-    }, [page, sortedCards]);
-
     const [showCreateCardModal, setShowCreateCardModal] = useState(false);
-    // const defaultSchedule = useTypedSelector(
-    //     (state) =>
-    //         collection &&
-    //         selectScheduleById(state, getScheduleId(collection?.defaultScheduleUserId, collection?.defaultScheduleId))
-    // );
+
+    const cards = [...cardsFromStorage].sort((f, s) => dayjs(s.createdDate).diff(dayjs(f.createdDate)));
 
     if (isFetching || isError) {
         return (
@@ -152,6 +135,9 @@ const CollectionPageContent: FC = () => {
                     <Stack direction={'row'} gap="10px">
                         <Button variant="contained" endIcon={<Casino />} onClick={() => navigate('words/random')}>
                             Случайные
+                        </Button>
+                        <Button variant="contained" endIcon={<Visibility />} onClick={() => navigate('words/review')}>
+                            Пересмотр
                         </Button>
                         <Button variant="contained" endIcon={<Add />} onClick={() => setShowCreateCardModal(true)}>
                             Слово
@@ -208,9 +194,9 @@ const CollectionPageContent: FC = () => {
                         )}
                     </TableBody>
                 </Table>
-                {collection.cardsCount > cardsCountPerPage && (
+                {collection.cardsCount > cardsCountPerPage && !useSearch && (
                     <Pagination
-                        page={useSearch ? filter.page : page}
+                        page={page}
                         count={Math.ceil(collection.cardsCount / cardsCountPerPage)}
                         onChange={(event, page) => (useSearch ? setFilter({ ...filter, page: page }) : setPage(page))}
                     />

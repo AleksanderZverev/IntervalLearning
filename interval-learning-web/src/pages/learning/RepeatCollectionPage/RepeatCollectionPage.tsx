@@ -31,6 +31,13 @@ import { ErrorPage } from '../../../controls/ErrorPage/ErrorPage';
 import { useGetScheduleQuery } from '../../../redux/schedulesSlice';
 import Head from 'next/head';
 import { useDocumentTitle } from '../../../hooks/useCollectionTitle';
+import {
+    RememberForm,
+    State,
+    getDefaultState,
+    getRepeatingCards,
+    saveRepeatingCardsState,
+} from './RepeatCollectionPage.logic';
 
 type WithResolvers = WithQueryResolverData<typeof useGetRepeatCardsQuery> &
     WithMutationResolverProps<typeof usePatchRememberCardsMutation>;
@@ -74,38 +81,36 @@ export const RepeatCollectionPageContent: FC<RepeatCollectionPageContentProps> =
 
     const navigate = useNavigate();
     const theme = useTypedSelector((state) => selectTheme(state, collection.themeId));
-    const repeatCards = useTypedSelector((state) => selectCardsByIds(state, userId, collectionId, cardIds));
+
+    const [deletedCards, setDeletedCards] = useState<string[]>([]);
+    const mergedCardIds = cardIds.filter((c) => !deletedCards.includes(c));
+
+    const repeatCards = useTypedSelector((state) => selectCardsByIds(state, userId, collectionId, mergedCardIds));
+
     const [showAssertionModal, setShowAssertionModal] = useState(false);
     const [showCurrentCardError, setShowCurrentCardError] = useState(false);
     const [showStartModal, setShowStartModal] = useState(true);
     const [forceShowStartModal, setForceShowStartModal] = useState(false);
     const [showMoveToRepeatModal, setShowMoveToRepeatModal] = useState(false);
 
-    const [rememberWeights, setRememberWeights] = useState<Record<string, number | undefined>>(
-        () => LocalStorageHelper.getRepeatingCards(schedule.userId, schedule.id, phaseIndex, date, collection.id) ?? {}
+    const [state, setState] = useState<State>(
+        getRepeatingCards(schedule.userId, schedule.id, phaseIndex, date, collection.id) ?? getDefaultState()
     );
+
+    const updateState = (update: (state: State) => void) => {
+        const newState = { ...state };
+        update(newState);
+        setState(newState);
+        saveRepeatingCardsState(schedule.userId, schedule.id, phaseIndex, collection.id, date, newState);
+    };
 
     const maxCards = repeatCards.length;
-
-    let notActiveIndex = repeatCards.map((c) => rememberWeights[c.id]).indexOf(undefined);
-    notActiveIndex = notActiveIndex < 0 ? maxCards : notActiveIndex;
-
-    const [cardIndex, setCardIndex] = useState(
-        notActiveIndex >= maxCards ? maxCards - 1 : notActiveIndex - 1 >= 0 ? notActiveIndex - 1 : 0
-    );
+    const cardIndex = state.currentCardIndex;
     const card = repeatCards[cardIndex];
-
     const currentCard = repeatCards[cardIndex];
 
-    const saveWeights = (clearSaves: boolean) => {
-        LocalStorageHelper.saveRepeatingCardsWeights(
-            schedule.userId,
-            schedule.id,
-            phaseIndex,
-            collection.id,
-            date,
-            clearSaves ? {} : rememberWeights
-        );
+    const clearWeights = () => {
+        saveRepeatingCardsState(schedule.userId, schedule.id, phaseIndex, collection.id, date, getDefaultState());
     };
 
     const onSuccessFinish = (fromModal: boolean) => {
@@ -147,14 +152,14 @@ export const RepeatCollectionPageContent: FC<RepeatCollectionPageContentProps> =
             return;
         }
 
-        const resultWeights = Object.entries(rememberWeights);
+        const resultWeights = Object.entries(state.rememberWeights);
 
         if (resultWeights.some(([_, weight]) => weight === undefined || weight === null)) {
             console.error('remember weights are incorrect');
             return;
         }
 
-        if (rememberWeights[card.id] === undefined || rememberWeights[card.id] === null) {
+        if (state.rememberWeights[card.id] === undefined || state.rememberWeights[card.id] === null) {
             setShowCurrentCardError(true);
             return;
         }
@@ -168,35 +173,68 @@ export const RepeatCollectionPageContent: FC<RepeatCollectionPageContentProps> =
             scheduleUserId,
             scheduleId,
             phaseIndex,
-            rememberItems: resultWeights.map(([cardId, weight]) => ({ cardId, weight: weight ?? 0 })),
+            rememberItems: resultWeights.map(([cardId, form]) => ({
+                cardId,
+                weight: form?.weight ?? 0,
+                comment: form?.comment || null,
+            })),
         };
         try {
             setSkipLoading(true);
             await rememberCards({ userId, collectionId, request });
-            saveWeights(true);
+            clearWeights();
         } catch (e) {
             setSkipLoading(false);
             showRetryModal(() => onFinish(true));
         }
     };
 
-    const onChange = (weight: number | undefined) => {
-        if (weight !== undefined) {
-            rememberWeights[card.id] = weight;
-        } else {
-            delete rememberWeights[card.id];
+    const stepForwardRepeatedCardIndex = (newState: State) => {
+        if (newState.currentCardIndex > newState.repeatedCardIndex) {
+            newState.repeatedCardIndex = newState.currentCardIndex;
         }
+    };
 
-        setRememberWeights({ ...rememberWeights });
-        saveWeights(false);
+    const stepBackRepeatedCardIndex = (newState: State) => {
+        if (newState.currentCardIndex === newState.repeatedCardIndex) {
+            newState.repeatedCardIndex--;
+        }
+    };
+
+    const onChange = (weight: number | undefined, comment: string | undefined | null) =>
+        updateState((newState) => {
+            // const oldItem = newState.rememberWeights[card.id];
+            newState.rememberWeights[card.id] = { weight: weight, comment: comment };
+
+            if (weight !== undefined) {
+                stepForwardRepeatedCardIndex(newState);
+            } else {
+                stepBackRepeatedCardIndex(newState);
+            }
+        });
+
+    const onDeleteCardFromRepeating = (cardId: string) => {
+        setDeletedCards([...deletedCards, cardId]);
     };
 
     const onNext = () => {
-        setCardIndex(cardIndex + 1);
+        const newIndex = cardIndex + 1;
+
+        if (newIndex >= maxCards) {
+            return;
+        }
+
+        updateState((newState) => (newState.currentCardIndex = newIndex));
     };
 
     const onPrevious = () => {
-        setCardIndex(cardIndex - 1);
+        const newIndex = cardIndex - 1;
+
+        if (newIndex < 0) {
+            return;
+        }
+
+        updateState((newState) => (newState.currentCardIndex = newIndex));
     };
 
     const isEmptyCollection = repeatCards.length === 0;
@@ -208,6 +246,8 @@ export const RepeatCollectionPageContent: FC<RepeatCollectionPageContentProps> =
         (phase.secondsFromLastPhase < 10
             ? schedule.defaultRepeatPhaseShortDescription
             : schedule.defaultPhaseShortDescription);
+
+    console.log(state);
 
     return (
         <PageContainer transparent>
@@ -335,18 +375,21 @@ export const RepeatCollectionPageContent: FC<RepeatCollectionPageContentProps> =
                         >
                             {isSuccess && mutationData && (
                                 <CardResult
-                                    wordsLearned={notActiveIndex > maxCards ? maxCards : notActiveIndex}
+                                    cardMovementInfos={mutationData.cardMovementInfos}
+                                    wordsLearned={state.repeatedCardIndex + 1}
                                     nextRepeatDate={mutationData.nextRepeatDate}
                                     onEndButtonClick={() => onSuccessFinish(false)}
                                 />
                             )}
                             {!isSuccess && currentCard && (
                                 <RepeatCard
-                                    value={rememberWeights[card.id] ?? null}
+                                    value={state.rememberWeights[card.id] ?? null}
                                     card={currentCard}
+                                    schedule={schedule}
+                                    onCardDeletedFromRepeating={(cardId) => onDeleteCardFromRepeating(cardId)}
                                     showNext={cardIndex < maxCards - 1}
                                     showPrevious={cardIndex !== 0}
-                                    isActive={notActiveIndex - 1 === cardIndex}
+                                    canDropAnswer={state.repeatedCardIndex === cardIndex}
                                     onFinish={() => onFinish(false)}
                                     onNext={onNext}
                                     onChange={onChange}
@@ -361,11 +404,11 @@ export const RepeatCollectionPageContent: FC<RepeatCollectionPageContentProps> =
                                 value={cardIndex}
                                 min={0}
                                 max={maxCards - 1}
-                                activeValue={notActiveIndex}
+                                activeValue={state.repeatedCardIndex + 1}
                                 finishMode={isSuccess}
                                 onValueChange={(v) => {
-                                    if (v > notActiveIndex) return;
-                                    setCardIndex(v);
+                                    if (v > state.repeatedCardIndex + 1) return;
+                                    updateState((s) => (s.currentCardIndex = v));
                                 }}
                                 getHoverTitle={(index) => repeatCards[index].backSideText}
                             />

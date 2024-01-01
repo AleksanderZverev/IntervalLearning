@@ -55,13 +55,24 @@ public static class ApiRoutes
             => cardId;
         
         public const string Get_GetAll = "";
-        public const string Get_GetCardQueue = "repeat";
+        public const string Get_GetCardsQueue = "repeat";
         public const string Get_GetNotStartedCards = "not-started";
+        public const string Get_GetAllRelearningCards = "relearn";
+        public const string Patch_RelearnCard = "relearn";
         public const string Post_CreateCard = "";
         
         public const string Delete_DeleteCard = "{cardId}";
         public static string GetDeleteCardPath(short cardId) 
             => $"{cardId}";
+
+        public const string Delete_StopRepeatingCard = "{cardId}/learn";
+        public static string GetStopRepeatingCardPath(string cardId) 
+            => $"{cardId}/learn";
+
+        public const string Patch_PostponeRepeatingCard = "{cardId}/learn/postpone";
+        public static string GetPostponeRepeatingCardPath(string cardId) 
+            => $"{cardId}/learn/postpone";
+        
         
         public const string Post_MoveCard = "move";
         public const string Get_SearchCard = "search";

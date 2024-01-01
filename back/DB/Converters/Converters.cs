@@ -57,6 +57,10 @@ internal static class Converters
         from => from.Value,
         id => Domain.Schedule.ValueObjects.ScheduleId.Create(id).Value
     );
+    
+    public static ValueConverter<MediumSingleLineString, string> MediumSingleLine = new(
+        d => d.Value,
+        s => MediumSingleLineString.Create(s).Value);
 
     public static ValueConverter<LongSingleLineString, string> LongSingleLine = new(
         d => d.Value,

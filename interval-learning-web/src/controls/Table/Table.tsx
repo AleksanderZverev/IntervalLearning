@@ -8,6 +8,7 @@ import {
     TableCellProps as MuiTableCellProps,
 } from '@mui/material';
 import styles from './styles.module.css';
+import classNames from 'classnames';
 
 export const Table: FC<PropsWithChildren<unknown>> = ({ children }) => {
     return <MuiTable>{children}</MuiTable>;
@@ -74,11 +75,16 @@ export const TableHeaderCell: FC<PropsWithChildren<TableHeaderCellProps>> = ({ c
 
 interface TableCellProps extends MuiTableCellProps {
     fontSize?: number;
+    isLabel?: boolean;
 }
 
 export const TableCell: FC<PropsWithChildren<TableCellProps>> = ({ children, fontSize, ...props }) => {
     return (
-        <MuiTableCell {...props} style={{ fontSize: fontSize ?? 16 }}>
+        <MuiTableCell
+            {...props}
+            className={classNames(props.className, props.isLabel && styles.subLabel)}
+            style={{ fontSize: fontSize ?? 16 }}
+        >
             {children}
         </MuiTableCell>
     );

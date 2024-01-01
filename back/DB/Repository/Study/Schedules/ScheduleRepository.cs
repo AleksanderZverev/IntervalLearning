@@ -16,8 +16,9 @@ public class ScheduleRepository : BaseRepository<RepeatsSchedule>, IRepository<R
     public Result<ScheduleId> GetUniqueId(ScheduleIdParams param)
     {
         var seqName = RepeatScheduleConfiguration.GetSequenceName(param.UserId);
-        db.EnsureSequenceCreated(seqName);
-        var nextId = db.GetSequenceNextValue16(seqName);
+        const int schedulesStartValue = 100;
+        db.EnsureSequenceCreated(seqName, schedulesStartValue);
+        var nextId = db.GetSequenceNextValue16(seqName, schedulesStartValue);
         return ScheduleId.Create(nextId);
     }
 }

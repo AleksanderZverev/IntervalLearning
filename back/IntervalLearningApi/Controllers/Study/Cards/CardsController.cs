@@ -5,13 +5,18 @@ using Application.Commands.Cards.GetAllCards;
 using Application.Commands.Cards.GetCard;
 using Application.Commands.Cards.GetCardsQueueCommand;
 using Application.Commands.Cards.GetNotStartedCardsCommand;
+using Application.Commands.Cards.GetRelearningCards;
+using Application.Commands.Cards.PostponeRepeatingCard;
+using Application.Commands.Cards.RelearnCard;
 using Application.Commands.Cards.RememberCard;
 using Application.Commands.Cards.SearchCards;
 using Application.Commands.Cards.StartLearnCards;
+using Application.Commands.Cards.StopRepeatingCard;
 using Application.Commands.Cards.UpdateCard;
 using Application.Commands.Collections.MoveCollectionCard;
 using Domain.Card.ValueObjects;
 using Domain.Collection.ValueObjects;
+using Domain.Common.ValueObjects.Text.SingleLine;
 using Domain.Schedule.Entities.Remember.ValueObjects;
 using Domain.Schedule.ValueObjects;
 using Domain.User.ValueObjects;
@@ -167,7 +172,69 @@ namespace IntervalLearningApi.Controllers.Study.Cards
             return cardsResult.ToActionResult(cards => mapper.Map<List<CardDto>>(cards));
         }
 
-        [HttpGet(ApiRoutes.Cards.Get_GetCardQueue)]
+        [HttpDelete(ApiRoutes.Cards.Delete_StopRepeatingCard)]
+        public async Task<ActionResult> StopRepeatingCard(
+            short collectionId,
+            short cardId,
+            [FromQuery] long scheduleUserId,
+            [FromQuery] short scheduleId)
+        {
+            var argResults = (
+                HttpContext.GetUserId(),
+                CollectionId.Create(collectionId),
+                CardId.Create(cardId),
+                UserId.Create(scheduleUserId),
+                ScheduleId.Create(scheduleId)
+            );
+
+            if (argResults.HasAnyError())
+                return BadRequest();
+
+            var (userIdResult, collectionIdResult, cardIdResult, scheduleUserIdResult, scheduleIdResult) = argResults;
+
+            var stopResult = await commandManager
+                .GetCommand<StopRepeatingCardCommand>()
+                .Handle(new StopRepeatingCardCommandRequest(
+                    userIdResult.Value, collectionIdResult.Value, cardIdResult.Value,
+                    scheduleUserIdResult.Value, scheduleIdResult.Value));
+
+            return stopResult.ToActionResult();
+        }
+        
+        [HttpPatch(ApiRoutes.Cards.Patch_PostponeRepeatingCard)]
+        public async Task<ActionResult> PostponeRepeatingCard(
+            short collectionId,
+            short cardId,
+            [FromQuery] long scheduleUserId,
+            [FromQuery] short scheduleId,
+            [FromQuery, Range(1, 14)] int postponeDays)
+        {
+            var argResults = (
+                HttpContext.GetUserId(),
+                CollectionId.Create(collectionId),
+                CardId.Create(cardId),
+                UserId.Create(scheduleUserId),
+                ScheduleId.Create(scheduleId)
+            );
+
+            if (argResults.HasAnyError())
+                return BadRequest();
+
+            var (userIdResult, collectionIdResult, cardIdResult, scheduleUserIdResult, scheduleIdResult) = argResults;
+
+            var postponeResult = await commandManager
+                .GetCommand<PostponeRepeatingCardCommand>()
+                .Handle(new PostponeRepeatingCardCommandRequest(
+                    userIdResult.Value, collectionIdResult.Value, cardIdResult.Value,
+                    scheduleUserIdResult.Value, scheduleIdResult.Value,
+                    postponeDays,
+                    !env.IsProduction()
+                ));
+
+            return postponeResult.ToActionResult();
+        }
+
+        [HttpGet(ApiRoutes.Cards.Get_GetCardsQueue)]
         public async Task<ActionResult<List<CardDto>>> GetCardsQueue(
             short collectionId,
             [FromQuery] long scheduleUserId,
@@ -236,6 +303,50 @@ namespace IntervalLearningApi.Controllers.Study.Cards
                     count));
 
             return cardsResult.ToActionResult(cards => mapper.Map<List<CardDto>>(cards));
+        }
+
+        [HttpGet(ApiRoutes.Cards.Get_GetAllRelearningCards)]
+        public async Task<ActionResult<List<CardDto>>> GetRelearningCard(
+            short collectionId,
+            [Range(1, 200)]int count)
+        {
+            var argsResults = (
+                HttpContext.GetUserId(),
+                CollectionId.Create(collectionId)
+            );
+
+            if (argsResults.HasAnyError())
+                return BadRequest();
+
+            var (userIdResult, collectionIdResult) = argsResults;
+            var cardsResult = await commandManager
+                .GetCommand<GetRelearningCardsCommand>()
+                .Handle(new GetRelearningCardsCommandRequest(userIdResult.Value, collectionIdResult.Value, count));
+            
+            return cardsResult.ToActionResult(cards => mapper.Map<List<CardDto>>(cards));
+        }
+
+        [HttpPatch(ApiRoutes.Cards.Patch_RelearnCard)]
+        public async Task<ActionResult> RelearnCard(short collectionId, short cardId)
+        {
+            var argsResults = (
+                HttpContext.GetUserId(),
+                CollectionId.Create(collectionId),
+                CardId.Create(cardId)
+            );
+            
+            if (argsResults.HasAnyError())
+                return BadRequest();
+
+            var (userIdResult, collectionIdResult, cardIdResult) = argsResults;
+            var relearnResult = await commandManager
+                .GetCommand<RelearnCardCommand>()
+                .Handle(new RelearnCardCommandRequest(
+                    userIdResult.Value,
+                    collectionIdResult.Value,
+                    cardIdResult.Value));
+
+            return relearnResult.ToActionResult();
         }
 
         [HttpDelete(ApiRoutes.Cards.Delete_DeleteCard)]
@@ -354,12 +465,15 @@ namespace IntervalLearningApi.Controllers.Study.Cards
                     request.CardIds.Select(cId => CardId.Create(cId).Value).ToList()));
 
             return closestRepeatInfoResult.ToActionResult(closestRepeatInfo =>
-                new StartCardsResponse(
-                    closestRepeatInfo.NextRepeatDate,
-                    closestRepeatInfo.NextPhase == null
+                new StartCardsResponse()
+                {
+                    NextRepeatDate = closestRepeatInfo.NextRepeatDate,
+                    NextPhaseIndex = closestRepeatInfo.NextPhaseIndex,
+                    NextRepeatPhase = closestRepeatInfo.NextPhase == null
                         ? null
                         : mapper.Map<PhaseDto>(closestRepeatInfo.NextPhase),
-                    closestRepeatInfo.NextPhaseIndex));
+                    CardMovementInfos = mapper.Map<List<CardMovementInfoDto>>(closestRepeatInfo.CardMovementInfos),
+                });
         }
 
         [HttpPatch(ApiRoutes.Cards.Path_RememberCard)]
@@ -393,12 +507,15 @@ namespace IntervalLearningApi.Controllers.Study.Cards
                     env.IsDevelopment()));
 
             return closestRepeatInfoResult.ToActionResult(closestRepeatInfo =>
-                new RememberCardResponse(
-                    closestRepeatInfo.NextRepeatDate,
-                    closestRepeatInfo.NextPhase == null
+                new RememberCardResponse()
+                {
+                    NextRepeatDate = closestRepeatInfo.NextRepeatDate,
+                    NextPhaseIndex = closestRepeatInfo.NextPhaseIndex,
+                    NextRepeatPhase = closestRepeatInfo.NextPhase == null
                         ? null
                         : mapper.Map<PhaseDto>(closestRepeatInfo.NextPhase),
-                    closestRepeatInfo.NextPhaseIndex));
+                    CardMovementInfos = mapper.Map<List<CardMovementInfoDto>>(closestRepeatInfo.CardMovementInfos),
+                });
         }
 
         private List<RememberItem> ToCardServiceRememberItems(List<RememberItemDto> requestRememberItems)
@@ -407,6 +524,9 @@ namespace IntervalLearningApi.Controllers.Study.Cards
             {
                 CardId = CardId.Create(r.CardId).Value,
                 Weight = RememberWeight.Create(r.Weight).Value,
+                Comment = string.IsNullOrWhiteSpace(r.Comment) 
+                    ? null 
+                    : MediumSingleLineString.Create(r.Comment).Value,
             }).ToList();
         }
     }

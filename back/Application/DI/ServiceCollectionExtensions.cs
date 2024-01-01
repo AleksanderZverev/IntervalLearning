@@ -1,4 +1,6 @@
 using Application.DomainEventHandlers;
+using Application.Services.Study.Remember;
+using Domain.Queue;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 
@@ -9,6 +11,7 @@ public static class ServiceCollectionExtensions
     public static void AddApplication(this IServiceCollection services)
     {
         services.AddCommands();
+        services.AddServices();
         services.AddEventHandlers();
     }
     
@@ -27,6 +30,13 @@ public static class ServiceCollectionExtensions
         {
             services.AddScoped(command);
         }
+    }
+
+    private static void AddServices(this IServiceCollection services)
+    {
+        //Study
+        services.AddScoped<CardRepeatQueueService>();
+        services.AddScoped<RememberService>();
     }
     
     private static void AddEventHandlers(this IServiceCollection services)

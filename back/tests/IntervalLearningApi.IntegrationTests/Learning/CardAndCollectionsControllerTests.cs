@@ -8,61 +8,14 @@ using IntervalLearningApi.Controllers.Study.Collections.RequestModels.GetNotFini
 using IntervalLearningApi.Controllers.Study.Collections.RequestModels.GetRepeatCollections;
 using IntervalLearningApi.Controllers.Study.RepeatsSchedules.DTOs;
 using IntervalLearningApi.Controllers.Study.RepeatsSchedules.Requests.CreateSchedule;
+using IntervalLearningApi.IntegrationTests.Common.Services;
+using IntervalLearningApi.IntegrationTests.Learning.Common;
 using IntervalLearningApi.IntegrationTests.Learning.Scenarios;
 
 namespace IntervalLearningApi.IntegrationTests.Learning;
 
 public class CardAndCollectionsControllerTests : SharedApiTests
 {
-    private static IReadOnlyList<TimeSpan> phasesDuration = new List<TimeSpan>()
-    {
-        TimeSpan.FromDays(1),
-            
-        TimeSpan.FromDays(3),
-            
-        TimeSpan.FromDays(7),
-            
-        TimeSpan.FromDays(14),
-        TimeSpan.FromDays(1),
-            
-        TimeSpan.FromDays(28),
-            
-        TimeSpan.FromDays(28),
-            
-        TimeSpan.FromDays(40),
-    };
-    
-    private static IReadOnlyList<TimeSpan> phasesDurationWithRepetitions = new List<TimeSpan>()
-    {
-        TimeSpan.FromDays(1),
-        TimeSpan.FromSeconds(1),
-            
-        TimeSpan.FromDays(3),
-        TimeSpan.FromSeconds(1),
-            
-        TimeSpan.FromDays(7),
-        TimeSpan.FromSeconds(1),
-            
-        TimeSpan.FromDays(14),
-        TimeSpan.FromSeconds(1),
-        
-        TimeSpan.FromDays(1),
-        TimeSpan.FromSeconds(1),
-            
-        TimeSpan.FromDays(28),
-        TimeSpan.FromSeconds(1),
-            
-        TimeSpan.FromDays(28),
-        TimeSpan.FromSeconds(1),
-            
-        TimeSpan.FromDays(40),
-        TimeSpan.FromSeconds(1),
-    };
-    
-    private const float RememberedWeight = 1f;
-    private const float ForgottenWeight = 0f;
-    private const float UnknownWeight = 0.5f;
-    
     public CardAndCollectionsControllerTests(SharedDockerIntervalLearningApiFactory apiFactory) : base(apiFactory)
     {
     }
@@ -75,8 +28,7 @@ public class CardAndCollectionsControllerTests : SharedApiTests
         ForgottenBehavior.MoveToPreviousStep,
     };
 
-    public static IEnumerable<object[]> TestBehaviors =
-        Behaviors.Select(behavior => new object[] { behavior });
+    public static IEnumerable<object[]> TestBehaviors = Behaviors.Select(behavior => new object[] { behavior });
 
     private async Task<RepeatsScheduleDto> CreateTestSchedule(ForgottenBehavior forgottenBehavior)
     {
@@ -86,7 +38,7 @@ public class CardAndCollectionsControllerTests : SharedApiTests
             Description = "Only for tests",
             ForgottenBehavior = (int)forgottenBehavior,
             CardsCountPerPhase = 10,
-            Phases = phasesDuration.Select((d, i) => new CreatePhaseDto()
+            Phases = LearningCommons.phasesDuration.Select((d, i) => new CreatePhaseDto()
             {
                 Id = (i + 1).ToString(),
                 SecondsFromLastPhase = (uint)d.TotalSeconds,
@@ -104,7 +56,43 @@ public class CardAndCollectionsControllerTests : SharedApiTests
             Description = "Only for tests",
             ForgottenBehavior = (int)forgottenBehavior,
             CardsCountPerPhase = 10,
-            Phases = phasesDurationWithRepetitions.Select((d, i) => new CreatePhaseDto()
+            Phases = LearningCommons.phasesDurationWithRepetitions.Select((d, i) => new CreatePhaseDto()
+            {
+                Id = (i + 1).ToString(),
+                SecondsFromLastPhase = (uint)d.TotalSeconds,
+            }).ToList(),
+        });
+
+        return createSchedule;
+    }
+    
+    private async Task<RepeatsScheduleDto> CreateTestScheduleWithDuplicateDurations(ForgottenBehavior forgottenBehavior)
+    {
+        var createSchedule = await CreateSchedule(new CreateScheduleRequest()
+        {
+            Title = "[For tests] Test schedule with duplicate durations",
+            Description = "Only for tests",
+            ForgottenBehavior = (int)forgottenBehavior,
+            CardsCountPerPhase = 10,
+            Phases = LearningCommons.PhasesDurationWithDuplications.Select((d, i) => new CreatePhaseDto()
+            {
+                Id = (i + 1).ToString(),
+                SecondsFromLastPhase = (uint)d.TotalSeconds,
+            }).ToList(),
+        });
+
+        return createSchedule;
+    } 
+    
+    private async Task<RepeatsScheduleDto> CreateTestScheduleWithStartRepetition(ForgottenBehavior forgottenBehavior)
+    {
+        var createSchedule = await CreateSchedule(new CreateScheduleRequest()
+        {
+            Title = "[For tests] Test schedule with duplicate durations",
+            Description = "Only for tests",
+            ForgottenBehavior = (int)forgottenBehavior,
+            CardsCountPerPhase = 10,
+            Phases = LearningCommons.phasesDurationWithStartRepetition.Select((d, i) => new CreatePhaseDto()
             {
                 Id = (i + 1).ToString(),
                 SecondsFromLastPhase = (uint)d.TotalSeconds,
@@ -143,6 +131,58 @@ public class CardAndCollectionsControllerTests : SharedApiTests
         var startCards = startCardsResponse.ToResponseDto<StartCardsResponse>();
         return startCards;
     }
+    
+    private async Task RelearnCardAsync(
+        HttpClient client,
+        CollectionDto collection,
+        CardDto card)
+    {
+        var relearnCardResponse = await client.PatchAsync(
+            CardsQuery(collection.Id, ApiRoutes.Cards.Patch_RelearnCard) + new QueryString().Add("cardId", card.Id), 
+            new StringContent(string.Empty)
+        );
+    }
+    
+    private async Task StopLearningCardAsync(
+        HttpClient client,
+        CollectionDto collection,
+        CardDto card,
+        RepeatsScheduleDto schedule)
+    {
+        await client.DeleteAsync(
+            CardsQuery(collection.Id, ApiRoutes.Cards.GetStopRepeatingCardPath(card.Id)) 
+            + new QueryString()
+                .Add("scheduleUserId", schedule.ParentUserId)
+                .Add("scheduleId", schedule.Id)
+        );
+    }
+
+    private async Task PostponeRepeatingCardAsync(
+        HttpClient client,
+        CollectionDto collection,
+        CardDto card,
+        RepeatsScheduleDto schedule, 
+        int postponeDays)
+    {
+        var postponeResult = await client.PatchAsync(
+            CardsQuery(collection.Id, ApiRoutes.Cards.GetPostponeRepeatingCardPath(card.Id)) 
+            + new QueryString()
+                .Add("scheduleUserId", schedule.ParentUserId)
+                .Add("scheduleId", schedule.Id)
+                .Add("postponeDays", postponeDays.ToString()),
+            new StringContent(string.Empty)
+        );
+    }
+
+    private async Task<List<CardDto>> GetRelearningCardsAsync(
+        HttpClient client,
+        CollectionDto collection)
+    {
+        var relearningCardsResponse = await client.GetAsync(
+            CardsQuery(collection.Id, ApiRoutes.Cards.Get_GetAllRelearningCards) + new QueryString().Add("count", "100")
+        );
+        return relearningCardsResponse.ToResponseDto<List<CardDto>>();
+    }
 
     public record ScenarioStep(float Weight, int NextPhaseIndexDiff);
 
@@ -154,172 +194,10 @@ public class CardAndCollectionsControllerTests : SharedApiTests
         }
     };
     
-    public static List<Scenario> TestOnTheStartScenarios = new()
-    {
-        new Scenario(ForgottenBehavior.MoveToNextStep, new List<ScenarioStep>()
-        {
-            new(ForgottenWeight, 1),
-        }, ResultStep: 2),
-        new Scenario(ForgottenBehavior.MoveToNextStep, new List<ScenarioStep>()
-        {
-            new(UnknownWeight, 1),
-        }, ResultStep: 2),
-        
-        
-        new Scenario(ForgottenBehavior.MoveToPreviousStep, new List<ScenarioStep>()
-        {
-            new(ForgottenWeight, -1),
-        }, ResultStep: 1),
-        new Scenario(ForgottenBehavior.MoveToPreviousStep, new List<ScenarioStep>()
-        {
-            new(UnknownWeight, 0),
-        }, ResultStep: 1),
-        
-        
-        new Scenario(ForgottenBehavior.StartFromFirstStep, new List<ScenarioStep>()
-        {
-            new(ForgottenWeight, -99),
-        }, ResultStep: 1),
-        new Scenario(ForgottenBehavior.StartFromFirstStep, new List<ScenarioStep>()
-        {
-            new(UnknownWeight, 0),
-        }, ResultStep: 1),
-        
-        
-        new Scenario(ForgottenBehavior.StayOnCurrentStep, new List<ScenarioStep>()
-        {
-            new(ForgottenWeight, 0),
-        }, ResultStep: 1),
-        new Scenario(ForgottenBehavior.StayOnCurrentStep, new List<ScenarioStep>()
-        {
-            new(UnknownWeight, 0),
-        }, ResultStep: 1),
-    };
-    
-    public static IEnumerable<object[]> TestOnTheStartMoveScenarios = 
-        TestOnTheStartScenarios.Select(s => new object[] { s });
-    
-
-    public static List<Scenario> MoveScenarios = new()
-    {
-        new Scenario(ForgottenBehavior.MoveToNextStep, new List<ScenarioStep>()
-        {
-            new(RememberedWeight, 1),
-            new(UnknownWeight, 1),
-            new(ForgottenWeight, 1),
-        }, ResultStep: 4),
-        
-        
-        new Scenario(ForgottenBehavior.MoveToPreviousStep, new List<ScenarioStep>()
-        {
-            new(RememberedWeight, 1),
-            new(RememberedWeight, 1),
-            new(ForgottenWeight, -1),
-        }, ResultStep: 2),
-        new Scenario(ForgottenBehavior.MoveToPreviousStep, new List<ScenarioStep>()
-        {
-            new(RememberedWeight, 1),
-            new(RememberedWeight, 1),
-            new(UnknownWeight, 0),
-        }, ResultStep: 3),
-        
-        
-        new Scenario(ForgottenBehavior.StartFromFirstStep, new List<ScenarioStep>()
-        {
-            new(RememberedWeight, 1),
-            new(RememberedWeight, 1),
-            new(ForgottenWeight, -99),
-        }, ResultStep: 1),
-        new Scenario(ForgottenBehavior.StartFromFirstStep, new List<ScenarioStep>()
-        {
-            new(RememberedWeight, 1),
-            new(RememberedWeight, 1),
-            new(UnknownWeight, 0),
-        }, ResultStep: 3),
-        
-        
-        new Scenario(ForgottenBehavior.StayOnCurrentStep, new List<ScenarioStep>()
-        {
-            new(RememberedWeight, 1),
-            new(RememberedWeight, 1),
-            new(ForgottenWeight, 0),
-        }, ResultStep: 3),
-        new Scenario(ForgottenBehavior.StayOnCurrentStep, new List<ScenarioStep>()
-        {
-            new(RememberedWeight, 1),
-            new(RememberedWeight, 1),
-            new(UnknownWeight, 0),
-        }, ResultStep: 3),
-    };
-
-    public static IEnumerable<object[]> TestMoveScenarios = 
-        MoveScenarios.Select(s => new object[] { s });
-    
-    
-    
-
-    private static List<ScenarioStep> stepsToTheLastStep = phasesDuration
-        .Select(_ => new ScenarioStep(RememberedWeight, 1))
-        .Skip(1)
-        .ToList();
-
-    public static List<Scenario> ReachedEndScenarios = new()
-    {
-        new Scenario(ForgottenBehavior.MoveToPreviousStep, new List<ScenarioStep>(stepsToTheLastStep)
-        {
-            new(ForgottenWeight, -1),
-        }, ResultStep: phasesDuration.Count - 1),
-        new Scenario(ForgottenBehavior.MoveToPreviousStep, new List<ScenarioStep>(stepsToTheLastStep)
-        {
-            new(UnknownWeight, 0),
-        }, ResultStep: phasesDuration.Count),
-        
-        
-        new Scenario(ForgottenBehavior.StartFromFirstStep, new List<ScenarioStep>(stepsToTheLastStep)
-        {
-            new(ForgottenWeight, -99),
-        }, ResultStep: 1),
-        new Scenario(ForgottenBehavior.StartFromFirstStep, new List<ScenarioStep>(stepsToTheLastStep)
-        {
-            new(UnknownWeight, 0),
-        }, ResultStep: phasesDuration.Count),
-        
-        
-        new Scenario(ForgottenBehavior.StayOnCurrentStep, new List<ScenarioStep>(stepsToTheLastStep)
-        {
-            new(ForgottenWeight, 0),
-        }, ResultStep: phasesDuration.Count),
-        new Scenario(ForgottenBehavior.StayOnCurrentStep, new List<ScenarioStep>(stepsToTheLastStep)
-        {
-            new(UnknownWeight, 0),
-        }, ResultStep: phasesDuration.Count),
-    };
-    
-    public static IEnumerable<object[]> TestOnTheLastStepScenarios = 
-        ReachedEndScenarios.Select(s => new object[] { s });
-    
-    public static List<Scenario> OnCompletingScenarios = new()
-    {
-        new Scenario(ForgottenBehavior.MoveToNextStep, new List<ScenarioStep>(stepsToTheLastStep)
-        {
-            new(RememberedWeight, 1),
-        }, ResultStep: phasesDuration.Count + 1),
-        new Scenario(ForgottenBehavior.MoveToPreviousStep, new List<ScenarioStep>(stepsToTheLastStep)
-        {
-            new(RememberedWeight, 1),
-        }, ResultStep: phasesDuration.Count + 1),
-        new Scenario(ForgottenBehavior.StartFromFirstStep, new List<ScenarioStep>(stepsToTheLastStep)
-        {
-            new(RememberedWeight, 1),
-        }, ResultStep: phasesDuration.Count + 1),
-        new Scenario(ForgottenBehavior.StayOnCurrentStep, new List<ScenarioStep>(stepsToTheLastStep)
-        {
-            new(RememberedWeight, 1),
-        }, ResultStep: phasesDuration.Count + 1),
-    };
-    
-    public static IEnumerable<object[]> TestOnCompletingScenarios = 
-        OnCompletingScenarios.Select(s => new object[] { s });
+    public static IEnumerable<object[]> TestOnTheStartMoveScenarios = LearningScenarios.TestOnTheStartScenarios.ToMemberData();
+    public static IEnumerable<object[]> TestMovingStepBackScenarios = LearningScenarios.ShouldStepStayOrStepBackScenarios.ToMemberData();
+    public static IEnumerable<object[]> TestOnTheLastStepScenarios = LearningScenarios.ReachedEndScenarios.ToMemberData();
+    public static IEnumerable<object[]> TestOnCompletingScenarios = LearningScenarios.OnCompletingScenarios.ToMemberData();
 
     [Theory]
     [MemberData(nameof(TestBehaviors))]
@@ -336,13 +214,20 @@ public class CardAndCollectionsControllerTests : SharedApiTests
 
         //Assert
         startCards.Should().NotBeNull();
-        var expectedRepeatDate = startDate.Add(phasesDuration.First());
-        startCards.NextRepeatDate.Should().BeCloseTo(
-            expectedRepeatDate, TimeSpan.FromMinutes(5));
+        
+        var expectedRepeatDate = startDate.Add(LearningCommons.phasesDuration.First());
+        startCards.NextRepeatDate.Should().BeCloseTo(expectedRepeatDate, TimeSpan.FromMinutes(5));
         startCards.NextPhaseIndex.Should().Be(0);
-        TimeSpan.FromSeconds(startCards.NextRepeatPhase.SecondsFromLastPhase).Should()
-            .Be(phasesDuration.First());
+        
         startCards.NextRepeatPhase.Id.Should().Be("1");
+        TimeSpan.FromSeconds(startCards.NextRepeatPhase.SecondsFromLastPhase).Should()
+            .Be(LearningCommons.phasesDuration.First());
+
+        startCards.CardMovementInfos.Should().NotBeNullOrEmpty().And.HaveCount(1);
+        var moveInfos = startCards.CardMovementInfos.Single();
+        moveInfos.CardIds.Should().BeEquivalentTo(cards.Select(c => c.Id));
+        moveInfos.NextRepetitionDate.Should().BeCloseTo(expectedRepeatDate, TimeSpan.FromMinutes(5));
+        moveInfos.CardIds.Should().OnlyHaveUniqueItems();
     }
     
     [Theory]
@@ -364,9 +249,9 @@ public class CardAndCollectionsControllerTests : SharedApiTests
 
         repeatCollections.DateToRepeatingPhases.Should().NotBeNull().And.NotBeEmpty();
         repeatCollections.DateToRepeatingPhases.Keys.Should().HaveCount(1);
-        AssertHasDate(phasesDuration, repeatCollections, schedule.Id, 0);
-        AssertHasPhasesAtDate(phasesDuration, repeatCollections, schedule.Id, 0, 0);
-        AssertHasCollectionsAtDatePhase(phasesDuration, repeatCollections, schedule.Id, 0, 0,
+        AssertHasDate(LearningCommons.phasesDuration, repeatCollections, schedule.Id, 0);
+        AssertHasPhasesAtDate(LearningCommons.phasesDuration, repeatCollections, schedule.Id, 0, 0);
+        AssertHasCollectionsAtDatePhase(LearningCommons.phasesDuration, repeatCollections, schedule.Id, 0, 0,
             new CollectionAssertion(collection.Id, cards.Count));
     }
 
@@ -386,6 +271,28 @@ public class CardAndCollectionsControllerTests : SharedApiTests
         //Assert
         var newCollection = await GetCollectionAsync(collection.Id);
         newCollection.NotStartedCards.Should().Be(0);
+    }
+    
+    [Theory]
+    [MemberData(nameof(TestBehaviors))]
+    public async Task StartCards_ShouldDeleteRelearningCards(ForgottenBehavior behavior)
+    {
+        //Arrange
+        var (client, user) = SharedScope;
+        var schedule = await CreateTestSchedule(behavior);
+        var cardsCount = 10;
+        var (collection, cards) = await CreateRandomCardsAsync(cardsCount);
+        foreach (var card in cards)
+        {
+            await RelearnCardAsync(client, collection, card);
+        }
+
+        //Act
+        await StartCardsAsync(client, collection, cards, schedule);
+        
+        //Assert
+        var relearningCards = await GetRelearningCardsAsync(client, collection);
+        relearningCards.Should().BeNullOrEmpty();
     }
     
     [Theory(Skip = "Not implemented logic")]
@@ -456,7 +363,7 @@ public class CardAndCollectionsControllerTests : SharedApiTests
     }
     
     [Theory]
-    [MemberData(nameof(TestMoveScenarios))]
+    [MemberData(nameof(TestMovingStepBackScenarios))]
     public async Task GetNotFinished_ShouldReturnNotEmptyWhenNewCardsAdded(Scenario scenario)
     {
         //Arrange
@@ -484,8 +391,110 @@ public class CardAndCollectionsControllerTests : SharedApiTests
     }
     
     [Theory]
+    [MemberData(nameof(TestBehaviors))]
+    public async Task GetNotFinished_ShouldReturnRelearningCollections(ForgottenBehavior behavior)
+    {
+        //Arrange
+        var (client, user) = SharedScope;
+        var schedule = await CreateTestSchedule(behavior);
+        var (collection, addedCards) = await CreateRandomCardsAsync(10);
+        foreach (var addedCard in addedCards)
+            await RelearnCardAsync(client, collection, addedCard);
+
+        //Act
+        var getNotFinishedCollectionsResponse = await client.GetAsync(
+            CollectionsQuery(ApiRoutes.Collections.GetNotFinished)
+            + new QueryString()
+                .Add("scheduleUserId", schedule.ParentUserId)
+                .Add("scheduleId", schedule.Id));
+        var notFinishedCollections = getNotFinishedCollectionsResponse.ToResponseDto<GetNotFinishedResponse>();
+
+        //Assert
+        notFinishedCollections.Should().NotBeNull();
+        notFinishedCollections.CanRelearnCollections.Should().HaveCount(1);
+        notFinishedCollections.CanRelearnCollections.Single().Id.Should().Be(collection.Id);
+        notFinishedCollections.CanRelearnCollections.Single().CanRelearnCardCount.Should().Be((short)addedCards.Count);
+    }
+    
+    [Theory]
+    [MemberData(nameof(TestBehaviors))]
+    public async Task GetNotFinished_ShouldReturnEmptyRelearningCollection_WhenNoCardsAdded(ForgottenBehavior behavior)
+    {
+        //Arrange
+        var (client, user) = SharedScope;
+        var schedule = await CreateTestSchedule(behavior);
+        var (collection, addedCards) = await CreateRandomCardsAsync(10);
+
+        //Act
+        var getNotFinishedCollectionsResponse = await client.GetAsync(
+            CollectionsQuery(ApiRoutes.Collections.GetNotFinished)
+            + new QueryString()
+                .Add("scheduleUserId", schedule.ParentUserId)
+                .Add("scheduleId", schedule.Id));
+        var notFinishedCollections = getNotFinishedCollectionsResponse.ToResponseDto<GetNotFinishedResponse>();
+
+        //Assert
+        notFinishedCollections.Should().NotBeNull();
+        notFinishedCollections.CanRelearnCollections.Should().BeNullOrEmpty();
+        
+        
+    }
+    
+    [Theory]
+    [InlineData("Some comment")]
+    [InlineData("Какой-то комментарий по русски")]
+    public async Task RememberCard_ShouldSaveComments(string comment)
+    {
+        //Arrange
+        var (client, user) = SharedScope;
+        var schedule = await CreateTestSchedule(ForgottenBehavior.MoveToPreviousStep);
+        var (collection, preAddedCards) = await CreateRandomCardsAsync(10);
+        await StartCardsAsync(client, collection, preAddedCards, schedule);
+        
+        //Act
+        var currentPhaseIndex = 0;
+        var rememberResponse = await RememberCardsAsync(
+            client,
+            collection,
+            preAddedCards,
+            schedule,
+            (short)currentPhaseIndex,
+            0f,
+            comment);
+        
+        //ASSERT
+        rememberResponse.IsSuccessStatusCode.Should().BeTrue("should fail with comment");
+        
+        var getRepeatCollectionsResponse = await client.GetAsync(
+            CollectionsQuery(ApiRoutes.Collections.GetRepeatCollections));
+        var repeatCollections = getRepeatCollectionsResponse.ToResponseDto<RepeatingCollectionResponse>();
+        
+        var repeatingDates = repeatCollections.DateToRepeatingPhases.Keys.ToList();
+        repeatingDates.Should().NotBeNullOrEmpty("should contain one date").And.HaveCount(1, "should contain one date");
+
+        var repeatingDate = repeatingDates.Single();
+        var repeatingPhases = repeatCollections.DateToRepeatingPhases[repeatingDate];
+        repeatingPhases.Should().NotBeNullOrEmpty("should contain one phase").And.HaveCount(1, "should contain one phase");
+
+        var phase = repeatingPhases.Single();
+        var cardsResponse = await client.GetAsync(
+            CardsQuery(collection.Id, ApiRoutes.Cards.Get_GetCardsQueue) + new QueryString()
+                .Add("scheduleUserId", schedule.ParentUserId)
+                .Add("scheduleId", schedule.Id)
+                .Add("phaseIndex", phase.PhaseIndex.ToString())
+                .Add("date", repeatingDate.ToString("O")));
+        var cards = cardsResponse.ToResponseDto<List<CardDto>>();
+        var remembers = cards.SelectMany(c => c.Remembers).Where(r => r.PhaseIndex == phase.PhaseIndex).ToList();
+        foreach (var remember in remembers)
+        {
+            remember.Comment.Should().NotBeNullOrEmpty();
+            remember.Comment.Should().BeEquivalentTo(comment);
+        }
+    }
+    
+    [Theory]
     [MemberData(nameof(TestOnTheStartMoveScenarios))]
-    [MemberData(nameof(TestMoveScenarios))]
+    [MemberData(nameof(TestMovingStepBackScenarios))]
     [MemberData(nameof(TestOnTheLastStepScenarios))]
     public async Task RememberCard_ShouldMoveEveryStep(Scenario scenario)
     {
@@ -512,7 +521,7 @@ public class CardAndCollectionsControllerTests : SharedApiTests
             
             var shouldBeNextPhaseIndex = Math.Max(0, currentPhaseIndex + step.NextPhaseIndexDiff);
             await AssertRememberedCardsMovedToStep(
-                phasesDuration,
+                LearningCommons.phasesDuration,
                 client,
                 collection,
                 preAddedCards,
@@ -528,18 +537,23 @@ public class CardAndCollectionsControllerTests : SharedApiTests
         LearningScenarios.ShouldStepOnRepetitionScenarios.ToMemberData();
 
     public static IEnumerable<object[]> TestShouldMoveAfterRepetition =
-        LearningScenarios.ShouldMoveAfterRepetition.ToMemberData();
+        LearningScenarios.ShouldMoveAfterRepetitionCorreclty_IfForgotten.ToMemberData();
 
     [Theory]
     [MemberData(nameof(TestShouldStepOnRepetitionScenarios))]
     [MemberData(nameof(TestShouldMoveAfterRepetition))]
-    public async Task RememberCard_ShouldMoveEveryStep_AfterRepetition(Scenario scenario)
+    public async Task RememberCard_ShouldMoveEveryStep_WhenThereAreRepetitions(Scenario scenario)
     {
         //Arrange
         var (client, user) = SharedScope;
         var schedule = await CreateTestScheduleWithRepetitions(scenario.Behavior);
         var (collection, preAddedCards) = await CreateRandomCardsAsync(10);
         await StartCardsAsync(client, collection, preAddedCards, schedule);
+
+        if (scenario.Behavior == ForgottenBehavior.MoveToPreviousStep)
+        {
+            
+        }
         
         //Act
         var currentPhaseIndex = 0;
@@ -558,7 +572,88 @@ public class CardAndCollectionsControllerTests : SharedApiTests
             
             var shouldBeNextPhaseIndex = Math.Max(0, currentPhaseIndex + step.NextPhaseIndexDiff);
             await AssertRememberedCardsMovedToStep(
-                phasesDurationWithRepetitions,
+                LearningCommons.phasesDurationWithRepetitions,
+                client,
+                collection,
+                preAddedCards,
+                schedule,
+                (short)shouldBeNextPhaseIndex
+            );
+            
+            currentPhaseIndex = shouldBeNextPhaseIndex;
+        }
+    }
+    
+    public static IEnumerable<object[]> TestShouldStepBackByIntervals = LearningScenarios.ShouldStepBackByIntervals.ToMemberData();
+    [Theory]
+    [MemberData(nameof(TestShouldStepBackByIntervals))]
+    public async Task RememberCard_ShouldMoveEveryStep_WhenThereAreDuplications(Scenario scenario)
+    {
+        //Arrange
+        var (client, user) = SharedScope;
+        var schedule = await CreateTestScheduleWithDuplicateDurations(scenario.Behavior);
+        var (collection, preAddedCards) = await CreateRandomCardsAsync(10);
+        await StartCardsAsync(client, collection, preAddedCards, schedule);
+
+        //Act
+        var currentPhaseIndex = 0;
+        foreach (var step in scenario.Steps)
+        {
+            var rememberResponse = await RememberCardsAsync(
+                client,
+                collection,
+                preAddedCards,
+                schedule, 
+                (short)currentPhaseIndex,
+                step.Weight);
+            
+            //Assert
+            rememberResponse.IsSuccessStatusCode.Should().BeTrue();
+            
+            var shouldBeNextPhaseIndex = Math.Max(0, currentPhaseIndex + step.NextPhaseIndexDiff);
+            await AssertRememberedCardsMovedToStep(
+                LearningCommons.PhasesDurationWithDuplications,
+                client,
+                collection,
+                preAddedCards,
+                schedule,
+                (short)shouldBeNextPhaseIndex
+            );
+            
+            currentPhaseIndex = shouldBeNextPhaseIndex;
+        }
+    }
+    
+    public static IEnumerable<object[]> TestShouldStepForwardWhenThereIsStartRepetition = LearningScenarios.ShouldStepForwardWhenThereIsStartRepetition.ToMemberData();
+    
+    [Theory]
+    [MemberData(nameof(TestShouldStepForwardWhenThereIsStartRepetition))]
+    public async Task RememberCard_ShouldMoveEveryStep_WhenThereIsStartRepetition(Scenario scenario)
+    {
+        //Arrange
+        var (client, user) = SharedScope;
+        var schedule = await CreateTestScheduleWithStartRepetition(scenario.Behavior);
+        var (collection, preAddedCards) = await CreateRandomCardsAsync(10);
+        await StartCardsAsync(client, collection, preAddedCards, schedule);
+
+        //Act
+        var currentPhaseIndex = 0;
+        foreach (var step in scenario.Steps)
+        {
+            var rememberResponse = await RememberCardsAsync(
+                client,
+                collection,
+                preAddedCards,
+                schedule, 
+                (short)currentPhaseIndex,
+                step.Weight);
+            
+            //Assert
+            rememberResponse.IsSuccessStatusCode.Should().BeTrue();
+            
+            var shouldBeNextPhaseIndex = Math.Max(0, currentPhaseIndex + step.NextPhaseIndexDiff);
+            await AssertRememberedCardsMovedToStep(
+                LearningCommons.phasesDurationWithStartRepetition,
                 client,
                 collection,
                 preAddedCards,
@@ -572,7 +667,7 @@ public class CardAndCollectionsControllerTests : SharedApiTests
     
     [Theory]
     [MemberData(nameof(TestOnTheStartMoveScenarios))]
-    [MemberData(nameof(TestMoveScenarios))]
+    [MemberData(nameof(TestMovingStepBackScenarios))]
     [MemberData(nameof(TestOnTheLastStepScenarios))]
     public async Task RememberCard_ShouldReachExpectedResult(Scenario scenario)
     {
@@ -601,7 +696,7 @@ public class CardAndCollectionsControllerTests : SharedApiTests
         //Assert
         currentPhaseIndex.Should().Be(scenario.ResultStep - 1);
         await AssertRememberedCardsMovedToStep(
-            phasesDuration,
+            LearningCommons.phasesDuration,
             client,
             collection,
             preAddedCards,
@@ -646,6 +741,139 @@ public class CardAndCollectionsControllerTests : SharedApiTests
         repeatCollections.Should().NotBeNull();
         repeatCollections.DateToRepeatingPhases.Should().BeEmpty();
     }
+    
+    [Fact]
+    public async Task RememberCard_ShouldReturnCorrectNextRepeatingInfo()
+    {
+        //Arrange
+        var (client, user) = SharedScope;
+        var schedule = await CreateTestSchedule(ForgottenBehavior.MoveToPreviousStep);
+        var (collection, preAddedCards) = await CreateRandomCardsAsync(12);
+        await StartCardsAsync(client, collection, preAddedCards, schedule);
+        
+        //Act
+        var currentPhaseIndex = 0;
+        
+        await RememberCardsAsync(client, collection, preAddedCards, schedule, (short)currentPhaseIndex,
+            LearningScenarios.RememberedWeight);
+        currentPhaseIndex++;
+        
+        var rememberResponse = await client.PatchAsJsonAsync(
+            CardsQuery(collection.Id, ApiRoutes.Cards.Path_RememberCard),
+            new RememberCardRequest()
+            {
+                PhaseIndex = (short)currentPhaseIndex,
+                ScheduleId = short.Parse(schedule.Id),
+                ScheduleUserId = UserId.Create(long.Parse(schedule.ParentUserId)).Value,
+                RememberItems = preAddedCards.Select((c, i) => new RememberItemDto()
+                {
+                    CardId = short.Parse(c.Id),
+                    Weight = i switch
+                    {
+                        < 4 => LearningScenarios.RememberedWeight,
+                        >= 4 and < 8 => LearningScenarios.UnknownWeight,
+                        >= 8 and < 12 => LearningScenarios.ForgottenWeight,
+                    } ,
+                    Comment = null,
+                }).ToList(),
+            });
+        var rememberInfo = rememberResponse.ToResponseDto<RememberCardResponse>();
+
+        //Assert
+        rememberInfo.Should().NotBeNull();
+        var now = DateTime.UtcNow;
+        
+        var expectedRepeatDate = now.Add(LearningCommons.phasesDuration.First());
+        rememberInfo.NextRepeatDate.Should().BeCloseTo(expectedRepeatDate, TimeSpan.FromMinutes(5));
+        rememberInfo.CardMovementInfos.Should().NotBeNullOrEmpty();
+
+        var shouldContainDate = LearningCommons.phasesDuration.Take(3).Select(d => now.Add(d)).ToList();
+        foreach (var moveInfo in rememberInfo.CardMovementInfos)
+        {
+            shouldContainDate.Should().ContainSingle(d => d.Date == moveInfo.NextRepetitionDate.Date);
+            moveInfo.CardIds.Should().HaveCount(4);
+        }
+
+        rememberInfo.CardMovementInfos.SelectMany(c => c.CardIds).Should().OnlyHaveUniqueItems();
+    }
+    
+    [Fact]
+    public async Task RelearnCard_ShouldAddRelearningCards()
+    {
+        //Arrange
+        var (client, user) = SharedScope;
+        var cardsCount = 10;
+        var (collection, cards) = await CreateRandomCardsAsync(cardsCount);
+        
+        //Act
+        foreach (var card in cards)
+        {
+            await RelearnCardAsync(client, collection, card);
+        }
+
+        //Assert
+        var relearningCards = await GetRelearningCardsAsync(client, collection);
+        relearningCards.Should().NotBeNullOrEmpty();
+        relearningCards.Should().BeEquivalentTo(cards, o => o.ForCard());
+    }
+    
+    [Theory]
+    [MemberData(nameof(TestBehaviors))]
+    public async Task StopRepeatingCard_ShouldStopCard(ForgottenBehavior behavior)
+    {
+        //Arrange
+        var (client, user) = SharedScope;
+        var cardsCount = 10;
+        var (collection, cards) = await CreateRandomCardsAsync(cardsCount);
+        var schedule = await CreateTestSchedule(behavior);
+        await StartCardsAsync(client, collection, cards, schedule);
+        
+        //Act
+        foreach (var card in cards)
+        {
+            await StopLearningCardAsync(client, collection, card, schedule);
+        }
+        
+        //Assert
+        var getRepeatCollectionsResponse = await client.GetAsync(
+            CollectionsQuery(ApiRoutes.Collections.GetRepeatCollections));
+        var repeatCollections = getRepeatCollectionsResponse.ToResponseDto<RepeatingCollectionResponse>();
+
+        repeatCollections.DateToRepeatingPhases.Should().BeNullOrEmpty();
+    }
+    
+    [Theory]
+    [InlineData(1)]
+    [InlineData(5)]
+    [InlineData(14)]
+    public async Task PostponeRepeatingCard_ShouldPostponeCard(int postponeDays)
+    {
+        //Arrange
+        var (client, user) = SharedScope;
+        var cardsCount = 10;
+        var (collection, cards) = await CreateRandomCardsAsync(cardsCount);
+        var schedule = await CreateTestSchedule(ForgottenBehavior.MoveToNextStep);
+        await StartCardsAsync(client, collection, cards, schedule);
+        var getOldRepeatCollectionsResponse = await client.GetAsync(
+            CollectionsQuery(ApiRoutes.Collections.GetRepeatCollections));
+        var oldRepeatCollections = getOldRepeatCollectionsResponse.ToResponseDto<RepeatingCollectionResponse>();
+        var oldRepeatingDate = oldRepeatCollections.DateToRepeatingPhases.Keys.First(); 
+
+        //Act
+        foreach (var card in cards)
+        {
+             await PostponeRepeatingCardAsync(client, collection, card, schedule, postponeDays);
+        }
+        
+        //Assert
+        var getRepeatCollectionsResponse = await client.GetAsync(
+            CollectionsQuery(ApiRoutes.Collections.GetRepeatCollections));
+        var repeatCollections = getRepeatCollectionsResponse.ToResponseDto<RepeatingCollectionResponse>();
+        repeatCollections.DateToRepeatingPhases.Should().NotBeNullOrEmpty();
+        repeatCollections.DateToRepeatingPhases.Keys.Should().HaveCount(1);
+        var repeatingDate = repeatCollections.DateToRepeatingPhases.Keys.First();
+        repeatingDate.Should().BeCloseTo(DateTime.UtcNow.Date.AddDays(postponeDays), TimeSpan.FromHours(1));
+    }
 
     public async Task Controller_Method_Should()
     {
@@ -682,7 +910,8 @@ public class CardAndCollectionsControllerTests : SharedApiTests
         List<CardDto> cards,
         RepeatsScheduleDto schedule,
         short rememberPhaseIndex,
-        float rememberWeight)
+        float rememberWeight,
+        string? comment = null)
     {
         return await client.PatchAsJsonAsync(
             CardsQuery(collection.Id, ApiRoutes.Cards.Path_RememberCard),
@@ -695,6 +924,7 @@ public class CardAndCollectionsControllerTests : SharedApiTests
                 {
                     CardId = short.Parse(c.Id),
                     Weight = rememberWeight,
+                    Comment = comment,
                 }).ToList(),
             });
     }

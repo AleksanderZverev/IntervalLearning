@@ -2,6 +2,7 @@
 using Domain.Card;
 using Domain.Card.ValueObjects;
 using Domain.Collection.ValueObjects;
+using Domain.Common.ValueObjects.Text.SingleLine;
 using Domain.Schedule.Entities.Remember.ValueObjects;
 using Domain.Schedule.ValueObjects;
 using Domain.User.ValueObjects;
@@ -24,6 +25,7 @@ public class Remember : Entity<ComplexRememberId>, IParentCardReference
     /// Remembered or repeated date
     /// </summary>
     public DateTime RepeatedDate { get; set; }
+    public MediumSingleLineString? Comment { get; set; }
     
     public Remember(
         UserId parentRepeatsScheduleUserId, 
@@ -81,5 +83,15 @@ public class Remember : Entity<ComplexRememberId>, IParentCardReference
     public bool IsNotClearRemember()
     {
         return Weight >= 0.40f && Weight < 0.70f;
+    }
+
+    public bool IsAtLearnedDate()
+    {
+        return PhaseIndex == -1;
+    }
+
+    public void MakeLearnedRemember()
+    {
+        PhaseIndex = -1;
     }
 }

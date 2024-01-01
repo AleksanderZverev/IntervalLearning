@@ -24,6 +24,10 @@ public class Card : AggregateRoot<ComplexCardId>
 
     public CollectionId ParentCollectionId { get; set; }
     public virtual Collection.Collection? ParentCollection { get; set; }
+    
+
+    private List<Remember>? _orderedRemembers;
+    private List<Remember> OrderedRemembers => _orderedRemembers ??= Remembers.OrderBy(r => r.RepeatedDate).ToList();
 
     protected Card() : base()
     {
@@ -53,31 +57,32 @@ public class Card : AggregateRoot<ComplexCardId>
     }
 
     public Remember? FindLastRemember() 
-        => Remembers.MaxBy(c => c.Id);
+        => Remembers.MaxBy(c => c.RepeatedDate);
     
-    public Remember? FindPreviousRemember(RememberId rememberId)
+    public Remember? FindPreviousRememberByPhaseIndex(int phaseIndex)
     {
-        //Because of bug the less ID ≠ previous remember
-        return Remembers
-            .OrderByDescending(r => r.RepeatedDate)
-            .SkipWhile(r => r.Id != rememberId)
-            .SkipWhile(r => r.Id == rememberId)
+        //Less ID ≠ previous remember
+        return OrderedRemembers
+            .AsEnumerable()
+            .Reverse()
+            .SkipWhile(r => r.PhaseIndex != phaseIndex)
+            .SkipWhile(r => r.PhaseIndex == phaseIndex)
             .FirstOrDefault();
+    }
+
+    
+    public Remember? FindRememberByPhaseIndex(int phaseIndex)
+    {
+        return OrderedRemembers.LastOrDefault(r => r.PhaseIndex == phaseIndex);
     }
 
     public DateTime GetLearnedDate()
     {
-        return Remembers
-            .OrderBy(r => r.RepeatedDate)
-            .First()
-            .RepeatedDate;
+        return OrderedRemembers.Last(r => r.IsAtLearnedDate()).RepeatedDate;
     }
     
     public List<Remember> GetRepeatingRemembers()
     {
-        var learnedDate = GetLearnedDate();
-        return Remembers
-            .Where(r => r.RepeatedDate.Date != learnedDate.Date)
-            .ToList();
+        return Remembers.Where(r => !r.IsAtLearnedDate()).ToList();
     }
 }

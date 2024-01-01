@@ -29,19 +29,21 @@ const CanStartCollectionsContent: FC<CanStartCollectionsContentProps> = ({
     cardsCount,
     count: collectionsCount,
     setPage,
-    queryData: { totalCollections, canStartCollections },
+    queryData: { totalCollections, canStartCollections, canRelearnCollections },
 }) => {
-    const collections = [...canStartCollections];
+    const collections = canStartCollections ? [...canStartCollections] : [];
+    const relearnCollections = canRelearnCollections ? [...canRelearnCollections] : [];
 
     const navigate = useNavigate();
 
-    const onClick = (collection: Collection) => {
+    const onClick = (collection: Collection, isRelearning: boolean) => {
         navigate(
-            `/learning/learn/${collection.userId}-${collection.id}?scheduleUserId=${scheduleUserId}&scheduleId=${scheduleId}&cardsCount=${cardsCount}`
+            `/learning/learn/${collection.userId}-${collection.id}?scheduleUserId=${scheduleUserId}&scheduleId=${scheduleId}&cardsCount=${cardsCount}&relearn=${isRelearning}`
         );
     };
 
     const pagesCount = Math.ceil(totalCollections / collectionsCount);
+    const isEmpty = collections.length === 0 && relearnCollections.length === 0;
     return (
         <div
             style={{
@@ -60,9 +62,27 @@ const CanStartCollectionsContent: FC<CanStartCollectionsContentProps> = ({
                     <TableHeaderCell align="center">Тип</TableHeaderCell>
                 </TableHead>
                 <TableBody>
-                    {collections.length > 0 ? (
-                        collections.map((c) => <CollectionRow key={c.id} collection={c} onClick={onClick} />)
-                    ) : (
+                    {relearnCollections.length > 0 && (
+                        <>
+                            <TableRow borderless>
+                                <TableCell isLabel>Переизучение</TableCell>
+                            </TableRow>
+                            {relearnCollections.map((c) => (
+                                <CollectionRow key={c.id} collection={c} onClick={onClick} isRelearning />
+                            ))}
+                        </>
+                    )}
+                    {collections.length > 0 && (
+                        <>
+                            <TableRow borderless>
+                                <TableCell isLabel>Коллекции</TableCell>
+                            </TableRow>
+                            {collections.map((c) => (
+                                <CollectionRow key={c.id} collection={c} onClick={onClick} />
+                            ))}
+                        </>
+                    )}
+                    {isEmpty && (
                         <TableRow borderless>
                             <TableCell colSpan={4} align={'center'}>
                                 Все слова изучены...
@@ -87,7 +107,7 @@ interface CanStartCollectionsProps {}
 export const CanStartCollections: FC<CanStartCollectionsProps> = ({}) => {
     const [page, setPage] = useState(1);
 
-    const count = window ? Math.ceil((window.innerHeight - 50) / 80) : 10;
+    const count = 50; // window ? Math.ceil((window.innerHeight - 50) / 80) : 10;
     const [schedule, setSchedule] = useLocalStorageValue<Schedule>('CanStartCollections-schedule');
     const [wordsQuantity, setWordsQuantity] = useState<number | undefined>(schedule?.cardsCountPerPhase);
 

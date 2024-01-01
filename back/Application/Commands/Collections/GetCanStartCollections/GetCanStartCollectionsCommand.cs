@@ -1,5 +1,7 @@
 using Application.Common.Interfaces.DB.Queries.Study;
+using Domain.Collection;
 using Domain.Common.ValueObjects;
+using Domain.User.ValueObjects;
 using FluentResults;
 
 namespace Application.Commands.Collections.GetCanStartCollections;
@@ -46,6 +48,23 @@ public class GetCanStartCollectionsCommand : ICommand<GetCanStartCollectionsComm
             collection.NotStartedCardsCount = Counter.Create(notStartedCards).Value;
         }
 
-        return new GetCanStartCollectionsResponse(totalCollectionsCount, canStartCollections);
+        var canRelearnCollections = await GetRelearnCollections(userId);
+        return new GetCanStartCollectionsResponse(totalCollectionsCount, canStartCollections, canRelearnCollections);
+    }
+
+    private async Task<List<Collection>> GetRelearnCollections(UserId userId)
+    {
+        var canRelearnCardIds = await studyQueryRepository.RelearningCards.GetAll(userId);
+        var canRelearnCollections = await studyQueryRepository.Collections.GetRange(
+            userId,
+            canRelearnCardIds.Select(c => c.CollectionId).Distinct().ToList());
+
+        foreach (var relearnCollection in canRelearnCollections)
+        {
+            var canRelearnCards = canRelearnCardIds.Count(c => c.CollectionId == relearnCollection.Id);
+            relearnCollection.CanRelearnCardCount = Counter.Create(canRelearnCards).Value;
+        }
+
+        return canRelearnCollections;
     }
 }

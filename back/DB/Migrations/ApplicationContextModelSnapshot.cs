@@ -25,282 +25,6 @@ namespace DB.Migrations
 
             modelBuilder.HasSequence("user_id_sequence");
 
-            modelBuilder.Entity("DB.Models.Dictionary.LanguageWord", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<short>("LanguageId")
-                        .HasColumnType("smallint");
-
-                    b.Property<string>("Pronunciation")
-                        .HasMaxLength(255)
-                        .HasColumnType("character varying(255)");
-
-                    b.Property<string>("Word")
-                        .IsRequired()
-                        .HasMaxLength(255)
-                        .HasColumnType("character varying(255)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("LanguageId");
-
-                    b.HasIndex("Word");
-
-                    b.ToTable("Words", (string)null);
-                });
-
-            modelBuilder.Entity("DB.Models.Dictionary.WordTranslation", b =>
-                {
-                    b.Property<int>("WordId")
-                        .HasColumnType("integer");
-
-                    b.Property<short>("LanguageId")
-                        .HasColumnType("smallint");
-
-                    b.Property<short>("Id")
-                        .HasColumnType("smallint");
-
-                    b.Property<string>("Translation")
-                        .IsRequired()
-                        .HasMaxLength(255)
-                        .HasColumnType("character varying(255)");
-
-                    b.HasKey("WordId", "LanguageId", "Id");
-
-                    b.HasIndex("LanguageId");
-
-                    b.ToTable("Translations", (string)null);
-                });
-
-            modelBuilder.Entity("DB.Models.Phase", b =>
-                {
-                    b.Property<long>("ParentUserId")
-                        .HasColumnType("bigint");
-
-                    b.Property<short>("ParentRepeatsScheduleId")
-                        .HasColumnType("smallint");
-
-                    b.Property<short>("Id")
-                        .HasColumnType("smallint");
-
-                    b.Property<bool>("IsDefaultValueSide")
-                        .HasColumnType("boolean");
-
-                    b.Property<string>("OnLearnDescription")
-                        .HasColumnType("text");
-
-                    b.Property<long>("SecondsFromLastPhase")
-                        .HasColumnType("bigint");
-
-                    b.Property<string>("ShortDescription")
-                        .HasMaxLength(200)
-                        .HasColumnType("character varying(200)");
-
-                    b.HasKey("ParentUserId", "ParentRepeatsScheduleId", "Id");
-
-                    b.ToTable("SchedulePhases", (string)null);
-                });
-
-            modelBuilder.Entity("DB.Models.PhaseRememberEntity", b =>
-                {
-                    b.Property<long>("ParentUserId")
-                        .HasColumnType("bigint");
-
-                    b.Property<short>("ParentRepeatsScheduleId")
-                        .HasColumnType("smallint");
-
-                    b.Property<short>("ParentPhaseId")
-                        .HasColumnType("smallint");
-
-                    b.Property<long>("RepeatedUserId")
-                        .HasColumnType("bigint");
-
-                    b.Property<short>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("smallint");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<short>("Id"));
-
-                    b.Property<float>("Weight")
-                        .HasColumnType("real");
-
-                    b.HasKey("ParentUserId", "ParentRepeatsScheduleId", "ParentPhaseId", "RepeatedUserId", "Id");
-
-                    b.HasIndex("RepeatedUserId");
-
-                    b.ToTable("PhaseRememberEntities");
-                });
-
-            modelBuilder.Entity("DB.Models.RefreshTokenEntity", b =>
-                {
-                    b.Property<long>("ParentUserId")
-                        .HasColumnType("bigint");
-
-                    b.Property<short>("Id")
-                        .HasColumnType("smallint");
-
-                    b.Property<DateTime>("Created")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("CreatedByIp")
-                        .IsRequired()
-                        .HasMaxLength(15)
-                        .HasColumnType("character varying(15)");
-
-                    b.Property<DateTime>("Expires")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("ReasonRevoked")
-                        .HasColumnType("text");
-
-                    b.Property<string>("ReplacedByToken")
-                        .HasColumnType("text");
-
-                    b.Property<DateTime?>("Revoked")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("RevokedByIp")
-                        .HasMaxLength(15)
-                        .HasColumnType("character varying(15)");
-
-                    b.Property<string>("Token")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.HasKey("ParentUserId", "Id");
-
-                    b.ToTable("RefreshTokens");
-                });
-
-            modelBuilder.Entity("DB.Models.Remember", b =>
-                {
-                    b.Property<long>("ParentUserId")
-                        .HasColumnType("bigint");
-
-                    b.Property<short>("ParentCollectionId")
-                        .HasColumnType("smallint");
-
-                    b.Property<short>("ParentCardId")
-                        .HasColumnType("smallint");
-
-                    b.Property<long>("ParentRepeatsScheduleUserId")
-                        .HasColumnType("bigint");
-
-                    b.Property<short>("ParentRepeatsScheduleId")
-                        .HasColumnType("smallint");
-
-                    b.Property<short>("PhaseIndex")
-                        .HasColumnType("smallint");
-
-                    b.Property<short>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("smallint");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<short>("Id"));
-
-                    b.Property<DateTime>("RepeatedDate")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<float>("Weight")
-                        .HasColumnType("real");
-
-                    b.HasKey("ParentUserId", "ParentCollectionId", "ParentCardId", "ParentRepeatsScheduleUserId", "ParentRepeatsScheduleId", "PhaseIndex", "Id");
-
-                    b.HasIndex("ParentRepeatsScheduleUserId", "ParentRepeatsScheduleId");
-
-                    b.ToTable("RememberWeights", (string)null);
-                });
-
-            modelBuilder.Entity("DB.Models.Store.CollectionPublicationEntity", b =>
-                {
-                    b.Property<long>("ParentUserId")
-                        .HasColumnType("bigint");
-
-                    b.Property<short>("ParentCollectionId")
-                        .HasColumnType("smallint");
-
-                    b.Property<long>("DislikesCount")
-                        .HasColumnType("bigint");
-
-                    b.Property<long>("LikesCount")
-                        .HasColumnType("bigint");
-
-                    b.Property<DateOnly>("PublishDate")
-                        .HasColumnType("date");
-
-                    b.Property<long>("SubscribersCount")
-                        .HasColumnType("bigint");
-
-                    b.HasKey("ParentUserId", "ParentCollectionId");
-
-                    b.ToTable("CollectionPublications");
-                });
-
-            modelBuilder.Entity("DB.Models.Store.PublicCollectionSubscriber", b =>
-                {
-                    b.Property<long>("ParentUserId")
-                        .HasColumnType("bigint");
-
-                    b.Property<short>("ParentCollectionId")
-                        .HasColumnType("smallint");
-
-                    b.Property<long>("SubscriberUserId")
-                        .HasColumnType("bigint");
-
-                    b.Property<bool>("IsAdded")
-                        .HasColumnType("boolean");
-
-                    b.Property<bool>("IsDisliked")
-                        .HasColumnType("boolean");
-
-                    b.Property<bool>("IsLiked")
-                        .HasColumnType("boolean");
-
-                    b.HasKey("ParentUserId", "ParentCollectionId", "SubscriberUserId");
-
-                    b.HasIndex("SubscriberUserId");
-
-                    b.ToTable("PublicCollectionSubscriber");
-                });
-
-            modelBuilder.Entity("DB.Models.UserMetadata", b =>
-                {
-                    b.Property<long>("ParentUserId")
-                        .HasColumnType("bigint");
-
-                    b.Property<short>("FinishedCards")
-                        .HasColumnType("smallint");
-
-                    b.Property<short>("FinishedCollections")
-                        .HasColumnType("smallint");
-
-                    b.Property<short>("NotStartedCards")
-                        .HasColumnType("smallint");
-
-                    b.Property<short>("NotStartedCollections")
-                        .HasColumnType("smallint");
-
-                    b.Property<short>("StartedCards")
-                        .HasColumnType("smallint");
-
-                    b.Property<short>("StartedCollections")
-                        .HasColumnType("smallint");
-
-                    b.Property<short>("SuggestTranslationLanguageId")
-                        .HasColumnType("smallint");
-
-                    b.HasKey("ParentUserId");
-
-                    b.HasIndex("SuggestTranslationLanguageId");
-
-                    b.ToTable("UserMetadata");
-                });
-
             modelBuilder.Entity("Domain.Card.Card", b =>
                 {
                     b.Property<long>("ParentUserId")
@@ -381,6 +105,110 @@ namespace DB.Migrations
                     b.HasIndex("ThemeId");
 
                     b.ToTable("Collections", (string)null);
+                });
+
+            modelBuilder.Entity("Domain.Deprecated.DbModels.CollectionPublicationEntity", b =>
+                {
+                    b.Property<long>("ParentUserId")
+                        .HasColumnType("bigint");
+
+                    b.Property<short>("ParentCollectionId")
+                        .HasColumnType("smallint");
+
+                    b.Property<long>("DislikesCount")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("LikesCount")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateOnly>("PublishDate")
+                        .HasColumnType("date");
+
+                    b.Property<long>("SubscribersCount")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("ParentUserId", "ParentCollectionId");
+
+                    b.ToTable("CollectionPublications");
+                });
+
+            modelBuilder.Entity("Domain.Deprecated.DbModels.PublicCollectionSubscriber", b =>
+                {
+                    b.Property<long>("ParentUserId")
+                        .HasColumnType("bigint");
+
+                    b.Property<short>("ParentCollectionId")
+                        .HasColumnType("smallint");
+
+                    b.Property<long>("SubscriberUserId")
+                        .HasColumnType("bigint");
+
+                    b.Property<bool>("IsAdded")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("IsDisliked")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("IsLiked")
+                        .HasColumnType("boolean");
+
+                    b.HasKey("ParentUserId", "ParentCollectionId", "SubscriberUserId");
+
+                    b.HasIndex("SubscriberUserId");
+
+                    b.ToTable("PublicCollectionSubscriber");
+                });
+
+            modelBuilder.Entity("Domain.Dictionary.Translation.WordTranslation", b =>
+                {
+                    b.Property<int>("WordId")
+                        .HasColumnType("integer");
+
+                    b.Property<short>("LanguageId")
+                        .HasColumnType("smallint");
+
+                    b.Property<short>("Id")
+                        .HasColumnType("smallint");
+
+                    b.Property<string>("Translation")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)");
+
+                    b.HasKey("WordId", "LanguageId", "Id");
+
+                    b.HasIndex("LanguageId");
+
+                    b.ToTable("Translations", (string)null);
+                });
+
+            modelBuilder.Entity("Domain.Dictionary.Word.LanguageWord", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<short>("LanguageId")
+                        .HasColumnType("smallint");
+
+                    b.Property<string>("Pronunciation")
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)");
+
+                    b.Property<string>("Word")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("LanguageId");
+
+                    b.HasIndex("Word");
+
+                    b.ToTable("Words", (string)null);
                 });
 
             modelBuilder.Entity("Domain.Language.Language", b =>
@@ -469,6 +297,124 @@ namespace DB.Migrations
                     b.ToTable("Queue", (string)null);
                 });
 
+            modelBuilder.Entity("Domain.RelearningCard.RelearningCard", b =>
+                {
+                    b.Property<long>("UserId")
+                        .HasColumnType("bigint");
+
+                    b.Property<short>("CollectionId")
+                        .HasColumnType("smallint");
+
+                    b.Property<short>("CardId")
+                        .HasColumnType("smallint");
+
+                    b.HasKey("UserId", "CollectionId", "CardId");
+
+                    b.ToTable("RelearningCards", (string)null);
+                });
+
+            modelBuilder.Entity("Domain.Schedule.Entities.Phase.Entities.PhaseRememberEntity", b =>
+                {
+                    b.Property<long>("ParentUserId")
+                        .HasColumnType("bigint");
+
+                    b.Property<short>("ParentRepeatsScheduleId")
+                        .HasColumnType("smallint");
+
+                    b.Property<short>("ParentPhaseId")
+                        .HasColumnType("smallint");
+
+                    b.Property<long>("RepeatedUserId")
+                        .HasColumnType("bigint");
+
+                    b.Property<short>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("smallint");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<short>("Id"));
+
+                    b.Property<float>("Weight")
+                        .HasColumnType("real");
+
+                    b.HasKey("ParentUserId", "ParentRepeatsScheduleId", "ParentPhaseId", "RepeatedUserId", "Id");
+
+                    b.HasIndex("RepeatedUserId");
+
+                    b.ToTable("PhaseRememberEntities");
+                });
+
+            modelBuilder.Entity("Domain.Schedule.Entities.Phase.Phase", b =>
+                {
+                    b.Property<long>("ParentUserId")
+                        .HasColumnType("bigint");
+
+                    b.Property<short>("ParentRepeatsScheduleId")
+                        .HasColumnType("smallint");
+
+                    b.Property<short>("Id")
+                        .HasColumnType("smallint");
+
+                    b.Property<bool>("IsDefaultValueSide")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("OnLearnDescription")
+                        .HasColumnType("text");
+
+                    b.Property<long>("SecondsFromLastPhase")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("ShortDescription")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.HasKey("ParentUserId", "ParentRepeatsScheduleId", "Id");
+
+                    b.ToTable("SchedulePhases", (string)null);
+                });
+
+            modelBuilder.Entity("Domain.Schedule.Entities.Remember.Remember", b =>
+                {
+                    b.Property<long>("ParentUserId")
+                        .HasColumnType("bigint");
+
+                    b.Property<short>("ParentCollectionId")
+                        .HasColumnType("smallint");
+
+                    b.Property<short>("ParentCardId")
+                        .HasColumnType("smallint");
+
+                    b.Property<long>("ParentRepeatsScheduleUserId")
+                        .HasColumnType("bigint");
+
+                    b.Property<short>("ParentRepeatsScheduleId")
+                        .HasColumnType("smallint");
+
+                    b.Property<short>("PhaseIndex")
+                        .HasColumnType("smallint");
+
+                    b.Property<short>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("smallint");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<short>("Id"));
+
+                    b.Property<string>("Comment")
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)");
+
+                    b.Property<DateTime>("RepeatedDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<float>("Weight")
+                        .HasColumnType("real");
+
+                    b.HasKey("ParentUserId", "ParentCollectionId", "ParentCardId", "ParentRepeatsScheduleUserId", "ParentRepeatsScheduleId", "PhaseIndex", "Id");
+
+                    b.HasIndex("ParentRepeatsScheduleUserId", "ParentRepeatsScheduleId");
+
+                    b.ToTable("RememberWeights", (string)null);
+                });
+
             modelBuilder.Entity("Domain.Schedule.RepeatsSchedule", b =>
                 {
                     b.Property<long>("ParentUserId")
@@ -546,6 +492,80 @@ namespace DB.Migrations
                     b.ToTable("Themes");
                 });
 
+            modelBuilder.Entity("Domain.User.Entities.RefreshTokenEntity", b =>
+                {
+                    b.Property<long>("ParentUserId")
+                        .HasColumnType("bigint");
+
+                    b.Property<short>("Id")
+                        .HasColumnType("smallint");
+
+                    b.Property<DateTime>("Created")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("CreatedByIp")
+                        .IsRequired()
+                        .HasMaxLength(15)
+                        .HasColumnType("character varying(15)");
+
+                    b.Property<DateTime>("Expires")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("ReasonRevoked")
+                        .HasColumnType("text");
+
+                    b.Property<string>("ReplacedByToken")
+                        .HasColumnType("text");
+
+                    b.Property<DateTime?>("Revoked")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("RevokedByIp")
+                        .HasMaxLength(15)
+                        .HasColumnType("character varying(15)");
+
+                    b.Property<string>("Token")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("ParentUserId", "Id");
+
+                    b.ToTable("RefreshTokens");
+                });
+
+            modelBuilder.Entity("Domain.User.Entities.UserMetadata", b =>
+                {
+                    b.Property<long>("ParentUserId")
+                        .HasColumnType("bigint");
+
+                    b.Property<short>("FinishedCards")
+                        .HasColumnType("smallint");
+
+                    b.Property<short>("FinishedCollections")
+                        .HasColumnType("smallint");
+
+                    b.Property<short>("NotStartedCards")
+                        .HasColumnType("smallint");
+
+                    b.Property<short>("NotStartedCollections")
+                        .HasColumnType("smallint");
+
+                    b.Property<short>("StartedCards")
+                        .HasColumnType("smallint");
+
+                    b.Property<short>("StartedCollections")
+                        .HasColumnType("smallint");
+
+                    b.Property<short>("SuggestTranslationLanguageId")
+                        .HasColumnType("smallint");
+
+                    b.HasKey("ParentUserId");
+
+                    b.HasIndex("SuggestTranslationLanguageId");
+
+                    b.ToTable("UserMetadata");
+                });
+
             modelBuilder.Entity("Domain.User.Entities.UserPassword", b =>
                 {
                     b.Property<long>("ParentUserId")
@@ -557,7 +577,7 @@ namespace DB.Migrations
 
                     b.HasKey("ParentUserId");
 
-                    b.ToTable("UsersPasswords");
+                    b.ToTable("UsersPasswords", (string)null);
                 });
 
             modelBuilder.Entity("Domain.User.User", b =>
@@ -580,209 +600,6 @@ namespace DB.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Users");
-                });
-
-            modelBuilder.Entity("DB.Models.Dictionary.LanguageWord", b =>
-                {
-                    b.HasOne("Domain.Language.Language", "Language")
-                        .WithMany()
-                        .HasForeignKey("LanguageId")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired();
-
-                    b.Navigation("Language");
-                });
-
-            modelBuilder.Entity("DB.Models.Dictionary.WordTranslation", b =>
-                {
-                    b.HasOne("Domain.Language.Language", "Language")
-                        .WithMany()
-                        .HasForeignKey("LanguageId")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired();
-
-                    b.HasOne("DB.Models.Dictionary.LanguageWord", "Word")
-                        .WithMany()
-                        .HasForeignKey("WordId")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired();
-
-                    b.Navigation("Language");
-
-                    b.Navigation("Word");
-                });
-
-            modelBuilder.Entity("DB.Models.Phase", b =>
-                {
-                    b.HasOne("Domain.User.User", "ParentUser")
-                        .WithMany()
-                        .HasForeignKey("ParentUserId")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired();
-
-                    b.HasOne("Domain.Schedule.RepeatsSchedule", "ParentRepeatsSchedule")
-                        .WithMany("Phases")
-                        .HasForeignKey("ParentUserId", "ParentRepeatsScheduleId")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired();
-
-                    b.Navigation("ParentRepeatsSchedule");
-
-                    b.Navigation("ParentUser");
-                });
-
-            modelBuilder.Entity("DB.Models.PhaseRememberEntity", b =>
-                {
-                    b.HasOne("Domain.User.User", "ParentUser")
-                        .WithMany()
-                        .HasForeignKey("ParentUserId")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired();
-
-                    b.HasOne("Domain.User.User", "RepeatedUser")
-                        .WithMany()
-                        .HasForeignKey("RepeatedUserId")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired();
-
-                    b.HasOne("Domain.Schedule.RepeatsSchedule", "ParentRepeatsSchedule")
-                        .WithMany()
-                        .HasForeignKey("ParentUserId", "ParentRepeatsScheduleId")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired();
-
-                    b.HasOne("DB.Models.Phase", "ParentPhase")
-                        .WithMany()
-                        .HasForeignKey("ParentUserId", "ParentRepeatsScheduleId", "ParentPhaseId")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired();
-
-                    b.Navigation("ParentPhase");
-
-                    b.Navigation("ParentRepeatsSchedule");
-
-                    b.Navigation("ParentUser");
-
-                    b.Navigation("RepeatedUser");
-                });
-
-            modelBuilder.Entity("DB.Models.RefreshTokenEntity", b =>
-                {
-                    b.HasOne("Domain.User.User", "ParentUser")
-                        .WithMany("RefreshTokens")
-                        .HasForeignKey("ParentUserId")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired();
-
-                    b.Navigation("ParentUser");
-                });
-
-            modelBuilder.Entity("DB.Models.Remember", b =>
-                {
-                    b.HasOne("Domain.User.User", "ParentUser")
-                        .WithMany()
-                        .HasForeignKey("ParentUserId")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired();
-
-                    b.HasOne("Domain.Schedule.RepeatsSchedule", "ParentRepeatsSchedule")
-                        .WithMany()
-                        .HasForeignKey("ParentRepeatsScheduleUserId", "ParentRepeatsScheduleId")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired();
-
-                    b.HasOne("Domain.Collection.Collection", "ParentCollection")
-                        .WithMany()
-                        .HasForeignKey("ParentUserId", "ParentCollectionId")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired();
-
-                    b.HasOne("Domain.Card.Card", "ParentCard")
-                        .WithMany("Remembers")
-                        .HasForeignKey("ParentUserId", "ParentCollectionId", "ParentCardId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("ParentCard");
-
-                    b.Navigation("ParentCollection");
-
-                    b.Navigation("ParentRepeatsSchedule");
-
-                    b.Navigation("ParentUser");
-                });
-
-            modelBuilder.Entity("DB.Models.Store.CollectionPublicationEntity", b =>
-                {
-                    b.HasOne("Domain.User.User", "ParentUser")
-                        .WithMany()
-                        .HasForeignKey("ParentUserId")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired();
-
-                    b.HasOne("Domain.Collection.Collection", "ParentCollection")
-                        .WithOne("CollectionPublicationEntity")
-                        .HasForeignKey("DB.Models.Store.CollectionPublicationEntity", "ParentUserId", "ParentCollectionId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("ParentCollection");
-
-                    b.Navigation("ParentUser");
-                });
-
-            modelBuilder.Entity("DB.Models.Store.PublicCollectionSubscriber", b =>
-                {
-                    b.HasOne("Domain.User.User", "ParentUser")
-                        .WithMany()
-                        .HasForeignKey("ParentUserId")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired();
-
-                    b.HasOne("Domain.User.User", "SubscriberUser")
-                        .WithMany()
-                        .HasForeignKey("SubscriberUserId")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired();
-
-                    b.HasOne("Domain.Collection.Collection", "ParentCollection")
-                        .WithMany()
-                        .HasForeignKey("ParentUserId", "ParentCollectionId")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired();
-
-                    b.HasOne("DB.Models.Store.CollectionPublicationEntity", "CollectionPublication")
-                        .WithMany("Subscribers")
-                        .HasForeignKey("ParentUserId", "ParentCollectionId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("CollectionPublication");
-
-                    b.Navigation("ParentCollection");
-
-                    b.Navigation("ParentUser");
-
-                    b.Navigation("SubscriberUser");
-                });
-
-            modelBuilder.Entity("DB.Models.UserMetadata", b =>
-                {
-                    b.HasOne("Domain.User.User", "ParentUser")
-                        .WithOne("Metadata")
-                        .HasForeignKey("DB.Models.UserMetadata", "ParentUserId")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired();
-
-                    b.HasOne("Domain.Language.Language", "SuggestTranslationLanguage")
-                        .WithMany()
-                        .HasForeignKey("SuggestTranslationLanguageId")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired();
-
-                    b.Navigation("ParentUser");
-
-                    b.Navigation("SuggestTranslationLanguage");
                 });
 
             modelBuilder.Entity("Domain.Card.Card", b =>
@@ -823,6 +640,90 @@ namespace DB.Migrations
                     b.Navigation("Theme");
                 });
 
+            modelBuilder.Entity("Domain.Deprecated.DbModels.CollectionPublicationEntity", b =>
+                {
+                    b.HasOne("Domain.User.User", "ParentUser")
+                        .WithMany()
+                        .HasForeignKey("ParentUserId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.HasOne("Domain.Collection.Collection", "ParentCollection")
+                        .WithOne("CollectionPublicationEntity")
+                        .HasForeignKey("Domain.Deprecated.DbModels.CollectionPublicationEntity", "ParentUserId", "ParentCollectionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("ParentCollection");
+
+                    b.Navigation("ParentUser");
+                });
+
+            modelBuilder.Entity("Domain.Deprecated.DbModels.PublicCollectionSubscriber", b =>
+                {
+                    b.HasOne("Domain.User.User", "ParentUser")
+                        .WithMany()
+                        .HasForeignKey("ParentUserId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.HasOne("Domain.User.User", "SubscriberUser")
+                        .WithMany()
+                        .HasForeignKey("SubscriberUserId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.HasOne("Domain.Collection.Collection", "ParentCollection")
+                        .WithMany()
+                        .HasForeignKey("ParentUserId", "ParentCollectionId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.HasOne("Domain.Deprecated.DbModels.CollectionPublicationEntity", "CollectionPublication")
+                        .WithMany("Subscribers")
+                        .HasForeignKey("ParentUserId", "ParentCollectionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("CollectionPublication");
+
+                    b.Navigation("ParentCollection");
+
+                    b.Navigation("ParentUser");
+
+                    b.Navigation("SubscriberUser");
+                });
+
+            modelBuilder.Entity("Domain.Dictionary.Translation.WordTranslation", b =>
+                {
+                    b.HasOne("Domain.Language.Language", "Language")
+                        .WithMany()
+                        .HasForeignKey("LanguageId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.HasOne("Domain.Dictionary.Word.LanguageWord", "Word")
+                        .WithMany()
+                        .HasForeignKey("WordId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.Navigation("Language");
+
+                    b.Navigation("Word");
+                });
+
+            modelBuilder.Entity("Domain.Dictionary.Word.LanguageWord", b =>
+                {
+                    b.HasOne("Domain.Language.Language", "Language")
+                        .WithMany()
+                        .HasForeignKey("LanguageId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.Navigation("Language");
+                });
+
             modelBuilder.Entity("Domain.Queue.CardRepeatQueue", b =>
                 {
                     b.HasOne("Domain.User.User", "ParentUser")
@@ -858,6 +759,95 @@ namespace DB.Migrations
                     b.Navigation("ParentUser");
                 });
 
+            modelBuilder.Entity("Domain.Schedule.Entities.Phase.Entities.PhaseRememberEntity", b =>
+                {
+                    b.HasOne("Domain.User.User", "ParentUser")
+                        .WithMany()
+                        .HasForeignKey("ParentUserId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.HasOne("Domain.User.User", "RepeatedUser")
+                        .WithMany()
+                        .HasForeignKey("RepeatedUserId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.HasOne("Domain.Schedule.RepeatsSchedule", "ParentRepeatsSchedule")
+                        .WithMany()
+                        .HasForeignKey("ParentUserId", "ParentRepeatsScheduleId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.HasOne("Domain.Schedule.Entities.Phase.Phase", "ParentPhase")
+                        .WithMany()
+                        .HasForeignKey("ParentUserId", "ParentRepeatsScheduleId", "ParentPhaseId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.Navigation("ParentPhase");
+
+                    b.Navigation("ParentRepeatsSchedule");
+
+                    b.Navigation("ParentUser");
+
+                    b.Navigation("RepeatedUser");
+                });
+
+            modelBuilder.Entity("Domain.Schedule.Entities.Phase.Phase", b =>
+                {
+                    b.HasOne("Domain.User.User", "ParentUser")
+                        .WithMany()
+                        .HasForeignKey("ParentUserId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.HasOne("Domain.Schedule.RepeatsSchedule", "ParentRepeatsSchedule")
+                        .WithMany("Phases")
+                        .HasForeignKey("ParentUserId", "ParentRepeatsScheduleId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.Navigation("ParentRepeatsSchedule");
+
+                    b.Navigation("ParentUser");
+                });
+
+            modelBuilder.Entity("Domain.Schedule.Entities.Remember.Remember", b =>
+                {
+                    b.HasOne("Domain.User.User", "ParentUser")
+                        .WithMany()
+                        .HasForeignKey("ParentUserId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.HasOne("Domain.Schedule.RepeatsSchedule", "ParentRepeatsSchedule")
+                        .WithMany()
+                        .HasForeignKey("ParentRepeatsScheduleUserId", "ParentRepeatsScheduleId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.HasOne("Domain.Collection.Collection", "ParentCollection")
+                        .WithMany()
+                        .HasForeignKey("ParentUserId", "ParentCollectionId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.HasOne("Domain.Card.Card", "ParentCard")
+                        .WithMany("Remembers")
+                        .HasForeignKey("ParentUserId", "ParentCollectionId", "ParentCardId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("ParentCard");
+
+                    b.Navigation("ParentCollection");
+
+                    b.Navigation("ParentRepeatsSchedule");
+
+                    b.Navigation("ParentUser");
+                });
+
             modelBuilder.Entity("Domain.Schedule.RepeatsSchedule", b =>
                 {
                     b.HasOne("Domain.User.User", "ParentUser")
@@ -877,6 +867,36 @@ namespace DB.Migrations
                         .OnDelete(DeleteBehavior.NoAction);
 
                     b.Navigation("Language");
+                });
+
+            modelBuilder.Entity("Domain.User.Entities.RefreshTokenEntity", b =>
+                {
+                    b.HasOne("Domain.User.User", "ParentUser")
+                        .WithMany("RefreshTokens")
+                        .HasForeignKey("ParentUserId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.Navigation("ParentUser");
+                });
+
+            modelBuilder.Entity("Domain.User.Entities.UserMetadata", b =>
+                {
+                    b.HasOne("Domain.User.User", "ParentUser")
+                        .WithOne("Metadata")
+                        .HasForeignKey("Domain.User.Entities.UserMetadata", "ParentUserId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.HasOne("Domain.Language.Language", "SuggestTranslationLanguage")
+                        .WithMany()
+                        .HasForeignKey("SuggestTranslationLanguageId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.Navigation("ParentUser");
+
+                    b.Navigation("SuggestTranslationLanguage");
                 });
 
             modelBuilder.Entity("Domain.User.Entities.UserPassword", b =>
@@ -921,11 +941,6 @@ namespace DB.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("DB.Models.Store.CollectionPublicationEntity", b =>
-                {
-                    b.Navigation("Subscribers");
-                });
-
             modelBuilder.Entity("Domain.Card.Card", b =>
                 {
                     b.Navigation("Remembers");
@@ -934,6 +949,11 @@ namespace DB.Migrations
             modelBuilder.Entity("Domain.Collection.Collection", b =>
                 {
                     b.Navigation("CollectionPublicationEntity");
+                });
+
+            modelBuilder.Entity("Domain.Deprecated.DbModels.CollectionPublicationEntity", b =>
+                {
+                    b.Navigation("Subscribers");
                 });
 
             modelBuilder.Entity("Domain.Schedule.RepeatsSchedule", b =>

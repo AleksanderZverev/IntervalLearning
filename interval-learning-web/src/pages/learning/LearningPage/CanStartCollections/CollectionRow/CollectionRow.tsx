@@ -7,18 +7,20 @@ import { Collection } from '../../../../../types/Collection';
 
 interface CollectionRowProps {
     collection: Collection;
-    onClick: (collection: Collection) => void;
+    isRelearning?: boolean;
+    onClick: (collection: Collection, isRelearning: boolean) => void;
 }
 
-export const CollectionRow: FC<CollectionRowProps> = ({ collection, ...props }) => {
+export const CollectionRow: FC<CollectionRowProps> = ({ collection, isRelearning, ...props }) => {
     const theme = useTypedSelector((state) => selectTheme(state, collection.themeId));
 
-    const learnedCards = collection.cardsCount - collection.notStartedCards;
+    var total = isRelearning ? collection.canRelearnCardCount : collection.notStartedCards;
+    const learnedCards = isRelearning ? 0 : collection.cardsCount - collection.notStartedCards;
     const clickable = learnedCards < collection.cardsCount;
 
     const onClick = () => {
         if (clickable) {
-            props.onClick(collection);
+            props.onClick(collection, Boolean(isRelearning));
         }
     };
 
@@ -26,7 +28,9 @@ export const CollectionRow: FC<CollectionRowProps> = ({ collection, ...props }) 
         <TableRow hover onClick={onClick}>
             <TableCell>{collection.title}</TableCell>
             <TableCell align="center">
-                {collection.cardsCount > 0 ? `${learnedCards}/${collection.cardsCount}` : 'пустая коллекция'}
+                {collection.cardsCount > 0
+                    ? `${learnedCards}/${isRelearning ? collection.canRelearnCardCount : collection.cardsCount}`
+                    : 'пустая коллекция'}
             </TableCell>
             <TableCell align="center">{theme?.name}</TableCell>
         </TableRow>

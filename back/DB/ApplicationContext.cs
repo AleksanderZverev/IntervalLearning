@@ -1,4 +1,5 @@
 ﻿using System.Data;
+using System.Data.Common;
 using DB.Infrastructure.DomainEventResolver;
 using Domain;
 using Domain.Card;
@@ -8,6 +9,7 @@ using Domain.Dictionary.Translation;
 using Domain.Dictionary.Word;
 using Domain.Language;
 using Domain.Queue;
+using Domain.RelearningCard;
 using Domain.Schedule;
 using Domain.Schedule.Entities.Phase;
 using Domain.Schedule.Entities.Phase.Entities;
@@ -51,6 +53,7 @@ namespace DB
         public DbSet<Phase> Phases { get; set; }
 
         public DbSet<CardRepeatQueue> Queue { get; set; }
+        public DbSet<RelearningCard> RelearningCards { get; set; }
 
         public DbSet<UserMetadata> UserMetadata { get; set; }
 
@@ -70,7 +73,7 @@ namespace DB
             modelBuilder.ApplyConfigurationsFromAssembly(GetType().Assembly);
         }
 
-        public void EnsureSequenceCreated(string sequenceName)
+        public void EnsureSequenceCreated(string sequenceName, int ensureStartValue = 1)
         {
             var connection = Database.GetDbConnection();
             
@@ -80,23 +83,56 @@ namespace DB
                 connection.Open();
             }
 
+            void OnReturn()
+            {
+                if (!isConnectionOpened)
+                {
+                    connection.Close();
+                }
+            }
+
+            using var checkSequenceExistsCommand = connection.CreateCommand();
+            checkSequenceExistsCommand.CommandText =
+                $"SELECT relname FROM pg_class WHERE relkind = 'S' AND relname = '{sequenceName}'";
+            var reader = checkSequenceExistsCommand.ExecuteReader();
+            var canRead = reader.Read();
+            var foundSequence = canRead ? reader.GetString(0) : string.Empty;
+            reader.Close();
+
+            if (!string.IsNullOrEmpty(foundSequence) && foundSequence == sequenceName)
+            {
+                OnReturn();
+                return;
+            }
+            
             using var createSequenceCommand = connection.CreateCommand();
-            createSequenceCommand.CommandText = $"create sequence if not exists {sequenceName}";
+            createSequenceCommand.CommandText = $"create sequence {sequenceName}";
             createSequenceCommand.ExecuteNonQuery();
 
-            if (!isConnectionOpened)
+            if (ensureStartValue < 2)
             {
-                connection.Close();
+                OnReturn();
+                return;
             }
+            
+            SetSequenceValue(sequenceName, ensureStartValue, connection);
+            OnReturn();
         }
 
-        public short GetSequenceNextValue16(string sequenceName)
-            => (short)GetSequenceNextValue64(sequenceName); 
-        
-        public int GetSequenceNextValue32(string sequenceName)
-            => (int)GetSequenceNextValue64(sequenceName); 
+        private static void SetSequenceValue(string sequenceName, int ensureStartValue, DbConnection connection)
+        {
+            using var setValueCommand = connection.CreateCommand();
+            setValueCommand.CommandText = $"select setval('{sequenceName}', {ensureStartValue})";
+            setValueCommand.ExecuteNonQuery();
+        }
 
-        public long GetSequenceNextValue64(string sequenceName)
+        public short GetSequenceNextValue16(string sequenceName, int ensureStartValue = 1)
+            => (short)GetSequenceNextValue64(sequenceName, ensureStartValue); 
+        
+        public int GetSequenceNextValue32(string sequenceName, int ensureStartValue = 1)
+            => (int)GetSequenceNextValue64(sequenceName, ensureStartValue); 
+
+        public long GetSequenceNextValue64(string sequenceName, int ensureStartValue = 1)
         {
             //do not dispose connection
             var connection = Database.GetDbConnection();
@@ -107,17 +143,31 @@ namespace DB
                 connection.Open();
             }
 
-            using var command = connection.CreateCommand();
-            command.CommandText = $"select nextval('{sequenceName}')";
-            
-            using var reader = command.ExecuteReader();
-            reader.Read();
-            var nextValue = reader.GetInt64(0);
+            var nextValue = GetSequenceValue(sequenceName, connection);
+
+            if (nextValue < ensureStartValue)
+            {
+                SetSequenceValue(sequenceName, ensureStartValue, connection);
+                nextValue = GetSequenceValue(sequenceName, connection);
+            }
             
             if (!isConnectionOpened)
             {
                 connection.Close();
             }
+            return nextValue;
+        }
+
+        private static long GetSequenceValue(string sequenceName, DbConnection connection)
+        {
+            using var command = connection.CreateCommand();
+            command.CommandText = $"select nextval('{sequenceName}')";
+
+            using var reader = command.ExecuteReader();
+            reader.Read();
+            var nextValue = reader.GetInt64(0);
+            reader.Close();
+            
             return nextValue;
         }
 

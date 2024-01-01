@@ -1,4 +1,4 @@
-import { FC } from 'react';
+import { FC, useLayoutEffect } from 'react';
 import { WithQueryResolverData, withQueryResolver } from '../../../../hoc/withQueryResolver';
 import { useGetDetailedCalendarStatisticQuery } from '../../../../redux/api/statisticsApi';
 import { Schedule } from '../../../../types/schedule';
@@ -152,6 +152,16 @@ export const CalendarStatisticPage: FC = () => {
         month: dayjs().startOf('month').toISOString(),
         schedule: undefined,
     });
+
+    useLayoutEffect(() => {
+        if (filter?.month) {
+            const today = dayjs();
+            const date = dayjs(filter.month);
+            if (today.month() !== date.month()) {
+                setFilter({ ...filter, month: today.toISOString() });
+            }
+        }
+    }, []);
 
     if (!filter) throw new Error();
 

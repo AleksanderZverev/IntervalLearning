@@ -1,9 +1,15 @@
-import { InfoOutlined, RefreshOutlined } from '@mui/icons-material';
+import { Construction, InfoOutlined, MoreTime, RefreshOutlined, TimerOff } from '@mui/icons-material';
 import {
     Button,
+    CircularProgress,
     colors,
+    Divider,
     FormControlLabel,
     IconButton,
+    ListItemIcon,
+    ListItemText,
+    Menu,
+    MenuItem,
     Portal,
     Radio,
     RadioGroup,
@@ -14,34 +20,41 @@ import classNames from 'classnames';
 import { FC, useEffect, useRef, useState } from 'react';
 import { ShowCardModal } from '../../../../controls/Modals/ShowCardModal';
 import { PaperCard } from '../../../../controls/PaperCard/PaperCard';
-import { useEventListener } from '../../../../hooks/useEventListener';
 import { getCardUniqueKey } from '../../../../redux/slices/cardsSlice';
 import { Card } from '../../../../types/Collection';
 import { RememberList } from './RememberList/RememberList';
 import styles from './styles.module.css';
+import { HidableText } from '../../../../controls/HidableText/HidableText';
+import { AssertionModal } from '../../../../controls/Modals/AssertionModal';
+import { usePostponeRepeatingCardMutation, useStopRepeatingCardMutation } from '../../../../redux/cardsApi';
+import { Schedule } from '../../../../types/schedule';
+import { RememberForm } from '../RepeatCollectionPage.logic';
+import { FormField } from '../../../../controls/Form/Form';
 
 interface RepeatCardProps {
     card: Card;
+    schedule: Schedule;
     showNext: boolean;
     showPrevious: boolean;
     errorMessage?: string;
-    value: number | null;
+    value: RememberForm | null;
     onNext: () => void;
     onPrevious: () => void;
-    onChange: (weight: number | undefined) => void;
+    onChange: (weight: number | undefined, comment: string | undefined | null) => void;
     onFinish: () => void;
-    isActive: boolean;
+    onCardDeletedFromRepeating: (cardId: string) => void;
+    canDropAnswer: boolean;
     forceShowError: boolean;
     isValueSideDefault: boolean;
 }
 
 interface CardProps {
-    backIsHidden: boolean;
-    promptIsHidden: boolean;
+    isValuesHidden: boolean;
 }
 
 export const RepeatCard: FC<RepeatCardProps> = ({
     card,
+    schedule,
     showNext,
     showPrevious,
     value,
@@ -49,35 +62,79 @@ export const RepeatCard: FC<RepeatCardProps> = ({
     onPrevious,
     onFinish: onEndButtonClick,
     errorMessage,
-    isActive,
+    canDropAnswer,
     onChange,
     isValueSideDefault,
+    ...props
 }) => {
-    const [backIsHidden, setBackIsHidden] = useState(true);
-    const [promptIsHidden, setPromptIsHidden] = useState(true);
+    const [isValuesHidden, setValuesHidden] = useState(true);
     const { current: cardIdToProps } = useRef<Record<string, CardProps>>({});
 
+    const [showStopRepeatingModel, setStopRepeatingModel] = useState(false);
+    const [menuAnchorEl, setMenuAnchorEl] = useState<null | HTMLElement>(null);
+    const openMenu = Boolean(menuAnchorEl);
+
+    const [stopRepeatingCard, stopRepeatingCardState] = useStopRepeatingCardMutation();
+    const [stoppedRepeatingCardIds, setIsStoppedRepeatingCardIds] = useState<string[]>([]);
+    const canStopRepeating = !stoppedRepeatingCardIds.includes(card.id);
+
+    const [showPostponeRepeatingModel, setPostponeRepeatingModel] = useState(false);
+    const [postponeRepeatingCard, postponeRepeatingCardState] = usePostponeRepeatingCardMutation();
+
     useEffect(() => {
-        cardIdToProps[getCardUniqueKey(card)] = { backIsHidden, promptIsHidden };
-    }, [backIsHidden, promptIsHidden]);
+        cardIdToProps[getCardUniqueKey(card)] = { isValuesHidden: isValuesHidden };
+    }, [isValuesHidden]);
 
     useEffect(() => {
         const saveItem = cardIdToProps[getCardUniqueKey(card)];
-        setBackIsHidden(saveItem ? saveItem.backIsHidden : true);
-        setPromptIsHidden(saveItem ? saveItem.promptIsHidden : true);
+        setValuesHidden(saveItem ? saveItem.isValuesHidden : true);
     }, [card]);
 
     const [isError, setIsError] = useState(false);
     const [showCardInfoModal, setShowCardInfoModal] = useState(false);
 
-    useEventListener('keydown', (e) => {
-        e.key === '1' && onChange(0);
-        e.key === '2' && onChange(0.5);
-        e.key === '3' && onChange(1);
-    });
-
     const frontText = isValueSideDefault ? card.backSideText : card.frontSideText;
     const backText = isValueSideDefault ? card.frontSideText : card.backSideText;
+
+    const onStopRepeatingCard = async () => {
+        if (!canStopRepeating) return;
+
+        setStopRepeatingModel(false);
+        setMenuAnchorEl(null);
+        try {
+            const cardId = card.id;
+            await stopRepeatingCard({
+                userId: card.userId,
+                collectionId: card.collectionId,
+                request: {
+                    cardId: card.id,
+                    scheduleUserId: schedule.userId,
+                    scheduleId: schedule.id,
+                },
+            });
+            setIsStoppedRepeatingCardIds([...stoppedRepeatingCardIds, cardId]);
+            props.onCardDeletedFromRepeating(cardId);
+        } catch {}
+    };
+
+    const onPostponeRepeatingCard = async () => {
+        setPostponeRepeatingModel(false);
+        setMenuAnchorEl(null);
+        try {
+            const cardId = card.id;
+            await postponeRepeatingCard({
+                userId: card.userId,
+                collectionId: card.collectionId,
+                request: {
+                    cardId: card.id,
+                    scheduleUserId: schedule.userId,
+                    scheduleId: schedule.id,
+                    postponeDays: 1,
+                },
+            });
+            props.onCardDeletedFromRepeating(cardId);
+        } catch {}
+    };
 
     return (
         <PaperCard
@@ -87,16 +144,45 @@ export const RepeatCard: FC<RepeatCardProps> = ({
                 </IconButton>
             }
             topLeftControl={
-                isActive && (
-                    <IconButton
-                        onClick={() => {
-                            setIsError(false);
-                            onChange(undefined);
-                        }}
-                    >
-                        <RefreshOutlined />
+                <>
+                    <IconButton onClick={(e) => setMenuAnchorEl(e.currentTarget)}>
+                        <Construction />
                     </IconButton>
-                )
+                    <Menu open={openMenu} anchorEl={menuAnchorEl} onClose={() => setMenuAnchorEl(null)}>
+                        <MenuItem
+                            onClick={() => {
+                                setIsError(false);
+                                onChange(undefined, value?.comment);
+                                setMenuAnchorEl(null);
+                            }}
+                            disabled={!canDropAnswer}
+                        >
+                            <ListItemIcon>
+                                <RefreshOutlined />
+                            </ListItemIcon>
+                            <ListItemText>Сбросить выбор</ListItemText>
+                        </MenuItem>
+                        <MenuItem
+                            disabled={postponeRepeatingCardState.isLoading}
+                            onClick={() => setPostponeRepeatingModel(true)}
+                        >
+                            <ListItemIcon>
+                                {postponeRepeatingCardState.isLoading ? <CircularProgress size={16} /> : <MoreTime />}
+                            </ListItemIcon>
+                            <ListItemText>Отложить до завтра</ListItemText>
+                        </MenuItem>
+                        <Divider />
+                        <MenuItem
+                            disabled={stopRepeatingCardState.isLoading || !canStopRepeating}
+                            onClick={() => setStopRepeatingModel(true)}
+                        >
+                            <ListItemIcon>
+                                {stopRepeatingCardState.isLoading ? <CircularProgress size={16} /> : <TimerOff />}
+                            </ListItemIcon>
+                            <ListItemText>Перестать повторять</ListItemText>
+                        </MenuItem>
+                    </Menu>
+                </>
             }
             leftButton={
                 showPrevious && (
@@ -118,7 +204,7 @@ export const RepeatCard: FC<RepeatCardProps> = ({
                         tabIndex={2}
                         variant="outlined"
                         onClick={() => {
-                            if (value === null) {
+                            if (typeof value?.weight !== 'number') {
                                 setIsError(true);
                             } else {
                                 onNext();
@@ -132,7 +218,7 @@ export const RepeatCard: FC<RepeatCardProps> = ({
                         tabIndex={2}
                         variant="contained"
                         onClick={() => {
-                            if (value === null) {
+                            if (typeof value?.weight !== 'number') {
                                 setIsError(true);
                             } else {
                                 onEndButtonClick();
@@ -155,6 +241,24 @@ export const RepeatCard: FC<RepeatCardProps> = ({
                             cardId={card.id}
                         />
                     )}
+                    {showStopRepeatingModel && (
+                        <AssertionModal
+                            title="Завершение повторения карточки"
+                            message={`Карточка «${card.backSideText} - ${card.frontSideText}» будет удалена из повторения`}
+                            assertTitle="Подтвердить"
+                            onClose={() => setStopRepeatingModel(false)}
+                            onAssert={() => onStopRepeatingCard()}
+                        />
+                    )}
+                    {showPostponeRepeatingModel && (
+                        <AssertionModal
+                            title="Отладка карточки до следующего дня"
+                            message={`Карточка «${card.backSideText} - ${card.frontSideText}» будет отложена до завтрашнего дня`}
+                            assertTitle="Отложить"
+                            onClose={() => setPostponeRepeatingModel(false)}
+                            onAssert={() => onPostponeRepeatingCard()}
+                        />
+                    )}
                 </Portal>
 
                 {card.remembers && card.remembers.length > 0 && <RememberList remembers={card.remembers} />}
@@ -165,22 +269,20 @@ export const RepeatCard: FC<RepeatCardProps> = ({
                             {frontText}
                         </Typography>
 
-                        <div
-                            className={classNames(styles.backContainer, { [styles.backHidden]: promptIsHidden })}
-                            onClick={() => setPromptIsHidden(!promptIsHidden)}
-                        >
-                            {card.promptText}
-                        </div>
+                        <HidableText
+                            size="small"
+                            text={card.promptText || ''}
+                            forceVisible={!isValuesHidden}
+                            onChange={() => setValuesHidden(true)}
+                        />
                     </Stack>
 
-                    <div
-                        className={classNames(styles.backContainer, { [styles.backHidden]: backIsHidden })}
-                        onClick={() => setBackIsHidden(!backIsHidden)}
-                    >
-                        <Typography variant="h5" fontSize={24}>
-                            {backText}
-                        </Typography>
-                    </div>
+                    <HidableText
+                        size="medium"
+                        text={backText}
+                        forceVisible={!isValuesHidden}
+                        onChange={() => setValuesHidden(true)}
+                    />
                 </Stack>
                 <RadioGroup
                     onKeyDownCapture={(e) => e.preventDefault()}
@@ -192,38 +294,56 @@ export const RepeatCard: FC<RepeatCardProps> = ({
                             setIsError(false);
                         }
                         const newValue = parseFloat(v);
-                        onChange(newValue);
+                        onChange(newValue, value?.comment);
                         if (newValue > 0.95 || newValue < 0.05) {
-                            setBackIsHidden(false);
-                            setPromptIsHidden(false);
+                            setValuesHidden(false);
                         }
                     }}
                 >
                     <FormControlLabel
                         tabIndex={0}
-                        checked={value === 0}
+                        checked={value?.weight === 0}
                         value={0}
                         control={<Radio />}
                         label="Не помню"
                     />
                     <FormControlLabel
                         tabIndex={0}
-                        checked={value === 0.5}
+                        checked={value?.weight === 0.5}
                         value={0.5}
                         control={<Radio />}
                         label="Помню частично"
                     />
-                    <FormControlLabel tabIndex={0} checked={value === 1} value={1} control={<Radio />} label="Помню" />
+                    <FormControlLabel
+                        tabIndex={0}
+                        checked={value?.weight === 1}
+                        value={1}
+                        control={<Radio />}
+                        label="Помню"
+                    />
                 </RadioGroup>
 
-                <div
-                    className={styles.errorMessage}
-                    style={{
-                        border: `1px solid ${colors.red[400]}`,
-                        visibility: isError ? 'visible' : 'hidden',
-                    }}
-                >
-                    {errorMessage}
+                <div className={styles.memoInput}>
+                    {isError ? (
+                        <div
+                            className={styles.errorMessage}
+                            style={{
+                                border: `1px solid ${colors.red[400]}`,
+                                visibility: isError ? 'visible' : 'hidden',
+                            }}
+                        >
+                            {errorMessage}
+                        </div>
+                    ) : (
+                        <FormField
+                            size="small"
+                            variant="outlined"
+                            label="Заметка"
+                            fontSize={16}
+                            value={value?.comment || ''}
+                            onChange={(e) => onChange(value?.weight, e.target.value || undefined)}
+                        />
+                    )}
                 </div>
             </div>
         </PaperCard>

@@ -8,6 +8,7 @@ export interface Collection {
     themeId: number;
     cardsCount: number;
     notStartedCards: number;
+    canRelearnCardCount: number;
     isPublic: boolean;
     publication?: CollectionPublication;
 }
@@ -47,6 +48,7 @@ export interface Remember {
     weight: number;
     phaseId: number;
     repeatedDate: string;
+    comment: string | null | undefined;
 }
 
 export interface LearningStatistic {

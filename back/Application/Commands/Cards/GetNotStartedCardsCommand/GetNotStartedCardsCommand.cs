@@ -39,7 +39,8 @@ public class GetNotStartedCardsCommand : ICommand<GetNotStartedCardsRequest, Lis
             request.CollectionId,
             startedCardIds);
 
-        return canStartCards.OrderBy(c => c.Id)
+        return canStartCards
+            .OrderBy(c => c.CreatedDate)
             .Take(request.Count)
             .ToList();
     }
