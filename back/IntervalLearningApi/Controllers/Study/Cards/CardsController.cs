@@ -88,9 +88,9 @@ namespace IntervalLearningApi.Controllers.Study.Cards
                         ParentUserId = userId.Value,
                         ParentCollectionId = collectionIdDomain,
                         RememberingText = CardText.Create(request.FrontText).Value,
-                        PromptText = request.PromptText == null ? null : CardText.Create(request.PromptText).Value,
+                        PromptText = string.IsNullOrWhiteSpace(request.PromptText) ? null : CardText.Create(request.PromptText).Value,
                         MeaningText = CardText.Create(request.BackText).Value,
-                        Description = request.Description != null ? CardDescription.Create(request.Description).Value : null,
+                        Description = string.IsNullOrWhiteSpace(request.Description) ? null : CardDescription.Create(request.Description).Value,
                         Examples = request.Examples != null
                             ? request.Examples.Select(e => CardExample.Create(e).Value).ToList()
                             : new List<CardExample>()
@@ -107,9 +107,9 @@ namespace IntervalLearningApi.Controllers.Study.Cards
                     ParentUserId = userId.Value,
                     ParentCollectionId = collectionIdDomain,
                     RememberingText = CardText.Create(request.FrontText).Value,
-                    PromptText = request.PromptText == null ? null : CardText.Create(request.PromptText).Value,
+                    PromptText = string.IsNullOrWhiteSpace(request.PromptText) ? null : CardText.Create(request.PromptText).Value,
                     MeaningText = CardText.Create(request.BackText).Value,
-                    Description = request.Description != null ? CardDescription.Create(request.Description).Value : null,
+                    Description =string.IsNullOrWhiteSpace(request.Description) ? null : CardDescription.Create(request.Description).Value,
                     Examples = request.Examples != null
                         ? request.Examples.Select(e => CardExample.Create(e).Value).ToList()
                         : new List<CardExample>()
