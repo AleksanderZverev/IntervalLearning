@@ -18,7 +18,7 @@ internal class CollectionRepository : BaseRepository<Collection>, IRepository<Co
         var sequenceName = CollectionConfiguration.GetSequenceName(param.UserId);
         const int collectionsStartValue = 100;
         db.EnsureSequenceCreated(sequenceName, collectionsStartValue);
-        var collectionNextId = db.GetSequenceNextValue16(sequenceName);
+        var collectionNextId = db.GetSequenceNextValue16(sequenceName, collectionsStartValue);
         return CollectionId.Create(collectionNextId);
     }
 }

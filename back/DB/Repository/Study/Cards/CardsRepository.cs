@@ -55,7 +55,7 @@ internal class CardsRepository : BaseRepository<Card>, IRepository<Card, CardId,
         var sequenceName = CardConfiguration.GetSequenceName(param.UserId, param.CollectionId);
         const int cardsStartId = 5000;
         db.EnsureSequenceCreated(sequenceName, cardsStartId);
-        var nextCardId = db.GetSequenceNextValue16(sequenceName);
+        var nextCardId = db.GetSequenceNextValue16(sequenceName, cardsStartId);
         return CardId.Create(nextCardId);
     }
 }

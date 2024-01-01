@@ -18,7 +18,7 @@ public class ThemesRepository : BaseRepository<Theme>, IRepository<Theme, ThemeI
         var seqName = ThemeConfiguration.GetSequenceName();
         const int themesStartValue = 10;
         db.EnsureSequenceCreated(seqName, themesStartValue);
-        var themeId = db.GetSequenceNextValue16(seqName);
+        var themeId = db.GetSequenceNextValue16(seqName, themesStartValue);
         return ThemeId.Create(themeId);
     }
 }
