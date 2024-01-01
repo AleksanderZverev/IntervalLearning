@@ -231,9 +231,6 @@ export const cardsApi = api.injectEndpoints({
                 return item;
             },
             providesTags: [tagTypes.repeatCardsList],
-            // providesTags: (result) => (
-            //     result ? [...result.cardIds.map(cardId => {type: tagTypes.card, id: })] : []
-            // )
         }),
         patchRememberCards: build.mutation<RememberCardResponse, BaseRequestItem<RememberRequest>>({
             query: ({ collectionId, request }) => ({
@@ -253,10 +250,11 @@ export const cardsApi = api.injectEndpoints({
                     dispatch(cardDeletedFromCollection({ collectionId: card.collectionId, userId: card.userId }));
                 },
             }),
-            invalidatesTags: [
-                tagTypes.repeatCardsList,
+            invalidatesTags: (r, e, a) => [
                 tagTypes.notFinishedCollectionsList,
+                tagTypes.repeatCardsList,
                 tagTypes.queueCollectionsList,
+                { type: tagTypes.collectionCards, id: getCollectionKey(a.userId, a.collectionId) },
             ],
         }),
         moveCard: build.mutation<Card, BaseRequestItem<MoveCardRequest>>({
@@ -285,10 +283,11 @@ export const cardsApi = api.injectEndpoints({
                     );
                 } catch {}
             },
-            invalidatesTags: [
-                tagTypes.repeatCardsList,
+            invalidatesTags: (r, e, a) => [
                 tagTypes.notFinishedCollectionsList,
+                tagTypes.repeatCardsList,
                 tagTypes.queueCollectionsList,
+                { type: tagTypes.collectionCards, id: getCollectionKey(a.userId, a.collectionId) },
             ],
         }),
         searchCards: build.query<Card[], BaseRequestItem<SearchCardsItem>>({

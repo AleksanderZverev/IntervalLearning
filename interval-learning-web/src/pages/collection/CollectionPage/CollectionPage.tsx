@@ -18,6 +18,7 @@ import { CardRow } from './CardRow';
 import { FormField } from '../../../controls/Form/Form';
 import { useDocumentTitle } from '../../../hooks/useCollectionTitle';
 import { withQueryResolver } from '../../../hoc/withQueryResolver';
+import { boolean } from 'yup';
 
 const cardsCountPerPage = 50;
 const defaultSearchFieldType = 'Слово';
@@ -92,11 +93,13 @@ const CollectionPageContent: FC = () => {
 
     const cardsToList = (useSearch ? foundCards : currentPageCards) ?? [];
     //for the case when card updates it should be updated in the list
-    const cardsFromStorage = cardsToList.map((c) => {
-        const cardFromStorage = storageCards.find((sc) => sc.id === c.id);
-        if (!cardFromStorage) throw new Error();
-        return cardFromStorage;
-    });
+    const cardsFromStorage = cardsToList
+        .map((c) => {
+            const cardFromStorage = storageCards.find((sc) => sc.id === c.id);
+            if (!cardFromStorage) return undefined;
+            return cardFromStorage;
+        })
+        .filter(Boolean);
 
     useDocumentTitle(collection?.title, '📘');
     const [showCreateCardModal, setShowCreateCardModal] = useState(false);
