@@ -222,6 +222,12 @@ public class CardAndCollectionsControllerTests : SharedApiTests
         startCards.NextRepeatPhase.Id.Should().Be("1");
         TimeSpan.FromSeconds(startCards.NextRepeatPhase.SecondsFromLastPhase).Should()
             .Be(LearningCommons.phasesDuration.First());
+
+        startCards.CardMovementInfos.Should().NotBeNullOrEmpty().And.HaveCount(1);
+        var moveInfos = startCards.CardMovementInfos.Single();
+        moveInfos.CardIds.Should().BeEquivalentTo(cards.Select(c => c.Id));
+        moveInfos.NextRepetitionDate.Should().BeCloseTo(expectedRepeatDate, TimeSpan.FromMinutes(5));
+        moveInfos.CardIds.Should().OnlyHaveUniqueItems();
     }
     
     [Theory]
@@ -734,6 +740,61 @@ public class CardAndCollectionsControllerTests : SharedApiTests
 
         repeatCollections.Should().NotBeNull();
         repeatCollections.DateToRepeatingPhases.Should().BeEmpty();
+    }
+    
+    [Fact]
+    public async Task RememberCard_ShouldReturnCorrectNextRepeatingInfo()
+    {
+        //Arrange
+        var (client, user) = SharedScope;
+        var schedule = await CreateTestSchedule(ForgottenBehavior.MoveToPreviousStep);
+        var (collection, preAddedCards) = await CreateRandomCardsAsync(12);
+        await StartCardsAsync(client, collection, preAddedCards, schedule);
+        
+        //Act
+        var currentPhaseIndex = 0;
+        
+        await RememberCardsAsync(client, collection, preAddedCards, schedule, (short)currentPhaseIndex,
+            LearningScenarios.RememberedWeight);
+        currentPhaseIndex++;
+        
+        var rememberResponse = await client.PatchAsJsonAsync(
+            CardsQuery(collection.Id, ApiRoutes.Cards.Path_RememberCard),
+            new RememberCardRequest()
+            {
+                PhaseIndex = (short)currentPhaseIndex,
+                ScheduleId = short.Parse(schedule.Id),
+                ScheduleUserId = UserId.Create(long.Parse(schedule.ParentUserId)).Value,
+                RememberItems = preAddedCards.Select((c, i) => new RememberItemDto()
+                {
+                    CardId = short.Parse(c.Id),
+                    Weight = i switch
+                    {
+                        < 4 => LearningScenarios.RememberedWeight,
+                        >= 4 and < 8 => LearningScenarios.UnknownWeight,
+                        >= 8 and < 12 => LearningScenarios.ForgottenWeight,
+                    } ,
+                    Comment = null,
+                }).ToList(),
+            });
+        var rememberInfo = rememberResponse.ToResponseDto<RememberCardResponse>();
+
+        //Assert
+        rememberInfo.Should().NotBeNull();
+        var now = DateTime.UtcNow;
+        
+        var expectedRepeatDate = now.Add(LearningCommons.phasesDuration.First());
+        rememberInfo.NextRepeatDate.Should().BeCloseTo(expectedRepeatDate, TimeSpan.FromMinutes(5));
+        rememberInfo.CardMovementInfos.Should().NotBeNullOrEmpty();
+
+        var shouldContainDate = LearningCommons.phasesDuration.Take(3).Select(d => now.Add(d)).ToList();
+        foreach (var moveInfo in rememberInfo.CardMovementInfos)
+        {
+            shouldContainDate.Should().ContainSingle(d => d.Date == moveInfo.NextRepetitionDate.Date);
+            moveInfo.CardIds.Should().HaveCount(4);
+        }
+
+        rememberInfo.CardMovementInfos.SelectMany(c => c.CardIds).Should().OnlyHaveUniqueItems();
     }
     
     [Fact]

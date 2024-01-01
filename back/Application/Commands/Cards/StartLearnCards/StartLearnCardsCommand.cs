@@ -108,6 +108,8 @@ public class StartLearnCardsCommand : ICommand<StartLearnCardsRequest, NextRepea
         var closestPhaseIndex = -1;
         Phase? closestPhaseInfo = null;
 
+        var dateToRepeatingInfo = new Dictionary<DateTime, CardMovementInfo>();
+
         foreach (var card in cards)
         {
             var startPhase = scheduleWithPhases.GetFirstPhase();
@@ -131,6 +133,10 @@ public class StartLearnCardsCommand : ICommand<StartLearnCardsRequest, NextRepea
             if (existingCardQueues.Count > 0)
                 studyRepository.RepeatingQueue.DeleteRange(existingCardQueues);
 
+            dateToRepeatingInfo.TryAdd(nextRepeatDate.Date, new CardMovementInfo(new List<CardId>(), nextRepeatDate));
+            var repeatingInfo = dateToRepeatingInfo[nextRepeatDate.Date];
+            repeatingInfo.CardIds.Add(card.Id);
+
             if (nextRepeatDate <= closestRepeatDate)
             {
                 closestRepeatDate = nextRepeatDate;
@@ -151,6 +157,7 @@ public class StartLearnCardsCommand : ICommand<StartLearnCardsRequest, NextRepea
             NextPhase = closestPhaseInfo,
             NextPhaseIndex = closestPhaseIndex,
             NextRepeatDate = closestRepeatDate,
+            CardMovementInfos = dateToRepeatingInfo.Values.ToList(),
         };
     }
 }

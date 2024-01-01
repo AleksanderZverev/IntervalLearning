@@ -61,6 +61,8 @@ public class RememberCardCommand : ICommand<RememberCardRequest, NextRepeatInfoR
         }
         
         using var transaction = transactionProvider.CreateScope();
+
+        var nextRepeatingDateToInfo = new Dictionary<DateTime, CardMovementInfo>();
         
         var closestRepeatDate = DateTime.MaxValue;
         var closestPhaseIndex = -1;
@@ -112,8 +114,12 @@ public class RememberCardCommand : ICommand<RememberCardRequest, NextRepeatInfoR
             var nextPhaseIndex = schedule.IndexOf(nextPhase);
             var nextRepeatDate = nextPhase.GetNextDate(now);
             var newQueueItem = cardRepeatQueueService.Create(schedule, card, nextPhaseIndex, nextRepeatDate);
-            
+
             studyRepository.RepeatingQueue.Add(newQueueItem);
+
+            nextRepeatingDateToInfo.TryAdd(nextRepeatDate.Date, new CardMovementInfo(new List<CardId>(), nextRepeatDate));
+            var repeatingInfo = nextRepeatingDateToInfo[nextRepeatDate.Date];
+            repeatingInfo.CardIds.Add(cardId);
 
             if (nextRepeatDate < closestRepeatDate)
             {
@@ -135,6 +141,7 @@ public class RememberCardCommand : ICommand<RememberCardRequest, NextRepeatInfoR
             NextPhase = closestPhaseInfo,
             NextPhaseIndex = closestPhaseIndex,
             NextRepeatDate = closestRepeatDate == DateTime.MaxValue ? null : closestRepeatDate,
+            CardMovementInfos = nextRepeatingDateToInfo.Values.ToList(),
         };
     }
 }

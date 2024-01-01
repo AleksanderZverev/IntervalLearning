@@ -465,12 +465,15 @@ namespace IntervalLearningApi.Controllers.Study.Cards
                     request.CardIds.Select(cId => CardId.Create(cId).Value).ToList()));
 
             return closestRepeatInfoResult.ToActionResult(closestRepeatInfo =>
-                new StartCardsResponse(
-                    closestRepeatInfo.NextRepeatDate,
-                    closestRepeatInfo.NextPhase == null
+                new StartCardsResponse()
+                {
+                    NextRepeatDate = closestRepeatInfo.NextRepeatDate,
+                    NextPhaseIndex = closestRepeatInfo.NextPhaseIndex,
+                    NextRepeatPhase = closestRepeatInfo.NextPhase == null
                         ? null
                         : mapper.Map<PhaseDto>(closestRepeatInfo.NextPhase),
-                    closestRepeatInfo.NextPhaseIndex));
+                    CardMovementInfos = mapper.Map<List<CardMovementInfoDto>>(closestRepeatInfo.CardMovementInfos),
+                });
         }
 
         [HttpPatch(ApiRoutes.Cards.Path_RememberCard)]
@@ -504,12 +507,15 @@ namespace IntervalLearningApi.Controllers.Study.Cards
                     env.IsDevelopment()));
 
             return closestRepeatInfoResult.ToActionResult(closestRepeatInfo =>
-                new RememberCardResponse(
-                    closestRepeatInfo.NextRepeatDate,
-                    closestRepeatInfo.NextPhase == null
+                new RememberCardResponse()
+                {
+                    NextRepeatDate = closestRepeatInfo.NextRepeatDate,
+                    NextPhaseIndex = closestRepeatInfo.NextPhaseIndex,
+                    NextRepeatPhase = closestRepeatInfo.NextPhase == null
                         ? null
                         : mapper.Map<PhaseDto>(closestRepeatInfo.NextPhase),
-                    closestRepeatInfo.NextPhaseIndex));
+                    CardMovementInfos = mapper.Map<List<CardMovementInfoDto>>(closestRepeatInfo.CardMovementInfos),
+                });
         }
 
         private List<RememberItem> ToCardServiceRememberItems(List<RememberItemDto> requestRememberItems)
