@@ -1,29 +1,32 @@
 import { Typography } from '@mui/material';
 import classNames from 'classnames';
-import { FC, useEffect, useState } from 'react';
+import { FC, useEffect, useLayoutEffect, useState } from 'react';
 import styles from './styles.module.css';
+import _ from 'lodash';
 
 interface HidableTextProps {
+    refreshKey?: string;
     text: string;
     size: 'small' | 'medium' | 'big';
-    forceVisible?: boolean;
-    isVisibleByDefault?: boolean;
+    hidden?: boolean;
     onChange?: (isHidden: boolean) => void;
 }
 
-export const HidableText: FC<HidableTextProps> = ({ text, size, forceVisible, isVisibleByDefault, ...props }) => {
-    const [isHidden, setHidden] = useState(!Boolean(isVisibleByDefault));
+export const HidableText: FC<HidableTextProps> = ({ refreshKey, text, size, hidden, ...props }) => {
+    const shouldBeHidden = _.isBoolean(hidden) ? hidden : true;
+
+    const [isHidden, setHidden] = useState(shouldBeHidden);
+
+    useLayoutEffect(() => {
+        if (shouldBeHidden !== isHidden) {
+            setHidden(shouldBeHidden);
+        }
+    }, [hidden, refreshKey]);
 
     const onChange = (value: boolean) => {
         setHidden(value);
         props.onChange && props.onChange(value);
     };
-
-    useEffect(() => {
-        if (forceVisible) {
-            onChange(false);
-        }
-    }, [forceVisible]);
 
     const largeText = (wrappedText: string) => (
         <Typography variant="h3" fontSize={32}>
@@ -42,7 +45,7 @@ export const HidableText: FC<HidableTextProps> = ({ text, size, forceVisible, is
     return (
         <div
             className={classNames(styles.backContainer, { [styles.backHidden]: isHidden })}
-            onClick={() => setHidden(!isHidden)}
+            onClick={() => onChange(!isHidden)}
         >
             {size == 'big' ? largeText(text) : size == 'medium' ? mediumText(text) : small(text)}
         </div>

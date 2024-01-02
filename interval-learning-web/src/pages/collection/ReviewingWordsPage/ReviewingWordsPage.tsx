@@ -229,7 +229,7 @@ const ReviewingWordsPageContent: FC<ReviewingWordsPageContentProps> = ({
                             <Typography variant="h3" fontSize={32}>
                                 {currentCard.frontSideText}
                             </Typography>
-                            <HidableText size="small" text={currentCard.backSideText} />
+                            <HidableText refreshKey={currentCard.id} size="small" text={currentCard.backSideText} />
                         </Stack>
                     </PaperCard>
                 </CenterContainer>
