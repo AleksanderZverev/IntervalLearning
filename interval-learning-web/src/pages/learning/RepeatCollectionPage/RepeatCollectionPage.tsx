@@ -173,11 +173,13 @@ export const RepeatCollectionPageContent: FC<RepeatCollectionPageContentProps> =
             scheduleUserId,
             scheduleId,
             phaseIndex,
-            rememberItems: resultWeights.map(([cardId, form]) => ({
-                cardId,
-                weight: form?.weight ?? 0,
-                comment: form?.comment || null,
-            })),
+            rememberItems: resultWeights
+                .map(([cardId, form]) => ({
+                    cardId,
+                    weight: form?.weight ?? 0,
+                    comment: form?.comment || null,
+                }))
+                .filter((w) => !deletedCards.includes(w.cardId)),
         };
         try {
             setSkipLoading(true);
@@ -203,7 +205,6 @@ export const RepeatCollectionPageContent: FC<RepeatCollectionPageContentProps> =
 
     const onChange = (weight: number | undefined, comment: string | undefined | null) =>
         updateState((newState) => {
-            // const oldItem = newState.rememberWeights[card.id];
             newState.rememberWeights[card.id] = { weight: weight, comment: comment };
 
             if (weight !== undefined) {
@@ -215,6 +216,12 @@ export const RepeatCollectionPageContent: FC<RepeatCollectionPageContentProps> =
 
     const onDeleteCardFromRepeating = (cardId: string) => {
         setDeletedCards([...deletedCards, cardId]);
+        if (cardId in state.rememberWeights) {
+            updateState((newState) => {
+                delete newState.rememberWeights[cardId];
+                newState.repeatedCardIndex--;
+            });
+        }
     };
 
     const onNext = () => {
@@ -246,8 +253,6 @@ export const RepeatCollectionPageContent: FC<RepeatCollectionPageContentProps> =
         (phase.secondsFromLastPhase < 10
             ? schedule.defaultRepeatPhaseShortDescription
             : schedule.defaultPhaseShortDescription);
-
-    console.log(state);
 
     return (
         <PageContainer transparent>
