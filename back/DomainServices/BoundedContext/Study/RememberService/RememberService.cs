@@ -1,10 +1,9 @@
-using Domain.Card;
 using Domain.Common.ValueObjects.Text.SingleLine;
 using Domain.Schedule;
 using Domain.Schedule.Entities.Remember.ValueObjects;
 using DomainServices.DB.Repositories.Study;
 
-namespace DomainServices.Study.Remember;
+namespace DomainServices.BoundedContext.Study.RememberService;
 
 public class RememberService
 {
@@ -15,12 +14,12 @@ public class RememberService
         this.studyRepository = studyRepository;
     }
 
-    public Domain.Schedule.Entities.Remember.Remember Create(RepeatsSchedule schedule, Card card, RememberWeight weight,
+    public Remember Create(RepeatsSchedule schedule, Card card, RememberWeight weight,
         int phaseIndex, DateTime date, MediumSingleLineString? comment)
     {
         var rememberId = studyRepository.CardRemembers.GetUniqueId(new(schedule, card)).Value;
         
-        return new Domain.Schedule.Entities.Remember.Remember(
+        return new Remember(
             schedule.ParentUserId, 
             schedule.Id,
             card.ParentUserId,
@@ -35,11 +34,11 @@ public class RememberService
         };
     }
     
-    public Domain.Schedule.Entities.Remember.Remember CreateLearnedRemember(RepeatsSchedule schedule, Card card, RememberWeight weight, DateTime date)
+    public Remember CreateLearnedRemember(RepeatsSchedule schedule, Card card, RememberWeight weight, DateTime date)
     {
         var rememberId = studyRepository.CardRemembers.GetUniqueId(new(schedule, card)).Value;
         
-        var remember =  new Domain.Schedule.Entities.Remember.Remember(
+        var remember =  new Remember(
             schedule.ParentUserId, 
             schedule.Id,
             card.ParentUserId,

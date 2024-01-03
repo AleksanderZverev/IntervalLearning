@@ -1,7 +1,7 @@
 using Domain.Schedule;
 using DomainServices.DB.Repositories.Study;
 
-namespace DomainServices.Study.CardRepeatQueue;
+namespace DomainServices.BoundedContext.Study.CardRepeatQueueService;
 
 public class CardRepeatQueueService
 {
@@ -12,11 +12,11 @@ public class CardRepeatQueueService
         this.studyRepository = studyRepository;
     }
     
-    public Domain.Queue.CardRepeatQueue Create(RepeatsSchedule scheduleWithPhases, Card card, int nextPhaseIndex, DateTime nextRepeatDate)
+    public CardRepeatQueue Create(RepeatsSchedule scheduleWithPhases, Card card, int nextPhaseIndex, DateTime nextRepeatDate)
     {
         var queueId = studyRepository.RepeatingQueue.GetUniqueId(new(scheduleWithPhases, card)).Value;
         
-        var queueItem = new Domain.Queue.CardRepeatQueue(
+        var queueItem = new CardRepeatQueue(
             scheduleWithPhases.ParentUserId,
             scheduleWithPhases.Id,
             card.ParentUserId,
