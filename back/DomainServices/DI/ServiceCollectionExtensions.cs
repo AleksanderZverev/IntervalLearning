@@ -1,5 +1,5 @@
-using DomainServices.Study.CardRepeatQueue;
-using DomainServices.Study.Remember;
+using DomainServices.BoundedContext.Study.CardRepeatQueueService;
+using DomainServices.BoundedContext.Study.RememberService;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace DomainServices.DI;

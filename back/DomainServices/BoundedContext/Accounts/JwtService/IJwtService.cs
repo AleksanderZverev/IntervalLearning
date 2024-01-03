@@ -3,7 +3,7 @@ using Domain.User.Entities;
 using Domain.User.ValueObjects;
 using FluentResults;
 
-namespace DomainServices.Accounts.JwtService;
+namespace DomainServices.BoundedContext.Accounts.JwtService;
 
 public interface IJwtService
 {

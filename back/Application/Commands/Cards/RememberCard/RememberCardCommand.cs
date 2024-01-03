@@ -2,10 +2,10 @@ using Application.Commands.Cards.StartLearnCards;
 using Domain.Card.ValueObjects;
 using Domain.Schedule.Entities.Phase;
 using Domain.Schedule.Entities.Phase.Entities;
+using DomainServices.BoundedContext.Study.CardRepeatQueueService;
+using DomainServices.BoundedContext.Study.RememberService;
 using DomainServices.DB.Repositories.Study;
 using DomainServices.DB.Transactions;
-using DomainServices.Study.CardRepeatQueue;
-using DomainServices.Study.Remember;
 using FluentResults;
 using GlobalTools.Errors;
 

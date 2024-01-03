@@ -1,7 +1,7 @@
 using Domain.Language.ValueObjects;
 using Domain.User;
 using Domain.User.Entities;
-using DomainServices.Accounts.PasswordService;
+using DomainServices.BoundedContext.Accounts.PasswordService;
 using DomainServices.DB.Repositories.Accounts;
 using DomainServices.DB.Repositories.Accounts.Users;
 using DomainServices.DB.Transactions;

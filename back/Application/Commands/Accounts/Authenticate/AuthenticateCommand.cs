@@ -1,6 +1,6 @@
 using Domain.User;
-using DomainServices.Accounts.JwtService;
-using DomainServices.Accounts.PasswordService;
+using DomainServices.BoundedContext.Accounts.JwtService;
+using DomainServices.BoundedContext.Accounts.PasswordService;
 using DomainServices.DB.Repositories.Accounts;
 using FluentResults;
 using GlobalTools.Errors;

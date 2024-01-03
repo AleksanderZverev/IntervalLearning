@@ -1,5 +1,5 @@
 using Application.Commands.Accounts.Authenticate;
-using DomainServices.Accounts.JwtService;
+using DomainServices.BoundedContext.Accounts.JwtService;
 using DomainServices.DB.Repositories.Accounts;
 using FluentResults;
 using FluentResults.Extensions;

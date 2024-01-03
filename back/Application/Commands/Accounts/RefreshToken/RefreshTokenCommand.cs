@@ -1,7 +1,7 @@
 using Application.Commands.Accounts.Authenticate;
 using Domain.User;
 using Domain.User.Entities;
-using DomainServices.Accounts.JwtService;
+using DomainServices.BoundedContext.Accounts.JwtService;
 using DomainServices.DB.Repositories.Accounts;
 using DomainServices.DB.Transactions;
 using FluentResults;

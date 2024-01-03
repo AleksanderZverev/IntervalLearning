@@ -5,7 +5,7 @@ using Domain.Queue.ValueObjects;
 using Domain.Schedule;
 using Domain.Schedule.ValueObjects;
 using Domain.User.ValueObjects;
-using Infrastructure;
+using GlobalTools;
 
 namespace Domain.Queue;
 

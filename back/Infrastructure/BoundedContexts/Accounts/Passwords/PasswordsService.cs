@@ -1,6 +1,6 @@
-using Application.Common.Accounts.PasswordService;
+using DomainServices.BoundedContext.Accounts.PasswordService;
 
-namespace Infrastructure.Accounts.Passwords;
+namespace Infrastructure.BoundedContexts.Accounts.Passwords;
 
 public class PasswordsService : IPasswordService
 {

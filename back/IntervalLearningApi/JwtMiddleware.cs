@@ -1,11 +1,7 @@
 ﻿using System.Security.Claims;
-using Application.Common.Accounts.JwtService;
-using Application.Common.Interfaces.DB.Queries.Accounts;
-using DB;
-using DB.Quaries.Accounts;
-using Domain.User.ValueObjects;
+using DomainServices.BoundedContext.Accounts.JwtService;
+using DomainServices.DB.Queries.Accounts;
 using Infrastructure.BoundedContexts.Accounts.Jwt;
-using IntervalLearningApi.Services.Jwt;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;

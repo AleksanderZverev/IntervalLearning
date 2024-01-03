@@ -3,7 +3,7 @@ using Domain.Common.ValueObjects.Text.SingleLine;
 using Domain.Schedule.Entities.Phase.ValueObjects;
 using Domain.Schedule.ValueObjects;
 using Domain.User.ValueObjects;
-using Infrastructure;
+using GlobalTools;
 
 namespace Domain.Schedule.Entities.Phase;
 

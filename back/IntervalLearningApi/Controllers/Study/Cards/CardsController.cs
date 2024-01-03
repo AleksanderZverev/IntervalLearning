@@ -20,7 +20,7 @@ using Domain.Common.ValueObjects.Text.SingleLine;
 using Domain.Schedule.Entities.Remember.ValueObjects;
 using Domain.Schedule.ValueObjects;
 using Domain.User.ValueObjects;
-using Infrastructure.Extensions;
+using GlobalTools.Extensions;
 using IntervalLearningApi.Constants;
 using IntervalLearningApi.Controllers.Study.Cards.DTOs;
 using IntervalLearningApi.Controllers.Study.Cards.Requests;
@@ -429,7 +429,7 @@ namespace IntervalLearningApi.Controllers.Study.Cards
                     userId.Value,
                     collectionIdResult.Value,
                     searchValue.ToLower(),
-                    (Application.Commands.Cards.SearchCards.SearchFieldType)fieldType,
+                    (DomainServices.DB.Queries.Study.Cards.SearchFieldType)fieldType,
                     page,
                     count));
 

@@ -16,7 +16,7 @@ using Domain.Schedule.ValueObjects;
 using Domain.Theme.ValueObjects;
 using Domain.User.ValueObjects;
 using FluentResults;
-using Infrastructure.Extensions;
+using GlobalTools.Extensions;
 using IntervalLearningApi.Constants;
 using IntervalLearningApi.Controllers.Dictionary.DTOs;
 using IntervalLearningApi.Controllers.Store.DTOs;

@@ -12,7 +12,7 @@ public class CardRepeatQueueService
         this.studyRepository = studyRepository;
     }
     
-    public Domain.Queue.CardRepeatQueue Create(RepeatsSchedule scheduleWithPhases, Domain.Card.Card card, int nextPhaseIndex, DateTime nextRepeatDate)
+    public Domain.Queue.CardRepeatQueue Create(RepeatsSchedule scheduleWithPhases, Card card, int nextPhaseIndex, DateTime nextRepeatDate)
     {
         var queueId = studyRepository.RepeatingQueue.GetUniqueId(new(scheduleWithPhases, card)).Value;
         

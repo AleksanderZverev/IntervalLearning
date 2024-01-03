@@ -6,10 +6,10 @@ using Domain.Schedule;
 using Domain.Schedule.Entities.Phase;
 using Domain.Schedule.Entities.Remember.ValueObjects;
 using Domain.User.ValueObjects;
+using DomainServices.BoundedContext.Study.CardRepeatQueueService;
+using DomainServices.BoundedContext.Study.RememberService;
 using DomainServices.DB.Repositories.Study;
 using DomainServices.DB.Transactions;
-using DomainServices.Study.CardRepeatQueue;
-using DomainServices.Study.Remember;
 using FluentResults;
 using GlobalTools.Errors;
 

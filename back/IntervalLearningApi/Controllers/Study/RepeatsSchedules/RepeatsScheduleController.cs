@@ -4,7 +4,7 @@ using Application.Commands.Schedules.GetSchedule;
 using Application.Commands.Schedules.UpdateSchedule;
 using Domain.Schedule.ValueObjects;
 using Domain.User.ValueObjects;
-using Infrastructure.Extensions;
+using GlobalTools.Extensions;
 using IntervalLearningApi.Constants;
 using IntervalLearningApi.Controllers.Study.RepeatsSchedules.DTOs;
 using IntervalLearningApi.Controllers.Study.RepeatsSchedules.Requests.CreateSchedule;
