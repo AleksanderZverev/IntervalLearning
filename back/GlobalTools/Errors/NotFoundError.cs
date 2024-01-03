@@ -1,6 +1,6 @@
 using FluentResults;
 
-namespace Infrastructure.Errors;
+namespace GlobalTools.Errors;
 
 public class NotFoundError : Error
 {

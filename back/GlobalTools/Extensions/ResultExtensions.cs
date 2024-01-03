@@ -1,7 +1,7 @@
 using System.Runtime.CompilerServices;
 using FluentResults;
 
-namespace Infrastructure.Extensions;
+namespace GlobalTools.Extensions;
 
 public static class ResultExtensions
 {
