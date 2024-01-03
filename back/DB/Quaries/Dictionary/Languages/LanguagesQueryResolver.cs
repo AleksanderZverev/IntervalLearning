@@ -1,6 +1,6 @@
-using Application.Common.Interfaces.DB.Queries.Dictionary.Languages;
 using Domain.Language;
 using Domain.Language.ValueObjects;
+using DomainServices.DB.Queries.Dictionary.Languages;
 using Microsoft.EntityFrameworkCore;
 
 namespace DB.Resolvers.Languages;

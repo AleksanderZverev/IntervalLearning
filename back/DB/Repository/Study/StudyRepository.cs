@@ -1,12 +1,3 @@
-using Application.Common.Interfaces.DB.Queries.Study;
-using Application.Common.Interfaces.DB.Repositories;
-using Application.Common.Interfaces.DB.Repositories.Study;
-using Application.Common.Interfaces.DB.Repositories.Study.CardRemembers;
-using Application.Common.Interfaces.DB.Repositories.Study.Cards;
-using Application.Common.Interfaces.DB.Repositories.Study.Collections;
-using Application.Common.Interfaces.DB.Repositories.Study.Queue;
-using Application.Common.Interfaces.DB.Repositories.Study.Schedules;
-using Application.Common.Interfaces.DB.Repositories.Study.Themes;
 using Domain.Card;
 using Domain.Card.ValueObjects;
 using Domain.Collection;
@@ -22,8 +13,17 @@ using Domain.Schedule.Entities.Remember.ValueObjects;
 using Domain.Schedule.ValueObjects;
 using Domain.Theme;
 using Domain.Theme.ValueObjects;
+using DomainServices.DB.Queries.Study;
+using DomainServices.DB.Repositories;
+using DomainServices.DB.Repositories.Study;
+using DomainServices.DB.Repositories.Study.CardRemembers;
+using DomainServices.DB.Repositories.Study.Cards;
+using DomainServices.DB.Repositories.Study.Collections;
+using DomainServices.DB.Repositories.Study.Queue;
+using DomainServices.DB.Repositories.Study.Schedules;
+using DomainServices.DB.Repositories.Study.Themes;
 using FluentResults;
-using Infrastructure.Errors;
+using GlobalTools.Errors;
 
 namespace DB.Repository.Study;
 

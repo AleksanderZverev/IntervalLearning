@@ -1,9 +1,9 @@
-using Application.Common.Interfaces.DB.Queries.Study.Queue;
 using Domain.Card.ValueObjects;
 using Domain.Collection.ValueObjects;
 using Domain.Queue;
 using Domain.Schedule.ValueObjects;
 using Domain.User.ValueObjects;
+using DomainServices.DB.Queries.Study.Queue;
 using Microsoft.EntityFrameworkCore;
 
 namespace DB.Resolvers.Study.Queue;

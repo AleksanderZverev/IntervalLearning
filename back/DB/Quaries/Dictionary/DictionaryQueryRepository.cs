@@ -1,6 +1,6 @@
-using Application.Common.Interfaces.DB.Queries.Dictionary;
-using Application.Common.Interfaces.DB.Queries.Dictionary.Languages;
-using Application.Common.Interfaces.DB.Queries.Dictionary.Words;
+using DomainServices.DB.Queries.Dictionary;
+using DomainServices.DB.Queries.Dictionary.Languages;
+using DomainServices.DB.Queries.Dictionary.Words;
 
 namespace DB.Quaries.Dictionary;
 

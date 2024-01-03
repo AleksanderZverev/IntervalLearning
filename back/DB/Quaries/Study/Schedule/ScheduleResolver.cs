@@ -1,7 +1,7 @@
-using Application.Common.Interfaces.DB.Queries.Study.Schedule;
 using Domain.Schedule;
 using Domain.Schedule.ValueObjects;
 using Domain.User.ValueObjects;
+using DomainServices.DB.Queries.Study.Schedule;
 using Microsoft.EntityFrameworkCore;
 
 namespace DB.Resolvers.Study.Schedule;

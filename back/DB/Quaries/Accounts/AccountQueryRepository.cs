@@ -1,6 +1,6 @@
-using Application.Common.Interfaces.DB.Queries.Accounts;
-using Application.Common.Interfaces.DB.Queries.Accounts.RefreshTokens;
-using Application.Common.Interfaces.DB.Queries.Accounts.Users;
+using DomainServices.DB.Queries.Accounts;
+using DomainServices.DB.Queries.Accounts.RefreshTokens;
+using DomainServices.DB.Queries.Accounts.Users;
 
 namespace DB.Quaries.Accounts;
 

@@ -1,10 +1,9 @@
 using System.Linq.Expressions;
-using Application.Commands.Cards.SearchCards;
-using Application.Common.Interfaces.DB.Queries.Study.Cards;
 using Domain.Card;
 using Domain.Card.ValueObjects;
 using Domain.Collection.ValueObjects;
 using Domain.User.ValueObjects;
+using DomainServices.DB.Queries.Study.Cards;
 using Microsoft.EntityFrameworkCore;
 
 namespace DB.Resolvers.Cards;

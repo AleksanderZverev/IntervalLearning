@@ -1,10 +1,10 @@
-using Application.Common.Interfaces.DB.Queries.Store;
-using Application.Common.Interfaces.DB.Repositories;
-using Application.Common.Interfaces.DB.Repositories.Store;
-using Application.Common.Interfaces.DB.Repositories.Store.PublicCollections;
 using Domain.Deprecated.DbModels;
+using DomainServices.DB.Queries.Store;
+using DomainServices.DB.Repositories;
+using DomainServices.DB.Repositories.Store;
+using DomainServices.DB.Repositories.Store.PublicCollections;
 using FluentResults;
-using Infrastructure.Errors;
+using GlobalTools.Errors;
 
 namespace DB.Repository.Store;
 

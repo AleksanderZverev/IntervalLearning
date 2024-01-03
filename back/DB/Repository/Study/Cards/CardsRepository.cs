@@ -1,9 +1,9 @@
-using Application.Common.Interfaces.DB.Repositories;
-using Application.Common.Interfaces.DB.Repositories.Study.Cards;
 using DB.Configurations.Study;
 using DB.Repository;
 using Domain.Card;
 using Domain.Card.ValueObjects;
+using DomainServices.DB.Repositories;
+using DomainServices.DB.Repositories.Study.Cards;
 using FluentResults;
 
 namespace DB.Resolvers.Cards;

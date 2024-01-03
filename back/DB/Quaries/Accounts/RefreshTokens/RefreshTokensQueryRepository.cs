@@ -1,6 +1,6 @@
-using Application.Common.Interfaces.DB.Queries.Accounts.RefreshTokens;
 using Domain.User.Entities;
 using Domain.User.ValueObjects;
+using DomainServices.DB.Queries.Accounts.RefreshTokens;
 using Microsoft.EntityFrameworkCore;
 
 namespace DB.Quaries.Accounts.RefreshTokens;

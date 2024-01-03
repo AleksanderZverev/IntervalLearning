@@ -1,7 +1,7 @@
-using Application.Common.Interfaces.DB.Queries.Store.PublicCollectionSubscribers;
 using Domain.Collection.ValueObjects;
 using Domain.Deprecated.DbModels;
 using Domain.User.ValueObjects;
+using DomainServices.DB.Queries.Store.PublicCollectionSubscribers;
 
 namespace DB.Resolvers.Store.PublicCollectionSubscribers;
 
