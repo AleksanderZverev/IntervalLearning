@@ -30,6 +30,7 @@ import { usePostponeRepeatingCardMutation, useStopRepeatingCardMutation } from '
 import { Schedule } from '../../../../types/schedule';
 import { RememberForm } from '../RepeatCollectionPage.logic';
 import { FormField } from '../../../../controls/Form/Form';
+import _ from 'lodash';
 
 interface RepeatCardProps {
     card: Card;
@@ -49,7 +50,8 @@ interface RepeatCardProps {
 }
 
 interface CardProps {
-    isValuesHidden: boolean;
+    backIsHidden: boolean;
+    promptIsHidden: boolean;
 }
 
 export const RepeatCard: FC<RepeatCardProps> = ({
@@ -67,7 +69,8 @@ export const RepeatCard: FC<RepeatCardProps> = ({
     isValueSideDefault,
     ...props
 }) => {
-    const [isValuesHidden, setValuesHidden] = useState(true);
+    const [backIsHidden, setBackIsHidden] = useState(true);
+    const [promptIsHidden, setPromptIsHidden] = useState(true);
     const { current: cardIdToProps } = useRef<Record<string, CardProps>>({});
 
     const [showStopRepeatingModel, setStopRepeatingModel] = useState(false);
@@ -82,12 +85,13 @@ export const RepeatCard: FC<RepeatCardProps> = ({
     const [postponeRepeatingCard, postponeRepeatingCardState] = usePostponeRepeatingCardMutation();
 
     useEffect(() => {
-        cardIdToProps[getCardUniqueKey(card)] = { isValuesHidden: isValuesHidden };
-    }, [isValuesHidden]);
+        cardIdToProps[getCardUniqueKey(card)] = { backIsHidden, promptIsHidden };
+    }, [backIsHidden, promptIsHidden]);
 
     useEffect(() => {
         const saveItem = cardIdToProps[getCardUniqueKey(card)];
-        setValuesHidden(saveItem ? saveItem.isValuesHidden : true);
+        setBackIsHidden(_.isUndefined(saveItem?.backIsHidden) ? true : saveItem.backIsHidden);
+        setPromptIsHidden(_.isUndefined(saveItem?.promptIsHidden) ? true : saveItem.promptIsHidden);
     }, [card]);
 
     const [isError, setIsError] = useState(false);
@@ -272,16 +276,16 @@ export const RepeatCard: FC<RepeatCardProps> = ({
                         <HidableText
                             size="small"
                             text={card.promptText || ''}
-                            forceVisible={!isValuesHidden}
-                            onChange={() => setValuesHidden(true)}
+                            hidden={promptIsHidden}
+                            onChange={(isHidden) => setPromptIsHidden(isHidden)}
                         />
                     </Stack>
 
                     <HidableText
                         size="medium"
                         text={backText}
-                        forceVisible={!isValuesHidden}
-                        onChange={() => setValuesHidden(true)}
+                        hidden={backIsHidden}
+                        onChange={(isHidden) => setBackIsHidden(isHidden)}
                     />
                 </Stack>
                 <RadioGroup
@@ -296,7 +300,8 @@ export const RepeatCard: FC<RepeatCardProps> = ({
                         const newValue = parseFloat(v);
                         onChange(newValue, value?.comment);
                         if (newValue > 0.95 || newValue < 0.05) {
-                            setValuesHidden(false);
+                            setPromptIsHidden(false);
+                            setBackIsHidden(false);
                         }
                     }}
                 >
