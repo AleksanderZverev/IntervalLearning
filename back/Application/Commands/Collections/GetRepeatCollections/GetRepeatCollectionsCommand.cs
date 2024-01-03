@@ -1,4 +1,4 @@
-using Application.Common.Interfaces.DB.Queries.Study;
+using DomainServices.DB.Queries.Study;
 using FluentResults;
 
 namespace Application.Commands.Collections.GetRepeatCollections;

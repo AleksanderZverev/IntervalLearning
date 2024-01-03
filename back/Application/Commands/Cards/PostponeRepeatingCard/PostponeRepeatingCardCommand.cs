@@ -1,7 +1,7 @@
-using Application.Common.Interfaces.DB.Repositories.Study;
+using DomainServices.DB.Repositories.Study;
 using FluentResults;
-using Infrastructure;
-using Infrastructure.Errors;
+using GlobalTools;
+using GlobalTools.Errors;
 
 namespace Application.Commands.Cards.PostponeRepeatingCard;
 

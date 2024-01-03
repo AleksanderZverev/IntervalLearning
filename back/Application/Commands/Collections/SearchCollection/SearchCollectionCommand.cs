@@ -1,9 +1,9 @@
-using Application.Common.Interfaces.DB.Queries.Study;
 using Domain.Collection;
+using DomainServices.DB.Queries.Study;
 using FluentResults;
 using FluentResults.Extensions;
-using Infrastructure.Errors;
-using Infrastructure.Extensions;
+using GlobalTools.Errors;
+using GlobalTools.Extensions;
 
 namespace Application.Commands.Collections.SearchCollection;
 

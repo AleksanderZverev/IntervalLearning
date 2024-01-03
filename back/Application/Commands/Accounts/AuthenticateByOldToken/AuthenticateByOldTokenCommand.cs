@@ -1,11 +1,11 @@
 using Application.Commands.Accounts.Authenticate;
-using Application.Common.Accounts.JwtService;
-using Application.Common.Interfaces.DB.Repositories.Accounts;
+using DomainServices.Accounts.JwtService;
+using DomainServices.DB.Repositories.Accounts;
 using FluentResults;
 using FluentResults.Extensions;
-using Infrastructure;
-using Infrastructure.Errors;
-using Infrastructure.Extensions;
+using GlobalTools;
+using GlobalTools.Errors;
+using GlobalTools.Extensions;
 
 namespace Application.Commands.Accounts.AuthenticateByOldToken;
 

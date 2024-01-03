@@ -1,7 +1,7 @@
-using Application.Common.Interfaces.DB.Repositories.Study;
 using Domain.RelearningCard;
+using DomainServices.DB.Repositories.Study;
 using FluentResults;
-using Infrastructure.Errors;
+using GlobalTools.Errors;
 
 namespace Application.Commands.Cards.RelearnCard;
 

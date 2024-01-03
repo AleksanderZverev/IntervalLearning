@@ -1,8 +1,8 @@
-using Application.Common.Interfaces.DB.Queries.Store;
 using Domain.Collection;
+using DomainServices.DB.Queries.Store;
 using FluentResults;
-using Infrastructure.Errors;
-using Infrastructure.Extensions;
+using GlobalTools.Errors;
+using GlobalTools.Extensions;
 
 namespace Application.Commands.Collections.GetPublicCollection;
 

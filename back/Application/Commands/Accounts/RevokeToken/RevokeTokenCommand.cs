@@ -1,7 +1,7 @@
-using Application.Common.Interfaces.DB.Repositories.Accounts;
+using DomainServices.DB.Repositories.Accounts;
 using FluentResults;
-using Infrastructure;
-using Infrastructure.Errors;
+using GlobalTools;
+using GlobalTools.Errors;
 
 namespace Application.Commands.Accounts.RevokeToken;
 

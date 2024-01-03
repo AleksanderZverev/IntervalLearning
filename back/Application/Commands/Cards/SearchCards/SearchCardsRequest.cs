@@ -1,5 +1,6 @@
 using Domain.Collection.ValueObjects;
 using Domain.User.ValueObjects;
+using DomainServices.DB.Queries.Study.Cards;
 
 namespace Application.Commands.Cards.SearchCards;
 

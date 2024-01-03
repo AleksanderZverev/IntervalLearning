@@ -1,6 +1,6 @@
-using Application.Common.Interfaces.DB.Repositories.Study;
 using Domain.Collection;
 using Domain.Collection.ValueObjects;
+using DomainServices.DB.Repositories.Study;
 using FluentResults;
 
 namespace Application.Commands.Collections.CreateCollection;

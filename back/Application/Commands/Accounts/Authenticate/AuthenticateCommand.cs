@@ -1,9 +1,9 @@
-using Application.Common.Accounts.JwtService;
-using Application.Common.Accounts.PasswordService;
-using Application.Common.Interfaces.DB.Repositories.Accounts;
 using Domain.User;
+using DomainServices.Accounts.JwtService;
+using DomainServices.Accounts.PasswordService;
+using DomainServices.DB.Repositories.Accounts;
 using FluentResults;
-using Infrastructure.Errors;
+using GlobalTools.Errors;
 
 namespace Application.Commands.Accounts.Authenticate;
 

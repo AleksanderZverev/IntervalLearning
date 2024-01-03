@@ -1,4 +1,4 @@
-using Application.Common.Interfaces.DB.Repositories.Study;
+using DomainServices.DB.Repositories.Study;
 using FluentResults;
 
 namespace Application.Commands.Cards.StopRepeatingCard;

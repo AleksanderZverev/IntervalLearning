@@ -1,7 +1,7 @@
-using Application.Common.Interfaces.DB.Queries.Study;
 using Domain.Collection;
 using Domain.Common.ValueObjects;
 using Domain.User.ValueObjects;
+using DomainServices.DB.Queries.Study;
 using FluentResults;
 
 namespace Application.Commands.Collections.GetCanStartCollections;

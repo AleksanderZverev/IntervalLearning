@@ -1,7 +1,7 @@
-using Application.Common.Interfaces.DB.Queries.Dictionary;
 using Domain.Language;
+using DomainServices.DB.Queries.Dictionary;
 using FluentResults;
-using Infrastructure.Extensions;
+using GlobalTools.Extensions;
 
 namespace Application.Commands.Dictionary.GetLanguages;
 

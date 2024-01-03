@@ -1,15 +1,15 @@
 using System.Diagnostics;
 using Application.Commands.Cards.CreateCard;
 using Application.Commands.Collections.CreateCollection;
-using Application.Common.Interfaces.DB.Queries.Study;
-using Application.Common.Interfaces.DB.Repositories.Store;
-using Application.Common.Interfaces.DB.Transactions;
 using Domain.Card;
 using Domain.Collection;
 using Domain.Collection.ValueObjects;
 using Domain.Deprecated.DbModels;
+using DomainServices.DB.Queries.Study;
+using DomainServices.DB.Repositories.Store;
+using DomainServices.DB.Transactions;
 using FluentResults;
-using Infrastructure.Errors;
+using GlobalTools.Errors;
 
 namespace Application.Commands.Collections.AddPublicCollection;
 
