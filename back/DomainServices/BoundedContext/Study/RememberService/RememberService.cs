@@ -1,5 +1,7 @@
+using Domain.Card;
 using Domain.Common.ValueObjects.Text.SingleLine;
 using Domain.Schedule;
+using Domain.Schedule.Entities.Remember;
 using Domain.Schedule.Entities.Remember.ValueObjects;
 using DomainServices.DB.Repositories.Study;
 
@@ -12,6 +14,20 @@ public class RememberService
     public RememberService(IStudyRepository studyRepository)
     {
         this.studyRepository = studyRepository;
+    }
+
+    public Remember CreateForCard(Remember movingRemember, Card toCard)
+    {
+        return new Remember(
+            movingRemember.ParentRepeatsScheduleUserId,
+            movingRemember.ParentRepeatsScheduleId,
+            toCard.ParentUserId,
+            toCard.ParentCollectionId,
+            toCard.Id,
+            movingRemember.Id,
+            movingRemember.Weight,
+            movingRemember.PhaseIndex,
+            movingRemember.RepeatedDate);
     }
 
     public Remember Create(RepeatsSchedule schedule, Card card, RememberWeight weight,

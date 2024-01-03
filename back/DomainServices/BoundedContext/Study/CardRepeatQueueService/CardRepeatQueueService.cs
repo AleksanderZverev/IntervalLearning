@@ -1,3 +1,5 @@
+using Domain.Card;
+using Domain.Queue;
 using Domain.Schedule;
 using DomainServices.DB.Repositories.Study;
 

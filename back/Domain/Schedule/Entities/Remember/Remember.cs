@@ -27,7 +27,7 @@ public class Remember : Entity<ComplexRememberId>, IParentCardReference
     public DateTime RepeatedDate { get; set; }
     public MediumSingleLineString? Comment { get; set; }
     
-    public Remember(
+    internal Remember(
         UserId parentRepeatsScheduleUserId, 
         ScheduleId parentRepeatsScheduleId,
         UserId parentUserId,
