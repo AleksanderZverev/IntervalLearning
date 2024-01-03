@@ -2,7 +2,7 @@ using Domain.Dictionary.Word;
 using Domain.Dictionary.Word.ValueObjects;
 using Domain.Language.ValueObjects;
 
-namespace Application.Common.Interfaces.DB.Queries.Dictionary.Words;
+namespace DomainServices.DB.Queries.Dictionary.Words;
 
 public interface IWordsQueryResolver
 {

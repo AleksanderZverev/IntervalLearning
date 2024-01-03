@@ -1,4 +1,4 @@
-namespace Application.Commands.Cards.SearchCards;
+namespace DomainServices.DB.Queries.Study.Cards;
 
 public enum SearchFieldType
 {

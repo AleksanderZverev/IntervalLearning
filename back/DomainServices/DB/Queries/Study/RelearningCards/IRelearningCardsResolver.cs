@@ -1,10 +1,9 @@
 using Domain.Card.ValueObjects;
-using Domain.Collection;
 using Domain.Collection.ValueObjects;
 using Domain.RelearningCard;
 using Domain.User.ValueObjects;
 
-namespace Application.Common.Interfaces.DB.Queries.Study.RelearningCards;
+namespace DomainServices.DB.Queries.Study.RelearningCards;
 
 public interface IRelearningCardsResolver
 {

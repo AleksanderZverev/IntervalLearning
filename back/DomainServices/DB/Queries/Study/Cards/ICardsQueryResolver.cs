@@ -1,10 +1,9 @@
-using Application.Commands.Cards.SearchCards;
 using Domain.Card;
 using Domain.Card.ValueObjects;
 using Domain.Collection.ValueObjects;
 using Domain.User.ValueObjects;
 
-namespace Application.Common.Interfaces.DB.Queries.Study.Cards;
+namespace DomainServices.DB.Queries.Study.Cards;
 
 public interface ICardsQueryResolver
 {

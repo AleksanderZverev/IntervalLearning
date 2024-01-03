@@ -1,6 +1,6 @@
 using Domain.Collection;
 
-namespace Application.Common.Interfaces.DB.Repositories.Store.PublicCollections;
+namespace DomainServices.DB.Repositories.Store.PublicCollections;
 
 public interface IPublicCollectionRepository
 {

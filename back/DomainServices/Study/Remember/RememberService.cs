@@ -1,10 +1,10 @@
-using Application.Common.Interfaces.DB.Repositories.Study;
 using Domain.Card;
 using Domain.Common.ValueObjects.Text.SingleLine;
 using Domain.Schedule;
 using Domain.Schedule.Entities.Remember.ValueObjects;
+using DomainServices.DB.Repositories.Study;
 
-namespace Application.Services.Study.Remember;
+namespace DomainServices.Study.Remember;
 
 public class RememberService
 {

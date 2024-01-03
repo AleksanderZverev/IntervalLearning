@@ -4,7 +4,7 @@ using Domain.Collection.ValueObjects;
 using Domain.Schedule.ValueObjects;
 using Domain.User.ValueObjects;
 
-namespace Application.Common.Interfaces.DB.Queries.Study.Remember;
+namespace DomainServices.DB.Queries.Study.Remember;
 
 public interface IRememberQueryResolver
 {

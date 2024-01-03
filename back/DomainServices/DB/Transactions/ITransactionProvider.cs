@@ -1,4 +1,4 @@
-namespace Application.Common.Interfaces.DB.Transactions;
+namespace DomainServices.DB.Transactions;
 
 public interface ITransactionProvider
 {

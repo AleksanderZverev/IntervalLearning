@@ -1,10 +1,10 @@
-using Application.Common.Interfaces.DB.Queries.Accounts;
-using Application.Common.Interfaces.DB.Repositories.Accounts.Users;
 using Domain.User;
 using Domain.User.Entities;
 using Domain.User.ValueObjects;
+using DomainServices.DB.Queries.Accounts;
+using DomainServices.DB.Repositories.Accounts.Users;
 
-namespace Application.Common.Interfaces.DB.Repositories.Accounts;
+namespace DomainServices.DB.Repositories.Accounts;
 
 public interface IAccountRepository : IBoundedContextRepository
 {

@@ -6,6 +6,10 @@
     <Nullable>enable</Nullable>
     <LangVersion>11</LangVersion>
   </PropertyGroup>
+  
+  <ItemGroup>
+    <InternalsVisibleTo Include="DomainServices" />
+  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="FluentResults" Version="3.15.2" />

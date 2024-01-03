@@ -1,7 +1,7 @@
 using Domain.Theme;
 using Domain.Theme.ValueObjects;
 
-namespace Application.Common.Interfaces.DB.Queries.Study.Themes;
+namespace DomainServices.DB.Queries.Study.Themes;
 
 public interface IThemesQueryResolver
 {

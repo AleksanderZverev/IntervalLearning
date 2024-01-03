@@ -1,8 +1,8 @@
-using Application.Common.Interfaces.DB.Queries.Dictionary.Languages;
-using Application.Common.Interfaces.DB.Queries.Dictionary.Words;
-using Application.Common.Interfaces.DB.Repositories;
+using DomainServices.DB.Queries.Dictionary.Languages;
+using DomainServices.DB.Queries.Dictionary.Words;
+using DomainServices.DB.Repositories;
 
-namespace Application.Common.Interfaces.DB.Queries.Dictionary;
+namespace DomainServices.DB.Queries.Dictionary;
 
 public interface IDictionaryQueryRepository : IBoundedContextQueryRepository
 {

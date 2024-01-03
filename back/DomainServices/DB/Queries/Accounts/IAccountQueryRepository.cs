@@ -1,8 +1,8 @@
-using Application.Common.Interfaces.DB.Queries.Accounts.RefreshTokens;
-using Application.Common.Interfaces.DB.Queries.Accounts.Users;
-using Application.Common.Interfaces.DB.Repositories;
+using DomainServices.DB.Queries.Accounts.RefreshTokens;
+using DomainServices.DB.Queries.Accounts.Users;
+using DomainServices.DB.Repositories;
 
-namespace Application.Common.Interfaces.DB.Queries.Accounts;
+namespace DomainServices.DB.Queries.Accounts;
 
 public interface IAccountQueryRepository : IBoundedContextQueryRepository
 {

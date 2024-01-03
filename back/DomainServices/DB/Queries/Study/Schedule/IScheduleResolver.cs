@@ -2,7 +2,7 @@ using Domain.Schedule;
 using Domain.Schedule.ValueObjects;
 using Domain.User.ValueObjects;
 
-namespace Application.Common.Interfaces.DB.Queries.Study.Schedule;
+namespace DomainServices.DB.Queries.Study.Schedule;
 
 public interface IScheduleResolver
 {

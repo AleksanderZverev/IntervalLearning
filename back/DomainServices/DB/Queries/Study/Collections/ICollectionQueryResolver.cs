@@ -4,7 +4,7 @@ using Domain.Theme.ValueObjects;
 using Domain.User.ValueObjects;
 using FluentResults;
 
-namespace Application.Common.Interfaces.DB.Queries.Study.Collections;
+namespace DomainServices.DB.Queries.Study.Collections;
 
 public interface ICollectionQueryResolver
 {

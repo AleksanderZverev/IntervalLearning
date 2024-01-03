@@ -1,7 +1,7 @@
 using Domain.User.Entities;
 using Domain.User.ValueObjects;
 
-namespace Application.Common.Interfaces.DB.Queries.Accounts.RefreshTokens;
+namespace DomainServices.DB.Queries.Accounts.RefreshTokens;
 
 public interface IRefreshTokensQueryRepository
 {

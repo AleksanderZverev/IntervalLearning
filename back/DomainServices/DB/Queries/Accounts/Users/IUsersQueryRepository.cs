@@ -1,7 +1,7 @@
 using Domain.User;
 using Domain.User.ValueObjects;
 
-namespace Application.Common.Interfaces.DB.Queries.Accounts.Users;
+namespace DomainServices.DB.Queries.Accounts.Users;
 
 public interface IUsersQueryRepository
 {

@@ -4,7 +4,7 @@ using Domain.Queue;
 using Domain.Schedule.ValueObjects;
 using Domain.User.ValueObjects;
 
-namespace Application.Common.Interfaces.DB.Queries.Study.Queue;
+namespace DomainServices.DB.Queries.Study.Queue;
 
 public interface IRepeatingQueueResolver
 {

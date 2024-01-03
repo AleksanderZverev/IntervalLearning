@@ -1,6 +1,6 @@
 using FluentResults;
 
-namespace Application.Common.Interfaces.DB.Repositories;
+namespace DomainServices.DB.Repositories;
 
 
 public interface IRepository<TEntity>
