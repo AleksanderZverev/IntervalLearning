@@ -35,6 +35,11 @@
     background-color: #dc5d5d;
 }
 
+.rememberList .comment {
+    outline: 1px solid black;
+    outline-offset: -1px;
+}
+
 .tooltip {
     display: flex;
     flex-direction: column;

@@ -39,6 +39,7 @@ export const RememberList: FC<RememberListProps> = ({ remembers }) => {
                                 const isWarn = r.weight >= 0.3 && r.weight < 0.8;
                                 const isBad = r.weight < 0.3;
                                 const isGood = r.weight >= 0.8;
+                                const hasComment = Boolean(r.comment);
 
                                 const date = dayjs(r.repeatedDate);
                                 const lastRemember = getLastRemember(r);
@@ -71,6 +72,7 @@ export const RememberList: FC<RememberListProps> = ({ remembers }) => {
                                                 [styles.good]: isGood,
                                                 [styles.warn]: isWarn,
                                                 [styles.bad]: isBad,
+                                                [styles.comment]: hasComment,
                                             })}
                                         ></li>
                                     </LightTooltip>
