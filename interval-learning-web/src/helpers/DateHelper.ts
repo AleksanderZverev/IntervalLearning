@@ -10,6 +10,6 @@ export class DateHelper {
         }
 
         const diffString = timeStamp.humanize();
-        return prefix + ' ' + diffString;
+        return (prefix ? prefix + ' ' : '') + diffString;
     }
 }
