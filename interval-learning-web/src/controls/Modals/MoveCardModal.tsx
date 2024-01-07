@@ -13,6 +13,7 @@ interface MoveCardModalProps extends WithMutationResolverProps<typeof useMoveCar
     isOpen: boolean;
     card: Card;
     onClose: () => void;
+    onMoved?: (card: Card) => void;
 }
 
 const MoveCardModalComponent: FC<MoveCardModalProps> = ({
@@ -24,6 +25,7 @@ const MoveCardModalComponent: FC<MoveCardModalProps> = ({
     const onMove = async () => {
         if (!selectedCollection) return;
         try {
+            const movingCard = props.card;
             await moveCard({
                 collectionId: props.card.collectionId,
                 userId: props.card.userId,
@@ -32,7 +34,9 @@ const MoveCardModalComponent: FC<MoveCardModalProps> = ({
                     cardId: props.card.id,
                 },
             });
-        } catch {
+            props.onMoved ? props.onMoved(movingCard) : props.onClose();
+        } catch (e) {
+            console.debug('moving card failure', e);
             showRetryModal(onMove);
         }
     };
