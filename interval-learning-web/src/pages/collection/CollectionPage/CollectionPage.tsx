@@ -2,7 +2,7 @@
 import { Add, Casino, Public, Visibility } from '@mui/icons-material';
 import { Autocomplete, Button, CircularProgress, Pagination, Stack, TableCell, TextField } from '@mui/material';
 import dayjs from 'dayjs';
-import { FC, useEffect, useMemo, useRef, useState } from 'react';
+import { FC, useLayoutEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { CreateCardModal } from '../../../controls/Modals/CreateCardModal';
 import { PageContainer } from '../../../controls/PageContainer/PageContainer';
@@ -18,8 +18,9 @@ import { CardRow } from './CardRow';
 import { FormField } from '../../../controls/Form/Form';
 import { useDocumentTitle } from '../../../hooks/useCollectionTitle';
 import { withQueryResolver } from '../../../hoc/withQueryResolver';
-import { boolean } from 'yup';
 import { Card } from '../../../types/Collection';
+import _ from 'lodash';
+import { PagedCards } from './PagedCards';
 
 const cardsCountPerPage = 50;
 const defaultSearchFieldType = 'Слово';
@@ -61,11 +62,10 @@ const CollectionPageContent: FC = () => {
         });
     };
 
-    const { isFetching: isCollectionFetching, isError: isCollectionError } = useGetCollectionQuery({ collectionId });
     const {
-        data: currentPageCards,
-        isFetching: isCardsFetching,
+        data: loadedForPageCards,
         isError: isCardsError,
+        isLoading: isCardsLoading,
     } = useGetCardsQuery({
         userId,
         collectionId,
@@ -85,13 +85,21 @@ const CollectionPageContent: FC = () => {
         },
         { skip: !useSearch }
     );
-    const isFetching = isCollectionFetching || isCardsFetching;
-    const isError = isCollectionError || isCardsError || isSearchError;
+
+    const isError = isCardsError || isSearchError;
 
     const collection = useRequiredTypedSelector((state) => selectCollectionById(state, userId, collectionId));
     const theme = useRequiredTypedSelector((state) => selectTheme(state, collection.themeId));
     const storageCards = useTypedSelector((state) => selectCards(state, collection?.userId, collection?.id));
+    const [pageCards, setPagedCards] = useState(new PagedCards());
 
+    useLayoutEffect(() => {
+        if (loadedForPageCards) {
+            setPagedCards(pageCards.setCardsForPage(page, loadedForPageCards));
+        }
+    }, [loadedForPageCards]);
+
+    const currentPageCards = pageCards.getCardsForPage(page);
     const cardsToList = (useSearch ? foundCards : currentPageCards) ?? [];
     //for the case when card updates it should be updated in the list
     const cardsFromStorage: Card[] = cardsToList
@@ -107,10 +115,10 @@ const CollectionPageContent: FC = () => {
 
     const cards = [...cardsFromStorage].sort((f, s) => dayjs(s.createdDate).diff(dayjs(f.createdDate)));
 
-    if (isFetching || isError) {
+    if (isCardsLoading || isError) {
         return (
             <PageContainer>
-                {isFetching && <CircularProgress />}
+                {isCardsLoading && <CircularProgress />}
                 {isError && <div>Load error</div>}
             </PageContainer>
         );
@@ -151,7 +159,10 @@ const CollectionPageContent: FC = () => {
                     collectionUserId={collection.userId}
                     open={showCreateCardModal}
                     onClose={() => setShowCreateCardModal(false)}
-                    // defaultSchedule={defaultSchedule}
+                    onAdded={(card) => {
+                        setShowCreateCardModal(false);
+                        setPagedCards(pageCards.addCardToFirstPage(card));
+                    }}
                 />
             )}
             <div>
@@ -184,7 +195,14 @@ const CollectionPageContent: FC = () => {
                     </TableHead>
                     <TableBody>
                         {cards && cards.length > 0 ? (
-                            cards.map((c) => <CardRow key={c.id} card={c} />)
+                            cards.map((c) => (
+                                <CardRow
+                                    key={c.id}
+                                    card={c}
+                                    onCardMoved={(c) => setPagedCards(pageCards.deleteCardFromPages(c))}
+                                    onCardDeleted={(c) => setPagedCards(pageCards.deleteCardFromPages(c))}
+                                />
+                            ))
                         ) : (
                             <TableRow borderless>
                                 <TableCell colSpan={99} align="center">

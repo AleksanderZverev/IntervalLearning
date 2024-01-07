@@ -288,6 +288,7 @@ export const cardsApi = api.injectEndpoints({
                 tagTypes.repeatCardsList,
                 tagTypes.queueCollectionsList,
                 { type: tagTypes.collectionCards, id: getCollectionKey(a.userId, a.collectionId) },
+                { type: tagTypes.collectionCards, id: getCollectionKey(a.userId, a.request.destinationCollectionId) },
             ],
         }),
         searchCards: build.query<Card[], BaseRequestItem<SearchCardsItem>>({
