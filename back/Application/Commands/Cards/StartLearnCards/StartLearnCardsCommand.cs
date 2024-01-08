@@ -111,26 +111,18 @@ public class StartLearnCardsCommand : ICommand<StartLearnCardsRequest, NextRepea
 
         foreach (var card in cards)
         {
-            var startPhase = scheduleWithPhases.GetFirstPhase();
-            var phaseIndex = scheduleWithPhases.IndexOf(startPhase);
+            var stopRepeatingResult = cardRepeatQueueService.StopRepeatingCard(card, scheduleWithPhases).GetAwaiter().GetResult();
+
+            if (stopRepeatingResult.IsFailed)
+                return stopRepeatingResult;
             
-            var nextRepeatDate = startPhase.GetNextDate(DateTime.UtcNow);
-            var nextQueueItem = cardRepeatQueueService.Create(
-                scheduleWithPhases,
-                card,
-                phaseIndex,
-                nextRepeatDate);
-            studyRepository.RepeatingQueue.Add(nextQueueItem);
+            var startRepeatingResult = cardRepeatQueueService.StartRepeatingCard(card, scheduleWithPhases).GetAwaiter().GetResult();
 
-            var existingCardQueues = studyRepository.Query.RepeatingQueue.GetAllForCard(
-                card.ParentUserId,
-                card.ParentCollectionId,
-                card.Id,
-                scheduleWithPhases.ParentUserId,
-                scheduleWithPhases.Id).GetAwaiter().GetResult();
+            if (startRepeatingResult.IsFailed)
+                return startRepeatingResult.ToResult();
 
-            if (existingCardQueues.Count > 0)
-                studyRepository.RepeatingQueue.DeleteRange(existingCardQueues);
+            var nextRepeatDateQueue = startRepeatingResult.Value;
+            var nextRepeatDate = nextRepeatDateQueue.Date;
 
             dateToRepeatingInfo.TryAdd(nextRepeatDate.Date, new CardMovementInfo(new List<CardId>(), nextRepeatDate));
             var repeatingInfo = dateToRepeatingInfo[nextRepeatDate.Date];
@@ -139,8 +131,8 @@ public class StartLearnCardsCommand : ICommand<StartLearnCardsRequest, NextRepea
             if (nextRepeatDate <= closestRepeatDate)
             {
                 closestRepeatDate = nextRepeatDate;
-                closestPhaseInfo = startPhase;
-                closestPhaseIndex = phaseIndex;
+                closestPhaseInfo = scheduleWithPhases.GetPhaseByIndex(nextRepeatDateQueue.PhaseIndex);
+                closestPhaseIndex = nextRepeatDateQueue.PhaseIndex;
             }
         }
         
