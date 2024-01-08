@@ -157,6 +157,8 @@ export const RepeatCard: FC<RepeatCardProps> = ({
                 collectionId: card.collectionId,
                 request: {
                     cardId: card.id,
+                    scheduleUserId: schedule.userId,
+                    scheduleId: schedule.id,
                 },
             });
             props.onCardDeletedFromRepeating(cardId);
