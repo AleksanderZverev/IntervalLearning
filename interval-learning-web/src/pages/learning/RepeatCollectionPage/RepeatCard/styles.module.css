@@ -31,4 +31,5 @@
     justify-self: flex-end;
     width: 320px;
     height: 64px;
+    z-index: 1;
 }
