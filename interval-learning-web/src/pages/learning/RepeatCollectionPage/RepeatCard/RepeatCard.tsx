@@ -1,4 +1,4 @@
-import { Construction, InfoOutlined, MoreTime, RefreshOutlined, TimerOff } from '@mui/icons-material';
+import { Construction, History, InfoOutlined, MoreTime, RefreshOutlined, TimerOff } from '@mui/icons-material';
 import {
     Button,
     CircularProgress,
@@ -26,7 +26,11 @@ import { RememberList } from './RememberList/RememberList';
 import styles from './styles.module.css';
 import { HidableText } from '../../../../controls/HidableText/HidableText';
 import { AssertionModal } from '../../../../controls/Modals/AssertionModal';
-import { usePostponeRepeatingCardMutation, useStopRepeatingCardMutation } from '../../../../redux/cardsApi';
+import {
+    usePostponeRepeatingCardMutation,
+    useRelearnCardMutation,
+    useStopRepeatingCardMutation,
+} from '../../../../redux/cardsApi';
 import { Schedule } from '../../../../types/schedule';
 import { RememberForm } from '../RepeatCollectionPage.logic';
 import { FormField } from '../../../../controls/Form/Form';
@@ -84,6 +88,9 @@ export const RepeatCard: FC<RepeatCardProps> = ({
     const [showPostponeRepeatingModel, setPostponeRepeatingModel] = useState(false);
     const [postponeRepeatingCard, postponeRepeatingCardState] = usePostponeRepeatingCardMutation();
 
+    const [showRelearnModal, setRelearnModal] = useState(false);
+    const [relearnCard, relearnCardState] = useRelearnCardMutation();
+
     useEffect(() => {
         cardIdToProps[getCardUniqueKey(card)] = { backIsHidden, promptIsHidden };
     }, [backIsHidden, promptIsHidden]);
@@ -140,6 +147,22 @@ export const RepeatCard: FC<RepeatCardProps> = ({
         } catch {}
     };
 
+    const onRelearnCard = async () => {
+        setRelearnModal(false);
+        setMenuAnchorEl(null);
+        try {
+            const cardId = card.id;
+            await relearnCard({
+                userId: card.userId,
+                collectionId: card.collectionId,
+                request: {
+                    cardId: card.id,
+                },
+            });
+            props.onCardDeletedFromRepeating(cardId);
+        } catch {}
+    };
+
     return (
         <PaperCard
             topRightControl={
@@ -184,6 +207,15 @@ export const RepeatCard: FC<RepeatCardProps> = ({
                                 {stopRepeatingCardState.isLoading ? <CircularProgress size={16} /> : <TimerOff />}
                             </ListItemIcon>
                             <ListItemText>Перестать повторять</ListItemText>
+                        </MenuItem>
+                        <MenuItem
+                            disabled={relearnCardState.isLoading || relearnCardState.isSuccess}
+                            onClick={() => setRelearnModal(true)}
+                        >
+                            <ListItemIcon>
+                                {relearnCardState.isLoading ? <CircularProgress size={16} /> : <History />}
+                            </ListItemIcon>
+                            <ListItemText>Изучить заново</ListItemText>
                         </MenuItem>
                     </Menu>
                 </>
@@ -261,6 +293,18 @@ export const RepeatCard: FC<RepeatCardProps> = ({
                             assertTitle="Отложить"
                             onClose={() => setPostponeRepeatingModel(false)}
                             onAssert={() => onPostponeRepeatingCard()}
+                        />
+                    )}
+                    {showRelearnModal && (
+                        <AssertionModal
+                            title="Сброс изучения карточки"
+                            message={
+                                `Карточка «${card.backSideText} - ${card.frontSideText}» будет добавлена в список ` +
+                                `повторения, а дальнейшие повторения отменены`
+                            }
+                            assertTitle="Изучить снова"
+                            onClose={() => setRelearnModal(false)}
+                            onAssert={() => onRelearnCard()}
                         />
                     )}
                 </Portal>
