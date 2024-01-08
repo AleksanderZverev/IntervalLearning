@@ -162,6 +162,7 @@ const CollectionPageContent: FC = () => {
                     onAdded={(card) => {
                         setShowCreateCardModal(false);
                         setPagedCards(pageCards.addCardToFirstPage(card));
+                        setFilter(getDefaultFilter());
                     }}
                 />
             )}
