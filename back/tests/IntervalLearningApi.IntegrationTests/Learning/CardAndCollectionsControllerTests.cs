@@ -1,3 +1,4 @@
+using Domain.Schedule;
 using Domain.Schedule.ValueObjects;
 using Domain.User.ValueObjects;
 using IntervalLearningApi.Controllers.Study.Cards.DTOs;
@@ -135,10 +136,20 @@ public class CardAndCollectionsControllerTests : SharedApiTests
     private async Task RelearnCardAsync(
         HttpClient client,
         CollectionDto collection,
-        CardDto card)
+        CardDto card,
+        RepeatsScheduleDto? schedule = null)
     {
+        var query = new QueryString().Add("cardId", card.Id);
+
+        if (schedule != null)
+        {
+            query = query.Add("scheduleUserId", schedule.ParentUserId)
+                .Add("scheduleId", schedule.Id);
+        }
+        
         var relearnCardResponse = await client.PatchAsync(
-            CardsQuery(collection.Id, ApiRoutes.Cards.Patch_RelearnCard) + new QueryString().Add("cardId", card.Id), 
+            CardsQuery(collection.Id, ApiRoutes.Cards.Patch_RelearnCard) + query,
+            
             new StringContent(string.Empty)
         );
     }
@@ -815,6 +826,30 @@ public class CardAndCollectionsControllerTests : SharedApiTests
         var relearningCards = await GetRelearningCardsAsync(client, collection);
         relearningCards.Should().NotBeNullOrEmpty();
         relearningCards.Should().BeEquivalentTo(cards, o => o.ForCard());
+    }
+    
+    [Fact]
+    public async Task RelearnCard_ShouldStopRepeatingCard()
+    {
+        //Arrange
+        var (client, user) = SharedScope;
+        var schedule = await CreateTestSchedule(ForgottenBehavior.MoveToPreviousStep);
+        var cardsCount = 12;
+        var (collection, cards) = await CreateRandomCardsAsync(cardsCount);
+        await StartCardsAsync(client, collection, cards, schedule);
+        
+        //Act
+        foreach (var card in cards)
+        {
+            await RelearnCardAsync(client, collection, card, schedule);
+        }
+
+        //Assert
+        var getRepeatCollectionsResponse = await client.GetAsync(
+            CollectionsQuery(ApiRoutes.Collections.GetRepeatCollections));
+        var repeatCollections = getRepeatCollectionsResponse.ToResponseDto<RepeatingCollectionResponse>();
+
+        repeatCollections.DateToRepeatingPhases.Should().BeNullOrEmpty();
     }
     
     [Theory]
