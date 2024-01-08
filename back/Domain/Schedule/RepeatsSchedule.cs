@@ -79,7 +79,7 @@ public class RepeatsSchedule : AggregateRoot<ComplexScheduleId>, IParentUserRefe
     public Phase? GetNextPhase(Card.Card cardEntity)
     {
         var currentRemember = cardEntity.FindLastRemember() ?? throw new InvalidOperationException("Failure on searching last remember");
-        var currentPhase = GetPhase(currentRemember.PhaseIndex);
+        var currentPhase = GetPhaseByIndex(currentRemember.PhaseIndex);
 
         if (currentPhase.IsRepeat() && currentPhase.Id == GetFirstPhase().Id)
         {
@@ -330,7 +330,7 @@ public class RepeatsSchedule : AggregateRoot<ComplexScheduleId>, IParentUserRefe
         return OrderedPhases[phaseIndex];
     }
 
-    public Phase GetPhase(int phaseIndex)
+    public Phase GetPhaseByIndex(int phaseIndex)
     {
         if (phaseIndex < 0 || phaseIndex >= Phases.Count)
             throw new ArgumentOutOfRangeException();

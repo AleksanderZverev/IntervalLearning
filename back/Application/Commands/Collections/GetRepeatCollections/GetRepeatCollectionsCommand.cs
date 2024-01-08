@@ -33,7 +33,7 @@ public class GetRepeatCollectionsCommand : ICommand<GetRepeatCollectionsCommandR
         {
             var date = queueItem.Date.Date;
             var schedule = queueItem.ParentRepeatsSchedule;
-            var phase = schedule.GetPhase(queueItem.PhaseIndex);
+            var phase = schedule.GetPhaseByIndex(queueItem.PhaseIndex);
 
             if (!result.ContainsKey(date))
             {

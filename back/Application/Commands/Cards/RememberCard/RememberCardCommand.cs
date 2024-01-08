@@ -90,7 +90,7 @@ public class RememberCardCommand : ICommand<RememberCardRequest, NextRepeatInfoR
             studyRepository.CardRemembers.Add(remember);
             studyRepository.RepeatingQueue.Delete(queueItem);
             
-            var currentPhase = schedule.GetPhase(queueItem.PhaseIndex);
+            var currentPhase = schedule.GetPhaseByIndex(queueItem.PhaseIndex);
             
             var phaseRemember = new PhaseRememberEntity(
                 schedule.ParentUserId,
