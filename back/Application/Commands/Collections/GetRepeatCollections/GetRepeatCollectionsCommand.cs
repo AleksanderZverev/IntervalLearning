@@ -15,9 +15,16 @@ public class GetRepeatCollectionsCommand : ICommand<GetRepeatCollectionsCommandR
 
     public async Task<Result<Dictionary<DateTime, List<RepeatingPhase>>>> Handle(GetRepeatCollectionsCommandRequest request)
     {
-        var userId = request.UserId;
+        var (userId, untilDate) = request;
         
         var queueItems = await studyQueryRepository.RepeatingQueue.GetAll(userId);
+
+        if (untilDate != null)
+        {
+            queueItems = queueItems
+                .Where(i => i.Date.Date <= untilDate.Value.Date)
+                .ToList();
+        }
 
         var collectionIds = queueItems
             .Select(q => q.ParentCollectionId)

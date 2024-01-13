@@ -44,15 +44,18 @@ namespace IntervalLearningApi.Controllers.Study.Collections
         private readonly ValidatorResolver validatorResolver;
         private readonly IMapper mapper;
         private readonly CommandManager commandManager;
+        private readonly IHostEnvironment environment;
 
         public CollectionsController(
             ValidatorResolver validatorResolver,
             IMapper mapper,
-            CommandManager commandManager)
+            CommandManager commandManager,
+            IHostEnvironment environment)
         {
             this.validatorResolver = validatorResolver;
             this.mapper = mapper;
             this.commandManager = commandManager;
+            this.environment = environment;
         }
 
         [HttpPost(ApiRoutes.Collections.Create)]
@@ -228,7 +231,8 @@ namespace IntervalLearningApi.Controllers.Study.Collections
         }
 
         [HttpGet(ApiRoutes.Collections.GetRepeatCollections)]
-        public async Task<ActionResult<RepeatingCollectionResponse>> GetRepeatCollections()
+        public async Task<ActionResult<RepeatingCollectionResponse>> GetRepeatCollections(
+            [FromQuery] DateTime? untilDate = null)
         {
             var userId = HttpContext.GetUserId();
 
@@ -237,7 +241,7 @@ namespace IntervalLearningApi.Controllers.Study.Collections
 
             var dateToRepeatingCollectionsResult = await commandManager
                 .GetCommand<GetRepeatCollectionsCommand>()
-                .Handle(new GetRepeatCollectionsCommandRequest(userId.Value));
+                .Handle(new GetRepeatCollectionsCommandRequest(userId.Value, untilDate));
 
             return dateToRepeatingCollectionsResult.ToActionResult(dateToRepeatingCollections =>
                 new RepeatingCollectionResponse(dateToRepeatingCollections
