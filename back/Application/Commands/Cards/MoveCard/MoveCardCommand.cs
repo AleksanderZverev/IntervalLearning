@@ -61,13 +61,11 @@ public class MoveCardCommand : ICommand<MoveCardRequest, Card>
             return movedCardResult;
 
         var movedCard = movedCardResult.Value;
-        movedCard.CreatedDate = card.CreatedDate;
-        
         movedCard.Remembers = card.Remembers
             .Select(r => rememberService.CreateForCard(r, movedCard))
             .ToList();
-        
-        studyRepository.Cards.Update(movedCard);
+
+        studyRepository.CardRemembers.AddRange(movedCard.Remembers);
 
         var updateMovedCardResult = await studyRepository.SaveChangesAsync();
         if (updateMovedCardResult.IsFailed)
