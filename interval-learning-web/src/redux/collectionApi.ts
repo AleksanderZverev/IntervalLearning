@@ -66,6 +66,10 @@ interface GetRandomWordsResponse {
     language: Language;
 }
 
+interface GetQueueCollectionsRequest {
+    untilDate?: string;
+}
+
 export interface AddCardsToMyCollectionRequest {
     publicCollectionUserId: string;
     publicCollectionId: string;
@@ -122,10 +126,11 @@ export const collectionsApi = api.injectEndpoints({
             },
             providesTags: [tagTypes.notFinishedCollectionsList],
         }),
-        getQueueCollections: build.query<RepeatingCollectionResponse, {}>({
-            query: () => ({
+        getQueueCollections: build.query<RepeatingCollectionResponse, GetQueueCollectionsRequest>({
+            query: ({ untilDate }) => ({
                 url: `${baseUrl}/repeat`,
                 method: 'GET',
+                params: { untilDate: untilDate ?? null },
             }),
             providesTags: [tagTypes.queueCollectionsList],
         }),

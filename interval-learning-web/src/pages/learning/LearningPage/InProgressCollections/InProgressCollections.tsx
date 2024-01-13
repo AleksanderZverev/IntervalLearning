@@ -24,6 +24,7 @@ import { selectThemes } from '../../../../redux/slices/themeSlice';
 import { useGetStatisticQuery } from '../../../../redux/api/statisticsApi';
 import { getRepeatingCards, isRepeatingInProgress } from '../../RepeatCollectionPage/RepeatCollectionPage.logic';
 import _ from 'lodash';
+import { EnvironmentHelper } from '../../../../helpers/EnvironmentHelper';
 
 export const getRepeatingNavigationLink = (
     collectionUserId: string,
@@ -393,5 +394,7 @@ const ConnectedInProgressCollections = withQueryResolver(useGetQueueCollectionsQ
 const ConnectedStatisticsData = withOtherQueryResolver(useGetStatisticQuery)(ConnectedInProgressCollections);
 
 export const InProgressCollections: FC = () => {
-    return <ConnectedStatisticsData queryArg={{ date: dayjs().toISOString() }} />;
+    const untilDate = EnvironmentHelper.IsProduction() ? dayjs().add(40, 'days').toISOString() : undefined;
+
+    return <ConnectedStatisticsData queryArg={{ date: dayjs().toISOString(), untilDate: untilDate }} />;
 };
