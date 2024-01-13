@@ -21,4 +21,5 @@ public interface ICardsQueryResolver
         int count);
 
     Task<List<Card>> GetRangeFromCollections(UserId userId, List<CollectionId> collectionIds);
+    Task<bool> ContainsAny(UserId userId, CollectionId collectionId);
 }

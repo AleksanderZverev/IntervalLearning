@@ -10,6 +10,7 @@ export interface Collection {
     notStartedCards: number;
     canRelearnCardCount: number;
     isPublic: boolean;
+    IsDeletable: boolean;
     publication?: CollectionPublication;
 }
 

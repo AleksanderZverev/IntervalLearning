@@ -1,5 +1,6 @@
 ﻿using Application.Commands.Collections.AddPublicCollection;
 using Application.Commands.Collections.CreateCollection;
+using Application.Commands.Collections.DeleteCollection;
 using Application.Commands.Collections.GetAllUserCollections;
 using Application.Commands.Collections.GetCanStartCollections;
 using Application.Commands.Collections.GetCollection;
@@ -304,6 +305,26 @@ namespace IntervalLearningApi.Controllers.Study.Collections
                     collectionIdResult.Value));
             
             return collectionResult.ToActionResult(collection => mapper.Map<CollectionDto>(collection));
+        }
+
+        [HttpDelete(ApiRoutes.Collections.Delete_DeleteCollection)]
+        public async Task<ActionResult> DeleteCollection(
+            [FromRoute] short collectionId)
+        {
+            var argsResult = (
+                HttpContext.GetUserId(),
+                CollectionId.Create(collectionId)
+            );
+
+            if (argsResult.HasAnyError())
+                return BadRequest();
+            
+            var (userIdResult, collectionIdResult) = argsResult;
+            var deleteResult = await commandManager
+                .GetCommand<DeleteCollectionCommand>()
+                .Handle(new DeleteCollectionCommandRequest(userIdResult.Value, collectionIdResult.Value));
+
+            return deleteResult.ToActionResult();
         }
 
         [HttpPost(ApiRoutes.Collections.MakePublic)]

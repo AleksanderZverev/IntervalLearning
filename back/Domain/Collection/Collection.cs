@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations.Schema;
+using Domain.Collection.Events;
 using Domain.Collection.ValueObjects;
 using Domain.Common.ValueObjects;
 using Domain.Deprecated.DbModels;
@@ -72,5 +73,16 @@ public class Collection : Entity<ComplexCollectionId>
     public void MakePublic()
     {
         IsPublic = true;
+    }
+
+    public void Delete()
+    {
+        if (!IsDeletable()) throw new InvalidOperationException("There is cards left in the collection");
+        AddDomainEvent(new CollectionDeletedEvent(ParentUserId, Id));
+    }
+
+    public bool IsDeletable()
+    {
+        return CardsCount.Value == 0;
     }
 }

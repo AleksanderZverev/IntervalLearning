@@ -94,4 +94,9 @@ public class CardsQueryResolver : ICardsQueryResolver
             .Where(c => c.ParentUserId == userId && collectionIds.Contains(c.ParentCollectionId))
             .ToListAsync();
     }
+
+    public Task<bool> ContainsAny(UserId userId, CollectionId collectionId)
+    {
+        return db.Cards.AnyAsync(c => c.ParentUserId == userId && c.ParentCollectionId == collectionId);
+    }
 }

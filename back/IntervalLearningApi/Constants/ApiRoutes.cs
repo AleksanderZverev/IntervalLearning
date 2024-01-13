@@ -19,6 +19,11 @@ public static class ApiRoutes
         public const string BasePath = "api/collections";
 
         public const string Create = "";
+        
+        public const string Delete_DeleteCollection = "{collectionId}";
+        public static string GetDeleteCollectionPath(string collectionId)
+            => $"{collectionId}";
+        
         public const string SearchPublic = "search";
         public const string SearchPrivate = "search/private";
         
