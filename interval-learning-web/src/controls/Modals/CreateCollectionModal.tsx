@@ -1,5 +1,5 @@
 import { Button, Dialog, DialogActions, DialogContent, DialogTitle, Stack } from '@mui/material';
-import { FC } from 'react';
+import { FC, useState } from 'react';
 import { Theme } from '../../types/global';
 import { SelectThemeControl } from '../SelectTheme/SelectTheme';
 import * as yup from 'yup';
@@ -10,6 +10,7 @@ import {
     CreateCollectionItem,
     MakePublicRequest,
     useCreateCollectionMutation,
+    useDeleteCollectionMutation,
     useMakeCollectionPublicMutation,
 } from '../../redux/collectionApi';
 import useTypedSelector from '../../hooks/useTypedSelector';
@@ -17,6 +18,7 @@ import { selectCollectionById } from '../../redux/slices/collectionsSlice';
 import { Collection } from '../../types/Collection';
 import { selectTheme } from '../../redux/slices/themeSlice';
 import { withMutationResolver, WithMutationResolverProps } from '../../hoc/withQueryResolver';
+import { AssertionModal } from './AssertionModal';
 
 interface IForm {
     title: string;
@@ -63,6 +65,9 @@ const CreateCollectionModalContent: FC<CreateCollectionModalProps> = ({
     const [makePublic, { isSuccess: isMadePublic, isError: makingPublicError, isLoading: isMakingPublic }] =
         useMakeCollectionPublicMutation();
 
+    const [showDeleteModal, setDeleteModal] = useState(false);
+    const [deleteCollection, deleteCollectionState] = useDeleteCollectionMutation();
+
     const formMethods = useForm<IForm>({
         resolver: yupResolver(schema),
         defaultValues: collection && theme ? getDefaultFormValue(collection, theme) : undefined,
@@ -86,6 +91,21 @@ const CreateCollectionModalContent: FC<CreateCollectionModalProps> = ({
         } catch {
             showRetryModal(() => onCreate(data));
         }
+    };
+
+    const onDelete = async () => {
+        setDeleteModal(false);
+
+        if (!collection) {
+            return;
+        }
+
+        try {
+            const collectionId = collection.id;
+            const userId = collection.userId;
+
+            await deleteCollection({ userId: userId, collectionId: collectionId });
+        } catch {}
     };
 
     const onMakePublic = async () => {
@@ -123,6 +143,17 @@ const CreateCollectionModalContent: FC<CreateCollectionModalProps> = ({
                         />
                     </Form>
                 </FormProvider>
+                {showDeleteModal && (
+                    <AssertionModal
+                        title={`Удаление коллекции «${collection?.title}»`}
+                        message={`Продолжить?`}
+                        assertTitle="Удалить"
+                        cancelTitle="Отмена"
+                        onAssert={() => onDelete()}
+                        onClose={() => setDeleteModal(false)}
+                        onCancel={() => setDeleteModal(false)}
+                    />
+                )}
             </DialogContent>
             <DialogActions>
                 <div
@@ -134,7 +165,16 @@ const CreateCollectionModalContent: FC<CreateCollectionModalProps> = ({
                         width: '100%',
                     }}
                 >
-                    {collection && !collection.isPublic ? (
+                    {collection && collection.isDeletable ? (
+                        <Button
+                            variant="outlined"
+                            onClick={() => setDeleteModal(true)}
+                            color="error"
+                            disabled={deleteCollectionState.isLoading || deleteCollectionState.isSuccess}
+                        >
+                            Удалить
+                        </Button>
+                    ) : collection && !collection.isPublic ? (
                         <Button variant="outlined" onClick={onMakePublic} disabled={isMakingPublic}>
                             Опубликовать
                         </Button>
