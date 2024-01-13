@@ -210,10 +210,7 @@ export const RepeatCard: FC<RepeatCardProps> = ({
                             </ListItemIcon>
                             <ListItemText>Перестать повторять</ListItemText>
                         </MenuItem>
-                        <MenuItem
-                            disabled={relearnCardState.isLoading || relearnCardState.isSuccess}
-                            onClick={() => setRelearnModal(true)}
-                        >
+                        <MenuItem disabled={relearnCardState.isLoading} onClick={() => setRelearnModal(true)}>
                             <ListItemIcon>
                                 {relearnCardState.isLoading ? <CircularProgress size={16} /> : <History />}
                             </ListItemIcon>
