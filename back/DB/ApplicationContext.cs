@@ -185,7 +185,8 @@ namespace DB
 
         private async Task HandleEvents()
         {
-            foreach (var entry in ChangeTracker.Entries())
+            var changedEntries = ChangeTracker.Entries().ToList(); 
+            foreach (var entry in changedEntries)
             {
                 if (entry.Entity is not IEntity entity || entity.DomainEvents.Count == 0)
                     continue;
