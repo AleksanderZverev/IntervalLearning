@@ -476,7 +476,7 @@ public class CardAndCollectionsControllerTests : SharedApiTests
         var shouldBeCollections = new[] { firstCollection, secondCollection };
         allRepeatCollections.Should().BeEquivalentTo(shouldBeCollections, c =>
         {
-            c.Excluding(c => c.CardsCount);
+            c.Excluding(c => c.CardsCount).Excluding(c => c.IsDeletable);
             c.ForCollection();
             return c;
         });
@@ -515,7 +515,7 @@ public class CardAndCollectionsControllerTests : SharedApiTests
         var shouldBeCollections = new[] { shouldContainCollection };
         allRepeatCollections.Should().BeEquivalentTo(shouldBeCollections, c =>
         {
-            c.Excluding(c => c.CardsCount);
+            c.Excluding(c => c.CardsCount).Excluding(c => c.IsDeletable);
             c.ForCollection();
             return c;
         });
