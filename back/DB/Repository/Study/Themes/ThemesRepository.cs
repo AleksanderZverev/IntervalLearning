@@ -12,10 +12,13 @@ public class ThemesRepository : BaseRepository<Theme>, IRepository<Theme, ThemeI
     public ThemesRepository(ApplicationContext db) : base(db)
     {
     }
+    
+    private static string GetSequenceName()
+        => $"themes_for_collection"; 
 
     public Result<ThemeId> GetUniqueId(ThemeIdParams param)
     {
-        var seqName = ThemeConfiguration.GetSequenceName();
+        var seqName = GetSequenceName();
         const int themesStartValue = 10;
         db.EnsureSequenceCreated(seqName, themesStartValue);
         var themeId = db.GetSequenceNextValue16(seqName, themesStartValue);

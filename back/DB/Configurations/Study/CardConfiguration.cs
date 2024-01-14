@@ -9,10 +9,7 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 namespace DB.Configurations.Study;
 
 public class CardConfiguration  : IEntityTypeConfiguration<Card>
-{
-    public static string GetSequenceName(UserId userId, CollectionId collectionId)
-        => $"cards_for_user_{userId.Value}_of_collection_{collectionId.Value}"; 
-
+{ 
     public void Configure(EntityTypeBuilder<Card> builder)
     {
         builder.HasKey(c => new {c.ParentUserId, c.ParentCollectionId, c.Id});

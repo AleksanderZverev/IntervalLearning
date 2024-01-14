@@ -9,13 +9,6 @@ namespace DB.Configurations.Study;
 
 public class RememberConfiguration: IEntityTypeConfiguration<Remember>
 {
-    public static string GetSequenceName(ComplexScheduleId schedule, ComplexCardId card)
-    {
-        return $"remember_" +
-               $"schedule_{schedule.ParentUserId}_{schedule.Id}_" +
-               $"card_{card.UserId}_{card.CollectionId}_{card.Id}";
-    }
-
     public void Configure(EntityTypeBuilder<Remember> builder)
     {
         builder.ToTable("RememberWeights");
