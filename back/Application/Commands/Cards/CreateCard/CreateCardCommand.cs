@@ -1,6 +1,6 @@
-using Application.Common.Interfaces.DB.Repositories.Study;
-using Application.Common.Interfaces.DB.Repositories.Study.Cards;
 using Domain.Card;
+using DomainServices.DB.Repositories.Study;
+using DomainServices.DB.Repositories.Study.Cards;
 using FluentResults;
 
 namespace Application.Commands.Cards.CreateCard;

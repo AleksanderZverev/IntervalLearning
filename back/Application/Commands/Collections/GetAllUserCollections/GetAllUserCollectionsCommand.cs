@@ -1,7 +1,7 @@
-using Application.Common.Interfaces.DB.Queries.Study;
 using Domain.Collection;
+using DomainServices.DB.Queries.Study;
 using FluentResults;
-using Infrastructure.Extensions;
+using GlobalTools.Extensions;
 
 namespace Application.Commands.Collections.GetAllUserCollections;
 

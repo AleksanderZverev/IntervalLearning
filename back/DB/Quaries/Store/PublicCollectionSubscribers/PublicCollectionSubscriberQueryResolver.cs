@@ -1,7 +1,8 @@
-using Application.Common.Interfaces.DB.Queries.Store.PublicCollectionSubscribers;
 using Domain.Collection.ValueObjects;
 using Domain.Deprecated.DbModels;
 using Domain.User.ValueObjects;
+using DomainServices.DB.Queries.Store.PublicCollectionSubscribers;
+using Microsoft.EntityFrameworkCore;
 
 namespace DB.Resolvers.Store.PublicCollectionSubscribers;
 
@@ -17,5 +18,12 @@ public class PublicCollectionSubscriberQueryResolver : IPublicCollectionSubscrib
     public Task<PublicCollectionSubscriber?> Find(UserId userId, CollectionId collectionId, UserId subscriberUserId)
     {
         return db.PublicCollectionSubscribers.FindAsync(userId, collectionId, subscriberUserId).AsTask();
+    }
+
+    public Task<List<PublicCollectionSubscriber>> GetAll(UserId userId, CollectionId collectionId)
+    {
+        return db.PublicCollectionSubscribers
+            .Where(s => s.ParentUserId == userId && s.ParentCollectionId == collectionId)
+            .ToListAsync();
     }
 }

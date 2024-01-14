@@ -1,7 +1,7 @@
-using Application.Common.Interfaces.DB.Queries.Dictionary.Words;
 using Domain.Dictionary.Word;
 using Domain.Dictionary.Word.ValueObjects;
 using Domain.Language.ValueObjects;
+using DomainServices.DB.Queries.Dictionary.Words;
 using Microsoft.EntityFrameworkCore;
 
 namespace DB.Resolvers.Dictionary.Words;

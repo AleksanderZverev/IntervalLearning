@@ -1,12 +1,12 @@
-using Application.Common.Accounts.PasswordService;
-using Application.Common.Interfaces.DB.Repositories.Accounts;
-using Application.Common.Interfaces.DB.Repositories.Accounts.Users;
-using Application.Common.Interfaces.DB.Transactions;
 using Domain.Language.ValueObjects;
 using Domain.User;
 using Domain.User.Entities;
+using DomainServices.BoundedContext.Accounts.PasswordService;
+using DomainServices.DB.Repositories.Accounts;
+using DomainServices.DB.Repositories.Accounts.Users;
+using DomainServices.DB.Transactions;
 using FluentResults;
-using Infrastructure.Errors;
+using GlobalTools.Errors;
 
 namespace Application.Commands.Accounts.Register;
 

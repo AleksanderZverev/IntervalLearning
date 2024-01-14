@@ -1,3 +1,4 @@
+using Domain.Schedule;
 using Domain.Schedule.ValueObjects;
 using Domain.User.ValueObjects;
 using IntervalLearningApi.Controllers.Study.Cards.DTOs;
@@ -135,10 +136,20 @@ public class CardAndCollectionsControllerTests : SharedApiTests
     private async Task RelearnCardAsync(
         HttpClient client,
         CollectionDto collection,
-        CardDto card)
+        CardDto card,
+        RepeatsScheduleDto? schedule = null)
     {
+        var query = new QueryString().Add("cardId", card.Id);
+
+        if (schedule != null)
+        {
+            query = query.Add("scheduleUserId", schedule.ParentUserId)
+                .Add("scheduleId", schedule.Id);
+        }
+        
         var relearnCardResponse = await client.PatchAsync(
-            CardsQuery(collection.Id, ApiRoutes.Cards.Patch_RelearnCard) + new QueryString().Add("cardId", card.Id), 
+            CardsQuery(collection.Id, ApiRoutes.Cards.Patch_RelearnCard) + query,
+            
             new StringContent(string.Empty)
         );
     }
@@ -436,8 +447,78 @@ public class CardAndCollectionsControllerTests : SharedApiTests
         //Assert
         notFinishedCollections.Should().NotBeNull();
         notFinishedCollections.CanRelearnCollections.Should().BeNullOrEmpty();
-        
-        
+    }
+    
+    [Fact]
+    public async Task GetRepeatingCollections_ShouldReturnStartedCollections()
+    {
+        //Arrange
+        var (client, user) = SharedScope;
+        var schedule = await CreateTestSchedule(ForgottenBehavior.MoveToPreviousStep);
+        var (firstCollection, firstCards) = await CreateRandomCardsAsync(10);
+        var (secondCollection, secondCards) = await CreateRandomCardsAsync(10);
+        await StartCardsAsync(client, firstCollection, firstCards, schedule);
+        await StartCardsAsync(client, secondCollection, secondCards, schedule);
+
+        //Act
+        var getRepeatCollectionsResponse = await client.GetAsync(
+            CollectionsQuery(ApiRoutes.Collections.GetRepeatCollections));
+        var repeatCollections = getRepeatCollectionsResponse.ToResponseDto<RepeatingCollectionResponse>();
+
+        //Assert
+        repeatCollections.Should().NotBeNull();
+        repeatCollections.DateToRepeatingPhases.Should().NotBeNullOrEmpty();
+        var allRepeatCollections = repeatCollections.DateToRepeatingPhases.Values
+            .SelectMany(p => p)
+            .SelectMany(p => p.RepeatingCollections)
+            .Select(c => c.Collection)
+            .ToList();
+        var shouldBeCollections = new[] { firstCollection, secondCollection };
+        allRepeatCollections.Should().BeEquivalentTo(shouldBeCollections, c =>
+        {
+            c.Excluding(c => c.CardsCount).Excluding(c => c.IsDeletable);
+            c.ForCollection();
+            return c;
+        });
+    }
+    
+    [Fact]
+    public async Task GetRepeatingCollections_ShouldReturnStartedCollectionsUntilSpecifiedDate()
+    {
+        //Arrange
+        var (client, user) = SharedScope;
+        var schedule = await CreateTestSchedule(ForgottenBehavior.MoveToPreviousStep);
+        var (shouldContainCollection, shouldContainCollectionCards) = await CreateRandomCardsAsync(10);
+        var (notIncludedCollection, notIncludedCollectionCards) = await CreateRandomCardsAsync(10);
+        await StartCardsAsync(client, shouldContainCollection, shouldContainCollectionCards, schedule);
+        await StartCardsAsync(client, notIncludedCollection, notIncludedCollectionCards, schedule);
+        await RememberCardsAsync(client, notIncludedCollection, notIncludedCollectionCards, schedule, 0,
+            LearningScenarios.RememberedWeight);
+
+        //Act
+        var getRepeatCollectionsResponse = await client.GetAsync(
+            CollectionsQuery(ApiRoutes.Collections.GetRepeatCollections) +
+            new QueryString().Add(
+                "untilDate",
+                //after starting collection will be at the next day
+                DateTime.UtcNow.AddDays(1).AddHours(1).ToString("O")));
+        var repeatCollections = getRepeatCollectionsResponse.ToResponseDto<RepeatingCollectionResponse>();
+
+        //Assert
+        repeatCollections.Should().NotBeNull();
+        repeatCollections.DateToRepeatingPhases.Should().NotBeNullOrEmpty();
+        var allRepeatCollections = repeatCollections.DateToRepeatingPhases.Values
+            .SelectMany(p => p)
+            .SelectMany(p => p.RepeatingCollections)
+            .Select(c => c.Collection)
+            .ToList();
+        var shouldBeCollections = new[] { shouldContainCollection };
+        allRepeatCollections.Should().BeEquivalentTo(shouldBeCollections, c =>
+        {
+            c.Excluding(c => c.CardsCount).Excluding(c => c.IsDeletable);
+            c.ForCollection();
+            return c;
+        });
     }
     
     [Theory]
@@ -815,6 +896,30 @@ public class CardAndCollectionsControllerTests : SharedApiTests
         var relearningCards = await GetRelearningCardsAsync(client, collection);
         relearningCards.Should().NotBeNullOrEmpty();
         relearningCards.Should().BeEquivalentTo(cards, o => o.ForCard());
+    }
+    
+    [Fact]
+    public async Task RelearnCard_ShouldStopRepeatingCard()
+    {
+        //Arrange
+        var (client, user) = SharedScope;
+        var schedule = await CreateTestSchedule(ForgottenBehavior.MoveToPreviousStep);
+        var cardsCount = 12;
+        var (collection, cards) = await CreateRandomCardsAsync(cardsCount);
+        await StartCardsAsync(client, collection, cards, schedule);
+        
+        //Act
+        foreach (var card in cards)
+        {
+            await RelearnCardAsync(client, collection, card, schedule);
+        }
+
+        //Assert
+        var getRepeatCollectionsResponse = await client.GetAsync(
+            CollectionsQuery(ApiRoutes.Collections.GetRepeatCollections));
+        var repeatCollections = getRepeatCollectionsResponse.ToResponseDto<RepeatingCollectionResponse>();
+
+        repeatCollections.DateToRepeatingPhases.Should().BeNullOrEmpty();
     }
     
     [Theory]

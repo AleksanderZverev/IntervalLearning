@@ -1,6 +1,3 @@
-using Application.Common.Interfaces.DB.Repositories.Study;
-using Application.Common.Interfaces.DB.Repositories.Study.Schedules;
-using Application.Common.Interfaces.DB.Transactions;
 using Domain.Common.ValueObjects.Text.MultiLine;
 using Domain.Common.ValueObjects.Text.SingleLine;
 using Domain.Schedule;
@@ -8,8 +5,11 @@ using Domain.Schedule.Entities.Phase;
 using Domain.Schedule.Entities.Phase.ValueObjects;
 using Domain.Schedule.ValueObjects;
 using Domain.User.ValueObjects;
+using DomainServices.DB.Repositories.Study;
+using DomainServices.DB.Repositories.Study.Schedules;
+using DomainServices.DB.Transactions;
 using FluentResults;
-using Infrastructure.Errors;
+using GlobalTools.Errors;
 
 namespace Application.Commands.Schedules.CreateSchedule;
 

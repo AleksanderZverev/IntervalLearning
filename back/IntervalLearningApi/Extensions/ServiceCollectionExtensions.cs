@@ -1,15 +1,14 @@
 ﻿using System.Reflection;
-using Application.Common.Accounts.JwtService;
 using DB;
+using DomainServices.BoundedContext.Accounts.JwtService;
 using FluentValidation;
-using Infrastructure;
+using GlobalTools;
 using Infrastructure.BoundedContexts.Accounts.Jwt;
 using IntervalLearningApi.Controllers.Accounts.Requests.Authenticate;
 using IntervalLearningApi.Controllers.Study.Cards;
 using IntervalLearningApi.Infrastructure.CommandManager;
 using IntervalLearningApi.Infrastructure.ValidatorResolver;
 using IntervalLearningApi.Services.Dictionary;
-using IntervalLearningApi.Services.Jwt;
 using IntervalLearningApi.Services.Statistics;
 using Mapster;
 using MapsterMapper;

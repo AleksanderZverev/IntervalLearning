@@ -2,18 +2,17 @@
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
-using Application.Common.Accounts.JwtService;
-using Application.Common.Interfaces.DB.Queries.Accounts;
 using Domain.User;
 using Domain.User.Entities;
 using Domain.User.ValueObjects;
+using DomainServices.BoundedContext.Accounts.JwtService;
+using DomainServices.DB.Queries.Accounts;
 using FluentResults;
-using Infrastructure;
-using Infrastructure.BoundedContexts.Accounts.Jwt;
-using Infrastructure.Errors;
+using GlobalTools;
+using GlobalTools.Errors;
 using Microsoft.IdentityModel.Tokens;
 
-namespace IntervalLearningApi.Services.Jwt;
+namespace Infrastructure.BoundedContexts.Accounts.Jwt;
 
 public class JwtService : IJwtService
 {

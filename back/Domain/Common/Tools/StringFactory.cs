@@ -1,5 +1,5 @@
 using FluentResults;
-using Infrastructure;
+using GlobalTools;
 
 namespace Domain.Common.Tools;
 

@@ -1,5 +1,6 @@
 ﻿using Application.Commands.Collections.AddPublicCollection;
 using Application.Commands.Collections.CreateCollection;
+using Application.Commands.Collections.DeleteCollection;
 using Application.Commands.Collections.GetAllUserCollections;
 using Application.Commands.Collections.GetCanStartCollections;
 using Application.Commands.Collections.GetCollection;
@@ -16,7 +17,7 @@ using Domain.Schedule.ValueObjects;
 using Domain.Theme.ValueObjects;
 using Domain.User.ValueObjects;
 using FluentResults;
-using Infrastructure.Extensions;
+using GlobalTools.Extensions;
 using IntervalLearningApi.Constants;
 using IntervalLearningApi.Controllers.Dictionary.DTOs;
 using IntervalLearningApi.Controllers.Store.DTOs;
@@ -44,15 +45,18 @@ namespace IntervalLearningApi.Controllers.Study.Collections
         private readonly ValidatorResolver validatorResolver;
         private readonly IMapper mapper;
         private readonly CommandManager commandManager;
+        private readonly IHostEnvironment environment;
 
         public CollectionsController(
             ValidatorResolver validatorResolver,
             IMapper mapper,
-            CommandManager commandManager)
+            CommandManager commandManager,
+            IHostEnvironment environment)
         {
             this.validatorResolver = validatorResolver;
             this.mapper = mapper;
             this.commandManager = commandManager;
+            this.environment = environment;
         }
 
         [HttpPost(ApiRoutes.Collections.Create)]
@@ -228,7 +232,8 @@ namespace IntervalLearningApi.Controllers.Study.Collections
         }
 
         [HttpGet(ApiRoutes.Collections.GetRepeatCollections)]
-        public async Task<ActionResult<RepeatingCollectionResponse>> GetRepeatCollections()
+        public async Task<ActionResult<RepeatingCollectionResponse>> GetRepeatCollections(
+            [FromQuery] DateTime? untilDate = null)
         {
             var userId = HttpContext.GetUserId();
 
@@ -237,7 +242,7 @@ namespace IntervalLearningApi.Controllers.Study.Collections
 
             var dateToRepeatingCollectionsResult = await commandManager
                 .GetCommand<GetRepeatCollectionsCommand>()
-                .Handle(new GetRepeatCollectionsCommandRequest(userId.Value));
+                .Handle(new GetRepeatCollectionsCommandRequest(userId.Value, untilDate));
 
             return dateToRepeatingCollectionsResult.ToActionResult(dateToRepeatingCollections =>
                 new RepeatingCollectionResponse(dateToRepeatingCollections
@@ -300,6 +305,26 @@ namespace IntervalLearningApi.Controllers.Study.Collections
                     collectionIdResult.Value));
             
             return collectionResult.ToActionResult(collection => mapper.Map<CollectionDto>(collection));
+        }
+
+        [HttpDelete(ApiRoutes.Collections.Delete_DeleteCollection)]
+        public async Task<ActionResult> DeleteCollection(
+            [FromRoute] short collectionId)
+        {
+            var argsResult = (
+                HttpContext.GetUserId(),
+                CollectionId.Create(collectionId)
+            );
+
+            if (argsResult.HasAnyError())
+                return BadRequest();
+            
+            var (userIdResult, collectionIdResult) = argsResult;
+            var deleteResult = await commandManager
+                .GetCommand<DeleteCollectionCommand>()
+                .Handle(new DeleteCollectionCommandRequest(userIdResult.Value, collectionIdResult.Value));
+
+            return deleteResult.ToActionResult();
         }
 
         [HttpPost(ApiRoutes.Collections.MakePublic)]

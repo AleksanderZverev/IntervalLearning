@@ -1,28 +1,32 @@
 using Application.Commands.Cards.CreateCard;
 using Application.Commands.Cards.DeleteCard;
-using Application.Common.Interfaces.DB.Repositories.Study;
-using Application.Common.Interfaces.DB.Transactions;
 using Domain.Card;
 using Domain.Card.ValueObjects;
 using Domain.Schedule.Entities.Remember;
+using DomainServices.BoundedContext.Study.RememberService;
+using DomainServices.DB.Repositories.Study;
+using DomainServices.DB.Transactions;
 using FluentResults;
-using Infrastructure.Errors;
+using GlobalTools.Errors;
 
 namespace Application.Commands.Cards.MoveCard;
 
 public class MoveCardCommand : ICommand<MoveCardRequest, Card>
 {
     private readonly IStudyRepository studyRepository;
+    private readonly RememberService rememberService;
     private readonly ITransactionProvider transactionProvider;
     private readonly CreateCardCommand createCardCommand;
     private readonly DeleteCardCommand deleteCardCommand;
 
     public MoveCardCommand(
+        RememberService rememberService,
         ITransactionProvider transactionProvider,
         CreateCardCommand createCardCommand,
         DeleteCardCommand deleteCardCommand, 
         IStudyRepository studyRepository)
     {
+        this.rememberService = rememberService;
         this.transactionProvider = transactionProvider;
         this.createCardCommand = createCardCommand;
         this.deleteCardCommand = deleteCardCommand;
@@ -57,22 +61,11 @@ public class MoveCardCommand : ICommand<MoveCardRequest, Card>
             return movedCardResult;
 
         var movedCard = movedCardResult.Value;
-        movedCard.CreatedDate = card.CreatedDate;
-        
         movedCard.Remembers = card.Remembers
-            .Select(r => new Remember(
-                r.ParentRepeatsScheduleUserId,
-                r.ParentRepeatsScheduleId,
-                movedCard.ParentUserId,
-                movedCard.ParentCollectionId,
-                movedCard.Id,
-                r.Id,
-                r.Weight,
-                r.PhaseIndex,
-                r.RepeatedDate))
+            .Select(r => rememberService.CreateForCard(r, movedCard))
             .ToList();
-        
-        studyRepository.Cards.Update(movedCard);
+
+        studyRepository.CardRemembers.AddRange(movedCard.Remembers);
 
         var updateMovedCardResult = await studyRepository.SaveChangesAsync();
         if (updateMovedCardResult.IsFailed)

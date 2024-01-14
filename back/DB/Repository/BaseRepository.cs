@@ -1,6 +1,6 @@
-using Application.Common.Interfaces.DB.Repositories;
+using DomainServices.DB.Repositories;
 using FluentResults;
-using Infrastructure.Errors;
+using GlobalTools.Errors;
 
 namespace DB.Repository;
 

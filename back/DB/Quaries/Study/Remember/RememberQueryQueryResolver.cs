@@ -1,9 +1,9 @@
-using Application.Common.Interfaces.DB.Queries.Study.Remember;
 using Domain.Card;
 using Domain.Card.ValueObjects;
 using Domain.Collection.ValueObjects;
 using Domain.Schedule.ValueObjects;
 using Domain.User.ValueObjects;
+using DomainServices.DB.Queries.Study.Remember;
 using Microsoft.EntityFrameworkCore;
 
 namespace DB.Resolvers.Study.Remember;

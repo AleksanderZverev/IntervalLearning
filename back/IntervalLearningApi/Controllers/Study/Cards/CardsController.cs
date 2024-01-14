@@ -20,7 +20,7 @@ using Domain.Common.ValueObjects.Text.SingleLine;
 using Domain.Schedule.Entities.Remember.ValueObjects;
 using Domain.Schedule.ValueObjects;
 using Domain.User.ValueObjects;
-using Infrastructure.Extensions;
+using GlobalTools.Extensions;
 using IntervalLearningApi.Constants;
 using IntervalLearningApi.Controllers.Study.Cards.DTOs;
 using IntervalLearningApi.Controllers.Study.Cards.Requests;
@@ -327,24 +327,32 @@ namespace IntervalLearningApi.Controllers.Study.Cards
         }
 
         [HttpPatch(ApiRoutes.Cards.Patch_RelearnCard)]
-        public async Task<ActionResult> RelearnCard(short collectionId, short cardId)
+        public async Task<ActionResult> RelearnCard(
+            short collectionId,
+            short cardId,
+            long? scheduleUserId = null,
+            short? scheduleId = null)
         {
             var argsResults = (
                 HttpContext.GetUserId(),
                 CollectionId.Create(collectionId),
-                CardId.Create(cardId)
+                CardId.Create(cardId),
+                scheduleUserId.HasValue ? UserId.Create(scheduleUserId.Value) : null,
+                scheduleId.HasValue ? ScheduleId.Create(scheduleId.Value) : null
             );
             
             if (argsResults.HasAnyError())
                 return BadRequest();
 
-            var (userIdResult, collectionIdResult, cardIdResult) = argsResults;
+            var (userIdResult, collectionIdResult, cardIdResult, scheduleUserIdResult, scheduleIdResult) = argsResults;
             var relearnResult = await commandManager
                 .GetCommand<RelearnCardCommand>()
                 .Handle(new RelearnCardCommandRequest(
                     userIdResult.Value,
                     collectionIdResult.Value,
-                    cardIdResult.Value));
+                    cardIdResult.Value,
+                    scheduleUserIdResult?.Value,
+                    scheduleIdResult?.Value));
 
             return relearnResult.ToActionResult();
         }
@@ -429,7 +437,7 @@ namespace IntervalLearningApi.Controllers.Study.Cards
                     userId.Value,
                     collectionIdResult.Value,
                     searchValue.ToLower(),
-                    (Application.Commands.Cards.SearchCards.SearchFieldType)fieldType,
+                    (DomainServices.DB.Queries.Study.Cards.SearchFieldType)fieldType,
                     page,
                     count));
 

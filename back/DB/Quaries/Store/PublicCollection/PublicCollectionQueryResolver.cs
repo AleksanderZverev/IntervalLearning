@@ -1,8 +1,8 @@
-using Application.Common.Interfaces.DB.Queries.Store.PublicCollection;
 using Domain.Collection;
 using Domain.Collection.ValueObjects;
 using Domain.Theme.ValueObjects;
 using Domain.User.ValueObjects;
+using DomainServices.DB.Queries.Store.PublicCollection;
 using Microsoft.EntityFrameworkCore;
 
 namespace DB.Resolvers.Store.PublicCollection;

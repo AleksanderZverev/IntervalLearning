@@ -1,4 +1,4 @@
-﻿namespace Infrastructure;
+﻿namespace GlobalTools;
 
 public static class RandomMaster
 {

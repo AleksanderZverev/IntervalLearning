@@ -1,14 +1,14 @@
-﻿using Application.Common.Interfaces.DB.Transactions;
-using DB;
+﻿using DB;
 using Domain.Dictionary.Translation;
 using Domain.Dictionary.Translation.ValueObjects;
 using Domain.Dictionary.Word;
 using Domain.Dictionary.Word.ValueObjects;
 using Domain.Language.ValueObjects;
 using Domain.User.ValueObjects;
+using DomainServices.DB.Transactions;
 using FluentResults;
-using Infrastructure;
-using Infrastructure.Errors;
+using GlobalTools;
+using GlobalTools.Errors;
 using Microsoft.EntityFrameworkCore;
 
 namespace IntervalLearningApi.Services.Dictionary

@@ -1,5 +1,5 @@
-using Application.Common.Interfaces.DB.Queries.Study;
 using Domain.Card;
+using DomainServices.DB.Queries.Study;
 using FluentResults;
 
 namespace Application.Commands.Cards.GetAllCards;

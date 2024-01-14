@@ -1,6 +1,6 @@
-using Application.Common.Interfaces.DB.Queries.Study.Themes;
 using Domain.Theme;
 using Domain.Theme.ValueObjects;
+using DomainServices.DB.Queries.Study.Themes;
 using Microsoft.EntityFrameworkCore;
 
 namespace DB.Resolvers.Themes;

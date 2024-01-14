@@ -21,6 +21,11 @@ interface CardChangedItem {
     collectionId: string;
 }
 
+interface DeleteCollectionItem {
+    userId: string;
+    collectionId: string;
+}
+
 export interface AddStartedCards {
     userId: string;
     collectionId: string;
@@ -36,6 +41,11 @@ export const collectionSlice = createSlice({
         },
         setOneCollection: (state, action: PayloadAction<Collection>) => {
             adapter.setOne(state, action.payload);
+        },
+        deleteOneCollection: (state, action: PayloadAction<DeleteCollectionItem>) => {
+            const { userId, collectionId } = action.payload;
+            const key = getCollectionKey(userId, collectionId);
+            adapter.removeOne(state, key);
         },
         cardAddedToCollection: (state, action: PayloadAction<CardChangedItem>) => {
             const { userId, collectionId } = action.payload;
@@ -92,8 +102,14 @@ export const collectionSlice = createSlice({
     },
 });
 
-export const { setCollections, setOneCollection, cardAddedToCollection, addStartedCards, cardDeletedFromCollection } =
-    collectionSlice.actions;
+export const {
+    setCollections,
+    setOneCollection,
+    cardAddedToCollection,
+    addStartedCards,
+    cardDeletedFromCollection,
+    deleteOneCollection,
+} = collectionSlice.actions;
 
 export const { selectCollections, selectCollectionById } = {
     selectCollections: (state: RootState) => selectAll(state.collections),

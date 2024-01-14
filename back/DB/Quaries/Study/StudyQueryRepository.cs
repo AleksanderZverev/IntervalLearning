@@ -1,11 +1,11 @@
-using Application.Common.Interfaces.DB.Queries.Study;
-using Application.Common.Interfaces.DB.Queries.Study.Cards;
-using Application.Common.Interfaces.DB.Queries.Study.Collections;
-using Application.Common.Interfaces.DB.Queries.Study.Queue;
-using Application.Common.Interfaces.DB.Queries.Study.RelearningCards;
-using Application.Common.Interfaces.DB.Queries.Study.Remember;
-using Application.Common.Interfaces.DB.Queries.Study.Schedule;
-using Application.Common.Interfaces.DB.Queries.Study.Themes;
+using DomainServices.DB.Queries.Study;
+using DomainServices.DB.Queries.Study.Cards;
+using DomainServices.DB.Queries.Study.Collections;
+using DomainServices.DB.Queries.Study.Queue;
+using DomainServices.DB.Queries.Study.RelearningCards;
+using DomainServices.DB.Queries.Study.Remember;
+using DomainServices.DB.Queries.Study.Schedule;
+using DomainServices.DB.Queries.Study.Themes;
 
 namespace DB.Quaries.Study;
 

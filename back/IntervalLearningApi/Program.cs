@@ -1,6 +1,7 @@
 using Application.DI;
 using DB;
 using DB.DependencyInjection;
+using DomainServices.DI;
 using Infrastructure.BoundedContexts.Accounts.Jwt;
 using Infrastructure.DI;
 using IntervalLearningApi;
@@ -31,6 +32,7 @@ services.AddPersistence((o) =>
 });
 
 services.AddInfrastructure();
+services.AddDomainServices();
 services.AddApplication();
 
 services.AddWeb(new SecretConfig()

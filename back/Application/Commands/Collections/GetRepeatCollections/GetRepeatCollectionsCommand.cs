@@ -1,4 +1,4 @@
-using Application.Common.Interfaces.DB.Queries.Study;
+using DomainServices.DB.Queries.Study;
 using FluentResults;
 
 namespace Application.Commands.Collections.GetRepeatCollections;
@@ -15,9 +15,16 @@ public class GetRepeatCollectionsCommand : ICommand<GetRepeatCollectionsCommandR
 
     public async Task<Result<Dictionary<DateTime, List<RepeatingPhase>>>> Handle(GetRepeatCollectionsCommandRequest request)
     {
-        var userId = request.UserId;
+        var (userId, untilDate) = request;
         
         var queueItems = await studyQueryRepository.RepeatingQueue.GetAll(userId);
+
+        if (untilDate != null)
+        {
+            queueItems = queueItems
+                .Where(i => i.Date.Date <= untilDate.Value.Date)
+                .ToList();
+        }
 
         var collectionIds = queueItems
             .Select(q => q.ParentCollectionId)
@@ -33,7 +40,7 @@ public class GetRepeatCollectionsCommand : ICommand<GetRepeatCollectionsCommandR
         {
             var date = queueItem.Date.Date;
             var schedule = queueItem.ParentRepeatsSchedule;
-            var phase = schedule.GetPhase(queueItem.PhaseIndex);
+            var phase = schedule.GetPhaseByIndex(queueItem.PhaseIndex);
 
             if (!result.ContainsKey(date))
             {

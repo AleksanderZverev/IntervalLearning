@@ -1,4 +1,4 @@
-using Infrastructure;
+using GlobalTools;
 
 namespace IntervalLearningApi.IntegrationTests.Common.Services;
 

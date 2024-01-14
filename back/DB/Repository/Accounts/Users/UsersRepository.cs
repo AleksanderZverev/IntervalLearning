@@ -1,8 +1,8 @@
-using Application.Common.Interfaces.DB.Repositories;
-using Application.Common.Interfaces.DB.Repositories.Accounts.Users;
 using DB.Configurations.Account;
 using Domain.User;
 using Domain.User.ValueObjects;
+using DomainServices.DB.Repositories;
+using DomainServices.DB.Repositories.Accounts.Users;
 using FluentResults;
 
 namespace DB.Repository.Accounts.Users;

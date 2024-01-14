@@ -1,5 +1,5 @@
 using FluentResults;
-using Infrastructure.Errors;
+using GlobalTools.Errors;
 using Microsoft.AspNetCore.Mvc;
 
 namespace IntervalLearningApi.Extensions;

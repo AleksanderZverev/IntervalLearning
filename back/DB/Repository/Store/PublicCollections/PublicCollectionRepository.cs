@@ -1,6 +1,6 @@
-using Application.Common.Interfaces.DB.Repositories.Store.PublicCollections;
-using Application.Common.Interfaces.DB.Repositories.Study;
 using Domain.Collection;
+using DomainServices.DB.Repositories.Store.PublicCollections;
+using DomainServices.DB.Repositories.Study;
 
 namespace DB.Repository.Store.PublicCollections;
 

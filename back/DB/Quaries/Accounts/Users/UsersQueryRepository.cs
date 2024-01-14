@@ -1,6 +1,6 @@
-using Application.Common.Interfaces.DB.Queries.Accounts.Users;
 using Domain.User;
 using Domain.User.ValueObjects;
+using DomainServices.DB.Queries.Accounts.Users;
 using Microsoft.EntityFrameworkCore;
 
 namespace DB.Quaries.Accounts.Users;

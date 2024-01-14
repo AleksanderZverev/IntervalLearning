@@ -1,9 +1,9 @@
-using Application.Common.Interfaces.DB.Repositories;
-using Application.Common.Interfaces.DB.Repositories.Study.Queue;
 using DB.Configurations.Study;
 using DB.Repository;
 using Domain.Queue;
 using Domain.Queue.ValueObjects;
+using DomainServices.DB.Repositories;
+using DomainServices.DB.Repositories.Study.Queue;
 using FluentResults;
 
 namespace DB.Resolvers.Study.Queue;

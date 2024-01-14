@@ -1,7 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.Text.RegularExpressions;
 
-namespace Infrastructure
+namespace GlobalTools
 {
     public class TextMaster
     {

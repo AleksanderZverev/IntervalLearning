@@ -1,8 +1,8 @@
-using Application.Common.Interfaces.DB.Repositories.Study;
-using Application.Common.Interfaces.DB.Repositories.Study.Themes;
 using Domain.Theme;
+using DomainServices.DB.Repositories.Study;
+using DomainServices.DB.Repositories.Study.Themes;
 using FluentResults;
-using Infrastructure.Errors;
+using GlobalTools.Errors;
 
 namespace Application.Commands.Themes.CreateTheme;
 

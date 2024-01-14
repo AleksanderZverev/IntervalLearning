@@ -1,6 +1,6 @@
 using Domain.Common.ValueObjects;
 using FluentResults;
-using Infrastructure;
+using GlobalTools;
 
 namespace Domain.Theme.ValueObjects;
 

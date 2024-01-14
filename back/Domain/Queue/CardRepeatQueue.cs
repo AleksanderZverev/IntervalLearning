@@ -5,7 +5,7 @@ using Domain.Queue.ValueObjects;
 using Domain.Schedule;
 using Domain.Schedule.ValueObjects;
 using Domain.User.ValueObjects;
-using Infrastructure;
+using GlobalTools;
 
 namespace Domain.Queue;
 
@@ -16,7 +16,7 @@ public class CardRepeatQueue : AggregateRoot<ComplexQueueId>, IParentCardReferen
 
     public DateTime Date { get; private set; }
 
-    public CardRepeatQueue(
+    internal CardRepeatQueue(
         UserId parentRepeatsScheduleUserId,
         ScheduleId parentRepeatsScheduleId,
         UserId parentUserId, 

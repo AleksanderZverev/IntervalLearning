@@ -1,7 +1,7 @@
 import { Collection, StoreCollection } from '../types/Collection';
 import { Language, Word } from '../types/Dictionary';
 import { api, tagTypes } from './apiSlice';
-import { setOneCollection, setCollections } from './slices/collectionsSlice';
+import { setOneCollection, setCollections, deleteOneCollection } from './slices/collectionsSlice';
 
 export interface CreateCollectionItem {
     collectionId: string | undefined;
@@ -66,6 +66,10 @@ interface GetRandomWordsResponse {
     language: Language;
 }
 
+interface GetQueueCollectionsRequest {
+    untilDate?: string;
+}
+
 export interface AddCardsToMyCollectionRequest {
     publicCollectionUserId: string;
     publicCollectionId: string;
@@ -74,6 +78,11 @@ export interface AddCardsToMyCollectionRequest {
         myCollectionId: string | null | undefined;
         newCollectionName: string | null | undefined;
     };
+}
+
+interface DeleteCollectionRequest {
+    userId: string;
+    collectionId: string;
 }
 
 const baseUrl = '/collections';
@@ -122,10 +131,11 @@ export const collectionsApi = api.injectEndpoints({
             },
             providesTags: [tagTypes.notFinishedCollectionsList],
         }),
-        getQueueCollections: build.query<RepeatingCollectionResponse, {}>({
-            query: () => ({
+        getQueueCollections: build.query<RepeatingCollectionResponse, GetQueueCollectionsRequest>({
+            query: ({ untilDate }) => ({
                 url: `${baseUrl}/repeat`,
                 method: 'GET',
+                params: { untilDate: untilDate ?? null },
             }),
             providesTags: [tagTypes.queueCollectionsList],
         }),
@@ -164,6 +174,18 @@ export const collectionsApi = api.injectEndpoints({
             }),
             keepUnusedDataFor: 0,
         }),
+        deleteCollection: build.mutation<void, DeleteCollectionRequest>({
+            query: ({ userId, collectionId }) => ({
+                url: `${baseUrl}/${collectionId}`,
+                method: 'DELETE',
+            }),
+            async onQueryStarted(arg, { queryFulfilled, dispatch }) {
+                try {
+                    await queryFulfilled;
+                    dispatch(deleteOneCollection({ userId: arg.userId, collectionId: arg.collectionId }));
+                } catch {}
+            },
+        }),
     }),
 });
 
@@ -177,4 +199,5 @@ export const {
     useMakeCollectionPublicMutation,
     useAddCardsToMyCollectionMutation,
     useSearchPublicCollectionQuery,
+    useDeleteCollectionMutation,
 } = collectionsApi;

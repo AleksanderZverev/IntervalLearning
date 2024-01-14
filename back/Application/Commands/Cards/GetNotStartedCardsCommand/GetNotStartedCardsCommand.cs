@@ -1,7 +1,7 @@
-using Application.Common.Interfaces.DB.Queries.Study;
 using Domain.Card;
+using DomainServices.DB.Queries.Study;
 using FluentResults;
-using Infrastructure.Errors;
+using GlobalTools.Errors;
 
 namespace Application.Commands.Cards.GetNotStartedCardsCommand;
 

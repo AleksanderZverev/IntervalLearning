@@ -1,12 +1,12 @@
 using Application.Commands.Accounts.Authenticate;
-using Application.Common.Accounts.JwtService;
-using Application.Common.Interfaces.DB.Repositories.Accounts;
-using Application.Common.Interfaces.DB.Transactions;
 using Domain.User;
 using Domain.User.Entities;
+using DomainServices.BoundedContext.Accounts.JwtService;
+using DomainServices.DB.Repositories.Accounts;
+using DomainServices.DB.Transactions;
 using FluentResults;
-using Infrastructure;
-using Infrastructure.Errors;
+using GlobalTools;
+using GlobalTools.Errors;
 
 namespace Application.Commands.Accounts.RefreshToken;
 

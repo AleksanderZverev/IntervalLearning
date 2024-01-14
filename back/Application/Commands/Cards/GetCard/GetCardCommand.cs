@@ -1,8 +1,8 @@
-using Application.Common.Interfaces.DB.Queries.Study;
 using Domain.Card;
+using DomainServices.DB.Queries.Study;
 using FluentResults;
-using Infrastructure.Errors;
-using Infrastructure.Extensions;
+using GlobalTools.Errors;
+using GlobalTools.Extensions;
 
 namespace Application.Commands.Cards.GetCard;
 

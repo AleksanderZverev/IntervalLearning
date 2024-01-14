@@ -1,12 +1,12 @@
-using Application.Common.Interfaces.DB.Queries.Study;
-using Application.Common.Interfaces.DB.Repositories.Store;
-using Application.Common.Interfaces.DB.Transactions;
 using Domain.Collection;
 using Domain.Deprecated.DbModels;
+using DomainServices.DB.Queries.Study;
+using DomainServices.DB.Repositories.Store;
+using DomainServices.DB.Transactions;
 using FluentResults;
 using FluentResults.Extensions;
-using Infrastructure.Errors;
-using Infrastructure.Extensions;
+using GlobalTools.Errors;
+using GlobalTools.Extensions;
 
 namespace Application.Commands.Collections.MakeCollectionPublic;
 

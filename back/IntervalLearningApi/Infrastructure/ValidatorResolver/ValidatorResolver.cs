@@ -1,7 +1,7 @@
 using FluentResults;
 using FluentValidation;
 using FluentValidation.Results;
-using Infrastructure.Errors;
+using GlobalTools.Errors;
 
 namespace IntervalLearningApi.Infrastructure.ValidatorResolver;
 

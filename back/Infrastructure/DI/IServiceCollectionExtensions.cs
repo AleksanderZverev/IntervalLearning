@@ -1,5 +1,5 @@
-using Application.Common.Accounts.PasswordService;
-using Infrastructure.Accounts.Passwords;
+using DomainServices.BoundedContext.Accounts.PasswordService;
+using Infrastructure.BoundedContexts.Accounts.Passwords;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Infrastructure.DI;

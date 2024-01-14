@@ -23,9 +23,15 @@ import { AssertionModal } from '../../../controls/Modals/AssertionModal';
 
 interface CardRowProps extends WithMutationResolverProps<typeof useRelearnCardMutation> {
     card: Card;
+    onCardMoved?: (card: Card) => void;
+    onCardDeleted?: (card: Card) => void;
 }
 
-const CardRowComponent: FC<CardRowProps> = ({ mutationProps: { mutate: relearnCard, ...mutateProps }, card }) => {
+const CardRowComponent: FC<CardRowProps> = ({
+    mutationProps: { mutate: relearnCard, ...mutateProps },
+    card,
+    ...props
+}) => {
     const [showDetails, setShowDetails] = useState(false);
     const [showEditCardModal, setShowEditCardModal] = useState(false);
     const [showMoveCardModal, setShowMoveCardModal] = useState(false);
@@ -84,13 +90,23 @@ const CardRowComponent: FC<CardRowProps> = ({ mutationProps: { mutate: relearnCa
                     />
                 )}
                 {showMoveCardModal && (
-                    <MoveCardModal isOpen={showMoveCardModal} card={card} onClose={() => setShowMoveCardModal(false)} />
+                    <MoveCardModal
+                        isOpen={showMoveCardModal}
+                        card={card}
+                        onClose={() => setShowMoveCardModal(false)}
+                        onMoved={(c) => {
+                            props.onCardMoved && props.onCardMoved(c);
+                        }}
+                    />
                 )}
                 {showDeleteCardModal && (
                     <DeleteCardModal
                         isOpen={showDeleteCardModal}
                         card={card}
                         onClose={() => setShowDeleteCardModal(false)}
+                        onDeleted={(c) => {
+                            props.onCardDeleted && props.onCardDeleted(c);
+                        }}
                     />
                 )}
                 {showAssertRelearnCardModal && (

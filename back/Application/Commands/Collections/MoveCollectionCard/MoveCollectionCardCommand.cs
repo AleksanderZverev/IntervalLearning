@@ -1,9 +1,9 @@
 using Application.Commands.Cards.MoveCard;
-using Application.Common.Interfaces.DB.Repositories.Study;
-using Application.Common.Interfaces.DB.Transactions;
 using Domain.Card;
+using DomainServices.DB.Repositories.Study;
+using DomainServices.DB.Transactions;
 using FluentResults;
-using Infrastructure.Errors;
+using GlobalTools.Errors;
 
 namespace Application.Commands.Collections.MoveCollectionCard;
 

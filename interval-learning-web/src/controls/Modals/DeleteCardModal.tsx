@@ -10,6 +10,7 @@ interface DeleteCardModalProps extends WithMutationResolverProps<typeof useDelet
     isOpen: boolean;
     card: Card;
     onClose: () => void;
+    onDeleted?: (card: Card) => void;
 }
 
 const DeleteCardModalComponent: FC<DeleteCardModalProps> = ({
@@ -19,12 +20,15 @@ const DeleteCardModalComponent: FC<DeleteCardModalProps> = ({
 }) => {
     const onDelete = async () => {
         try {
+            const deletingCard = card;
             await deleteCard({
                 collectionId: card.collectionId,
                 userId: card.userId,
                 request: { cardId: card.id },
             });
-        } catch {
+            props.onDeleted ? props.onDeleted(deletingCard) : props.onClose();
+        } catch (e) {
+            console.debug('deleting card failure', e);
             showRetryModal(onDelete);
         }
     };

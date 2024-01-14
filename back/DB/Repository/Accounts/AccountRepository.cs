@@ -1,12 +1,12 @@
-using Application.Common.Interfaces.DB.Queries.Accounts;
-using Application.Common.Interfaces.DB.Repositories;
-using Application.Common.Interfaces.DB.Repositories.Accounts;
-using Application.Common.Interfaces.DB.Repositories.Accounts.Users;
 using Domain.User;
 using Domain.User.Entities;
 using Domain.User.ValueObjects;
+using DomainServices.DB.Queries.Accounts;
+using DomainServices.DB.Repositories;
+using DomainServices.DB.Repositories.Accounts;
+using DomainServices.DB.Repositories.Accounts.Users;
 using FluentResults;
-using Infrastructure.Errors;
+using GlobalTools.Errors;
 
 namespace DB.Repository.Accounts;
 

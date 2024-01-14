@@ -23,6 +23,8 @@ import useTypedSelector from '../../../../hooks/useTypedSelector';
 import { selectThemes } from '../../../../redux/slices/themeSlice';
 import { useGetStatisticQuery } from '../../../../redux/api/statisticsApi';
 import { getRepeatingCards, isRepeatingInProgress } from '../../RepeatCollectionPage/RepeatCollectionPage.logic';
+import _ from 'lodash';
+import { EnvironmentHelper } from '../../../../helpers/EnvironmentHelper';
 
 export const getRepeatingNavigationLink = (
     collectionUserId: string,
@@ -163,10 +165,12 @@ const InProgressCollectionsContent: FC<InProgressCollectionsProps> = ({ queryDat
         });
         return phases.length > 0;
     });
+    const dateToCollectionsSortedByDate = _.sortBy(dateToCollectionsQueueFilteredByTheme, (t) => new Date(t[0]));
 
     const wordByThemes = CountWordsByThemes(schedule, dateToCollectionsQueue);
 
     const hasStatistic = Boolean(extendedData?.learnedCards) || Boolean(extendedData?.repeatedCards);
+    const dateToCollectionsToRender = dateToCollectionsSortedByDate;
 
     return (
         <div style={{ display: 'grid', gridTemplateRows: 'auto 1fr' }}>
@@ -233,139 +237,153 @@ const InProgressCollectionsContent: FC<InProgressCollectionsProps> = ({ queryDat
                                 </Fragment>
                             );
                         })}
-                    {dateToCollectionsQueueFilteredByTheme.length > 0 &&
-                        dateToCollectionsQueueFilteredByTheme
-                            .sort((f, s) => f[0].localeCompare(s[0]))
-                            .map((pair) => {
-                                const [dateString, repeatingPhases] = pair;
-                                const date = dayjs(dateString);
-                                const isWarn = now.isAfter(date, 'd');
-                                const isToday = now.isSame(date, 'd');
-                                const isTomorrow = now.add(dayjs.duration(1, 'd')).isSame(date, 'd');
+                    {dateToCollectionsToRender.length > 0 &&
+                        dateToCollectionsToRender.map((pair) => {
+                            const [dateString, repeatingPhases] = pair;
+                            const date = dayjs(dateString);
+                            const isWarn = now.isAfter(date, 'd');
+                            const isToday = now.isSame(date, 'd');
+                            const isTomorrow = now.add(dayjs.duration(1, 'd')).isSame(date, 'd');
 
-                                const filteredPhases = repeatingPhases.filter(
+                            const filteredPhases = repeatingPhases
+                                .filter(
                                     (p) =>
                                         !schedule ||
                                         (p.scheduleUserId === schedule.userId && p.scheduleId === schedule.id)
-                                );
+                                )
+                                .sort((first, second) => {
+                                    const isLessThanHour = (p: RepeatingPhaseDto) =>
+                                        p.secondsFromLastPhase < 1 * 60 * 60;
 
-                                if (filteredPhases.length === 0) {
-                                    return false;
-                                }
+                                    const isFirstRepeatingPhase = isLessThanHour(first);
+                                    const isSecondRepeatingPhase = isLessThanHour(second);
 
-                                return (
-                                    <Fragment key={dateString}>
-                                        <TableRow borderless>
-                                            <TableCell
-                                                align="center"
-                                                className={classNames(styles.subLabel, {
-                                                    [styles.warn]: isWarn,
-                                                    [styles.today]: isToday,
-                                                })}
-                                                colSpan={4}
-                                                fontSize={14}
-                                            >
-                                                {isToday
-                                                    ? 'Сегодня'
-                                                    : isWarn
-                                                    ? `${DateHelper.getDifferenceString(
-                                                          now,
-                                                          date,
-                                                          'Просрочено на'
-                                                      )} (${date.format('L')})`
-                                                    : isTomorrow
-                                                    ? 'Завтра'
-                                                    : `${DateHelper.getDifferenceString(
-                                                          date,
-                                                          now,
-                                                          'Через'
-                                                      )} (${date.format('L')})`}
-                                            </TableCell>
-                                        </TableRow>
-                                        {filteredPhases.map((p) => {
-                                            if (!p.repeatingCollections || p.repeatingCollections.length === 0) {
-                                                console.error('repeating collections not found!');
-                                                return false;
-                                            }
+                                    if (isFirstRepeatingPhase && isSecondRepeatingPhase) {
+                                        return first.phaseIndex - second.phaseIndex;
+                                    }
 
-                                            if (
-                                                schedule &&
-                                                (p.scheduleUserId !== schedule.userId || p.scheduleId !== schedule.id)
-                                            ) {
-                                                return false;
-                                            }
+                                    if (!isFirstRepeatingPhase && !isSecondRepeatingPhase) {
+                                        return first.secondsFromLastPhase - second.secondsFromLastPhase;
+                                    }
 
-                                            const duration = dayjs.duration(p.secondsFromLastPhase, 's');
+                                    return isFirstRepeatingPhase ? 1 : -1;
+                                });
 
-                                            const collectionsToRepeat = p.repeatingCollections.filter((c) => {
-                                                if (!theme) return true;
-                                                return c.collection.themeId === theme.id;
-                                            });
+                            const phasesToRender = filteredPhases;
 
-                                            if (!collectionsToRepeat || collectionsToRepeat.length === 0) {
-                                                return (
-                                                    <Fragment
-                                                        key={`${p.scheduleUserId}-${p.scheduleId}-${p.phaseIndex}`}
-                                                    >
-                                                        <TableRow borderless>
-                                                            <TableCell
-                                                                // className={classNames(styles.subLabel)}
-                                                                colSpan={4}
-                                                                fontSize={14}
-                                                            >
-                                                                Для данной темы не осталось повторений
-                                                            </TableCell>
-                                                        </TableRow>
-                                                    </Fragment>
-                                                );
-                                            }
+                            if (phasesToRender.length === 0) {
+                                return false;
+                            }
 
+                            return (
+                                <Fragment key={dateString}>
+                                    <TableRow borderless>
+                                        <TableCell
+                                            align="center"
+                                            className={classNames(styles.subLabel, {
+                                                [styles.warn]: isWarn,
+                                                [styles.today]: isToday,
+                                            })}
+                                            colSpan={4}
+                                            fontSize={14}
+                                        >
+                                            {isToday
+                                                ? 'Сегодня'
+                                                : isWarn
+                                                ? `${DateHelper.getDifferenceString(
+                                                      now,
+                                                      date,
+                                                      'Просрочено на'
+                                                  )} (${date.format('L')})`
+                                                : isTomorrow
+                                                ? 'Завтра'
+                                                : `${DateHelper.getDifferenceString(date, now, 'Через')} (${date.format(
+                                                      'L'
+                                                  )})`}
+                                        </TableCell>
+                                    </TableRow>
+                                    {phasesToRender.map((p) => {
+                                        if (!p.repeatingCollections || p.repeatingCollections.length === 0) {
+                                            console.error('repeating collections not found!');
+                                            return false;
+                                        }
+
+                                        if (
+                                            schedule &&
+                                            (p.scheduleUserId !== schedule.userId || p.scheduleId !== schedule.id)
+                                        ) {
+                                            return false;
+                                        }
+
+                                        const duration = dayjs.duration(p.secondsFromLastPhase, 's');
+
+                                        const collectionsToRepeat = p.repeatingCollections.filter((c) => {
+                                            if (!theme) return true;
+                                            return c.collection.themeId === theme.id;
+                                        });
+
+                                        if (!collectionsToRepeat || collectionsToRepeat.length === 0) {
                                             return (
                                                 <Fragment key={`${p.scheduleUserId}-${p.scheduleId}-${p.phaseIndex}`}>
                                                     <TableRow borderless>
                                                         <TableCell
-                                                            className={classNames(styles.subLabel)}
+                                                            // className={classNames(styles.subLabel)}
                                                             colSpan={4}
                                                             fontSize={14}
                                                         >
-                                                            Спустя {duration.humanize()}
+                                                            Для данной темы не осталось повторений
                                                         </TableCell>
                                                     </TableRow>
-                                                    {p.repeatingCollections.map((c) => {
-                                                        const repeatingLink = getRepeatingNavigationLink(
-                                                            c.collection.userId,
-                                                            c.collection.id,
-                                                            p.scheduleUserId,
-                                                            p.scheduleId,
-                                                            p.phaseIndex,
-                                                            dateString
-                                                        );
-
-                                                        const isInProgress = isRepeatingInProgress(
-                                                            p.scheduleUserId,
-                                                            p.scheduleId,
-                                                            p.phaseIndex,
-                                                            dateString,
-                                                            c.collection.id
-                                                        );
-
-                                                        return (
-                                                            <CollectionRow
-                                                                key={c.collection.id}
-                                                                collection={c.collection}
-                                                                cardsToRepeatCount={c.cardsToRepeatCount}
-                                                                hover={allowFutureSelect || isToday || isWarn}
-                                                                notFinished={isInProgress}
-                                                                onClick={() => navigate(repeatingLink)}
-                                                            />
-                                                        );
-                                                    })}
                                                 </Fragment>
                                             );
-                                        })}
-                                    </Fragment>
-                                );
-                            })}
+                                        }
+
+                                        return (
+                                            <Fragment key={`${p.scheduleUserId}-${p.scheduleId}-${p.phaseIndex}`}>
+                                                <TableRow borderless>
+                                                    <TableCell
+                                                        className={classNames(styles.subLabel)}
+                                                        colSpan={4}
+                                                        fontSize={14}
+                                                    >
+                                                        Спустя {duration.humanize()}
+                                                    </TableCell>
+                                                </TableRow>
+                                                {p.repeatingCollections.map((c) => {
+                                                    const repeatingLink = getRepeatingNavigationLink(
+                                                        c.collection.userId,
+                                                        c.collection.id,
+                                                        p.scheduleUserId,
+                                                        p.scheduleId,
+                                                        p.phaseIndex,
+                                                        dateString
+                                                    );
+
+                                                    const isInProgress = isRepeatingInProgress(
+                                                        p.scheduleUserId,
+                                                        p.scheduleId,
+                                                        p.phaseIndex,
+                                                        dateString,
+                                                        c.collection.id
+                                                    );
+
+                                                    return (
+                                                        <CollectionRow
+                                                            key={c.collection.id}
+                                                            collection={c.collection}
+                                                            cardsToRepeatCount={c.cardsToRepeatCount}
+                                                            hover={allowFutureSelect || isToday || isWarn}
+                                                            notFinished={isInProgress}
+                                                            onClick={() => navigate(repeatingLink)}
+                                                        />
+                                                    );
+                                                })}
+                                            </Fragment>
+                                        );
+                                    })}
+                                </Fragment>
+                            );
+                        })}
                 </TableBody>
             </Table>
         </div>
@@ -376,5 +394,7 @@ const ConnectedInProgressCollections = withQueryResolver(useGetQueueCollectionsQ
 const ConnectedStatisticsData = withOtherQueryResolver(useGetStatisticQuery)(ConnectedInProgressCollections);
 
 export const InProgressCollections: FC = () => {
-    return <ConnectedStatisticsData queryArg={{ date: dayjs().toISOString() }} />;
+    const untilDate = EnvironmentHelper.IsProduction() ? dayjs().add(40, 'days').toISOString() : undefined;
+
+    return <ConnectedStatisticsData queryArg={{ date: dayjs().toISOString(), untilDate: untilDate }} />;
 };

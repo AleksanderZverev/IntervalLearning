@@ -91,7 +91,7 @@ interface CreateCardModalProps extends WithMutationResolverProps<typeof useAddCa
     collectionUserId: string;
     open: boolean;
     onClose: () => void;
-    onAdded?: () => void;
+    onAdded?: (card: Card) => void;
     cardId?: string;
     defaultFrontText?: string;
     defaultPromptText?: string;
@@ -190,8 +190,8 @@ const CreateCardModalContent: FC<CreateCardModalProps> = ({
         }
 
         try {
-            await addCard({ collectionId: collectionId, userId: collectionUserId, request: item });
-            props.onAdded ? props.onAdded() : props.onClose();
+            const card = await addCard({ collectionId: collectionId, userId: collectionUserId, request: item });
+            props.onAdded ? props.onAdded(card) : props.onClose();
         } catch {
             showRetryModal(() => onCreate(data));
         }

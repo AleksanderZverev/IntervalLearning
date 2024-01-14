@@ -1,5 +1,5 @@
 using System.Transactions;
-using Application.Common.Interfaces.DB.Transactions;
+using DomainServices.DB.Transactions;
 
 namespace DB.Transactions;
 

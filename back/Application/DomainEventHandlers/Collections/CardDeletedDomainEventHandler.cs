@@ -1,9 +1,9 @@
-using Application.Common.Interfaces.DB.Repositories.Study;
 using Domain.Card.Events;
+using DomainServices.DB.Repositories.Study;
 using FluentResults;
 using FluentResults.Extensions;
-using Infrastructure.Errors;
-using Infrastructure.Extensions;
+using GlobalTools.Errors;
+using GlobalTools.Extensions;
 
 namespace Application.DomainEventHandlers.Collections;
 

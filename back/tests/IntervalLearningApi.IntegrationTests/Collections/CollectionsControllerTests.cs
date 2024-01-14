@@ -421,6 +421,39 @@ public class CollectionsControllerTests : SharedApiTests
         //Assert
         searchResult.Should().NotBeNull().And.BeEmpty();
     }
+    
+    [Fact]
+    public async Task DeleteCollection_ShouldDeleteEmptyCollection()
+    {
+        //Arrange
+        var (client, scope) = SharedScope;
+        var oldCollection = await CreateRandomCollectionAsync();
+        
+        //Act
+        var deletionResponse = await client.DeleteAsync(ApiRoutes.Collections.GetDeleteCollectionPath(oldCollection.Id));
+
+        //Assert
+        oldCollection.IsDeletable.Should().BeTrue("Empty collection should be deletable");
+        deletionResponse.IsSuccessStatusCode.Should().BeTrue();
+        var newCollection = await GetCollectionAsync(oldCollection.Id);
+        newCollection.Should().BeNull();
+    }
+    
+    [Fact]
+    public async Task DeleteCollection_ShouldFail_CollectionIsNotEmpty()
+    {
+        //Arrange
+        var (client, scope) = SharedScope;
+        var (oldCollection, card) = await CreateRandomCardAsync();
+        
+        //Act
+        var deletionResponse = await client.DeleteAsync(ApiRoutes.Collections.GetDeleteCollectionPath(oldCollection.Id));
+
+        //Assert
+        deletionResponse.IsSuccessStatusCode.Should().BeFalse();
+        var newCollection = await GetCollectionAsync(oldCollection.Id);
+        newCollection.Should().NotBeNull();
+    }
 
     [Fact]
     public async Task CreateCard_ShouldIncrementCounter()

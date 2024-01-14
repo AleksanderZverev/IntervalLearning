@@ -1,5 +1,4 @@
 using Application.Commands.Cards.StartLearnCards;
-using Domain.Card.ValueObjects;
 using Mapster;
 
 namespace IntervalLearningApi.Controllers.Study.Cards.Requests.StartCards;

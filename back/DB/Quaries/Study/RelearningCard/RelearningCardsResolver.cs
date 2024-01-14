@@ -1,8 +1,7 @@
-using Application.Common.Interfaces.DB.Queries.Study.RelearningCards;
 using Domain.Card.ValueObjects;
-using Domain.Collection;
 using Domain.Collection.ValueObjects;
 using Domain.User.ValueObjects;
+using DomainServices.DB.Queries.Study.RelearningCards;
 using Microsoft.EntityFrameworkCore;
 
 namespace DB.Quaries.Study.RelearningCard;

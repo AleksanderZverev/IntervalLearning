@@ -1,8 +1,8 @@
-using Application.Common.Interfaces.DB.Queries.Dictionary;
-using Application.Common.Interfaces.DB.Queries.Study;
+using DomainServices.DB.Queries.Dictionary;
+using DomainServices.DB.Queries.Study;
 using FluentResults;
-using Infrastructure;
-using Infrastructure.Errors;
+using GlobalTools;
+using GlobalTools.Errors;
 
 namespace Application.Commands.Collections.GetRandomWords;
 

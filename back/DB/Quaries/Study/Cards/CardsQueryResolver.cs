@@ -1,10 +1,9 @@
 using System.Linq.Expressions;
-using Application.Commands.Cards.SearchCards;
-using Application.Common.Interfaces.DB.Queries.Study.Cards;
 using Domain.Card;
 using Domain.Card.ValueObjects;
 using Domain.Collection.ValueObjects;
 using Domain.User.ValueObjects;
+using DomainServices.DB.Queries.Study.Cards;
 using Microsoft.EntityFrameworkCore;
 
 namespace DB.Resolvers.Cards;
@@ -94,5 +93,10 @@ public class CardsQueryResolver : ICardsQueryResolver
         return db.Cards
             .Where(c => c.ParentUserId == userId && collectionIds.Contains(c.ParentCollectionId))
             .ToListAsync();
+    }
+
+    public Task<bool> ContainsAny(UserId userId, CollectionId collectionId)
+    {
+        return db.Cards.AnyAsync(c => c.ParentUserId == userId && c.ParentCollectionId == collectionId);
     }
 }

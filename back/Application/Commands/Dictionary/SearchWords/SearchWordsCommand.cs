@@ -1,7 +1,7 @@
-using Application.Common.Interfaces.DB.Queries.Dictionary;
 using Domain.Dictionary.Word;
+using DomainServices.DB.Queries.Dictionary;
 using FluentResults;
-using Infrastructure.Errors;
+using GlobalTools.Errors;
 
 namespace Application.Commands.Dictionary.SearchWords;
 
