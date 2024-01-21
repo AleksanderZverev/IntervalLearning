@@ -30,9 +30,14 @@ export const CollectionRow: FC<CollectionRowProps> = ({ collection }) => {
             </Portal>
             <TableRow
                 hover
+                onMouseDown={(e) => {
+                    //preventing browser scroll
+                    e.preventDefault();
+                }}
                 onAuxClick={(e) => {
                     if (e.button === 1) {
                         window.open(`collections/${collection.userId}-${collection.id}`, '_blank');
+                        e.preventDefault();
                     }
                 }}
                 onClick={() => navigate(`${collection.userId}-${collection.id}`)}
