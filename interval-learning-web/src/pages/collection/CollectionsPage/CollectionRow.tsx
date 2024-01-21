@@ -30,6 +30,11 @@ export const CollectionRow: FC<CollectionRowProps> = ({ collection }) => {
             </Portal>
             <TableRow
                 hover
+                onAuxClick={(e) => {
+                    if (e.button === 1) {
+                        window.open(`collections/${collection.userId}-${collection.id}`, '_blank');
+                    }
+                }}
                 onClick={() => navigate(`${collection.userId}-${collection.id}`)}
                 style={{ position: 'relative' }}
             >
