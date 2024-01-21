@@ -2,6 +2,8 @@ using DB.Configurations.Study;
 using DB.Repository;
 using Domain.Card;
 using Domain.Card.ValueObjects;
+using Domain.Collection.ValueObjects;
+using Domain.User.ValueObjects;
 using DomainServices.DB.Repositories;
 using DomainServices.DB.Repositories.Study.Cards;
 using FluentResults;
@@ -13,6 +15,9 @@ internal class CardsRepository : BaseRepository<Card>, IRepository<Card, CardId,
     public CardsRepository(ApplicationContext db) : base(db)
     {
     }
+    
+    private static string GetSequenceName(UserId userId, CollectionId collectionId)
+        => $"cards_for_user_{userId.Value}_of_collection_{collectionId.Value}"; 
 
     public override Card Add(Card entity)
     {
@@ -52,7 +57,7 @@ internal class CardsRepository : BaseRepository<Card>, IRepository<Card, CardId,
 
     public Result<CardId> GetUniqueId(CardIdParams param)
     {
-        var sequenceName = CardConfiguration.GetSequenceName(param.UserId, param.CollectionId);
+        var sequenceName = GetSequenceName(param.UserId, param.CollectionId);
         const int cardsStartId = 5000;
         db.EnsureSequenceCreated(sequenceName, cardsStartId);
         var nextCardId = db.GetSequenceNextValue16(sequenceName, cardsStartId);

@@ -1,6 +1,7 @@
 using DB.Configurations.Study;
 using Domain.Collection;
 using Domain.Collection.ValueObjects;
+using Domain.User.ValueObjects;
 using DomainServices.DB.Repositories;
 using DomainServices.DB.Repositories.Study.Collections;
 using FluentResults;
@@ -13,9 +14,11 @@ internal class CollectionRepository : BaseRepository<Collection>, IRepository<Co
     {
     }
 
+    private static string GetSequenceName(UserId userId) =>$"collection_for_{userId.Value}";
+
     public Result<CollectionId> GetUniqueId(CollectionIdParams param)
     {
-        var sequenceName = CollectionConfiguration.GetSequenceName(param.UserId);
+        var sequenceName = GetSequenceName(param.UserId);
         const int collectionsStartValue = 100;
         db.EnsureSequenceCreated(sequenceName, collectionsStartValue);
         var collectionNextId = db.GetSequenceNextValue16(sequenceName, collectionsStartValue);

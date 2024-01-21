@@ -9,13 +9,6 @@ namespace DB.Configurations.Study;
 
 public class CardRepeatQueueConfiguration : IEntityTypeConfiguration<CardRepeatQueue>
 {
-    public static string GetSequenceName(RepeatsSchedule scheduleWithPhases, Card card)
-    {
-        return $"queue_" +
-               $"schedule_{scheduleWithPhases.ParentUserId.Value}_{scheduleWithPhases.Id}_" +
-               $"card_{card.ParentUserId.Value}_{card.ParentCollectionId.Value}_{card.Id.Value}";
-    }
-
     public void Configure(EntityTypeBuilder<CardRepeatQueue> builder)
     {
         builder.ToTable("Queue");

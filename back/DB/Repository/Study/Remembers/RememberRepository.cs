@@ -15,10 +15,17 @@ internal class RememberRepository : BaseRepository<Domain.Schedule.Entities.Reme
     {
     }
 
+    private static string GetSequenceName(ComplexScheduleId schedule, ComplexCardId card)
+    {
+        return $"remember_" +
+               $"schedule_{schedule.ParentUserId}_{schedule.Id}_" +
+               $"card_{card.UserId}_{card.CollectionId}_{card.Id}";
+    }
+
     public Result<RememberId> GetUniqueId(RememberIdParams param)
     {
         var (schedule, card) = param;
-        var sequenceName = RememberConfiguration.GetSequenceName(
+        var sequenceName = GetSequenceName(
             new ComplexScheduleId()
             {
                 ParentUserId = schedule.ParentUserId,

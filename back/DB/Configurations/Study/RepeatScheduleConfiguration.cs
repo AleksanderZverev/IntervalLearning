@@ -8,9 +8,6 @@ namespace DB.Configurations.Study;
 
 public class RepeatScheduleConfiguration : IEntityTypeConfiguration<RepeatsSchedule>
 {
-    public static string GetSequenceName(UserId userId)
-        => $"schedule_of_user_{userId.Value}";
-    
     public void Configure(EntityTypeBuilder<RepeatsSchedule> builder)
     {
         builder.ToTable("RepeatsSchedules");
