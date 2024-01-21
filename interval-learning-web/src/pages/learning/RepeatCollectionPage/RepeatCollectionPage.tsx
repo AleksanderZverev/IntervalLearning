@@ -17,7 +17,6 @@ import { selectTheme } from '../../../redux/slices/themeSlice';
 import { CenterContainer } from '../../../controls/CenterContainer/CenterContainer';
 import { Slider } from '../../../controls/Slider/Slider';
 import { Button, Paper, Stack } from '@mui/material';
-import { LocalStorageHelper } from '../../../helpers/localStorageHelper';
 import { useGetCollectionQuery } from '../../../redux/collectionApi';
 import { selectCardsByIds } from '../../../redux/slices/cardsSlice';
 import { AssertionModal } from '../../../controls/Modals/AssertionModal';
@@ -29,15 +28,8 @@ import dayjs from 'dayjs';
 import { getRepeatingNavigationLink } from '../LearningPage/InProgressCollections/InProgressCollections';
 import { ErrorPage } from '../../../controls/ErrorPage/ErrorPage';
 import { useGetScheduleQuery } from '../../../redux/schedulesSlice';
-import Head from 'next/head';
 import { useDocumentTitle } from '../../../hooks/useCollectionTitle';
-import {
-    RememberForm,
-    State,
-    getDefaultState,
-    getRepeatingCards,
-    saveRepeatingCardsState,
-} from './RepeatCollectionPage.logic';
+import { State, getDefaultState, getRepeatingCards, saveRepeatingCardsState } from './RepeatCollectionPage.logic';
 
 type WithResolvers = WithQueryResolverData<typeof useGetRepeatCardsQuery> &
     WithMutationResolverProps<typeof usePatchRememberCardsMutation>;
@@ -113,8 +105,8 @@ export const RepeatCollectionPageContent: FC<RepeatCollectionPageContentProps> =
         saveRepeatingCardsState(schedule.userId, schedule.id, phaseIndex, collection.id, date, getDefaultState());
     };
 
-    const onSuccessFinish = (fromModal: boolean) => {
-        if (mutationData && !fromModal) {
+    const onSuccessFinish = () => {
+        if (mutationData) {
             const now = dayjs();
             const date = dayjs(mutationData.nextRepeatDate);
             const diffMinutes = date.diff(now, 'minutes');
@@ -125,29 +117,35 @@ export const RepeatCollectionPageContent: FC<RepeatCollectionPageContentProps> =
             }
         }
 
-        if (mutationData && mutationData.nextRepeatDate && fromModal) {
-            setSkipLoading(false);
-            mutationReset();
-
-            navigate(
-                getRepeatingNavigationLink(
-                    userId,
-                    collectionId,
-                    scheduleUserId,
-                    scheduleId,
-                    mutationData.nextPhaseIndex,
-                    mutationData.nextRepeatDate
-                )
-            );
-            return;
-        }
         navigate('/learning');
+    };
+
+    const onGoToLearning = () => {
+        navigate('/learning');
+    };
+
+    const onGoToRepeating = () => {
+        if (!mutationData?.nextRepeatDate) return;
+
+        setSkipLoading(false);
+        mutationReset();
+
+        navigate(
+            getRepeatingNavigationLink(
+                userId,
+                collectionId,
+                scheduleUserId,
+                scheduleId,
+                mutationData.nextPhaseIndex,
+                mutationData.nextRepeatDate
+            )
+        );
     };
 
     const onFinish = async (fromAssertionModal: boolean) => {
         if (isLoading || isSuccess) {
             if (isSuccess) {
-                onSuccessFinish(false);
+                onSuccessFinish();
             }
             return;
         }
@@ -261,10 +259,7 @@ export const RepeatCollectionPageContent: FC<RepeatCollectionPageContentProps> =
                 subTitle={theme?.name || ''}
                 subMenu={
                     !isEmptyCollection && (
-                        <Button
-                            variant="outlined"
-                            onClick={() => (isSuccess ? onSuccessFinish(false) : onFinish(false))}
-                        >
+                        <Button variant="outlined" onClick={() => (isSuccess ? onSuccessFinish() : onFinish(false))}>
                             Завершить
                         </Button>
                     )
@@ -316,7 +311,8 @@ export const RepeatCollectionPageContent: FC<RepeatCollectionPageContentProps> =
                         message="Перейти к повторению?"
                         assertTitle="Да"
                         cancelTitle="Нет"
-                        onAssert={() => onSuccessFinish(true)}
+                        onAssert={() => onGoToRepeating()}
+                        onCancel={() => onGoToLearning()}
                         onClose={() => setShowMoveToRepeatModal(false)}
                     />
                 )}
@@ -383,7 +379,7 @@ export const RepeatCollectionPageContent: FC<RepeatCollectionPageContentProps> =
                                     cardMovementInfos={mutationData.cardMovementInfos}
                                     wordsLearned={state.repeatedCardIndex + 1}
                                     nextRepeatDate={mutationData.nextRepeatDate}
-                                    onEndButtonClick={() => onSuccessFinish(false)}
+                                    onEndButtonClick={() => onSuccessFinish()}
                                 />
                             )}
                             {!isSuccess && currentCard && (
