@@ -1,4 +1,3 @@
-using DB.Configurations.Study;
 using DB.Repository;
 using Domain.Card.ValueObjects;
 using Domain.Schedule.Entities.Remember.ValueObjects;

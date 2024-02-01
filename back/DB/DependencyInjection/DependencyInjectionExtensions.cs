@@ -13,6 +13,7 @@ using DB.Repository.Store;
 using DB.Repository.Store.PublicCollections;
 using DB.Repository.Study;
 using DB.Repository.Study.Collections;
+using DB.Repository.Study.PhaseRemember;
 using DB.Repository.Study.Schedules;
 using DB.Repository.Study.Themes;
 using DB.Resolvers.Cards;
@@ -73,6 +74,7 @@ using DomainServices.DB.Repositories.Study;
 using DomainServices.DB.Repositories.Study.CardRemembers;
 using DomainServices.DB.Repositories.Study.Cards;
 using DomainServices.DB.Repositories.Study.Collections;
+using DomainServices.DB.Repositories.Study.PhaseRemembers;
 using DomainServices.DB.Repositories.Study.Queue;
 using DomainServices.DB.Repositories.Study.Schedules;
 using DomainServices.DB.Repositories.Study.Themes;
@@ -143,7 +145,7 @@ public static class DependencyInjectionExtensions
         services.AddScoped<IRepository<Phase>, BaseRepository<Phase>>();
         
         //PhaseRemember
-        services.AddScoped<IRepository<PhaseRememberEntity>, BaseRepository<PhaseRememberEntity>>();
+        services.AddScoped<IRepository<PhaseRememberEntity, int, PhaseRememberIdParams>, PhaseRememberRepository>();
         
         //RelearningCard
         services.AddScoped<IRelearningCardsResolver, RelearningCardsResolver>();

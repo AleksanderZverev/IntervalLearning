@@ -19,6 +19,7 @@ using DomainServices.DB.Repositories.Study;
 using DomainServices.DB.Repositories.Study.CardRemembers;
 using DomainServices.DB.Repositories.Study.Cards;
 using DomainServices.DB.Repositories.Study.Collections;
+using DomainServices.DB.Repositories.Study.PhaseRemembers;
 using DomainServices.DB.Repositories.Study.Queue;
 using DomainServices.DB.Repositories.Study.Schedules;
 using DomainServices.DB.Repositories.Study.Themes;
@@ -44,7 +45,7 @@ public class StudyRepository : IStudyRepository
     public IRepository<CardRepeatQueue, QueueId, RepeatingQueueIdParams> RepeatingQueue { get; }
     
     public IRepository<Remember, RememberId, RememberIdParams> CardRemembers { get; }
-    public IRepository<PhaseRememberEntity> PhaseRemembers { get; }
+    public IRepository<PhaseRememberEntity, int, PhaseRememberIdParams> PhaseRemembers { get; }
     public IRepository<RelearningCard> RelearnCards { get; }
 
     public StudyRepository(
@@ -57,7 +58,7 @@ public class StudyRepository : IStudyRepository
         IRepository<Phase> phases,
         IRepository<CardRepeatQueue, QueueId, RepeatingQueueIdParams> repeatingQueue,
         IRepository<Remember, RememberId, RememberIdParams> cardRemembers,
-        IRepository<PhaseRememberEntity> phaseRemembers, 
+        IRepository<PhaseRememberEntity, int, PhaseRememberIdParams>  phaseRemembers, 
         IRepository<RelearningCard> relearnCards)
     {
         this.db = db;

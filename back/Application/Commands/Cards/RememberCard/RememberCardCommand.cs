@@ -92,10 +92,8 @@ public class RememberCardCommand : ICommand<RememberCardRequest, NextRepeatInfoR
             
             var currentPhase = schedule.GetPhaseByIndex(queueItem.PhaseIndex);
             
-            var phaseRemember = new PhaseRememberEntity(
-                schedule.ParentUserId,
-                schedule.Id,
-                currentPhase.Id,
+            var phaseRemember = rememberService.CreatePhaseRemember(
+                currentPhase,
                 userId,
                 weight);
 
