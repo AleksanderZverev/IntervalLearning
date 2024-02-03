@@ -10,6 +10,9 @@ public class PhaseRememberConfiguration : IEntityTypeConfiguration<PhaseRemember
     {
         builder.HasKey(r => new {r.ParentUserId, r.ParentRepeatsScheduleId, r.ParentPhaseId, r.RepeatedUserId, r.Id});
 
+        builder.Property(p => p.Id)
+            .ValueGeneratedNever();
+
         builder.ConfigureUserReference();
 
         builder.HasOne(p => p.RepeatedUser)

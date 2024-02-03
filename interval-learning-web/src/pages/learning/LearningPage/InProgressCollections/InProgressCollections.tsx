@@ -275,6 +275,10 @@ const InProgressCollectionsContent: FC<InProgressCollectionsProps> = ({ queryDat
                                 return false;
                             }
 
+                            const totalWords = _.sumBy(phasesToRender, (p) =>
+                                _.sumBy(p.repeatingCollections, (c) => c.cardsToRepeatCount)
+                            );
+
                             return (
                                 <Fragment key={dateString}>
                                     <TableRow borderless>
@@ -288,7 +292,7 @@ const InProgressCollectionsContent: FC<InProgressCollectionsProps> = ({ queryDat
                                             fontSize={14}
                                         >
                                             {isToday
-                                                ? 'Сегодня'
+                                                ? `Сегодня (${totalWords})`
                                                 : isWarn
                                                 ? `${DateHelper.getDifferenceString(
                                                       now,
@@ -323,19 +327,7 @@ const InProgressCollectionsContent: FC<InProgressCollectionsProps> = ({ queryDat
                                         });
 
                                         if (!collectionsToRepeat || collectionsToRepeat.length === 0) {
-                                            return (
-                                                <Fragment key={`${p.scheduleUserId}-${p.scheduleId}-${p.phaseIndex}`}>
-                                                    <TableRow borderless>
-                                                        <TableCell
-                                                            // className={classNames(styles.subLabel)}
-                                                            colSpan={4}
-                                                            fontSize={14}
-                                                        >
-                                                            Для данной темы не осталось повторений
-                                                        </TableCell>
-                                                    </TableRow>
-                                                </Fragment>
-                                            );
+                                            return false;
                                         }
 
                                         return (
@@ -349,7 +341,7 @@ const InProgressCollectionsContent: FC<InProgressCollectionsProps> = ({ queryDat
                                                         Спустя {duration.humanize()}
                                                     </TableCell>
                                                 </TableRow>
-                                                {p.repeatingCollections.map((c) => {
+                                                {collectionsToRepeat.map((c) => {
                                                     const repeatingLink = getRepeatingNavigationLink(
                                                         c.collection.userId,
                                                         c.collection.id,

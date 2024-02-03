@@ -1,9 +1,15 @@
 using Domain.Card;
 using Domain.Common.ValueObjects.Text.SingleLine;
 using Domain.Schedule;
+using Domain.Schedule.Entities.Phase;
+using Domain.Schedule.Entities.Phase.Entities;
+using Domain.Schedule.Entities.Phase.ValueObjects;
 using Domain.Schedule.Entities.Remember;
 using Domain.Schedule.Entities.Remember.ValueObjects;
+using Domain.Schedule.ValueObjects;
+using Domain.User.ValueObjects;
 using DomainServices.DB.Repositories.Study;
+using DomainServices.DB.Repositories.Study.PhaseRemembers;
 
 namespace DomainServices.BoundedContext.Study.RememberService;
 
@@ -30,42 +36,65 @@ public class RememberService
             movingRemember.RepeatedDate);
     }
 
-    public Remember Create(RepeatsSchedule schedule, Card card, RememberWeight weight,
-        int phaseIndex, DateTime date, MediumSingleLineString? comment)
+    public Remember Create(
+        RepeatsSchedule schedule,
+        Card card,
+        RememberWeight weight,
+        int phaseIndex,
+        DateTime date,
+        MediumSingleLineString? comment)
     {
         var rememberId = studyRepository.CardRemembers.GetUniqueId(new(schedule, card)).Value;
-        
+
         return new Remember(
-            schedule.ParentUserId, 
+            schedule.ParentUserId,
             schedule.Id,
             card.ParentUserId,
             card.ParentCollectionId,
             card.Id,
             rememberId,
-            weight, 
+            weight,
             (short)phaseIndex,
             date)
         {
             Comment = comment,
         };
     }
-    
+
     public Remember CreateLearnedRemember(RepeatsSchedule schedule, Card card, RememberWeight weight, DateTime date)
     {
         var rememberId = studyRepository.CardRemembers.GetUniqueId(new(schedule, card)).Value;
-        
-        var remember =  new Remember(
-            schedule.ParentUserId, 
+
+        var remember = new Remember(
+            schedule.ParentUserId,
             schedule.Id,
             card.ParentUserId,
             card.ParentCollectionId,
             card.Id,
             rememberId,
-            weight, 
+            weight,
             0,
             date);
-        
+
         remember.MakeLearnedRemember();
         return remember;
+    }
+
+    public PhaseRememberEntity CreatePhaseRemember(
+        Phase phase,
+        UserId repeatedUserId,
+        RememberWeight weight)
+    {
+        var rememberPhaseId = studyRepository.PhaseRemembers.GetUniqueId(
+            new PhaseRememberIdParams(phase, repeatedUserId)).Value;
+        
+        return new PhaseRememberEntity(
+            rememberPhaseId,
+            phase.ParentUserId,
+            phase.ParentRepeatsScheduleId,
+            phase.Id,
+            repeatedUserId,
+            weight);
+        
     }
 }

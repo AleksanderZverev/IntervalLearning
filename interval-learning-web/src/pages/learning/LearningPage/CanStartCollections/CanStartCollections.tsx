@@ -12,6 +12,7 @@ import { useGetNotFinishedQuery } from '../../../../redux/collectionApi';
 import { Collection } from '../../../../types/Collection';
 import { Schedule } from '../../../../types/schedule';
 import { CollectionRow } from './CollectionRow/CollectionRow';
+import _ from 'lodash';
 
 interface CanStartCollectionsContentProps extends WithQueryResolverData<typeof useGetNotFinishedQuery> {
     scheduleUserId: string;
@@ -77,9 +78,14 @@ const CanStartCollectionsContent: FC<CanStartCollectionsContentProps> = ({
                             <TableRow borderless>
                                 <TableCell isLabel>Коллекции</TableCell>
                             </TableRow>
-                            {collections.map((c) => (
-                                <CollectionRow key={c.id} collection={c} onClick={onClick} />
-                            ))}
+                            {_.chain(collections)
+                                .groupBy((c) => c.themeId)
+                                .map((group) =>
+                                    _.orderBy(group, (c) => c.cardsCount, 'desc').map((c) => (
+                                        <CollectionRow key={c.id} collection={c} onClick={onClick} />
+                                    ))
+                                )
+                                .value()}
                         </>
                     )}
                     {isEmpty && (

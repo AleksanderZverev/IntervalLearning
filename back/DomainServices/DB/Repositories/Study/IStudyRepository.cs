@@ -17,6 +17,7 @@ using DomainServices.DB.Queries.Study;
 using DomainServices.DB.Repositories.Study.CardRemembers;
 using DomainServices.DB.Repositories.Study.Cards;
 using DomainServices.DB.Repositories.Study.Collections;
+using DomainServices.DB.Repositories.Study.PhaseRemembers;
 using DomainServices.DB.Repositories.Study.Queue;
 using DomainServices.DB.Repositories.Study.Schedules;
 using DomainServices.DB.Repositories.Study.Themes;
@@ -38,6 +39,6 @@ public interface IStudyRepository : IBoundedContextRepository
     public IRepository<CardRepeatQueue, QueueId, RepeatingQueueIdParams> RepeatingQueue { get; }
     
     public IRepository<Remember, RememberId, RememberIdParams> CardRemembers { get; }
-    public IRepository<PhaseRememberEntity> PhaseRemembers { get; }
+    public IRepository<PhaseRememberEntity, int, PhaseRememberIdParams> PhaseRemembers { get; }
     public IRepository<RelearningCard> RelearnCards { get; }
 }
