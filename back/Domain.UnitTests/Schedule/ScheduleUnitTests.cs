@@ -15,6 +15,26 @@ public class ScheduleUnitTests
         TimeSpan.FromDays(56)
     };
 
+    private static List<TimeSpan> PhasesWithRepetitions = new()
+    {
+        TimeSpan.FromSeconds(1),
+        TimeSpan.FromDays(1),
+        TimeSpan.FromSeconds(1),
+        TimeSpan.FromDays(3),
+        TimeSpan.FromSeconds(1),
+        TimeSpan.FromDays(7),
+        TimeSpan.FromSeconds(1),
+        TimeSpan.FromDays(14),
+        TimeSpan.FromSeconds(1),
+        TimeSpan.FromDays(28),
+        TimeSpan.FromSeconds(1),
+        TimeSpan.FromDays(56),
+        TimeSpan.FromSeconds(1),
+        TimeSpan.FromDays(56),
+        TimeSpan.FromSeconds(1),
+        TimeSpan.FromDays(56)
+    };
+
     private static Phase GetPhaseByDuration(RepeatsSchedule schedule, TimeSpan duration)
         => schedule.Phases.First(p => p.GetDurationToNextPhase() == duration);
 
@@ -23,6 +43,9 @@ public class ScheduleUnitTests
 
     private static RepeatsSchedule GetDefaultSchedule()
         => GetSchedule(ForgottenBehavior.MoveToPreviousStep, DefaultPhases);
+
+    private static RepeatsSchedule GetDefaultScheduleWithRepetitions()
+        => GetSchedule(ForgottenBehavior.MoveToPreviousStep, PhasesWithRepetitions);
 
     private static RepeatsSchedule GetSchedule(ForgottenBehavior forgottenBehavior, List<TimeSpan> phases)
     {
@@ -43,6 +66,28 @@ public class ScheduleUnitTests
                     };
                 }).ToList(),
         };
+    }
+
+    [TestCase(0)]
+    [TestCase(-1)]
+    [TestCase(-99)]
+    public void CanRepeat_ShouldReturnTrue_WhenPhaseIsRepetition(int daysTillRepeating)
+    {
+        //Arrange
+        var schedule = GetDefaultScheduleWithRepetitions();
+
+        foreach (var repetitionPhaseDuration in PhasesWithRepetitions)
+        {
+            //Act
+            var phaseIndex = GetPhaseIndexByDuration(schedule, repetitionPhaseDuration);
+            var now = DateTime.UtcNow;
+            var repeatingDate = now.AddDays(daysTillRepeating);
+            var canRepeatResult = schedule.CanRepeat(phaseIndex, repeatingDate, new DateTimeProviderMock(now));
+
+            //Assert
+            canRepeatResult.IsSuccess.Should().BeTrue();
+            canRepeatResult.Value.Should().BeTrue();
+        }
     }
 
     [TestCase(0)]

@@ -361,6 +361,7 @@ public class RepeatsSchedule : AggregateRoot<ComplexScheduleId>, IParentUserRefe
         //Repeating date passed
         if (repeatingDate.Date < now.Date)
             return true;
+
         var phaseDuration = phase.GetDurationToNextPhase();
 
         const double repeatableForehandDaysRatio = 0.15d; //3 = 0.45; 7 = 1.05; 14 = 2.1; 28 = 4.2; 56 = 8.4;
