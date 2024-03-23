@@ -1,5 +1,4 @@
 ﻿using System.Diagnostics;
-using System.Net.NetworkInformation;
 using Domain.Common.ValueObjects.Text.MultiLine;
 using Domain.Common.ValueObjects.Text.SingleLine;
 using Domain.Schedule.Entities.Phase;
@@ -347,7 +346,7 @@ public class RepeatsSchedule : AggregateRoot<ComplexScheduleId>, IParentUserRefe
         return OrderedPhases[phaseIndex];
     }
 
-    public Result<bool> CanRepeat(short repeatingPhaseIndex, DateTime repeatingDate, IDateTimeProvider dateTimeProvider)
+    public Result<bool> CanRepeat(int repeatingPhaseIndex, DateTime repeatingDate, IDateTimeProvider dateTimeProvider)
     {
         var phase = FindPhase(repeatingPhaseIndex);
 
@@ -370,7 +369,7 @@ public class RepeatsSchedule : AggregateRoot<ComplexScheduleId>, IParentUserRefe
 
         var differenceDaysDifference = Math.Abs((repeatingDate - now).TotalDays);
 
-        if (differenceDaysDifference < repeatableForehandDaysDifference)
+        if (differenceDaysDifference <= repeatableForehandDaysDifference)
             return true;
 
         return false;
