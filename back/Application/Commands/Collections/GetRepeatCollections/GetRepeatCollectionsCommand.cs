@@ -1,22 +1,29 @@
+using System.Diagnostics;
 using DomainServices.DB.Queries.Study;
 using FluentResults;
+using GlobalTools;
 
 namespace Application.Commands.Collections.GetRepeatCollections;
 
-public class GetRepeatCollectionsCommand : ICommand<GetRepeatCollectionsCommandRequest, Dictionary<DateTime, List<RepeatingPhase>>>
+public class GetRepeatCollectionsCommand : ICommand<GetRepeatCollectionsCommandRequest,
+    Dictionary<DateTime, List<RepeatingPhase>>>
 {
+    private readonly IDateTimeProvider dateTimeProvider;
     private readonly IStudyQueryRepository studyQueryRepository;
 
     public GetRepeatCollectionsCommand(
+        IDateTimeProvider dateTimeProvider,
         IStudyQueryRepository studyQueryRepository)
     {
+        this.dateTimeProvider = dateTimeProvider;
         this.studyQueryRepository = studyQueryRepository;
     }
 
-    public async Task<Result<Dictionary<DateTime, List<RepeatingPhase>>>> Handle(GetRepeatCollectionsCommandRequest request)
+    public async Task<Result<Dictionary<DateTime, List<RepeatingPhase>>>> Handle(
+        GetRepeatCollectionsCommandRequest request)
     {
         var (userId, untilDate) = request;
-        
+
         var queueItems = await studyQueryRepository.RepeatingQueue.GetAll(userId);
 
         if (untilDate != null)
@@ -49,10 +56,11 @@ public class GetRepeatCollectionsCommand : ICommand<GetRepeatCollectionsCommandR
 
             var repeatingPhasesList = result[date];
 
-            var repeatingPhase = repeatingPhasesList.SingleOrDefault(r =>
-                r.ScheduleUserId == queueItem.ParentRepeatsScheduleUserId
-                && r.ScheduleId == queueItem.ParentRepeatsScheduleId
-                && r.PhaseIndex == queueItem.PhaseIndex);
+            var repeatingPhase = repeatingPhasesList.SingleOrDefault(
+                r =>
+                    r.ScheduleUserId == queueItem.ParentRepeatsScheduleUserId
+                    && r.ScheduleId == queueItem.ParentRepeatsScheduleId
+                    && r.PhaseIndex == queueItem.PhaseIndex);
 
             if (repeatingPhase == null)
             {
@@ -70,8 +78,9 @@ public class GetRepeatCollectionsCommand : ICommand<GetRepeatCollectionsCommandR
             var collection = collectionIdToCollection[queueItem.ParentCollectionId];
 
             var repeatingCollection =
-                repeatingPhase.RepeatingCollections.SingleOrDefault(q =>
-                    q.Collection.Id == queueItem.ParentCollectionId);
+                repeatingPhase.RepeatingCollections.SingleOrDefault(
+                    q =>
+                        q.Collection.Id == queueItem.ParentCollectionId);
 
             if (repeatingCollection == null)
             {
@@ -80,6 +89,10 @@ public class GetRepeatCollectionsCommand : ICommand<GetRepeatCollectionsCommandR
             }
 
             repeatingCollection.CardsToRepeatCount++;
+
+            var isRepeatableResult = schedule.CanRepeat(queueItem.PhaseIndex, date, dateTimeProvider);
+            Debug.Assert(isRepeatableResult.IsSuccess);
+            repeatingCollection.IsRepeatable = isRepeatableResult.ValueOrDefault;
         }
 
         return result;

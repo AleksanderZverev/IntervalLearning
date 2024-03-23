@@ -33,7 +33,7 @@ public class RepeatingQueueResolver : IRepeatingQueueResolver
         UserId scheduleUserId,
         ScheduleId scheduleId,
         short phaseIndex,
-        DateTime dateTime)
+        DateTime date)
     {
         return db.Queue
             .Where(c => c.ParentUserId == userId
@@ -41,7 +41,7 @@ public class RepeatingQueueResolver : IRepeatingQueueResolver
                         && c.ParentRepeatsScheduleUserId == scheduleUserId
                         && c.ParentRepeatsScheduleId == scheduleId
                         && c.PhaseIndex == phaseIndex
-                        && c.Date.Date == dateTime.Date)
+                        && c.Date.Date == date.Date)
             .ToListAsync();
     }
     

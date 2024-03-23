@@ -16,7 +16,7 @@ public interface IRepeatingQueueResolver
         UserId scheduleUserId,
         ScheduleId scheduleId,
         short phaseIndex,
-        DateTime dateTime);
+        DateTime date);
 
     Task<List<CardRepeatQueue>> GetForCards(
         UserId userId,

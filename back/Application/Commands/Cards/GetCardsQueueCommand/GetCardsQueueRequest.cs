@@ -10,4 +10,5 @@ public record GetCardsQueueRequest(
     UserId ScheduleUserId,
     ScheduleId ScheduleId,
     short PhaseIndex,
-    DateTime DateTime);
+    DateTime Date,
+    bool CheckRepeatableDate);

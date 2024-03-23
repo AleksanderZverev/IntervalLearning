@@ -32,6 +32,7 @@ export interface RepeatingPhaseDto {
 export interface RepeatingCollectionDto {
     collection: Collection;
     cardsToRepeatCount: number;
+    isRepeatable: boolean;
 }
 
 export interface GetNotFinishedRequest {

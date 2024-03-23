@@ -29,4 +29,5 @@ public class RepeatingCollectionDto
     public CollectionDto Collection { get; set; }
 
     public int CardsToRepeatCount { get; set; }
+    public bool IsRepeatable { get; set; }
 }
