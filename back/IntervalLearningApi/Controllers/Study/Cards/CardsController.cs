@@ -251,9 +251,6 @@ namespace IntervalLearningApi.Controllers.Study.Cards
 
             if (argResults.HasAnyError())
                 return BadRequest();
-            
-            if (env.IsProduction() && date.Date > DateTime.UtcNow.Date)
-                return new List<CardDto>();
 
             var (
                 userId,
@@ -270,7 +267,8 @@ namespace IntervalLearningApi.Controllers.Study.Cards
                     scheduleUserIdResult.Value,
                     scheduleIdResult.Value,
                     phaseIndex,
-                    date));
+                    date,
+                    env.IsProduction()));
 
             return cardsResult.ToActionResult(cards => mapper.Map<List<CardDto>>(cards));
         }
@@ -512,7 +510,7 @@ namespace IntervalLearningApi.Controllers.Study.Cards
                     ScheduleId.Create(cardRequest.ScheduleId).Value,
                     cardRequest.PhaseIndex,
                     ToCardServiceRememberItems(cardRequest.RememberItems),
-                    env.IsDevelopment()));
+                    !env.IsProduction()));
 
             return closestRepeatInfoResult.ToActionResult(closestRepeatInfo =>
                 new RememberCardResponse()

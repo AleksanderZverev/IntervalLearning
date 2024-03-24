@@ -1,5 +1,4 @@
 ﻿using System.Diagnostics;
-using System.Net.NetworkInformation;
 using Domain.Common.ValueObjects.Text.MultiLine;
 using Domain.Common.ValueObjects.Text.SingleLine;
 using Domain.Schedule.Entities.Phase;
@@ -8,6 +7,9 @@ using Domain.Schedule.Entities.Remember;
 using Domain.Schedule.ValueObjects;
 using Domain.User;
 using Domain.User.ValueObjects;
+using FluentResults;
+using GlobalTools;
+using GlobalTools.Errors;
 
 namespace Domain.Schedule;
 
@@ -30,24 +32,25 @@ public class RepeatsSchedule : AggregateRoot<ComplexScheduleId>, IParentUserRefe
 
     public UserId ParentUserId { get; set; }
     public virtual User.User? ParentUser { get; set; }
-    
+
     public LongSingleLineString? ShortDescription { get; set; }
     public LongMultiLineString? OnStartLearningDescription { get; set; }
-    
+
     public LongSingleLineString? DefaultPhaseShortDescription { get; set; }
     public LongMultiLineString? DefaultPhaseDescription { get; set; }
-    
+
     public LongSingleLineString? DefaultRepeatPhaseShortDescription { get; set; }
     public LongMultiLineString? DefaultRepeatPhaseDescription { get; set; }
-    
+
     public RepeatsSchedule(
         UserId parentUserId,
-        ScheduleId id) 
-        : base(new ComplexScheduleId
-        {
-            Id = id,
-            ParentUserId = parentUserId,
-        })
+        ScheduleId id)
+        : base(
+            new ComplexScheduleId
+            {
+                Id = id,
+                ParentUserId = parentUserId,
+            })
     {
         ParentUserId = parentUserId;
         Id = id;
@@ -64,7 +67,7 @@ public class RepeatsSchedule : AggregateRoot<ComplexScheduleId>, IParentUserRefe
         NotClear = 2,
         Remembered = 4,
     }
-    
+
     enum PhaseMovement
     {
         Back = -1,
@@ -75,10 +78,11 @@ public class RepeatsSchedule : AggregateRoot<ComplexScheduleId>, IParentUserRefe
     }
 
     private record PhaseAnswers(MemorizedDegree MainAnswer, MemorizedDegree RepetitionAnswer);
-    
+
     public Phase? GetNextPhase(Card.Card cardEntity)
     {
-        var currentRemember = cardEntity.FindLastRemember() ?? throw new InvalidOperationException("Failure on searching last remember");
+        var currentRemember = cardEntity.FindLastRemember()
+                              ?? throw new InvalidOperationException("Failure on searching last remember");
         var currentPhase = GetPhaseByIndex(currentRemember.PhaseIndex);
 
         if (currentPhase.IsRepeat() && currentPhase.Id == GetFirstPhase().Id)
@@ -90,7 +94,9 @@ public class RepeatsSchedule : AggregateRoot<ComplexScheduleId>, IParentUserRefe
         var currentRepeatPhase = FindRepeatingPhaseOf(currentNotRepeatingPhase.Id);
 
         var currentNotRepeatingRemember = cardEntity.FindRememberByPhaseIndex(IndexOf(currentNotRepeatingPhase));
-        var currentRepeatingRemember = currentRepeatPhase != null ? cardEntity.FindRememberByPhaseIndex(IndexOf(currentRepeatPhase)) : null;
+        var currentRepeatingRemember = currentRepeatPhase != null
+            ? cardEntity.FindRememberByPhaseIndex(IndexOf(currentRepeatPhase))
+            : null;
         var currentPhaseAnswers = new PhaseAnswers(
             MainAnswer: ToMemorizedDegree(currentNotRepeatingRemember),
             RepetitionAnswer: ToMemorizedDegree(currentRepeatingRemember)
@@ -99,7 +105,8 @@ public class RepeatsSchedule : AggregateRoot<ComplexScheduleId>, IParentUserRefe
         var previousRemember = cardEntity.FindPreviousRememberByPhaseIndex(IndexOf(currentNotRepeatingPhase));
         var previousPhase = previousRemember != null ? FindPhase(previousRemember.PhaseIndex) : null;
         var previousNotRepeatingPhase = previousPhase != null ? FindNotRepeatingPhaseOf(previousPhase.Id) : null;
-        var previousRepeatingPhase = previousNotRepeatingPhase != null ? FindRepeatingPhaseOf(previousNotRepeatingPhase.Id) : null;
+        var previousRepeatingPhase =
+            previousNotRepeatingPhase != null ? FindRepeatingPhaseOf(previousNotRepeatingPhase.Id) : null;
 
         var previousPhaseAnswers = new PhaseAnswers(
             MainAnswer: ToMemorizedDegree(
@@ -132,12 +139,12 @@ public class RepeatsSchedule : AggregateRoot<ComplexScheduleId>, IParentUserRefe
 
         if (movements is PhaseMovement.Forward)
             return FindNextNotRepeatingPhase(currentPhase.Id);
-        
+
         var currentNonRepeatingPhase = FindNotRepeatingPhaseOf(currentPhase.Id);
 
         if (movements is PhaseMovement.Stay)
             return currentNonRepeatingPhase;
-        
+
         var prevStep = FindPreviousNotRepeatingPhaseByDuration(currentPhase.Id);
 
         if (prevStep == null)
@@ -170,7 +177,7 @@ public class RepeatsSchedule : AggregateRoot<ComplexScheduleId>, IParentUserRefe
         {
             return current.MainAnswer is MemorizedDegree.Remembered
                 ? PhaseMovement.Forward
-                : current.MainAnswer is MemorizedDegree.NotClear 
+                : current.MainAnswer is MemorizedDegree.NotClear
                     ? PhaseMovement.Stay
                     : PhaseMovement.ToStart;
         }
@@ -185,13 +192,13 @@ public class RepeatsSchedule : AggregateRoot<ComplexScheduleId>, IParentUserRefe
         if (ForgottenBehavior is not ForgottenBehavior.MoveToPreviousStep)
         {
             throw new ArgumentOutOfRangeException("Unknown forgotten behaviour");
-        } 
-        
+        }
+
         if (current.MainAnswer is MemorizedDegree.Remembered)
         {
             return PhaseMovement.Forward;
         }
-        
+
         // NotClear + NotClear → step back
         // NotClear + Forgotten → step back
         // NotClear + (R)Forgotten → step back
@@ -202,12 +209,12 @@ public class RepeatsSchedule : AggregateRoot<ComplexScheduleId>, IParentUserRefe
             {
                 return PhaseMovement.Back;
             }
-            
+
             if (current.RepetitionAnswer is MemorizedDegree.Forgotten)
             {
                 return PhaseMovement.Back;
             }
-            
+
             return PhaseMovement.Stay;
         }
 
@@ -220,7 +227,7 @@ public class RepeatsSchedule : AggregateRoot<ComplexScheduleId>, IParentUserRefe
             {
                 return PhaseMovement.DoubleBack;
             }
-            
+
             return PhaseMovement.Back;
         }
 
@@ -267,11 +274,12 @@ public class RepeatsSchedule : AggregateRoot<ComplexScheduleId>, IParentUserRefe
         for (var i = phaseIndex - 1; i >= 0; i--)
         {
             var targetPhase = OrderedPhases[i];
-            
+
             if (targetPhase.IsRepeat())
                 continue;
 
-            var daysDiff = Math.Abs(targetPhase.GetDurationToNextPhase().TotalDays - phase.GetDurationToNextPhase().TotalDays);
+            var daysDiff = Math.Abs(
+                targetPhase.GetDurationToNextPhase().TotalDays - phase.GetDurationToNextPhase().TotalDays);
             if (daysDiff >= 0.5)
                 return targetPhase;
         }
@@ -293,9 +301,9 @@ public class RepeatsSchedule : AggregateRoot<ComplexScheduleId>, IParentUserRefe
             return null;
 
         var phaseSupposedNotToBeRepeating = OrderedPhases[phaseIndex];
-        
-        return !phaseSupposedNotToBeRepeating.IsRepeat() 
-            ? phaseSupposedNotToBeRepeating 
+
+        return !phaseSupposedNotToBeRepeating.IsRepeat()
+            ? phaseSupposedNotToBeRepeating
             : null;
     }
 
@@ -326,7 +334,7 @@ public class RepeatsSchedule : AggregateRoot<ComplexScheduleId>, IParentUserRefe
     {
         if (phaseIndex < 0 || phaseIndex >= Phases.Count)
             return null;
-        
+
         return OrderedPhases[phaseIndex];
     }
 
@@ -334,7 +342,37 @@ public class RepeatsSchedule : AggregateRoot<ComplexScheduleId>, IParentUserRefe
     {
         if (phaseIndex < 0 || phaseIndex >= Phases.Count)
             throw new ArgumentOutOfRangeException();
-        
+
         return OrderedPhases[phaseIndex];
+    }
+
+    public Result<bool> CanRepeat(int repeatingPhaseIndex, DateTime repeatingDate, IDateTimeProvider dateTimeProvider)
+    {
+        var phase = FindPhase(repeatingPhaseIndex);
+
+        if (phase == null)
+            return new BadRequestError("Phase is not found");
+
+        var now = dateTimeProvider.UtcNow;
+
+        if (repeatingDate.Date == now.Date)
+            return true;
+
+        //Repeating date passed
+        if (repeatingDate.Date < now.Date)
+            return true;
+
+        var phaseDuration = phase.GetDurationToNextPhase();
+
+        const double repeatableForehandDaysRatio = 0.15d; //3 = 0.45; 7 = 1.05; 14 = 2.1; 28 = 4.2; 56 = 8.4;
+        var repeatableForehandDaysDifference =
+            Math.Floor(Math.Abs(phaseDuration.TotalDays) * repeatableForehandDaysRatio);
+
+        var differenceDaysDifference = Math.Abs((repeatingDate - now).TotalDays);
+
+        if (differenceDaysDifference <= repeatableForehandDaysDifference)
+            return true;
+
+        return false;
     }
 }

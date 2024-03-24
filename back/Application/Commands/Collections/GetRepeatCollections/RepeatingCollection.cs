@@ -5,4 +5,5 @@ namespace Application.Commands.Collections.GetRepeatCollections;
 public record RepeatingCollection(Collection Collection)
 {
     public int CardsToRepeatCount { get; set; }
+    public bool IsRepeatable { get; set; }
 };

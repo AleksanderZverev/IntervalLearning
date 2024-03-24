@@ -1,0 +1,10 @@
+global using NUnit.Framework;
+global using Bogus;
+global using FluentAssertions;
+global using Domain.Schedule;
+global using Domain.Schedule.Entities.Phase;
+global using Domain.Schedule.Entities.Phase.ValueObjects;
+global using Domain.Schedule.ValueObjects;
+global using Domain.UnitTests.Common.Bogus.Schedule;
+global using Domain.UnitTests.Common.Bogus.User;
+global using Domain.UnitTests.Common.Mocks.DateTimeProvider;

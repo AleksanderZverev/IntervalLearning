@@ -359,12 +359,14 @@ const InProgressCollectionsContent: FC<InProgressCollectionsProps> = ({ queryDat
                                                         c.collection.id
                                                     );
 
+                                                    const isRepeatable = Boolean(c.isRepeatable);
+
                                                     return (
                                                         <CollectionRow
                                                             key={c.collection.id}
                                                             collection={c.collection}
                                                             cardsToRepeatCount={c.cardsToRepeatCount}
-                                                            hover={allowFutureSelect || isToday || isWarn}
+                                                            hover={allowFutureSelect || isRepeatable}
                                                             notFinished={isInProgress}
                                                             onClick={() => navigate(repeatingLink)}
                                                         />
