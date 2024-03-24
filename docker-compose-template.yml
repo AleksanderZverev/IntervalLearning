@@ -1,0 +1,45 @@
+version: '3.4'
+
+services:
+  postgres:
+    image: postgres:13
+    environment:
+      POSTGRES_DB: "postgres-test"
+      POSTGRES_USER: "postgres-test"
+      POSTGRES_PASSWORD: "postgres-test"
+      PGDATA: "/var/lib/postgresql/data/pgdata"
+    volumes:
+      - .:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+  backend:
+    depends_on: 
+      - postgres
+    image: intervallearningapi:${IMAGE_VERSION}
+    environment:
+      DB_CONNECTION_STRING: "Host=postgres;Port=5432;Database=postgres-test;User Id=postgres-test;Password=postgres-test;Include Error Detail=true;"
+      ASPNETCORE_ENVIRONMENT: "Development"
+      #PUBLIC
+      #- ASPNETCORE_URLS=https://+:443;http://+:80
+      #IN_DOCKER
+      ASPNETCORE_URLS: "http://+:80"
+    ports: #USE EXPOSE
+      - "5249:80"
+      - "7249:443"
+
+  client:
+    depends_on: 
+      - postgres
+    image: client:${IMAGE_VERSION}
+    ports:
+      - "3000:3000"
+
+  proxy:
+    depends_on:
+      - backend
+      - client
+    image: nginx:${IMAGE_VERSION}
+    ports:
+      - "443:443"
+      - "80:80"
