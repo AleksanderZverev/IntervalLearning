@@ -510,7 +510,7 @@ namespace IntervalLearningApi.Controllers.Study.Cards
                     ScheduleId.Create(cardRequest.ScheduleId).Value,
                     cardRequest.PhaseIndex,
                     ToCardServiceRememberItems(cardRequest.RememberItems),
-                    env.IsDevelopment()));
+                    !env.IsProduction()));
 
             return closestRepeatInfoResult.ToActionResult(closestRepeatInfo =>
                 new RememberCardResponse()

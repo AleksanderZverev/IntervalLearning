@@ -7,6 +7,7 @@ using DomainServices.BoundedContext.Study.RememberService;
 using DomainServices.DB.Repositories.Study;
 using DomainServices.DB.Transactions;
 using FluentResults;
+using GlobalTools;
 using GlobalTools.Errors;
 
 namespace Application.Commands.Cards.RememberCard;
@@ -16,14 +17,17 @@ public class RememberCardCommand : ICommand<RememberCardRequest, NextRepeatInfoR
     private readonly IStudyRepository studyRepository;
     private readonly CardRepeatQueueService cardRepeatQueueService;
     private readonly RememberService rememberService;
+    private readonly IDateTimeProvider dateTimeProvider;
     private readonly ITransactionProvider transactionProvider;
 
     public RememberCardCommand(
+        IDateTimeProvider dateTimeProvider,
         ITransactionProvider transactionProvider, 
         IStudyRepository studyRepository,
         CardRepeatQueueService cardRepeatQueueService,
         RememberService rememberService)
     {
+        this.dateTimeProvider = dateTimeProvider;
         this.transactionProvider = transactionProvider;
         this.studyRepository = studyRepository;
         this.cardRepeatQueueService = cardRepeatQueueService;
@@ -65,7 +69,6 @@ public class RememberCardCommand : ICommand<RememberCardRequest, NextRepeatInfoR
         Phase? closestPhaseInfo = null;
 
         var now = DateTime.UtcNow;
-        var forbidDate = now.Date.AddDays(1);
 
         foreach (var rememberItem in rememberItems)
         {
@@ -79,8 +82,10 @@ public class RememberCardCommand : ICommand<RememberCardRequest, NextRepeatInfoR
             }
 
             var queueItem = queueItems.Single(q => q.ParentCardId == cardId);
+            var isRepeatableResult = schedule.CanRepeat(queueItem.PhaseIndex, queueItem.Date, dateTimeProvider);
+            var isRepeatable = isRepeatableResult.IsFailed || isRepeatableResult.ValueOrDefault;
 
-            if (!allowRepeatingInFuture && queueItem.Date.Date >= forbidDate)
+            if (!allowRepeatingInFuture && !isRepeatable)
             {
                 // logger.LogInformation("Unable to remember. Not time!");
                 return new BadRequestError("It's too early to repeat now");
