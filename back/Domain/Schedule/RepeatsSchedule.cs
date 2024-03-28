@@ -368,7 +368,7 @@ public class RepeatsSchedule : AggregateRoot<ComplexScheduleId>, IParentUserRefe
         var repeatableForehandDaysDifference =
             Math.Floor(Math.Abs(phaseDuration.TotalDays) * repeatableForehandDaysRatio);
 
-        var differenceDaysDifference = Math.Abs((repeatingDate - now).TotalDays);
+        var differenceDaysDifference = Math.Abs((repeatingDate.Date - now.Date).TotalDays);   
 
         if (differenceDaysDifference <= repeatableForehandDaysDifference)
             return true;
