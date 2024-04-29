@@ -29,7 +29,13 @@ import { getRepeatingNavigationLink } from '../LearningPage/InProgressCollection
 import { ErrorPage } from '../../../controls/ErrorPage/ErrorPage';
 import { useGetScheduleQuery } from '../../../redux/schedulesSlice';
 import { useDocumentTitle } from '../../../hooks/useCollectionTitle';
-import { State, getDefaultState, getRepeatingCards, saveRepeatingCardsState } from './RepeatCollectionPage.logic';
+import {
+    RememberForm,
+    State,
+    getDefaultState,
+    getRepeatingCards,
+    saveRepeatingCardsState,
+} from './RepeatCollectionPage.logic';
 import _ from 'lodash';
 
 type WithResolvers = WithQueryResolverData<typeof useGetRepeatCardsQuery> &
@@ -173,12 +179,18 @@ export const RepeatCollectionPageContent: FC<RepeatCollectionPageContentProps> =
             scheduleId,
             phaseIndex,
             rememberItems: resultWeights
+                .filter(([cardId, form]) => {
+                    if (_.isNil(form?.weight) || deletedCards.includes(cardId)) {
+                        return false;
+                    }
+
+                    return true;
+                })
                 .map(([cardId, form]) => ({
                     cardId,
-                    weight: form?.weight ?? 0,
+                    weight: form?.weight as number,
                     comment: form?.comment || null,
-                }))
-                .filter((w) => !deletedCards.includes(w.cardId)),
+                })),
         };
         try {
             setSkipLoading(true);
@@ -381,6 +393,11 @@ export const RepeatCollectionPageContent: FC<RepeatCollectionPageContentProps> =
                                     cardMovementInfos={mutationData.cardMovementInfos}
                                     wordsLearned={state.repeatedCardIndex + 1}
                                     nextRepeatDate={mutationData.nextRepeatDate}
+                                    rememberedWeights={
+                                        Object.values(state.rememberWeights)
+                                            .filter(Boolean)
+                                            .map((v) => v?.weight) as number[]
+                                    }
                                     onEndButtonClick={() => onSuccessFinish()}
                                 />
                             )}
