@@ -15,7 +15,7 @@ import { PageContainer } from '../../../controls/PageContainer/PageContainer';
 import { PageHeader } from '../../../controls/PageHeader/PageHeader';
 import { selectTheme } from '../../../redux/slices/themeSlice';
 import { CenterContainer } from '../../../controls/CenterContainer/CenterContainer';
-import { Slider } from '../../../controls/Slider/Slider';
+import { Slider, SliderPointColor } from '../../../controls/Slider/Slider';
 import { Button, Paper, Stack } from '@mui/material';
 import { useGetCollectionQuery } from '../../../redux/collectionApi';
 import { selectCardsByIds } from '../../../redux/slices/cardsSlice';
@@ -30,6 +30,7 @@ import { ErrorPage } from '../../../controls/ErrorPage/ErrorPage';
 import { useGetScheduleQuery } from '../../../redux/schedulesSlice';
 import { useDocumentTitle } from '../../../hooks/useCollectionTitle';
 import { State, getDefaultState, getRepeatingCards, saveRepeatingCardsState } from './RepeatCollectionPage.logic';
+import _ from 'lodash';
 
 type WithResolvers = WithQueryResolverData<typeof useGetRepeatCardsQuery> &
     WithMutationResolverProps<typeof usePatchRememberCardsMutation>;
@@ -214,6 +215,7 @@ export const RepeatCollectionPageContent: FC<RepeatCollectionPageContentProps> =
 
     const onDeleteCardFromRepeating = (cardId: string) => {
         setDeletedCards([...deletedCards, cardId]);
+
         if (cardId in state.rememberWeights) {
             updateState((newState) => {
                 delete newState.rememberWeights[cardId];
@@ -412,6 +414,26 @@ export const RepeatCollectionPageContent: FC<RepeatCollectionPageContentProps> =
                                     updateState((s) => (s.currentCardIndex = v));
                                 }}
                                 getHoverTitle={(index) => repeatCards[index].backSideText}
+                                getColor={(index) => {
+                                    const card = repeatCards[index];
+                                    const rememberForm = state.rememberWeights[card.id];
+
+                                    if (_.isNil(rememberForm?.weight)) {
+                                        return SliderPointColor.Green;
+                                    }
+
+                                    const weight = rememberForm.weight;
+
+                                    if (weight < 0.4) {
+                                        return SliderPointColor.Red;
+                                    }
+
+                                    if (weight >= 0.4 && weight < 0.8) {
+                                        return SliderPointColor.Yellow;
+                                    }
+
+                                    return SliderPointColor.Green;
+                                }}
                             />
                         </div>
                     )}
