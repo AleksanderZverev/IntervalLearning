@@ -234,6 +234,10 @@ export const RepeatCollectionPageContent: FC<RepeatCollectionPageContentProps> =
                 newState.repeatedCardIndex--;
             });
         }
+
+        if (state.currentCardIndex + 1 >= maxCards) {
+            onPrevious();
+        }
     };
 
     const onNext = () => {
