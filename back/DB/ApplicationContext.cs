@@ -22,6 +22,11 @@ using UserMetadata = Domain.User.Entities.UserMetadata;
 
 namespace DB
 {
+    // Migrations Commands
+    // ADD: dotnet ef migrations add {Name} -p DB -s IntervalLearningApi
+    // UPDATE: dotnet ef database update {Name} -p DB -s IntervalLearningApi
+    // DROP ALL REPORTS MIGRATIONS: dotnet ef database update 0 -p DB -s IntervalLearningApi
+    
     public class ApplicationContext : DbContext
     {
         private readonly DomainEventDispatcher domainEventDispatcher;

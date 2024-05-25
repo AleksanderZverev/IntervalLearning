@@ -33,4 +33,5 @@ public class RepeatsScheduleDto
     public bool IsRecommended { get; set; }
     public int ForgottenBehavior { get; set; }
     public List<PhaseDto> Phases { get; set; }
+    public bool MoveToStartWhenPossibleFeatureFlag { get; set; }
 }

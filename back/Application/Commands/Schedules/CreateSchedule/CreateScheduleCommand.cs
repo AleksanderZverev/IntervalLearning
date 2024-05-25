@@ -40,6 +40,7 @@ public abstract class BaseRepeatsScheduleItem
     public LongMultiLineString? DefaultPhaseDescription { get; set; }
     public LongSingleLineString? DefaultRepeatPhaseShortDescription { get; set; }
     public LongMultiLineString? DefaultRepeatPhaseDescription { get; set; }
+    public bool MoveToStartWhenPossibleFeatureFlag { get; set; }
 }
 
 public class CreateScheduleCommand : ICommand<CreateScheduleCommandRequest, RepeatsSchedule>
@@ -78,6 +79,7 @@ public class CreateScheduleCommand : ICommand<CreateScheduleCommandRequest, Repe
             DefaultRepeatPhaseShortDescription = item.DefaultRepeatPhaseShortDescription,
             DefaultRepeatPhaseDescription = item.DefaultRepeatPhaseDescription,
             Phases =  item.Phases.Select(p => ConvertToPhase(userId, scheduleId, p)).ToList(),
+            MoveToStartWhenPossibleFeatureFlag = item.MoveToStartWhenPossibleFeatureFlag,
         };
 
         var addScheduleResult = studyRepository.RepeatsSchedules.AddAndSave(newSchedule);

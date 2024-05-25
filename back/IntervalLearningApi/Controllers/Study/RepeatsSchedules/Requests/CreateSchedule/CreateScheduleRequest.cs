@@ -81,4 +81,6 @@ public class CreateScheduleRequest
     public string? DefaultRepeatPhaseShortDescription { get; set; }
     [StringLength(1000)]
     public string? DefaultRepeatPhaseDescription { get; set; }
+    
+    public bool MoveToStartWhenPossibleFeatureFlag { get; set; }
 }

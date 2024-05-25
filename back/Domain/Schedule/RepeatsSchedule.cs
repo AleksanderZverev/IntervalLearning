@@ -41,6 +41,8 @@ public class RepeatsSchedule : AggregateRoot<ComplexScheduleId>, IParentUserRefe
 
     public LongSingleLineString? DefaultRepeatPhaseShortDescription { get; set; }
     public LongMultiLineString? DefaultRepeatPhaseDescription { get; set; }
+    
+    public bool MoveToStartWhenPossibleFeatureFlag { get; set; } 
 
     public RepeatsSchedule(
         UserId parentUserId,
@@ -75,6 +77,11 @@ public class RepeatsSchedule : AggregateRoot<ComplexScheduleId>, IParentUserRefe
         Forward = 1,
         Stay = 0,
         ToStart = -99,
+    }
+
+    private static class Settings
+    {
+        public static TimeSpan MaxDurationBetweenWhichShouldMoveToStart = TimeSpan.FromDays(10);
     }
 
     private record PhaseAnswers(MemorizedDegree MainAnswer, MemorizedDegree RepetitionAnswer);
@@ -143,7 +150,9 @@ public class RepeatsSchedule : AggregateRoot<ComplexScheduleId>, IParentUserRefe
         var currentNonRepeatingPhase = FindNotRepeatingPhaseOf(currentPhase.Id);
 
         if (movements is PhaseMovement.Stay)
-            return currentNonRepeatingPhase;
+            return IsWorthToRepeatFromStart(currentNonRepeatingPhase)
+                ? GetFirstPhase()
+                : currentNonRepeatingPhase;
 
         var prevStep = FindPreviousNotRepeatingPhaseByDuration(currentPhase.Id);
 
@@ -151,20 +160,58 @@ public class RepeatsSchedule : AggregateRoot<ComplexScheduleId>, IParentUserRefe
             return currentNonRepeatingPhase;
 
         if (movements is PhaseMovement.Back)
-            return prevStep;
+            return IsWorthToRepeatFromStart(prevStep)
+                ? GetFirstPhase()
+                : prevStep;
 
         if (movements is PhaseMovement.DoubleBack)
         {
             var prevPrevStep = FindPreviousNotRepeatingPhaseByDuration(prevStep.Id);
 
-            return prevPrevStep == null
-                ? prevStep
+            if (prevPrevStep == null)
+                prevPrevStep = prevStep;
+
+            return IsWorthToRepeatFromStart(prevPrevStep)
+                ? GetFirstPhase()
                 : prevPrevStep;
         }
 
         Debug.Fail("Unknown movement");
         throw new ArgumentOutOfRangeException("Unknown movement");
     }
+
+    private bool IsWorthToRepeatFromStart(Phase nextRepeatingPhase)
+    {
+        if (!MoveToStartWhenPossibleFeatureFlag)
+            return false;
+        
+        var firstPhase = GetFirstPhase();
+
+        if (firstPhase.Id == nextRepeatingPhase.Id)
+            return false;
+
+        var nextPhaseDuration = nextRepeatingPhase.GetDurationToNextPhase();
+        return nextPhaseDuration <= Settings.MaxDurationBetweenWhichShouldMoveToStart;
+    }
+
+    // private TimeSpan GetDuration(Phase fromPhase, Phase toPhase)
+    // {
+    //     var currentIndex = IndexOfOrThrow(fromPhase);
+    //     var toIndex = IndexOfOrThrow(toPhase);
+    //
+    //     if (currentIndex > toIndex)
+    //         throw new InvalidOperationException("Failure on calculating duration between phases");
+    //
+    //     var duration = TimeSpan.Zero;
+    //
+    //     for (var i = currentIndex; i < toIndex; i++)
+    //     {
+    //         var currentPhase = GetPhaseByIndex(currentIndex);
+    //         duration += currentPhase.GetDurationToNextPhase();
+    //     }
+    //
+    //     return duration;
+    // }
 
     private PhaseMovement GetNextStep(PhaseAnswers current, PhaseAnswers previous)
     {
@@ -324,6 +371,15 @@ public class RepeatsSchedule : AggregateRoot<ComplexScheduleId>, IParentUserRefe
         return phaseSupposedToBeRepeating.IsRepeat() ? phaseSupposedToBeRepeating : null;
     }
 
+    public int IndexOfOrThrow(Phase phase)
+    {
+        var phaseIndex = IndexOf(phase);
+
+        if (phaseIndex < 0)
+            throw new IndexOutOfRangeException("Phase was not found");
+
+        return phaseIndex;
+    }
 
     public int IndexOf(Phase phase)
     {
@@ -364,11 +420,14 @@ public class RepeatsSchedule : AggregateRoot<ComplexScheduleId>, IParentUserRefe
 
         var phaseDuration = phase.GetDurationToNextPhase();
 
-        const double repeatableForehandDaysRatio = 0.15d; //3 = 0.45; 7 = 1.05; 14 = 2.1; 28 = 4.2; 56 = 8.4;
+        const double repeatableForehandDaysRatio = 0.15d;
+        //3 = 0.45; 7 = 1.05; 14 = 2.1; 28 = 4.2; 56 = 8.4;
+        //3 = 0.45; 6 = 0.9; 12 = 1.8; 24 = 3.6; 48 = 7.2;
+
         var repeatableForehandDaysDifference =
             Math.Floor(Math.Abs(phaseDuration.TotalDays) * repeatableForehandDaysRatio);
 
-        var differenceDaysDifference = Math.Abs((repeatingDate.Date - now.Date).TotalDays);   
+        var differenceDaysDifference = Math.Abs((repeatingDate.Date - now.Date).TotalDays);
 
         if (differenceDaysDifference <= repeatableForehandDaysDifference)
             return true;

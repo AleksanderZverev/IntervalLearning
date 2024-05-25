@@ -8,7 +8,7 @@ public static partial class LearningScenarios
     {
         new Scenario(ForgottenBehavior.MoveToNextStep, new List<ScenarioStep>()
         {
-            new( RememberedWeight, 2), //skipping repetition +1
+            new(RememberedWeight, 2), //skipping repetition +1
         }, ResultStep: 3),
         new Scenario(ForgottenBehavior.MoveToNextStep, new List<ScenarioStep>()
         {
