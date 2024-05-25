@@ -5,12 +5,59 @@ import { PaperCard } from '../../../controls/PaperCard/PaperCard';
 import { DateHelper } from '../../../helpers/DateHelper';
 import styles from './styles.module.css';
 import { CardMovementInfo } from '../../../redux/cardsApi';
+import _ from 'lodash';
+import { RememberAnswer } from '../../../types/global';
 
 interface CardResultProps {
     wordsLearned: number;
     nextRepeatDate: string | null;
     cardMovementInfos: CardMovementInfo[];
+    rememberedWeights?: number[];
     onEndButtonClick: () => void;
+}
+
+interface Statistic {
+    total: number;
+    rememberedCount: number;
+    notSureCount: number;
+    forgottenCount: number;
+}
+
+function GetStatistic(rememberWeights?: number[] | null): Statistic | null {
+    if (_.isNil(rememberWeights) || rememberWeights.length === 0) return null;
+
+    const total = rememberWeights.length;
+    let rememberedCount = 0;
+    let notSureCount = 0;
+    let forgottenCount = 0;
+
+    for (const weight of rememberWeights) {
+        const answer = new RememberAnswer(weight);
+
+        if (answer.IsRemembered()) {
+            rememberedCount++;
+        }
+
+        if (answer.IsNotSure()) {
+            notSureCount++;
+        }
+
+        if (answer.IsForgotten()) {
+            forgottenCount++;
+        }
+    }
+
+    return {
+        total: total,
+        rememberedCount: rememberedCount,
+        notSureCount: notSureCount,
+        forgottenCount: forgottenCount,
+    };
+}
+
+function Percent(count: number, total: number) {
+    const percentValue = (count / total) * 100;
+    return percentValue;
 }
 
 export const CardResult: FC<CardResultProps> = ({
@@ -18,10 +65,23 @@ export const CardResult: FC<CardResultProps> = ({
     wordsLearned,
     onEndButtonClick,
     cardMovementInfos,
+    rememberedWeights,
 }) => {
     const date = dayjs(nextRepeatDate);
     const now = dayjs();
     const diffMinutes = date.diff(now, 'minutes');
+
+    const statistic = GetStatistic(rememberedWeights);
+
+    const renderStatistic = (title: string, count: number, total: number) => {
+        if (count === 0) return false;
+
+        return (
+            <div>
+                {title}: {count} - {Percent(count, total).toFixed(2)}%
+            </div>
+        );
+    };
 
     return (
         <PaperCard
@@ -45,6 +105,13 @@ export const CardResult: FC<CardResultProps> = ({
                         ? 'Сегодня'
                         : `${date.format('L')} (${DateHelper.getDifferenceString(now, date, 'через')})`}
                 </div>
+                {statistic && (
+                    <div style={{ display: 'flex', flexDirection: 'column' }}>
+                        {renderStatistic('Запомнено', statistic.rememberedCount, statistic.total)}
+                        {renderStatistic('Частично', statistic.notSureCount, statistic.total)}
+                        {renderStatistic('Забыто', statistic.forgottenCount, statistic.total)}
+                    </div>
+                )}
                 <div>
                     {cardMovementInfos &&
                         cardMovementInfos.length > 1 &&

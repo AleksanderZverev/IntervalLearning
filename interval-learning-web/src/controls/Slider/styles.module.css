@@ -19,7 +19,19 @@
 }
 
 .markNotFinished {
-    background-color: #ecbe4a !important;
+    background-color: #b7b7b7 !important;
+}
+
+.green {
+    background-color: #29cc2f;
+}
+
+.yellow {
+    background-color: #ecbe4a;
+}
+
+.red {
+    background-color: #dc5d5d;
 }
 
 .markCurrent {

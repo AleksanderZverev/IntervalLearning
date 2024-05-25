@@ -3,6 +3,13 @@ import { FC, useMemo } from 'react';
 import { useEventListener } from '../../hooks/useEventListener';
 import { LightTooltip } from '../LightTooltip/LightTooltip';
 import styles from './styles.module.css';
+import _ from 'lodash';
+
+export enum SliderPointColor {
+    Green,
+    Yellow,
+    Red,
+}
 
 interface SliderProps {
     min: number;
@@ -13,6 +20,7 @@ interface SliderProps {
     finishMode?: boolean;
     onValueChange: (newValue: number) => void;
     getHoverTitle: (value: number) => string;
+    getColor?: (value: number) => SliderPointColor;
     vertical?: boolean;
     disableMoving?: boolean;
 }
@@ -36,6 +44,7 @@ export const Slider: FC<SliderProps> = ({
     vertical,
     finishMode,
     disableMoving,
+    getColor,
     ...props
 }) => {
     const maxWidthProperty = vertical ? 'maxHeight' : 'maxWidth';
@@ -106,6 +115,7 @@ export const Slider: FC<SliderProps> = ({
                 const left = ((index + 1) / (total + 2)) * 100;
                 const isActive = v < activeValue;
                 const isCurrentElement = v == value && !finishMode;
+                const color = getColor ? getColor(v) : SliderPointColor.Green;
 
                 const mark = (
                     <span
@@ -115,6 +125,9 @@ export const Slider: FC<SliderProps> = ({
                             [styles.markActive]: isActive,
                             [styles.markCurrent]: isCurrentElement,
                             [styles.markNotFinished]: finishMode && !isActive,
+                            [styles.green]: isActive && color === SliderPointColor.Green,
+                            [styles.yellow]: isActive && color === SliderPointColor.Yellow,
+                            [styles.red]: isActive && color === SliderPointColor.Red,
                         })}
                         style={{
                             [leftProperty]: `${left}%`,

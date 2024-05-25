@@ -15,7 +15,7 @@ import { PageContainer } from '../../../controls/PageContainer/PageContainer';
 import { PageHeader } from '../../../controls/PageHeader/PageHeader';
 import { selectTheme } from '../../../redux/slices/themeSlice';
 import { CenterContainer } from '../../../controls/CenterContainer/CenterContainer';
-import { Slider } from '../../../controls/Slider/Slider';
+import { Slider, SliderPointColor } from '../../../controls/Slider/Slider';
 import { Button, Paper, Stack } from '@mui/material';
 import { useGetCollectionQuery } from '../../../redux/collectionApi';
 import { selectCardsByIds } from '../../../redux/slices/cardsSlice';
@@ -29,7 +29,14 @@ import { getRepeatingNavigationLink } from '../LearningPage/InProgressCollection
 import { ErrorPage } from '../../../controls/ErrorPage/ErrorPage';
 import { useGetScheduleQuery } from '../../../redux/schedulesSlice';
 import { useDocumentTitle } from '../../../hooks/useCollectionTitle';
-import { State, getDefaultState, getRepeatingCards, saveRepeatingCardsState } from './RepeatCollectionPage.logic';
+import {
+    RememberForm,
+    State,
+    getDefaultState,
+    getRepeatingCards,
+    saveRepeatingCardsState,
+} from './RepeatCollectionPage.logic';
+import _ from 'lodash';
 
 type WithResolvers = WithQueryResolverData<typeof useGetRepeatCardsQuery> &
     WithMutationResolverProps<typeof usePatchRememberCardsMutation>;
@@ -172,12 +179,18 @@ export const RepeatCollectionPageContent: FC<RepeatCollectionPageContentProps> =
             scheduleId,
             phaseIndex,
             rememberItems: resultWeights
+                .filter(([cardId, form]) => {
+                    if (_.isNil(form?.weight) || deletedCards.includes(cardId)) {
+                        return false;
+                    }
+
+                    return true;
+                })
                 .map(([cardId, form]) => ({
                     cardId,
-                    weight: form?.weight ?? 0,
+                    weight: form?.weight as number,
                     comment: form?.comment || null,
-                }))
-                .filter((w) => !deletedCards.includes(w.cardId)),
+                })),
         };
         try {
             setSkipLoading(true);
@@ -214,11 +227,16 @@ export const RepeatCollectionPageContent: FC<RepeatCollectionPageContentProps> =
 
     const onDeleteCardFromRepeating = (cardId: string) => {
         setDeletedCards([...deletedCards, cardId]);
+
         if (cardId in state.rememberWeights) {
             updateState((newState) => {
                 delete newState.rememberWeights[cardId];
                 newState.repeatedCardIndex--;
             });
+        }
+
+        if (state.currentCardIndex + 1 >= maxCards) {
+            onPrevious();
         }
     };
 
@@ -379,6 +397,11 @@ export const RepeatCollectionPageContent: FC<RepeatCollectionPageContentProps> =
                                     cardMovementInfos={mutationData.cardMovementInfos}
                                     wordsLearned={state.repeatedCardIndex + 1}
                                     nextRepeatDate={mutationData.nextRepeatDate}
+                                    rememberedWeights={
+                                        Object.values(state.rememberWeights)
+                                            .filter(Boolean)
+                                            .map((v) => v?.weight) as number[]
+                                    }
                                     onEndButtonClick={() => onSuccessFinish()}
                                 />
                             )}
@@ -412,6 +435,26 @@ export const RepeatCollectionPageContent: FC<RepeatCollectionPageContentProps> =
                                     updateState((s) => (s.currentCardIndex = v));
                                 }}
                                 getHoverTitle={(index) => repeatCards[index].backSideText}
+                                getColor={(index) => {
+                                    const card = repeatCards[index];
+                                    const rememberForm = state.rememberWeights[card.id];
+
+                                    if (_.isNil(rememberForm?.weight)) {
+                                        return SliderPointColor.Green;
+                                    }
+
+                                    const weight = rememberForm.weight;
+
+                                    if (weight < 0.4) {
+                                        return SliderPointColor.Red;
+                                    }
+
+                                    if (weight >= 0.4 && weight < 0.8) {
+                                        return SliderPointColor.Yellow;
+                                    }
+
+                                    return SliderPointColor.Green;
+                                }}
                             />
                         </div>
                     )}
