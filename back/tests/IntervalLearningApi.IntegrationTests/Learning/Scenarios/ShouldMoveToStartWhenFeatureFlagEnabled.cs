@@ -7,6 +7,12 @@ public static partial class LearningScenarios
     public static List<ScenarioV2> ShouldMoveToStartWhenFeatureFlagEnabled =
         ScenarioV2.ScenariosFor(
             ForgottenBehavior.MoveToPreviousStep,
+            ("1 day", new ScenarioStepV2[]
+            {
+                //1
+                new(Weight.UnknownOrForgotten, Move.ToRepeating),
+                new(Weight.Any, Move.ToStart),
+            }),
             ("3 days", new ScenarioStepV2[]
             {
                 //1
