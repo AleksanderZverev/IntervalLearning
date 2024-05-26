@@ -132,6 +132,35 @@ public class CardAndCollectionsControllerTests : SharedApiTests
             ApiRoutes.Collections.BasePath,
             path);
     
+    private async Task<int> StartCardsWithSkippingRepeatingAsync(
+        HttpClient client,
+        CollectionDto collection,
+        List<CardDto> cards, 
+        RepeatsScheduleDto schedule)
+    {
+        var startCardsResponse = await StartCardsAsync(client, collection, cards, schedule);
+
+        var cardsToRepeat = startCardsResponse.CardMovementInfos
+            .Where(m => m.NextRepetitionDate <= DateTime.Now.AddMinutes(5))
+            .SelectMany(m => cards.Where(c => m.CardIds.Contains(c.Id)))
+            .ToList();
+        
+        if (cardsToRepeat.Count > 0)
+        {
+            var repeatingResponse = await RememberCardsAsync(
+                client,
+                collection,
+                cardsToRepeat,
+                schedule,
+                0,
+                LearningScenarios.RememberedWeight);
+            
+            repeatingResponse.EnsureSuccessStatusCode();
+            return repeatingResponse.ToResponseDto<RememberCardResponse>().NextPhaseIndex;
+        }
+        
+        return startCardsResponse.NextPhaseIndex;
+    }
 
     private async Task<StartCardsResponse?> StartCardsAsync(
         HttpClient client,
@@ -1044,10 +1073,10 @@ public class CardAndCollectionsControllerTests : SharedApiTests
         var (client, user) = SharedScope;
         var cardsCount = 12;
         var (collection, cards) = await CreateRandomCardsAsync(cardsCount);
-        await StartCardsAsync(client, collection, cards, schedule);
+        var initialPhaseIndex = await StartCardsWithSkippingRepeatingAsync(client, collection, cards, schedule);
         
         //Act
-        var currentPhaseIndex = 0;
+        var currentPhaseIndex = initialPhaseIndex;
         var stepIndex = 0;
         foreach (var step in scenario.Steps)
         {
@@ -1057,7 +1086,8 @@ public class CardAndCollectionsControllerTests : SharedApiTests
                 cards,
                 schedule, 
                 (short)currentPhaseIndex,
-                step.Weight);
+                step.Weight,
+                step.Move);
             
             //Assert
             var nextPhaseDiff = step.Move switch
@@ -1069,7 +1099,7 @@ public class CardAndCollectionsControllerTests : SharedApiTests
                 LearningScenarios.Move.Stay => -1,
                 _ => throw new NotImplementedException("Unknown move"),
             };
-            var shouldBeNextPhaseIndex = Math.Max(0, currentPhaseIndex + nextPhaseDiff);
+            var shouldBeNextPhaseIndex = Math.Max(initialPhaseIndex, currentPhaseIndex + nextPhaseDiff);
             await AssertRememberedCardsMovedToStep(
                 client,
                 collection,
@@ -1128,6 +1158,7 @@ public class CardAndCollectionsControllerTests : SharedApiTests
         RepeatsScheduleDto schedule,
         short rememberPhaseIndex,
         LearningScenarios.Weight weight,
+        LearningScenarios.Move move,
         string? comment = null)
     {
         var rememberedCards = new List<CardDto>();
@@ -1184,6 +1215,9 @@ public class CardAndCollectionsControllerTests : SharedApiTests
                 comment);
             
             response.EnsureSuccessStatusCode();
+
+            var rememberCardResponse = response.ToResponseDto<RememberCardResponse>();
+            await RepeatCardIfNeeded(rememberCardResponse);
         }
 
         if (notClearCards.Count > 0)
@@ -1198,6 +1232,9 @@ public class CardAndCollectionsControllerTests : SharedApiTests
                 comment);
             
             response.EnsureSuccessStatusCode();
+            
+            var notClearCardResponse = response.ToResponseDto<RememberCardResponse>();
+            await RepeatCardIfNeeded(notClearCardResponse);
         }
         
         if (forgottenCards.Count > 0)
@@ -1212,6 +1249,33 @@ public class CardAndCollectionsControllerTests : SharedApiTests
                 comment);
             
             response.EnsureSuccessStatusCode();
+            
+            var forgottenCardResponse = response.ToResponseDto<RememberCardResponse>();
+            await RepeatCardIfNeeded(forgottenCardResponse);
+        }
+
+        async Task RepeatCardIfNeeded(RememberCardResponse rememberCardResponse)
+        {
+            if (move == LearningScenarios.Move.ToRepeating)
+                return;
+
+            var cardsToRepeat = rememberCardResponse.CardMovementInfos
+                .Where(m => m.NextRepetitionDate <= DateTime.Now.AddMinutes(5))
+                .SelectMany(m => cards.Where(c => m.CardIds.Contains(c.Id)))
+                .ToList();
+            
+            if (cardsToRepeat.Count == 0)
+                return;
+
+            var repeatingResponse = await RememberCardsAsync(
+                client,
+                collection,
+                cardsToRepeat,
+                schedule,
+                (short)(rememberPhaseIndex + 1),
+                LearningScenarios.RememberedWeight);
+            
+            repeatingResponse.EnsureSuccessStatusCode();
         }
     }
 

@@ -41,8 +41,8 @@ public class RepeatsSchedule : AggregateRoot<ComplexScheduleId>, IParentUserRefe
 
     public LongSingleLineString? DefaultRepeatPhaseShortDescription { get; set; }
     public LongMultiLineString? DefaultRepeatPhaseDescription { get; set; }
-    
-    public bool MoveToStartWhenPossibleFeatureFlag { get; set; } 
+
+    public bool MoveToStartWhenPossibleFeatureFlag { get; set; }
 
     public RepeatsSchedule(
         UserId parentUserId,
@@ -151,7 +151,7 @@ public class RepeatsSchedule : AggregateRoot<ComplexScheduleId>, IParentUserRefe
 
         if (movements is PhaseMovement.Stay)
             return IsWorthToRepeatFromStart(currentNonRepeatingPhase)
-                ? GetFirstPhase()
+                ? GetFirstNotRepeatingPhase()
                 : currentNonRepeatingPhase;
 
         var prevStep = FindPreviousNotRepeatingPhaseByDuration(currentPhase.Id);
@@ -161,7 +161,7 @@ public class RepeatsSchedule : AggregateRoot<ComplexScheduleId>, IParentUserRefe
 
         if (movements is PhaseMovement.Back)
             return IsWorthToRepeatFromStart(prevStep)
-                ? GetFirstPhase()
+                ? GetFirstNotRepeatingPhase()
                 : prevStep;
 
         if (movements is PhaseMovement.DoubleBack)
@@ -172,7 +172,7 @@ public class RepeatsSchedule : AggregateRoot<ComplexScheduleId>, IParentUserRefe
                 prevPrevStep = prevStep;
 
             return IsWorthToRepeatFromStart(prevPrevStep)
-                ? GetFirstPhase()
+                ? GetFirstNotRepeatingPhase()
                 : prevPrevStep;
         }
 
@@ -184,7 +184,7 @@ public class RepeatsSchedule : AggregateRoot<ComplexScheduleId>, IParentUserRefe
     {
         if (!MoveToStartWhenPossibleFeatureFlag)
             return false;
-        
+
         var firstPhase = GetFirstPhase();
 
         if (firstPhase.Id == nextRepeatingPhase.Id)
@@ -193,25 +193,6 @@ public class RepeatsSchedule : AggregateRoot<ComplexScheduleId>, IParentUserRefe
         var nextPhaseDuration = nextRepeatingPhase.GetDurationToNextPhase();
         return nextPhaseDuration <= Settings.MaxDurationBetweenWhichShouldMoveToStart;
     }
-
-    // private TimeSpan GetDuration(Phase fromPhase, Phase toPhase)
-    // {
-    //     var currentIndex = IndexOfOrThrow(fromPhase);
-    //     var toIndex = IndexOfOrThrow(toPhase);
-    //
-    //     if (currentIndex > toIndex)
-    //         throw new InvalidOperationException("Failure on calculating duration between phases");
-    //
-    //     var duration = TimeSpan.Zero;
-    //
-    //     for (var i = currentIndex; i < toIndex; i++)
-    //     {
-    //         var currentPhase = GetPhaseByIndex(currentIndex);
-    //         duration += currentPhase.GetDurationToNextPhase();
-    //     }
-    //
-    //     return duration;
-    // }
 
     private PhaseMovement GetNextStep(PhaseAnswers current, PhaseAnswers previous)
     {
@@ -303,6 +284,11 @@ public class RepeatsSchedule : AggregateRoot<ComplexScheduleId>, IParentUserRefe
     public Phase GetFirstPhase()
     {
         return FindPhase(0) ?? throw new ArgumentOutOfRangeException("First phase is not found");
+    }
+
+    private Phase GetFirstNotRepeatingPhase()
+    {
+        return OrderedPhases.FirstOrDefault(p => !p.IsRepeat()) ?? throw new ArgumentOutOfRangeException("First not repeating phase is not found");
     }
 
     private Phase? FindNextNotRepeatingPhase(PhaseId currentPhaseId)

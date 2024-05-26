@@ -49,6 +49,8 @@ public class LearningCommons
 
     public static IReadOnlyList<TimeSpan> phasesDurationWithRepetitionClassic = new List<TimeSpan>()
     {
+        TimeSpan.FromSeconds(1),
+        
         TimeSpan.FromDays(1),
         TimeSpan.FromSeconds(1),
 
