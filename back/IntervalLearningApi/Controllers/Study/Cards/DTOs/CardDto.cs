@@ -28,5 +28,6 @@ public class CardDto
     public DateTime CreatedDate { get; set; }
     public string? Description { get; set; }
     public List<string>? Examples { get; set; }
+    public List<string>? Tags { get; set; }
     public List<RememberDto>? Remembers { get; set; }
 }

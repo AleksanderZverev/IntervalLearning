@@ -165,6 +165,7 @@ public class CardsControllerTests : SharedApiTests
                 FrontText = fakeCard.FrontText,
                 Description = fakeCard.Description,
                 Examples = fakeCard.Examples,
+                Tags = fakeCard.Tags,
             });
 
         //Assert
@@ -175,6 +176,7 @@ public class CardsControllerTests : SharedApiTests
         createdCard.PromptText.Should().Be(fakeCard.PromptText);
         createdCard.Description.Should().Be(fakeCard.Description);
         createdCard.Examples.Should().BeEquivalentTo(fakeCard.Examples);
+        createdCard.Tags.Should().BeEquivalentTo(fakeCard.Tags);
     }
     
     [Fact]
@@ -202,6 +204,7 @@ public class CardsControllerTests : SharedApiTests
         createdCard.PromptText.Should().BeNullOrEmpty();
         createdCard.Description.Should().BeNullOrEmpty();
         createdCard.Examples.Should().BeNullOrEmpty();
+        createdCard.Tags.Should().BeNullOrEmpty();
     }
     
     [Fact]
@@ -229,6 +232,7 @@ public class CardsControllerTests : SharedApiTests
         updatedCard.PromptText.Should().BeNullOrEmpty();
         updatedCard.Description.Should().BeNullOrEmpty();
         updatedCard.Examples.Should().BeNullOrEmpty();
+        updatedCard.Tags.Should().BeNullOrEmpty();
     }
     
     [Fact]
@@ -259,6 +263,7 @@ public class CardsControllerTests : SharedApiTests
         updatedCardFromList.PromptText.Should().BeNullOrEmpty();
         updatedCardFromList.Description.Should().BeNullOrEmpty();
         updatedCardFromList.Examples.Should().BeNullOrEmpty();
+        updatedCardFromList.Tags.Should().BeNullOrEmpty();
     }
     
     [Fact]
@@ -345,6 +350,7 @@ public class CardsControllerTests : SharedApiTests
         deletedCard.PromptText.Should().BeEquivalentTo(createdCard.PromptText);
         deletedCard.Description.Should().BeEquivalentTo(createdCard.Description);
         deletedCard.Examples.Should().BeEquivalentTo(createdCard.Examples);
+        deletedCard.Tags.Should().BeEquivalentTo(createdCard.Tags);
     }
 
     [Fact]
