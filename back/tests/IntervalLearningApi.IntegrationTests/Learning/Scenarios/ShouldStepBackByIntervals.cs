@@ -4,7 +4,7 @@ namespace IntervalLearningApi.IntegrationTests.Learning.Scenarios;
 
 public static partial class LearningScenarios
 {
-    public static List<Scenario> ShouldStepBackByIntervals = new()
+    public static List<Scenario> ShouldStepBackByIntervals_DuplicatedDurations = new()
     {
         new Scenario(ForgottenBehavior.MoveToPreviousStep, new List<ScenarioStep>()
         {
@@ -24,6 +24,7 @@ public static partial class LearningScenarios
             //1 day
             new(RememberedWeight, 2),   //0
             new(RememberedWeight, 2),   //2 ← should step here on second forgotten behavior
+            
             //3 day
             new(RememberedWeight, 2),   //4
             new(RememberedWeight, 2),   //6 ← should step here on first forgotten behavior
