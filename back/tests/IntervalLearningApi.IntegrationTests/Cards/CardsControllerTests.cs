@@ -142,11 +142,6 @@ public class CardsControllerTests : SharedApiTests
         firstCardsPage.Select(c => c.Id).Should().BeSubsetOf(preAddedCards.Select(c => c.Id));
     }
     
-    public static IEnumerable<object[]> IncorrectSearchRequests = new object[][]
-    {
-        new[] { new string('a', 300) },
-    };
-    
     [Fact]
     public async Task CreateCard_ShouldCreateCard_WithFullData()
     {
@@ -165,6 +160,7 @@ public class CardsControllerTests : SharedApiTests
                 FrontText = fakeCard.FrontText,
                 Description = fakeCard.Description,
                 Examples = fakeCard.Examples,
+                Tags = fakeCard.Tags,
             });
 
         //Assert
@@ -175,6 +171,7 @@ public class CardsControllerTests : SharedApiTests
         createdCard.PromptText.Should().Be(fakeCard.PromptText);
         createdCard.Description.Should().Be(fakeCard.Description);
         createdCard.Examples.Should().BeEquivalentTo(fakeCard.Examples);
+        createdCard.Tags.Should().BeEquivalentTo(fakeCard.Tags);
     }
     
     [Fact]
@@ -202,10 +199,11 @@ public class CardsControllerTests : SharedApiTests
         createdCard.PromptText.Should().BeNullOrEmpty();
         createdCard.Description.Should().BeNullOrEmpty();
         createdCard.Examples.Should().BeNullOrEmpty();
+        createdCard.Tags.Should().BeNullOrEmpty();
     }
     
     [Fact]
-    public async Task CreateCard_ShouldReturnUpdatedValue()
+    public async Task CreateCard_ShouldUpdateValues()
     {
         //Arrange
         var (client, user) = SharedScope;
@@ -218,6 +216,10 @@ public class CardsControllerTests : SharedApiTests
             CardId = short.Parse(oldCard.Id),
             BackText = fakeCard.BackText,
             FrontText = fakeCard.FrontText,
+            PromptText = fakeCard.PromptText,
+            Description = fakeCard.Description,
+            Examples = fakeCard.Examples,
+            Tags = fakeCard.Tags,
         };
         var updatedCard = await CreateCardAsync(short.Parse(collection.Id), updateItem);
 
@@ -226,39 +228,23 @@ public class CardsControllerTests : SharedApiTests
         updatedCard.Id.Should().Be(oldCard.Id);
         updatedCard.FrontSideText.Should().Be(updatedCard.FrontSideText);
         updatedCard.BackSideText.Should().Be(updatedCard.BackSideText);
-        updatedCard.PromptText.Should().BeNullOrEmpty();
-        updatedCard.Description.Should().BeNullOrEmpty();
-        updatedCard.Examples.Should().BeNullOrEmpty();
-    }
-    
-    [Fact]
-    public async Task CreateCard_ShouldActuallyUpdateCard()
-    {
-        //Arrange
-        var (client, user) = SharedScope;
-        var (collection, oldCard) = await CreateRandomCardAsync();
-
-        //Act
-        var fakeCard = new CardFaker().Generate();
-        var updateItem = new CreateCardRequest()
-        {
-            CardId = short.Parse(oldCard.Id),
-            BackText = fakeCard.BackText,
-            FrontText = fakeCard.FrontText,
-        };
-        await CreateCardAsync(short.Parse(collection.Id), updateItem);
-
-        //Assert
-        var cards = await GetCardsPageAsync(client, collection, 1, 50);
-        cards.Should().HaveCount(1);
+        updatedCard.PromptText.Should().Be(updatedCard.PromptText);
+        updatedCard.Description.Should().Be(updatedCard.Description);
+        updatedCard.Examples.Should().BeEquivalentTo(updatedCard.Examples);
+        updatedCard.Tags.Should().BeEquivalentTo(updatedCard.Tags);
         
-        var updatedCardFromList = cards.Single();
-        updatedCardFromList.Id.Should().Be(oldCard.Id);
-        updatedCardFromList.FrontSideText.Should().Be(updateItem.FrontText);
-        updatedCardFromList.BackSideText.Should().Be(updateItem.BackText);
-        updatedCardFromList.PromptText.Should().BeNullOrEmpty();
-        updatedCardFromList.Description.Should().BeNullOrEmpty();
-        updatedCardFromList.Examples.Should().BeNullOrEmpty();
+        var cardsFromApi = await GetCardsPageAsync(client, collection, 1, 50);
+        cardsFromApi.Should().HaveCount(1);
+        
+        var updatedCardsFromApi = cardsFromApi.Single();
+        updatedCardsFromApi.Should().NotBeNull();
+        updatedCardsFromApi.Id.Should().Be(oldCard.Id);
+        updatedCardsFromApi.FrontSideText.Should().Be(updatedCard.FrontSideText);
+        updatedCardsFromApi.BackSideText.Should().Be(updatedCard.BackSideText);
+        updatedCardsFromApi.PromptText.Should().Be(updatedCard.PromptText);
+        updatedCardsFromApi.Description.Should().Be(updatedCard.Description);
+        updatedCardsFromApi.Examples.Should().BeEquivalentTo(updatedCard.Examples);
+        updatedCardsFromApi.Tags.Should().BeEquivalentTo(updatedCard.Tags);
     }
     
     [Fact]
@@ -345,6 +331,7 @@ public class CardsControllerTests : SharedApiTests
         deletedCard.PromptText.Should().BeEquivalentTo(createdCard.PromptText);
         deletedCard.Description.Should().BeEquivalentTo(createdCard.Description);
         deletedCard.Examples.Should().BeEquivalentTo(createdCard.Examples);
+        deletedCard.Tags.Should().BeEquivalentTo(createdCard.Tags);
     }
 
     [Fact]

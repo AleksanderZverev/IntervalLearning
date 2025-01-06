@@ -110,7 +110,8 @@ public class AddPublicCollectionCommand : ICommand<AddPublicCollectionCommandReq
                 PromptText = publicCard.PromptText,
                 MeaningText = publicCard.MeaningText,
                 Description = publicCard.Description,
-                Examples = publicCard.Examples
+                Examples = publicCard.Examples,
+                Tags = publicCard.Tags,
             });
 
             if (addedCardResult.IsFailed)

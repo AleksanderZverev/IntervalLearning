@@ -87,6 +87,7 @@ public class SharedApiTests : BaseApiTests, IClassFixture<SharedDockerIntervalLe
                     PromptText = fakeCard.PromptText,
                     Description = fakeCard.Description,
                     Examples = fakeCard.Examples,
+                    Tags = fakeCard.Tags,
                 });
 
             if (createdCard == null)

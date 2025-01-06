@@ -16,6 +16,7 @@ public class CardFaker : Faker<CreateCardRequest>
                 PromptText = f.Lorem.Word(),
                 Description = f.Lorem.Sentence(wordCount: 20),
                 Examples = Enumerable.Range(0, 4).Select((_) => f.Lorem.Sentence(7)).ToList(),
+                Tags = Enumerable.Range(0, 4).Select((_) => f.Lorem.Sentence(7)).ToList(),
             };
         });
     }
