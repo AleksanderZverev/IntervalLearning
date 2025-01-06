@@ -16,25 +16,34 @@ public class CreateCardCommand : ICommand<CreateCardRequest, Card>
 
     public Task<Result<Card>> Handle(CreateCardRequest request)
     {
-        return Task.FromResult(Result.Ok()
-            .Bind(() => studyRepository.Cards.GetUniqueId(new CardIdParams(request.ParentUserId, request.ParentCollectionId)))
-            .Bind(cardId =>
-            {
-                var card = new Card(request.ParentUserId, request.ParentCollectionId, cardId)
-                {
-                    MeaningText = request.MeaningText,
-                    RememberingText = request.RememberingText,
-                    PromptText = request.PromptText,
-                    Description = request.Description,
-                };
+        return Task.FromResult(
+            Result.Ok()
+                .Bind(
+                    () => studyRepository.Cards.GetUniqueId(
+                        new CardIdParams(request.ParentUserId, request.ParentCollectionId)))
+                .Bind(
+                    cardId =>
+                    {
+                        var card = new Card(request.ParentUserId, request.ParentCollectionId, cardId)
+                        {
+                            MeaningText = request.MeaningText,
+                            RememberingText = request.RememberingText,
+                            PromptText = request.PromptText,
+                            Description = request.Description,
+                        };
 
-                if (request.Examples is { Count: > 0 })
-                {
-                    card.Examples = request.Examples;
-                }
+                        if (request.Examples is { Count: > 0 })
+                        {
+                            card.Examples = request.Examples;
+                        }
 
-                return Result.Ok(card);
-            })
-            .Bind(card => studyRepository.Cards.AddAndSave(card)));
+                        if (request.Tags is { Count: > 0 })
+                        {
+                            card.Tags = request.Tags;
+                        }
+
+                        return Result.Ok(card);
+                    })
+                .Bind(card => studyRepository.Cards.AddAndSave(card)));
     }
 }

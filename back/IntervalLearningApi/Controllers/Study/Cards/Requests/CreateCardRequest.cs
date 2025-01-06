@@ -15,6 +15,7 @@ public class CreateCardRequestValidator : AbstractValidator<CreateCardRequest>
         RuleFor(p => p.BackText).ShouldBeCreatable(CardText.Create);
         RuleFor(p => p.Description).ShouldBeCreatable(CardDescription.Create).WhenNotNullOrEmpty();
         RuleFor(p => p.Examples).ForEach(e => e.ShouldBeCreatable(CardExample.Create)).WhenNotNull();
+        RuleFor(p => p.Tags).ForEach(e => e.ShouldBeCreatable(CardTag.Create)).WhenNotNull();
     }
 }
 
@@ -36,4 +37,7 @@ public class CreateCardRequest
 
     [MaxLength(15)]
     public List<string>? Examples { get; set; }
+    
+    [MaxLength(15)]
+    public List<string>? Tags { get; set; }
 }

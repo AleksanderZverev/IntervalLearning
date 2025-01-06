@@ -23,7 +23,7 @@ public class MoveCardCommand : ICommand<MoveCardRequest, Card>
         RememberService rememberService,
         ITransactionProvider transactionProvider,
         CreateCardCommand createCardCommand,
-        DeleteCardCommand deleteCardCommand, 
+        DeleteCardCommand deleteCardCommand,
         IStudyRepository studyRepository)
     {
         this.rememberService = rememberService;
@@ -36,26 +36,30 @@ public class MoveCardCommand : ICommand<MoveCardRequest, Card>
     public async Task<Result<Card>> Handle(MoveCardRequest request)
     {
         var (userId, sourceCollectionId, destinationCollectionId, cardId) = request;
-        
+
         var card = await studyRepository.Query.Cards.Find(userId, sourceCollectionId, cardId);
 
         if (card == null)
             return new NotFoundError(nameof(Card));
-        
+
         using var transaction = transactionProvider.CreateScope();
 
-        var movedCardResult = await createCardCommand.Handle(new CreateCardRequest()
-        {
-            ParentUserId = userId,
-            ParentCollectionId = destinationCollectionId,
-            RememberingText = card.RememberingText,
-            PromptText = card.PromptText,
-            MeaningText = card.MeaningText,
-            Description = card.Description,
-            Examples = card.Examples is { Count: > 0 }
-                ? card.Examples.ToList()
-                : new List<CardExample>(),
-        });
+        var movedCardResult = await createCardCommand.Handle(
+            new CreateCardRequest()
+            {
+                ParentUserId = userId,
+                ParentCollectionId = destinationCollectionId,
+                RememberingText = card.RememberingText,
+                PromptText = card.PromptText,
+                MeaningText = card.MeaningText,
+                Description = card.Description,
+                Examples = card.Examples is { Count: > 0 }
+                    ? card.Examples.ToList()
+                    : new List<CardExample>(),
+                Tags = card.Tags is { Count: > 0 }
+                    ? card.Tags.ToList()
+                    : new List<CardTag>(),
+            });
 
         if (movedCardResult.IsFailed)
             return movedCardResult;

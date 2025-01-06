@@ -12,6 +12,7 @@ public record UpdateCardRequest
     public CardText MeaningText { get; init; }
     public CardDescription? Description { get; init; }
     public List<CardExample> Examples { get; init; }
+    public List<CardTag> Tags { get; init; }
     public UserId ParentUserId { get; init; }
     public CollectionId ParentCollectionId { get; init; }
 }

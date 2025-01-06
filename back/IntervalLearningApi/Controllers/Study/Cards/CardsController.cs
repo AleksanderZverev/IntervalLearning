@@ -93,7 +93,10 @@ namespace IntervalLearningApi.Controllers.Study.Cards
                         Description = string.IsNullOrWhiteSpace(request.Description) ? null : CardDescription.Create(request.Description).Value,
                         Examples = request.Examples != null
                             ? request.Examples.Select(e => CardExample.Create(e).Value).ToList()
-                            : new List<CardExample>()
+                            : new List<CardExample>(),
+                        Tags = request.Tags != null
+                            ? request.Tags.Select(t => CardTag.Create(t).Value).ToList()
+                            : new List<CardTag>(),
                     });
                 
                 return createdResult.ToActionResult(c => mapper.Map<CardDto>(c));
