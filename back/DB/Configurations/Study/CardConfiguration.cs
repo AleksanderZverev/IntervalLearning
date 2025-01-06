@@ -45,6 +45,15 @@ public class CardConfiguration  : IEntityTypeConfiguration<Card>
                 equalsExpression: (c1, c2) => c1.SequenceEqual(c2),
                 hashCodeExpression: c => c.Aggregate(0, (a, v) => HashCode.Combine(a, v.GetHashCode())),
                 snapshotExpression: c => c.ToList()));
+        
+        builder.Property(c => c.Tags)
+            .HasMaxLength(255)
+            .IsRequired()
+            .HasPostgresArrayConversion<CardTag, string>(Converters.CardTag)
+            .Metadata.SetValueComparer(new ValueComparer<List<CardTag>>(
+                equalsExpression: (c1, c2) => c1.SequenceEqual(c2),
+                hashCodeExpression: c => c.Aggregate(0, (a, v) => HashCode.Combine(a, v.GetHashCode())),
+                snapshotExpression: c => c.ToList()));
 
         builder.HasOne(c => c.ParentUser)
             .WithMany()

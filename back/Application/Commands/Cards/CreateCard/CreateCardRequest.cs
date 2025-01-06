@@ -6,11 +6,12 @@ namespace Application.Commands.Cards.CreateCard;
 
 public record CreateCardRequest
 {
-    public CardText RememberingText { get; init; }
+    public required CardText RememberingText { get; init; }
     public CardText? PromptText { get; init; }
-    public CardText MeaningText { get; init; }
+    public required CardText MeaningText { get; init; }
     public CardDescription? Description { get; init; }
-    public List<CardExample> Examples { get; init; }
-    public UserId ParentUserId { get; init; }
-    public CollectionId ParentCollectionId { get; init; }
+    public required List<CardExample> Examples { get; init; }
+    public required List<CardTag> Tags { get; init; }
+    public required UserId ParentUserId { get; init; }
+    public required CollectionId ParentCollectionId { get; init; }
 }

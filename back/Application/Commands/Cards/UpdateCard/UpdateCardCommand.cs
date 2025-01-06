@@ -30,6 +30,7 @@ public class UpdateCardCommand : ICommand<UpdateCardRequest, Card>
                 card.PromptText = request.PromptText;
                 card.Description = request.Description;
                 card.Examples = request.Examples;
+                card.Tags = request.Tags;
                 return card.ToResult();
             })
             .Bind(updatedCard => studyRepository.Cards.UpdateAndSave(updatedCard));

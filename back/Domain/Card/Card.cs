@@ -15,6 +15,8 @@ public class Card : AggregateRoot<ComplexCardId>
     public required CardText MeaningText { get; set; }
     public CardDescription? Description { get; set; }
     public List<CardExample> Examples { get; set; } = new();
+    public List<CardTag> Tags { get; set; } = new();
+    
     public virtual List<Remember> Remembers { get; set; } = new();
     
     public DateTime CreatedDate { get; set; } = DateTime.UtcNow;

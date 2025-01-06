@@ -40,14 +40,19 @@ internal static class Converters
 
     public static ValueConverter<CardDescription, string> CardDescription = new(
         from => from.Value,
-        cardText => Domain.Card.ValueObjects.CardDescription.Create(cardText).Value
+        cardDescription => Domain.Card.ValueObjects.CardDescription.Create(cardDescription).Value
     );
 
     public static ValueConverter<CardExample, string> CardExample = new(
         from => from.Value,
-        cardText => Domain.Card.ValueObjects.CardExample.Create(cardText).Value
+        cardExample => Domain.Card.ValueObjects.CardExample.Create(cardExample).Value
     );
-
+    
+    public static ValueConverter<CardTag, string> CardTag = new(
+        from => from.Value,
+        cardTag => Domain.Card.ValueObjects.CardTag.Create(cardTag).Value
+    );
+    
     public static ValueConverter<ThemeId, short> ThemeId = new(
         from => from.Value,
         id => Domain.Theme.ValueObjects.ThemeId.Create(id).Value
