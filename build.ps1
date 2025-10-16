@@ -4,6 +4,22 @@ if ($answer -ne "y") {
     return;
 }
 
+# Nginx
+
+try {
+    & ./update-keys.ps1
+    if ($LASTEXITCODE -eq 1) {
+        Write-Error "update-keys.ps1 failed with exit code 1"
+        exit 1
+    }
+}
+catch {
+    Write-Error "An error occurred while running update-keys.ps1: $_"
+    exit 1
+}
+
+
+## Docker compose
 $date = Get-Date
 $imageVersion = $date.ToString("yyyy-MM-dd")
 
