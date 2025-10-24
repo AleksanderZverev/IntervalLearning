@@ -13,8 +13,9 @@ import { User } from '../../../src/types/user';
 import useTypedSelector from '../../../src/hooks/useTypedSelector';
 import { AppDispatch } from '../../../src/redux/store';
 import { LocalStorageHelper } from '../../../src/helpers/localStorageHelper';
-import { withMutationResolver, WithMutationResolverProps } from '../../../src/hoc/withQueryResolver';
+import { withMutationResolver, WithMutationResolverProps, withQueryResolver } from '../../../src/hoc/withQueryResolver';
 import { Loader } from '../../../src/controls/Loader/Loader';
+import { ModalLoader } from '../../../src/ModalLoader/ModalLoader';
 
 export const useAutoAuthorization = (currentUser: User | null, dispatch: AppDispatch) => {
     const isLoggedOut = checkIsLoggedOut();
@@ -40,9 +41,9 @@ const schema = yup
 
 interface AuthorizePageContentProps extends WithMutationResolverProps<typeof useAuthenticateMutation> {}
 
-const AuthorizePageContent: FC<AuthorizePageContentProps> = ({
-    mutationProps: { mutate: authenticate, isLoading: mutationLoading },
-}) => {
+const AuthorizePageContent: FC<AuthorizePageContentProps> = () => {
+    const [authenticate, { isLoading: isAuthLoading, isSuccess: isAuthSucceed }] = useAuthenticateMutation();
+
     const {
         register,
         handleSubmit,
@@ -59,33 +60,33 @@ const AuthorizePageContent: FC<AuthorizePageContentProps> = ({
         isSuccess: isRefreshSuccess,
     } = useAutoAuthorization(currentUser, dispatch);
 
-    const isLoading = Boolean(autoQueryLoading || mutationLoading);
-
     const onSubmit = async (data: Form) => {
         try {
             await authenticate(data);
-            const redirectUrl = LocalStorageHelper.getRedirectUrlAfterAuthorization();
+            var redirectUrl = LocalStorageHelper.getRedirectUrlAfterAuthorization();
             LocalStorageHelper.clearRedirectUrl();
-            window.location.href = redirectUrl.endsWith('accounts/register') ? '/' : redirectUrl;
+
+            if (
+                redirectUrl.endsWith('accounts/register') ||
+                redirectUrl.endsWith('accounts/authorize') ||
+                redirectUrl.endsWith('/')
+            ) {
+                redirectUrl = '/collections';
+            }
+
+            window.location.href = redirectUrl;
         } catch {
             setError('email', { message: 'Неверная почта или пароль' });
             setError('password', { message: 'Неверная почта или пароль' });
         }
     };
 
-    if (isLoading) {
-        return (
-            <CenterContainer>
-                <Paper sx={{ width: 415, height: 260 }}>
-                    <Loader title="Авторизация" />
-                </Paper>
-            </CenterContainer>
-        );
-    }
+    var isAuthorizing = autoQueryLoading || isAuthLoading || isAuthSucceed;
 
     return (
         <CenterContainer>
             <Paper sx={{ width: 415, height: 260 }}>
+                <ModalLoader loading={isAuthorizing} title="Авторизация" />
                 <form className={styles.formContainer} onSubmit={handleSubmit(onSubmit)}>
                     <div className={styles.formHeader}>
                         <Typography variant="h4" component={'h2'}>
@@ -131,6 +132,4 @@ const AuthorizePageContent: FC<AuthorizePageContentProps> = ({
     );
 };
 
-const AuthorizePage = withMutationResolver(useAuthenticateMutation, 'Не удалось авторизоваться')(AuthorizePageContent);
-
-export default AuthorizePage;
+export default AuthorizePageContent;
