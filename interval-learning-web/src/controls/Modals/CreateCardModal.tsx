@@ -1,5 +1,5 @@
 import { yupResolver } from '@hookform/resolvers/yup';
-import { Add, ArrowForwardIos } from '@mui/icons-material';
+import { Add, ArrowForwardIos, Remove } from '@mui/icons-material';
 import {
     Dialog,
     DialogTitle,
@@ -10,8 +10,9 @@ import {
     Link,
     IconButton,
     Portal,
+    TextField,
 } from '@mui/material';
-import { FC, useRef, useState } from 'react';
+import { FC, useLayoutEffect, useRef, useState } from 'react';
 import { Controller, FormProvider, SubmitHandler, useFieldArray, useForm } from 'react-hook-form';
 import * as yup from 'yup';
 import { withMutationResolver, WithMutationResolverProps } from '../../hoc/withQueryResolver';
@@ -31,16 +32,25 @@ interface Example {
     value: string;
 }
 
+interface Tag {
+    value: string;
+}
+
 interface CardForm {
     frontText: string;
     promptText: string | null;
     backText: string;
     description: string | null;
     examples: Example[];
+    tags: Tag[];
 }
 
 const exampleSchema = yup.object({
     value: yup.string().max(255),
+});
+
+const tagSchema = yup.object({
+    value: yup.string().max(100),
 });
 
 const schema = yup
@@ -49,6 +59,7 @@ const schema = yup
         backText: yup.string().required('Обязательное поле').max(255),
         description: yup.string().max(500).nullable(),
         examples: yup.array().of(exampleSchema),
+        tags: yup.array().of(tagSchema),
     })
     .required();
 
@@ -56,12 +67,16 @@ function getDefaultValues(card: Card): CardForm {
     const examples = card.examples?.map((e) => ({ value: e })) ?? [];
     examples.push({ value: '' });
 
+    const tags = card.tags?.map((e) => ({ value: e })) ?? [];
+    tags.push({ value: '' });
+
     const cardForm: CardForm = {
         frontText: card.frontSideText,
         promptText: card.promptText,
         backText: card.backSideText,
         description: card.description,
         examples,
+        tags,
     };
 
     return cardForm;
@@ -132,6 +147,7 @@ const CreateCardModalContent: FC<CreateCardModalProps> = ({
                   promptText: defaultPromptText,
                   backText: defaultBackText,
                   examples: [{ value: '' }],
+                  tags: [{ value: '' }],
               },
     });
 
@@ -144,9 +160,12 @@ const CreateCardModalContent: FC<CreateCardModalProps> = ({
         clearErrors,
         formState: { errors },
         watch,
+        trigger,
     } = formMethods;
 
-    const { fields, append } = useFieldArray({ control, name: 'examples' });
+    const { fields: exampleFields, append: appendExample } = useFieldArray({ control, name: 'examples' });
+    const { fields: tagsFields, append: appendTag, remove: removeTag } = useFieldArray({ control, name: 'tags' });
+
     const [showCardStateChangedModal, setShowCardStateChangedModal] = useState(false);
 
     const [getTranslation, {}] = useLazyGetWordTranslationsQuery();
@@ -156,8 +175,16 @@ const CreateCardModalContent: FC<CreateCardModalProps> = ({
     const onAddExample = () => {
         const currentState = getValues();
         if (currentState.examples.every((e) => Boolean(e.value))) {
-            append({ value: '' });
+            appendExample({ value: '' });
         }
+    };
+
+    const onAddTag = () => {
+        appendTag({ value: '' });
+    };
+
+    const onRemoveTag = (index: number) => {
+        removeTag(index);
     };
 
     const onCreate: SubmitHandler<CardForm> = async (data) => {
@@ -167,7 +194,8 @@ const CreateCardModalContent: FC<CreateCardModalProps> = ({
             promptText: data.promptText,
             backText: data.backText,
             description: data.description,
-            examples: data.examples.filter((e) => Boolean(e.value)).map((e) => e.value),
+            examples: data.examples.filter((e) => Boolean(e.value.trim())).map((e) => e.value),
+            tags: data.tags.filter((e) => Boolean(e.value.trim())).map((e) => e.value),
         };
 
         if (card) {
@@ -383,6 +411,57 @@ const CreateCardModalContent: FC<CreateCardModalProps> = ({
                                 />
                             )}
                         />
+                        <FormFiledLabel label="Теги" />
+                        <div
+                            style={{
+                                display: 'flex',
+                                flexDirection: 'column',
+                                gap: '8px',
+                                flexWrap: 'wrap',
+                                alignItems: 'flex-start',
+                            }}
+                        >
+                            {tagsFields.map((tagField, i) => {
+                                const errorMessage = errors.tags?.at(i)?.value?.message;
+                                return (
+                                    <div
+                                        key={tagField.id}
+                                        style={{
+                                            display: 'flex',
+                                            flexDirection: 'row',
+                                            columnGap: '4px',
+                                            alignItems: 'center',
+                                            border: '1px solid #05c953',
+                                            borderRadius: '24px',
+                                            padding: '4px',
+                                        }}
+                                    >
+                                        <TextField
+                                            key={tagField.id}
+                                            {...register(`tags.${i}.value`)}
+                                            variant="standard"
+                                            autoComplete="off"
+                                            sx={{ marginLeft: '12px' }}
+                                            inputProps={{
+                                                style: {
+                                                    minWidth: '180px',
+                                                    width: '0',
+                                                },
+                                            }}
+                                        />
+                                        <IconButton onClick={() => onRemoveTag(i)}>
+                                            <Remove htmlColor="#dc5d5d" />
+                                        </IconButton>
+                                        {errorMessage && <span>{errorMessage}</span>}
+                                    </div>
+                                );
+                            })}
+                        </div>
+                        <div style={{ margin: '4px 0' }}>
+                            <IconButton onClick={() => onAddTag()}>
+                                <Add />
+                            </IconButton>
+                        </div>
                         <TextAreaFormField
                             label="Описание"
                             error={!!errors.description}
@@ -391,7 +470,7 @@ const CreateCardModalContent: FC<CreateCardModalProps> = ({
                         />
                         <FormFiledLabel label="Примеры" />
                         <div style={{ display: 'flex', flexDirection: 'column' }}>
-                            {fields.map((f, i) => {
+                            {exampleFields.map((f, i) => {
                                 return (
                                     <div key={f.id}>
                                         <IconFormField
