@@ -16,7 +16,7 @@ public class CardsGenerator : LocalApiTests
     {
         var client = await GetEmptyClient();
         await AuthorizeClientAsync(client, email, password);
-        
+
         var collectionsResponse = await client.GetAsync(
             AbsoluteQuery(ApiRoutes.Collections.BasePath, ApiRoutes.Collections.SearchPrivate) +
             new QueryString()
@@ -48,14 +48,16 @@ public class CardsGenerator : LocalApiTests
                 Description = fakeCard.Description,
                 Examples = fakeCard.Examples,
             };
-            
+
             var createCardResponse = await client.PostAsJsonAsync(
-                AbsoluteQuery(ApiRoutes.Cards.GetBasePath(short.Parse(targetCollection.Id)), ApiRoutes.Cards.Post_CreateCard),
+                AbsoluteQuery(
+                    ApiRoutes.Cards.GetBasePath(short.Parse(targetCollection.Id)),
+                    ApiRoutes.Cards.Post_CreateCard),
                 randomCard);
-            
+
             if (!createCardResponse.IsSuccessStatusCode)
                 Assert.Fail("Something went wrong");
-            
+
             amount--;
         }
     }

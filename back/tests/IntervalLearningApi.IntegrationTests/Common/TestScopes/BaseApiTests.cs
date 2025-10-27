@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using System.Net.Http.Headers;
 using System.Reflection;
 using Bogus;
@@ -7,6 +8,8 @@ using IntervalLearningApi.Controllers.Accounts.Requests.Register;
 using IntervalLearningApi.IntegrationTests.Common.Constants;
 using IntervalLearningApi.IntegrationTests.Common.Fakers;
 using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.Extensions.DependencyInjection;
+using NUnit.Framework;
 
 namespace IntervalLearningApi.IntegrationTests.Common.TestScopes;
 
@@ -16,9 +19,22 @@ public class BaseApiTests : IAsyncLifetime
     private string HostPath = "";
     private Uri? BaseAddress = null;
     
+    private ConcurrentDictionary<string, IServiceScope> testIdToScopes = new();
+
+    protected string TestId => TestContext.CurrentContext.Test.ID;
+    
     public BaseApiTests(WebApplicationFactory<Program> apiFactory)
     {
         this.apiFactory = apiFactory;
+    }
+
+    public IServiceProvider GetServiceProvider()
+    {
+        if (testIdToScopes.TryGetValue(TestId, out var existingScope))
+            return existingScope.ServiceProvider;
+
+        testIdToScopes.TryAdd(TestId, apiFactory.Services.CreateScope());
+        return testIdToScopes[TestId].ServiceProvider;
     }
 
     public virtual async Task InitializeAsync()

@@ -10,7 +10,7 @@ public class Language : Entity<LanguageId>
     {
         //for EF
     }
-    
+
     protected Language(
         LanguageId id,
         ShortString name,
@@ -24,25 +24,38 @@ public class Language : Entity<LanguageId>
         TranslationLinkTitle = translationLinkTitle;
         TranslationLink = translationLink;
     }
-    
+
     public LanguageId Id { get; private set; }
     public ShortString Name { get; private set; }
-    public ShortString NativeLanguageName { get;  private set; }
-    
-    public ShortString? TranslationLinkTitle { get;  private set; }
-    public string? TranslationLink { get;  private set; }
+    public ShortString NativeLanguageName { get; private set; }
 
-    public static Result<Language> Create(short id, string name, string nativeLanguageName)
+    public ShortString? TranslationLinkTitle { get; private set; }
+    public string? TranslationLink { get; private set; }
+
+    public static Result<Language> Create(
+        short id,
+        string name,
+        string nativeLanguageName,
+        string? translationLink = null,
+        string? translationLinkTitle = null)
     {
         var idResult = LanguageId.Create(id);
         if (idResult.IsFailed) return idResult.ToResult();
-            
+
         var nameResult = ShortString.Create(name);
         if (nameResult.IsFailed) return nameResult.ToResult();
-        
+
         var nativeLanguageNameResult = ShortString.Create(nativeLanguageName);
         if (nativeLanguageNameResult.IsFailed) return nativeLanguageNameResult.ToResult();
         
-        return new Language(idResult.Value, nameResult.Value, nativeLanguageNameResult.Value, null, null);
+        var translationLinkTitleResult = string.IsNullOrEmpty(translationLinkTitle) ? null : ShortString.Create(translationLinkTitle);
+        if (translationLinkTitleResult is { IsFailed: true }) return translationLinkTitleResult.ToResult();
+
+        return new Language(
+            idResult.Value,
+            nameResult.Value,
+            nativeLanguageNameResult.Value,
+            translationLinkTitleResult?.Value,
+            translationLink);
     }
 }
