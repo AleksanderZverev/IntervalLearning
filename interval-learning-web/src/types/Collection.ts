@@ -38,6 +38,7 @@ export interface Card {
     createdDate: string;
     description: string | null;
     examples: string[] | null;
+    tags: string[] | null;
     remembers: Remember[] | null;
 }
 
