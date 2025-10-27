@@ -35,6 +35,7 @@ import { Schedule } from '../../../../types/schedule';
 import { RememberForm } from '../RepeatCollectionPage.logic';
 import { FormField } from '../../../../controls/Form/Form';
 import _ from 'lodash';
+import { TagsList } from '../../../../controls/Tags/TagsList/TagsList';
 
 interface RepeatCardProps {
     card: Card;
@@ -330,6 +331,8 @@ export const RepeatCard: FC<RepeatCardProps> = ({
                         hidden={backIsHidden}
                         onChange={(isHidden) => setBackIsHidden(isHidden)}
                     />
+
+                    <TagsList tags={card.tags} />
                 </Stack>
                 <RadioGroup
                     onKeyDownCapture={(e) => e.preventDefault()}

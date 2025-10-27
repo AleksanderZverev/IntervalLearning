@@ -20,6 +20,8 @@ import { useRelearnCardMutation } from '../../../redux/cardsApi';
 import { MoveCardModal } from '../../../controls/Modals/MoveCardModal';
 import { DeleteCardModal } from '../../../controls/Modals/DeleteCardModal';
 import { AssertionModal } from '../../../controls/Modals/AssertionModal';
+import { Tag } from '../../../controls/Tags/TagView/Tag';
+import { TagsList } from '../../../controls/Tags/TagsList/TagsList';
 
 interface CardRowProps extends WithMutationResolverProps<typeof useRelearnCardMutation> {
     card: Card;
@@ -123,7 +125,12 @@ const CardRowComponent: FC<CardRowProps> = ({
                 <TableCell>{card.frontSideText}</TableCell>
                 <TableCell>{card.promptText}</TableCell>
                 <TableCell>{card.backSideText}</TableCell>
-                <TableCell>{card.description}</TableCell>
+                <TableCell>
+                    <Stack direction={'column'} spacing={'4px'}>
+                        <div>{card.description}</div>
+                        <TagsList tags={card.tags} />
+                    </Stack>
+                </TableCell>
                 <TableCell width={1} onClick={(e) => e.stopPropagation()}>
                     <IconButton onClick={(e) => onShowMenu(e.currentTarget)}>
                         <Construction />
