@@ -41,7 +41,7 @@ public class GetRepeatCollectionsCommand : ICommand<GetRepeatCollectionsCommandR
         var collections = await studyQueryRepository.Collections.GetRange(userId, collectionIds);
         var collectionIdToCollection = collections.ToDictionary(c => c.Id);
 
-        var result = new Dictionary<DateTime, List<RepeatingPhase>>();
+        var dateToPhases = new Dictionary<DateTime, List<RepeatingPhase>>();
 
         foreach (var queueItem in queueItems)
         {
@@ -49,12 +49,12 @@ public class GetRepeatCollectionsCommand : ICommand<GetRepeatCollectionsCommandR
             var schedule = queueItem.ParentRepeatsSchedule;
             var phase = schedule.GetPhaseByIndex(queueItem.PhaseIndex);
 
-            if (!result.ContainsKey(date))
+            if (!dateToPhases.ContainsKey(date))
             {
-                result.Add(date, new List<RepeatingPhase>());
+                dateToPhases.Add(date, new List<RepeatingPhase>());
             }
 
-            var repeatingPhasesList = result[date];
+            var repeatingPhasesList = dateToPhases[date];
 
             var repeatingPhase = repeatingPhasesList.SingleOrDefault(
                 r =>
@@ -95,6 +95,6 @@ public class GetRepeatCollectionsCommand : ICommand<GetRepeatCollectionsCommandR
             repeatingCollection.IsRepeatable = isRepeatableResult.ValueOrDefault;
         }
 
-        return result;
+        return dateToPhases;
     }
 }

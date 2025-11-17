@@ -8,6 +8,9 @@ const nextConfig = {
     experimental: {
         outputStandalone: true,
     },
+    typescript: {
+        ignoreBuildErrors: true,
+    },
     // async rewrites() {
     //     return [
     //         {

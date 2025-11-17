@@ -34,6 +34,7 @@ public static class ApiRoutes
         public const string GetAll = "";
         public const string GetRandomWords = "words/random";
         public const string GetRepeatCollections = "repeat";
+        public const string GetRepeatCollectionsV2 = "repeat-v2";
         public const string GetNotFinished = "not-finished";
         
         public const string GetCollection = "{collectionId}";
@@ -45,6 +46,7 @@ public static class ApiRoutes
             => $"{collectionId}/public";
         
         public const string AddCardsToMyCollection = "{collectionUserId}-{collectionId}/add";
+
         public static string AddCardsToMyCollectionPath(UserId userId, int collectionId)  
             => $"{userId}-{collectionId}/add";
     }

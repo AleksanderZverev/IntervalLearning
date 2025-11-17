@@ -12,6 +12,7 @@ namespace Domain.Collection;
 public class Collection : Entity<ComplexCollectionId>
 {
     public CollectionId Id { get; set; }
+    public ComplexCollectionId ComplexId => base.Id;
     
     public CollectionTitle Title { get; set; }
     public bool IsDefaultBackSide { get; set; }

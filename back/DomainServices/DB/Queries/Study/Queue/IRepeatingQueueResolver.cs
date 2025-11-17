@@ -10,6 +10,8 @@ public interface IRepeatingQueueResolver
 {
     Task<List<CardRepeatQueue>> GetAll(UserId userId);
     
+    Task<List<CardRepeatQueue>> GetAllBySchedule(UserId userId, ComplexScheduleId scheduleId);
+    
     Task<List<CardRepeatQueue>> GetByDate(
         UserId userId,
         CollectionId collectionId,

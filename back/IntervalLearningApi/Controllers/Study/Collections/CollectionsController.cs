@@ -11,6 +11,7 @@ using Application.Commands.Collections.MakeCollectionPublic;
 using Application.Commands.Collections.SearchCollection;
 using Application.Commands.Collections.SearchPublicCollection;
 using Application.Commands.Collections.UpdateCollection;
+using Application.Commands.Collections.v2.GetRepeatCollections;
 using Domain.Collection;
 using Domain.Collection.ValueObjects;
 using Domain.Schedule.ValueObjects;
@@ -27,6 +28,7 @@ using IntervalLearningApi.Controllers.Study.Collections.RequestModels.CreateColl
 using IntervalLearningApi.Controllers.Study.Collections.RequestModels.GetNotFinished;
 using IntervalLearningApi.Controllers.Study.Collections.RequestModels.GetRandomWords;
 using IntervalLearningApi.Controllers.Study.Collections.RequestModels.GetRepeatCollections;
+using IntervalLearningApi.Controllers.Study.Collections.Responses.GetRepeatCollectionsV2;
 using IntervalLearningApi.Controllers.Study.RepeatsSchedules.DTOs;
 using IntervalLearningApi.Extensions;
 using IntervalLearningApi.Infrastructure.CommandManager;
@@ -60,14 +62,13 @@ namespace IntervalLearningApi.Controllers.Study.Collections
         }
 
         [HttpPost(ApiRoutes.Collections.Create)]
-        public async Task<ActionResult<CollectionDto>> CreateCollection(
-            [FromBody] CreateCollectionRequest request)
+        public async Task<ActionResult<CollectionDto>> CreateCollection([FromBody] CreateCollectionRequest request)
         {
             var validation = validatorResolver.Validate(request);
 
             if (validation.IsFailed)
                 return validation.ToErrorActionResult();
-            
+
             var userId = HttpContext.GetUserId();
 
             if (userId.IsFailed)
@@ -79,26 +80,28 @@ namespace IntervalLearningApi.Controllers.Study.Collections
             {
                 collectionResult = await commandManager
                     .GetCommand<CreateCollectionCommand>()
-                    .Handle(new CreateCollectionCommandRequest()
-                    {
-                        ParentUserId = userId.Value,
-                        Title = CollectionTitle.Create(request.Title).Value,
-                        ThemeId = ThemeId.Create(request.ThemeId).Value,
-                        IsDefaultBackSide = request.IsDefaultBackSide,
-                    });
+                    .Handle(
+                        new CreateCollectionCommandRequest()
+                        {
+                            ParentUserId = userId.Value,
+                            Title = CollectionTitle.Create(request.Title).Value,
+                            ThemeId = ThemeId.Create(request.ThemeId).Value,
+                            IsDefaultBackSide = request.IsDefaultBackSide,
+                        });
             }
             else
             {
                 collectionResult = await commandManager
                     .GetCommand<UpdateCollectionCommand>()
-                    .Handle(new UpdateCollectionCommandRequest()
-                    {
-                        ParentUserId = userId.Value,
-                        CollectionId = CollectionId.Create(request.CollectionId.Value).Value,
-                        Title = CollectionTitle.Create(request.Title).Value,
-                        ThemeId = ThemeId.Create(request.ThemeId).Value,
-                        IsDefaultBackSide = request.IsDefaultBackSide,
-                    });
+                    .Handle(
+                        new UpdateCollectionCommandRequest()
+                        {
+                            ParentUserId = userId.Value,
+                            CollectionId = CollectionId.Create(request.CollectionId.Value).Value,
+                            Title = CollectionTitle.Create(request.Title).Value,
+                            ThemeId = ThemeId.Create(request.ThemeId).Value,
+                            IsDefaultBackSide = request.IsDefaultBackSide,
+                        });
             }
 
             return collectionResult.ToActionResult(collection => mapper.Map<CollectionDto>(collection));
@@ -106,7 +109,7 @@ namespace IntervalLearningApi.Controllers.Study.Collections
 
         [HttpGet(ApiRoutes.Collections.SearchPublic)]
         public async Task<ActionResult<List<StoreCollection>>> SearchPublicCollection(
-            short themeId, 
+            short themeId,
             string? searchName = null,
             int page = 1,
             int count = 10)
@@ -122,25 +125,23 @@ namespace IntervalLearningApi.Controllers.Study.Collections
             var (userId, themeIdResult) = argsResult;
             var collectionsResult = await commandManager
                 .GetCommand<SearchPublicCollectionCommand>()
-                .Handle(new SearchPublicCollectionCommandRequest(
-                    userId.Value,
-                    themeIdResult.Value,
-                    searchName ?? "",
-                    page,
-                    count));
-            
-            return collectionsResult.ToActionResult(collections => 
-                mapper.Map<List<StoreCollection>>(
-                    collections.Select(item => (item.Collection, item.Subscriber))
-                    )
-                );
+                .Handle(
+                    new SearchPublicCollectionCommandRequest(
+                        userId.Value,
+                        themeIdResult.Value,
+                        searchName ?? "",
+                        page,
+                        count));
+
+            return collectionsResult.ToActionResult(collections =>
+                mapper.Map<List<StoreCollection>>(collections.Select(item => (item.Collection, item.Subscriber))));
         }
 
         [HttpGet(ApiRoutes.Collections.SearchPrivate)]
         public async Task<ActionResult<List<CollectionDto>>> SearchCollection(
-            short themeId, 
-            string? searchName = null, 
-            int page = 1, 
+            short themeId,
+            string? searchName = null,
+            int page = 1,
             int count = 10)
         {
             var argsResult = (
@@ -154,12 +155,13 @@ namespace IntervalLearningApi.Controllers.Study.Collections
             var (userId, themeIdResult) = argsResult;
             var collectionsResult = await commandManager
                 .GetCommand<SearchCollectionCommand>()
-                .Handle(new SearchCollectionCommandRequest(
-                    userId.Value,
-                    themeIdResult.Value, 
-                    searchName ?? "",
-                    page,
-                    count));
+                .Handle(
+                    new SearchCollectionCommandRequest(
+                        userId.Value,
+                        themeIdResult.Value,
+                        searchName ?? "",
+                        page,
+                        count));
 
             return collectionsResult.ToActionResult(collections => mapper.Map<List<CollectionDto>>(collections));
         }
@@ -167,7 +169,7 @@ namespace IntervalLearningApi.Controllers.Study.Collections
         [AllowAnonymous]
         [HttpGet(ApiRoutes.Collections.GetPublicCollection)]
         public async Task<ActionResult<CollectionDto>> GetPublicCollection(
-            long userId, 
+            long userId,
             short collectionId)
         {
             var argsResult = (
@@ -181,9 +183,10 @@ namespace IntervalLearningApi.Controllers.Study.Collections
             var (userIdResult, collectionIdResult) = argsResult;
             var collectionResult = await commandManager
                 .GetCommand<GetPublicCollectionCommand>()
-                .Handle(new GetPublicCollectionCommandRequest(
-                    userIdResult.Value,
-                    collectionIdResult.Value));
+                .Handle(
+                    new GetPublicCollectionCommandRequest(
+                        userIdResult.Value,
+                        collectionIdResult.Value));
 
             return collectionResult.ToActionResult(collection => mapper.Map<CollectionDto>(collection));
         }
@@ -204,8 +207,7 @@ namespace IntervalLearningApi.Controllers.Study.Collections
         }
 
         [HttpGet(ApiRoutes.Collections.GetRandomWords)]
-        public async Task<ActionResult<GetRandomWordResponse>> GetRandomWords(
-            [FromQuery]short collectionId)
+        public async Task<ActionResult<GetRandomWordResponse>> GetRandomWords([FromQuery] short collectionId)
         {
             var argsResult = (
                 HttpContext.GetUserId(),
@@ -218,9 +220,10 @@ namespace IntervalLearningApi.Controllers.Study.Collections
             var (userIdResult, collectionIdResult) = argsResult;
             var wordsResult = await commandManager
                 .GetCommand<GetRandomWordsCommand>()
-                .Handle(new GetRandomWordsCommandRequest(
-                    userIdResult.Value, 
-                    collectionIdResult.Value));
+                .Handle(
+                    new GetRandomWordsCommandRequest(
+                        userIdResult.Value,
+                        collectionIdResult.Value));
 
             if (wordsResult.IsFailed)
                 return wordsResult.ToErrorActionResult();
@@ -245,17 +248,51 @@ namespace IntervalLearningApi.Controllers.Study.Collections
                 .Handle(new GetRepeatCollectionsCommandRequest(userId.Value, untilDate));
 
             return dateToRepeatingCollectionsResult.ToActionResult(dateToRepeatingCollections =>
-                new RepeatingCollectionResponse(dateToRepeatingCollections
-                    .ToDictionary(
-                        p => p.Key,
-                        p => p.Value.Select(c => mapper.Map<RepeatingPhaseDto>(c)).ToList())));
+                new RepeatingCollectionResponse(
+                    dateToRepeatingCollections
+                        .ToDictionary(
+                            p => p.Key,
+                            p => p.Value.Select(c => mapper.Map<RepeatingPhaseDto>(c)).ToList())));
+        }
+
+        [HttpGet(ApiRoutes.Collections.GetRepeatCollectionsV2)]
+        public async Task<ActionResult<GetRepeatCollectionsResponseV2>> GetRepeatCollectionsV2(
+            [FromQuery] long scheduleUserId,
+            [FromQuery] short scheduleId,
+            [FromQuery] DateTime? untilDate = null)
+        {
+            var userId = HttpContext.GetUserId();
+
+            if (userId.IsFailed)
+                return BadRequest();
+
+            var scheduleUserIdResult = UserId.Create(scheduleUserId);
+            if (scheduleUserIdResult.IsFailed) return BadRequest("Schedule user id is incorrect");
+
+            var scheduleIdResult = ScheduleId.Create(scheduleId);
+            if (scheduleIdResult.IsFailed) return BadRequest("Schedule id is incorrect");
+
+            var dateToRepeatingCollectionsResult = await commandManager
+                .GetCommand<GetRepeatCollectionsCommandV2>()
+                .Handle(
+                    new GetRepeatCollectionsCommandRequestV2(
+                        new ComplexScheduleId()
+                        {
+                            ParentUserId = scheduleUserIdResult.Value,
+                            Id = scheduleIdResult.Value,
+                        },
+                        userId.Value,
+                        untilDate));
+
+            return dateToRepeatingCollectionsResult.ToActionResult(result =>
+                mapper.Map<GetRepeatCollectionsResponseV2>(result));
         }
 
         [HttpGet(ApiRoutes.Collections.GetNotFinished)]
         public async Task<ActionResult<GetNotFinishedResponse>> GetNotFinished(
             long scheduleUserId,
             short scheduleId,
-            int page = 1, 
+            int page = 1,
             int count = 30)
         {
             var argsResult = (
@@ -270,12 +307,13 @@ namespace IntervalLearningApi.Controllers.Study.Collections
             var (userId, scheduleUserIdResult, scheduleIdResult) = argsResult;
             var canStartCollectionsResult = await commandManager
                 .GetCommand<GetCanStartCollectionsCommand>()
-                .Handle(new GetCanStartCollectionsCommandRequest(
-                    userId.Value,
-                    scheduleUserIdResult.Value,
-                    scheduleIdResult.Value,
-                    page,
-                    count));
+                .Handle(
+                    new GetCanStartCollectionsCommandRequest(
+                        userId.Value,
+                        scheduleUserIdResult.Value,
+                        scheduleIdResult.Value,
+                        page,
+                        count));
 
             return canStartCollectionsResult.ToActionResult(response =>
                 new GetNotFinishedResponse()
@@ -300,16 +338,16 @@ namespace IntervalLearningApi.Controllers.Study.Collections
             var (userId, collectionIdResult) = argsResult;
             var collectionResult = await commandManager
                 .GetCommand<GetCollectionCommand>()
-                .Handle(new GetCollectionCommandRequest(
-                    userId.Value, 
-                    collectionIdResult.Value));
-            
+                .Handle(
+                    new GetCollectionCommandRequest(
+                        userId.Value,
+                        collectionIdResult.Value));
+
             return collectionResult.ToActionResult(collection => mapper.Map<CollectionDto>(collection));
         }
 
         [HttpDelete(ApiRoutes.Collections.Delete_DeleteCollection)]
-        public async Task<ActionResult> DeleteCollection(
-            [FromRoute] short collectionId)
+        public async Task<ActionResult> DeleteCollection([FromRoute] short collectionId)
         {
             var argsResult = (
                 HttpContext.GetUserId(),
@@ -318,7 +356,7 @@ namespace IntervalLearningApi.Controllers.Study.Collections
 
             if (argsResult.HasAnyError())
                 return BadRequest();
-            
+
             var (userIdResult, collectionIdResult) = argsResult;
             var deleteResult = await commandManager
                 .GetCommand<DeleteCollectionCommand>()
@@ -341,10 +379,11 @@ namespace IntervalLearningApi.Controllers.Study.Collections
             var (userId, collectionIdResult) = argsResult;
             var collectionResult = await commandManager
                 .GetCommand<MakeCollectionPublicCommand>()
-                .Handle(new MakeCollectionPublicCommandRequest(
-                    userId.Value, 
-                    collectionIdResult.Value));
-            
+                .Handle(
+                    new MakeCollectionPublicCommandRequest(
+                        userId.Value,
+                        collectionIdResult.Value));
+
             return collectionResult.ToActionResult(collection => mapper.Map<CollectionDto>(collection));
         }
 
@@ -358,7 +397,7 @@ namespace IntervalLearningApi.Controllers.Study.Collections
 
             if (validation.IsFailed)
                 return validation.ToErrorActionResult();
-            
+
             var argsResult = (
                 HttpContext.GetUserId(),
                 UserId.Create(collectionUserId),
@@ -371,16 +410,17 @@ namespace IntervalLearningApi.Controllers.Study.Collections
             var (userId, collectionUserIdResult, collectionIdResult) = argsResult;
             var collectionResult = await commandManager
                 .GetCommand<AddPublicCollectionCommand>()
-                .Handle(new AddPublicCollectionCommandRequest(
-                    collectionUserIdResult.Value,
-                    collectionIdResult.Value,
-                    userId.Value,
-                    request.MyCollectionId == null 
-                        ? null 
-                        :CollectionId.Create(request.MyCollectionId.Value).Value,
-                    request.NewCollectionName,
-                    request.CheckUnique));
-            
+                .Handle(
+                    new AddPublicCollectionCommandRequest(
+                        collectionUserIdResult.Value,
+                        collectionIdResult.Value,
+                        userId.Value,
+                        request.MyCollectionId == null
+                            ? null
+                            : CollectionId.Create(request.MyCollectionId.Value).Value,
+                        request.NewCollectionName,
+                        request.CheckUnique));
+
             return collectionResult.ToActionResult(collection => mapper.Map<CollectionDto>(collection));
         }
     }

@@ -7,6 +7,7 @@ using IntervalLearningApi.Controllers.Study.Cards.Requests.StartCards;
 using IntervalLearningApi.Controllers.Study.Collections.DTOs;
 using IntervalLearningApi.Controllers.Study.Collections.RequestModels.GetNotFinished;
 using IntervalLearningApi.Controllers.Study.Collections.RequestModels.GetRepeatCollections;
+using IntervalLearningApi.Controllers.Study.Collections.Responses.GetRepeatCollectionsV2;
 using IntervalLearningApi.Controllers.Study.RepeatsSchedules.DTOs;
 using IntervalLearningApi.Controllers.Study.RepeatsSchedules.Requests.CreateSchedule;
 using IntervalLearningApi.IntegrationTests.Common.Services;
@@ -595,6 +596,94 @@ public class CardAndCollectionsControllerTests : SharedApiTests
             c.ForCollection();
             return c;
         });
+    }
+
+    [Fact]
+    public async Task GetRepeatingCollectionsV2_ShouldReturnStartedCollections()
+    {
+        //Arrange
+        var (client, user) = SharedScope;
+        var schedule = await CreateTestSchedule(ForgottenBehavior.MoveToPreviousStep);
+        var (firstCollection, firstCards) = await CreateRandomCardsAsync(10);
+        var (secondCollection, secondCards) = await CreateRandomCardsAsync(10);
+        await StartCardsAsync(client, firstCollection, firstCards, schedule);
+        await StartCardsAsync(client, secondCollection, secondCards, schedule);
+
+        //Act
+        var getRepeatCollectionsResponse = await client.GetAsync(
+            CollectionsQuery(ApiRoutes.Collections.GetRepeatCollectionsV2)
+            + new QueryString()
+                .Add("scheduleUserId", schedule.ParentUserId)
+                .Add("scheduleId", schedule.Id));
+        var repeatCollections = getRepeatCollectionsResponse.ToResponseDto<GetRepeatCollectionsResponseV2>();
+
+        //Assert
+        repeatCollections.Should().NotBeNull();
+        repeatCollections.ScheduleId.Should().Be(schedule.Id);
+        repeatCollections.ParentUserId.Should().Be(schedule.ParentUserId);
+
+        repeatCollections.RepeatingCollections.Should().NotBeNullOrEmpty();
+
+        var allRepeatPhaseItems = repeatCollections.RepeatingCollections
+            .SelectMany(p => p.RepeatingPhaseItems)
+            .ToList();
+
+        var shouldBeCollections = new[] { firstCollection, secondCollection };
+        var phase = schedule.Phases.First();
+
+        foreach (var expectedCollection in shouldBeCollections)
+        {
+            var phaseItem = allRepeatPhaseItems.SingleOrDefault(phaseItem =>
+                phaseItem.CollectionId == expectedCollection.Id
+                && phaseItem.CollectionUserId == expectedCollection.ParentUserId);
+
+            phaseItem.Should().NotBeNull();
+            phaseItem.CardsCount.Should().Be(firstCards.Count);
+            phaseItem.PhaseDurationInSeconds.Should().Be(phase.SecondsFromLastPhase);
+            phaseItem.IsRepeatable.Should().BeFalse();
+        }
+    }
+    
+    [Fact]
+    public async Task GetRepeatingCollectionsV2_ShouldReturnStartedCollectionsUntilSpecifiedDate()
+    {
+        //Arrange
+        var (client, user) = SharedScope;
+        var schedule = await CreateTestSchedule(ForgottenBehavior.MoveToPreviousStep);
+        var (shouldContainCollection, shouldContainCollectionCards) = await CreateRandomCardsAsync(10);
+        var (notIncludedCollection, notIncludedCollectionCards) = await CreateRandomCardsAsync(10);
+        await StartCardsAsync(client, shouldContainCollection, shouldContainCollectionCards, schedule);
+        await StartCardsAsync(client, notIncludedCollection, notIncludedCollectionCards, schedule);
+        await RememberCardsAsync(client, notIncludedCollection, notIncludedCollectionCards, schedule, 0,
+            LearningScenarios.RememberedWeight);
+
+        //Act
+        
+        var getRepeatCollectionsResponse = await client.GetAsync(
+            CollectionsQuery(ApiRoutes.Collections.GetRepeatCollectionsV2)
+            + new QueryString()
+                .Add("scheduleUserId", schedule.ParentUserId)
+                .Add("scheduleId", schedule.Id)
+                .Add(
+                "untilDate",
+                //after starting collection will be at the next day
+                DateTime.UtcNow.AddDays(1).AddHours(1).ToString("O")));
+        var repeatCollections = getRepeatCollectionsResponse.ToResponseDto<GetRepeatCollectionsResponseV2>();
+
+        //Assert
+        repeatCollections.Should().NotBeNull();
+        repeatCollections.ScheduleId.Should().Be(schedule.Id);
+        repeatCollections.ParentUserId.Should().Be(schedule.ParentUserId);
+
+        repeatCollections.RepeatingCollections.Should().NotBeNullOrEmpty();
+
+        var allRepeatCollectionIds = repeatCollections.RepeatingCollections
+            .SelectMany(p => p.RepeatingPhaseItems)
+            .Select(p => p.CollectionUserId + "-" + p.CollectionId)
+            .ToList();
+
+        var shouldBeCollections = new[] { shouldContainCollection.ParentUserId + "-" + shouldContainCollection.Id };
+        allRepeatCollectionIds.Should().BeEquivalentTo(shouldBeCollections);
     }
     
     [Theory]

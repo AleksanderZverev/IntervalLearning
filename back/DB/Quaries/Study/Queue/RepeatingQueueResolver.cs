@@ -27,6 +27,15 @@ public class RepeatingQueueResolver : IRepeatingQueueResolver
             .ToListAsync();
     }
 
+    public Task<List<CardRepeatQueue>> GetAllBySchedule(UserId userId, ComplexScheduleId scheduleId)
+    {
+        return db.Queue
+            .Where(q => q.ParentUserId == userId
+                        && q.ParentRepeatsScheduleUserId == scheduleId.ParentUserId
+                        && q.ParentRepeatsScheduleId == scheduleId.Id)
+            .ToListAsync();
+    }
+
     public Task<List<CardRepeatQueue>> GetByDate(
         UserId userId,
         CollectionId collectionId,
