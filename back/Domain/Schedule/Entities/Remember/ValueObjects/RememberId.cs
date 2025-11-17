@@ -11,7 +11,7 @@ public class RememberId : SingleValueObject<short>
     private RememberId(short value) : base(value)
     {
     }
-    
+
     public static Result<RememberId> Create(short id)
     {
         if (id == default)
@@ -19,7 +19,7 @@ public class RememberId : SingleValueObject<short>
             Debug.Fail("Passed default id");
             return Result.Fail("Incorrect remember id");
         }
-        
+
         if (id <= 0)
             return Result.Fail("Remember id can't be less or equal 0");
 
@@ -32,11 +32,11 @@ public class ComplexRememberId : ValueObject
     public required ComplexScheduleId ScheduleId { get; init; }
     public required ComplexCardId CardId { get; init; }
     public required RememberId Id { get; init; }
-    
+
     public override IEnumerable<object> GetEqualityComponents()
     {
-        yield return ScheduleId.GetEqualityComponents();
-        yield return CardId.GetEqualityComponents();
-        yield return Id.GetEqualityComponents();
+        return ScheduleId.GetEqualityComponents()
+            .Concat(CardId.GetEqualityComponents())
+            .Concat(Id.GetEqualityComponents());
     }
 }

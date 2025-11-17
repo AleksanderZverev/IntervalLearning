@@ -42,7 +42,6 @@ public class ComplexCollectionId : ValueObject
 
     public override IEnumerable<object> GetEqualityComponents()
     {
-        yield return UserId.GetEqualityComponents();
-        yield return Id.GetEqualityComponents();
+        return UserId.GetEqualityComponents().Concat(Id.GetEqualityComponents());
     }
 }

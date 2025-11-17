@@ -14,9 +14,9 @@ public class ComplexCardId : ValueObject
 
     public override IEnumerable<object> GetEqualityComponents()
     {
-        yield return UserId.GetEqualityComponents();
-        yield return CollectionId.GetEqualityComponents();
-        yield return Id.GetEqualityComponents();
+        return UserId.GetEqualityComponents()
+            .Concat(CollectionId.GetEqualityComponents())
+            .Concat(Id.GetEqualityComponents());
     }
 }
 

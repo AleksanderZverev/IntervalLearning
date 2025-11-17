@@ -32,8 +32,8 @@ public class ComplexQueueId : ValueObject
     
     public override IEnumerable<object> GetEqualityComponents()
     {
-        yield return ScheduleId.GetEqualityComponents();
-        yield return CardId.GetEqualityComponents();
-        yield return QueueId.GetEqualityComponents();
+        return ScheduleId.GetEqualityComponents()
+            .Concat(CardId.GetEqualityComponents())
+            .Concat(QueueId.GetEqualityComponents());
     }
 }

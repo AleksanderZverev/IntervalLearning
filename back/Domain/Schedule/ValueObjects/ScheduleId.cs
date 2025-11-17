@@ -27,10 +27,10 @@ public class ComplexScheduleId : ValueObject
 {
     public required UserId ParentUserId { get; init; }
     public required ScheduleId Id { get; init; }
-    
+
     public override IEnumerable<object> GetEqualityComponents()
     {
-        yield return ParentUserId.GetEqualityComponents();
-        yield return Id.GetEqualityComponents();
+        return ParentUserId.GetEqualityComponents()
+            .Concat(Id.GetEqualityComponents());
     }
 }
