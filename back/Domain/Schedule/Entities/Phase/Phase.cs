@@ -91,6 +91,9 @@ public class Phase : Entity<ComplexPhaseId>, IParentRepeatsScheduleReference
         ParentUserId = parentUserId;
     }
 
+    /// <summary>
+    /// Checks if the phase is repeating forgotten words phase
+    /// </summary>
     public bool IsRepeat()
     {
         return SecondsFromLastPhase < 10;

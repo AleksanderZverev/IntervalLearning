@@ -56,24 +56,9 @@ export const saveRepeatingCardsState = (
     localStorage.setItem(repeatingCardsKey, JSON.stringify(item));
 };
 
-export const isRepeatingInProgress = (
-    scheduleUserId: string,
-    scheduleId: string,
-    phaseIndex: number,
-    date: string,
-    collectionId: string
-): boolean => {
-    const state = getRepeatingCards(scheduleUserId, scheduleId, phaseIndex, date, collectionId);
-    return Boolean(
-        state?.rememberWeights &&
-            Object.values(state.rememberWeights).filter((w) => typeof w?.weight === 'number').length > 0
-    );
-};
-
 export const getRepeatingCards = (
     scheduleUserId: string,
     scheduleId: string,
-    phaseIndex: number,
     date: string,
     collectionId: string
 ): State | null => {
@@ -91,11 +76,11 @@ export const getRepeatingCards = (
         item.scheduleUserId !== scheduleUserId ||
         item.scheduleId !== scheduleId ||
         item.collectionId !== collectionId ||
-        item.phaseIndex !== phaseIndex ||
         item.date !== date
     ) {
         return null;
     }
+
     return {
         rememberWeights: item.cardIdToForm,
         currentCardIndex: item.currentCardIndex || 0,

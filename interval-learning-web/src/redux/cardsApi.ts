@@ -212,7 +212,9 @@ export const cardsApi = api.injectEndpoints({
                 } catch {}
             },
             invalidatesTags: (result, arg) =>
-                result ? [tagTypes.queueCollectionsList, tagTypes.notFinishedCollectionsList] : [],
+                result
+                    ? [tagTypes.queueCollectionsList, tagTypes.notFinishedCollectionsList, tagTypes.learningStatistic]
+                    : [],
         }),
         getRepeatCards: build.query<CardIdsList, BaseRequestItem<GetRepeatCardsRequest>>({
             query: ({ collectionId, request }) => ({
@@ -238,7 +240,7 @@ export const cardsApi = api.injectEndpoints({
                 method: 'PATCH',
                 data: request,
             }),
-            invalidatesTags: [tagTypes.queueCollectionsList],
+            invalidatesTags: [tagTypes.queueCollectionsList, tagTypes.learningStatistic],
         }),
         deleteCard: build.mutation<Card, BaseRequestItem<DeleteCardRequest>>({
             query: ({ collectionId, request: { cardId } }) => ({

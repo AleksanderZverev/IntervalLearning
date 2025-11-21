@@ -20,6 +20,28 @@ export interface RepeatingCollectionResponse {
     dateToRepeatingPhases: Record<string, RepeatingPhaseDto[]>;
 }
 
+export interface GetRepeatCollectionsResponseV2 {
+    parentUserId: string;
+    scheduleId: string;
+    repeatingInfosByDate: RepeatingInfoByDateDto[];
+}
+
+export interface RepeatingInfoByDateDto {
+    date: string;
+    repeatingCollections: RepeatingCollectionInfoDto[];
+}
+
+export interface RepeatingCollectionInfoDto {
+    collectionId: string;
+    collectionUserId: string;
+    collectionTitle: string;
+    themeId: number;
+    isRepeatingForgottenWords: boolean;
+    isRepeatable: boolean;
+    cardsCount: number;
+    earliestDateToRepeat: string;
+}
+
 export interface RepeatingPhaseDto {
     scheduleUserId: string;
     scheduleId: string;
@@ -69,6 +91,12 @@ interface GetRandomWordsResponse {
 
 interface GetQueueCollectionsRequest {
     untilDate?: string;
+}
+
+interface GetQueueCollectionsRequestV2 {
+    untilDate?: string;
+    scheduleUserId: string;
+    scheduleId: string;
 }
 
 export interface AddCardsToMyCollectionRequest {
@@ -140,6 +168,14 @@ export const collectionsApi = api.injectEndpoints({
             }),
             providesTags: [tagTypes.queueCollectionsList],
         }),
+        getQueueCollectionsV2: build.query<GetRepeatCollectionsResponseV2, GetQueueCollectionsRequestV2>({
+            query: ({ untilDate, scheduleUserId, scheduleId }) => ({
+                url: `${baseUrl}/repeat-v2`,
+                method: 'GET',
+                params: { scheduleUserId, scheduleId, untilDate: untilDate ?? null },
+            }),
+            providesTags: [tagTypes.queueCollectionsList],
+        }),
         getRandomWords: build.query<GetRandomWordsResponse, GetRandomWordsRequest>({
             query: (req) => ({
                 url: `${baseUrl}/words/random`,
@@ -196,6 +232,7 @@ export const {
     useGetCollectionQuery,
     useGetNotFinishedQuery,
     useGetQueueCollectionsQuery,
+    useGetQueueCollectionsV2Query,
     useGetRandomWordsQuery,
     useMakeCollectionPublicMutation,
     useAddCardsToMyCollectionMutation,

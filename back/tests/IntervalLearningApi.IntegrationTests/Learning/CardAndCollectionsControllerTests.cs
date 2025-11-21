@@ -622,10 +622,10 @@ public class CardAndCollectionsControllerTests : SharedApiTests
         repeatCollections.ScheduleId.Should().Be(schedule.Id);
         repeatCollections.ParentUserId.Should().Be(schedule.ParentUserId);
 
-        repeatCollections.RepeatingCollections.Should().NotBeNullOrEmpty();
+        repeatCollections.RepeatingInfosByDate.Should().NotBeNullOrEmpty();
 
-        var allRepeatPhaseItems = repeatCollections.RepeatingCollections
-            .SelectMany(p => p.RepeatingPhaseItems)
+        var allRepeatPhaseItems = repeatCollections.RepeatingInfosByDate
+            .SelectMany(p => p.RepeatingCollections)
             .ToList();
 
         var shouldBeCollections = new[] { firstCollection, secondCollection };
@@ -639,8 +639,9 @@ public class CardAndCollectionsControllerTests : SharedApiTests
 
             phaseItem.Should().NotBeNull();
             phaseItem.CardsCount.Should().Be(firstCards.Count);
-            phaseItem.PhaseDurationInSeconds.Should().Be(phase.SecondsFromLastPhase);
+            phaseItem.IsRepeatingForgottenWords.Should().BeFalse();
             phaseItem.IsRepeatable.Should().BeFalse();
+            phaseItem.ThemeId.Should().Be(expectedCollection.ThemeId);
         }
     }
     
@@ -675,10 +676,10 @@ public class CardAndCollectionsControllerTests : SharedApiTests
         repeatCollections.ScheduleId.Should().Be(schedule.Id);
         repeatCollections.ParentUserId.Should().Be(schedule.ParentUserId);
 
-        repeatCollections.RepeatingCollections.Should().NotBeNullOrEmpty();
+        repeatCollections.RepeatingInfosByDate.Should().NotBeNullOrEmpty();
 
-        var allRepeatCollectionIds = repeatCollections.RepeatingCollections
-            .SelectMany(p => p.RepeatingPhaseItems)
+        var allRepeatCollectionIds = repeatCollections.RepeatingInfosByDate
+            .SelectMany(p => p.RepeatingCollections)
             .Select(p => p.CollectionUserId + "-" + p.CollectionId)
             .ToList();
 

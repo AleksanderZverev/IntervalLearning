@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { NextJsHelper } from '../helpers/Infra/NextJsHelper';
 
 export function useLocalStorageValue<TValue>(
     key: string,
@@ -11,6 +12,7 @@ export function useLocalStorageValue<TValue>(
 
     const [value, setValueInternal] = useState(() => {
         const defaultV = getDefaultValue();
+        if (NextJsHelper.isServerSide()) return defaultV;
 
         const item = localStorage.getItem(key);
         if (item) {

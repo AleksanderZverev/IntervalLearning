@@ -27,6 +27,7 @@ import GlobalErrorBoundary from '../src/GlobalErrorBoundary';
 import { dictionaryApi } from '../src/redux/api/dictionaryApi';
 import { LocalizationProvider } from '@mui/x-date-pickers';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
+import { NextJsHelper } from '../src/helpers/Infra/NextJsHelper';
 
 dayjs.extend(duration);
 dayjs.extend(relativeTime);
@@ -63,7 +64,7 @@ function MyApp(props: MyAppProps) {
         dispatch(fetchStartData);
     });
 
-    const isServerSide = typeof window === 'undefined';
+    const isServerSide = NextJsHelper.isServerSide();
     const Router = isServerSide ? StaticRouter : BrowserRouter;
 
     return (

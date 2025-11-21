@@ -1,5 +1,6 @@
 using Domain.Collection.ValueObjects;
 using Domain.Schedule.ValueObjects;
+using Domain.Theme.ValueObjects;
 using Domain.User.ValueObjects;
 using DomainServices.DB.Queries.Study;
 using FluentResults;
@@ -15,16 +16,17 @@ public record GetRepeatCollectionsCommandRequestV2(
 public record GetRepeatCollectionsCommandResponseV2
 {
     public ComplexScheduleId ScheduleId { get; init; }
-    public List<RepeatingCollectionItem> RepeatingCollections { get; init; }
+    public List<RepeatingInfoByDate> RepeatingInfosByDate { get; init; }
 }
 
-public record RepeatingCollectionItem(DateTime Date, List<RepeatingPhaseItem> RepeatingPhaseItems);
+public record RepeatingInfoByDate(DateTime Date, List<RepeatingCollectionInfo> RepeatingCollections);
 
-public record RepeatingPhaseItem(
+public record RepeatingCollectionInfo(
     ComplexCollectionId CollectionId,
     CollectionTitle CollectionTitle,
-    TimeSpan PhaseDuration,
-    bool IsRepeatable)
+    bool IsRepeatingForgottenWords,
+    bool IsRepeatable,
+    ThemeId ThemeId)
 {
     public int CardsCount { get; private set; }
     public DateTime EarliestDateToRepeat { get; private set; }
@@ -85,7 +87,7 @@ public class GetRepeatCollectionsCommandV2
         var collections = await studyQueryRepository.Collections.GetRange(userId, collectionIds);
         var collectionIdToCollection = collections.ToDictionary(c => c.Id);
 
-        Dictionary<DateTime, RepeatingCollectionItem> dateToCollectionItem = new();
+        Dictionary<DateTime, RepeatingInfoByDate> dateToCollectionItem = new();
 
         foreach (var queueItem in queueItems)
         {
@@ -93,7 +95,7 @@ public class GetRepeatCollectionsCommandV2
 
             if (!dateToCollectionItem.TryGetValue(date, out var collectionItem))
             {
-                collectionItem = new RepeatingCollectionItem(date, new List<RepeatingPhaseItem>());
+                collectionItem = new RepeatingInfoByDate(date, new List<RepeatingCollectionInfo>());
                 dateToCollectionItem[date] = collectionItem;
             }
 
@@ -101,19 +103,19 @@ public class GetRepeatCollectionsCommandV2
             var phase = schedule.FindPhase(queueItem.PhaseIndex);
             var isRepeatable = schedule.CanRepeat(queueItem.PhaseIndex, date, dateTimeProvider).Value;
 
-            var repeatingPhaseItem = collectionItem.RepeatingPhaseItems
-                .FirstOrDefault(p => p.CollectionId == collection.ComplexId
-                                     && p.PhaseDuration == phase.GetDurationToNextPhase());
+            var repeatingPhaseItem = collectionItem.RepeatingCollections
+                .FirstOrDefault(p => p.CollectionId == collection.ComplexId);
 
             if (repeatingPhaseItem == null)
             {
-                repeatingPhaseItem = new RepeatingPhaseItem(
+                repeatingPhaseItem = new RepeatingCollectionInfo(
                     ComplexCollectionId.Create(collection.ParentUserId, collection.Id).Value,
                     collection.Title,
-                    phase.GetDurationToNextPhase(),
-                    isRepeatable);
+                    phase.IsRepeat(),
+                    isRepeatable,
+                    collection.ThemeId);
                 
-                collectionItem.RepeatingPhaseItems.Add(repeatingPhaseItem);
+                collectionItem.RepeatingCollections.Add(repeatingPhaseItem);
             }
 
             repeatingPhaseItem.OnQueueItemFound(date);
@@ -122,7 +124,7 @@ public class GetRepeatCollectionsCommandV2
         return new GetRepeatCollectionsCommandResponseV2()
         {
             ScheduleId = scheduleId,
-            RepeatingCollections = dateToCollectionItem.Values.ToList(),
+            RepeatingInfosByDate = dateToCollectionItem.Values.ToList(),
         };
     }
 }
