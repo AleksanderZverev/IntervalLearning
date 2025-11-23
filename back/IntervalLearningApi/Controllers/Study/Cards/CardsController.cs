@@ -27,6 +27,7 @@ using IntervalLearningApi.Controllers.Study.Cards.DTOs;
 using IntervalLearningApi.Controllers.Study.Cards.Requests;
 using IntervalLearningApi.Controllers.Study.Cards.Requests.RememberCard;
 using IntervalLearningApi.Controllers.Study.Cards.Requests.StartCards;
+using IntervalLearningApi.Controllers.Study.Cards.Responses.GetRepeatingCardsForDate;
 using IntervalLearningApi.Controllers.Study.RepeatsSchedules.DTOs;
 using IntervalLearningApi.Extensions;
 using IntervalLearningApi.Infrastructure.CommandManager;
@@ -242,7 +243,7 @@ namespace IntervalLearningApi.Controllers.Study.Cards
         }
 
         [HttpGet(ApiRoutes.Cards.Get_GetRepeatingCardsForDate)]
-        public async Task<ActionResult<List<CardDto>>> GetRepeatingCardsForDate(
+        public async Task<ActionResult<GetRepeatingCardsForDateResponse>> GetRepeatingCardsForDate(
             short collectionId,
             [FromQuery] int page,
             [FromQuery] int count,
@@ -285,7 +286,7 @@ namespace IntervalLearningApi.Controllers.Study.Cards
                     date,
                     env.IsProduction()));
 
-            return cardsResult.ToActionResult(cards => mapper.Map<List<CardDto>>(cards));
+            return cardsResult.ToActionResult(response => mapper.Map<GetRepeatingCardsForDateResponse>(response));
         }
 
         [HttpGet(ApiRoutes.Cards.Get_GetNotStartedCards)]

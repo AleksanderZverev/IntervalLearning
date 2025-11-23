@@ -7,7 +7,11 @@ using GlobalTools.Errors;
 
 namespace Application.Commands.Cards.GetCardsQueueCommand;
 
-public class GetCardsQueueCommand : ICommand<GetCardsQueueRequest, List<Card>>
+public record GetCardsQueueCommandResponse(
+    List<Card> Cards,
+    int TotalCardsCount);
+
+public class GetCardsQueueCommand : ICommand<GetCardsQueueRequest, GetCardsQueueCommandResponse>
 {
     private readonly IDateTimeProvider dateTimeProvider;
     private readonly IStudyQueryRepository studyQueryRepository;
@@ -20,14 +24,14 @@ public class GetCardsQueueCommand : ICommand<GetCardsQueueRequest, List<Card>>
         this.studyQueryRepository = studyQueryRepository;
     }
 
-    public async Task<Result<List<Card>>> Handle(GetCardsQueueRequest request)
+    public async Task<Result<GetCardsQueueCommandResponse>> Handle(GetCardsQueueRequest request)
     {
         var schedule = await studyQueryRepository.Schedules.Find(request.ScheduleUserId, request.ScheduleId);
 
         if (schedule == null)
             return new BadRequestError("Schedule is not found");
 
-        var queueItems = await studyQueryRepository.RepeatingQueue.GetByDate(
+        var (queueItems, totalCardsCount) = await studyQueryRepository.RepeatingQueue.GetByDate(
             request.Page,
             request.CardsCountByPage,
             request.UserId,
@@ -49,7 +53,7 @@ public class GetCardsQueueCommand : ICommand<GetCardsQueueRequest, List<Card>>
         var repeatingQueueItems = filteredQueueItems.ToList();
 
         if (repeatingQueueItems.Count == 0)
-            return new List<Card>(0);
+            return new GetCardsQueueCommandResponse([], 0);
 
         var cardsIds = repeatingQueueItems.Select(q => q.ParentCardId).ToList();
 
@@ -72,6 +76,6 @@ public class GetCardsQueueCommand : ICommand<GetCardsQueueRequest, List<Card>>
             card.Remembers = cardsRemembers;
         }
 
-        return cards;
+        return new GetCardsQueueCommandResponse(cards, totalCardsCount);
     }
 }
