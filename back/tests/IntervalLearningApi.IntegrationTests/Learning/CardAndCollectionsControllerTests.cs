@@ -704,7 +704,7 @@ public class CardAndCollectionsControllerTests : SharedApiTests
         for (int currentPage = 1; currentPage <= pages; currentPage++)
         {
             var cardsResponse = await client.GetAsync(
-                CardsQuery(collection.Id, ApiRoutes.Cards.Get_GetCardsQueue) + new QueryString()
+                CardsQuery(collection.Id, ApiRoutes.Cards.Get_GetRepeatingCardsForDate) + new QueryString()
                     .Add("page", currentPage.ToString())
                     .Add("count", cardsCountByPage.ToString())
                     .Add("scheduleUserId", schedule.ParentUserId)
@@ -743,7 +743,7 @@ public class CardAndCollectionsControllerTests : SharedApiTests
 
         //Act
         var cardsResponse = await client.GetAsync(
-            CardsQuery(collection.Id, ApiRoutes.Cards.Get_GetCardsQueue) + new QueryString()
+            CardsQuery(collection.Id, ApiRoutes.Cards.Get_GetRepeatingCardsForDate) + new QueryString()
                 .Add("page", 1.ToString())
                 .Add("count", forgottenCards.Count.ToString())
                 .Add("scheduleUserId", schedule.ParentUserId)
@@ -799,7 +799,7 @@ public class CardAndCollectionsControllerTests : SharedApiTests
 
         var phase = repeatingPhases.Single();
         var cardsResponse = await client.GetAsync(
-            CardsQuery(collection.Id, ApiRoutes.Cards.Get_GetCardsQueue) + new QueryString()
+            CardsQuery(collection.Id, ApiRoutes.Cards.Get_GetRepeatingCardsForDate) + new QueryString()
                 .Add("page", 1.ToString())
                 .Add("count", int.MaxValue.ToString())
                 .Add("scheduleUserId", schedule.ParentUserId)

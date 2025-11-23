@@ -241,8 +241,8 @@ namespace IntervalLearningApi.Controllers.Study.Cards
             return postponeResult.ToActionResult();
         }
 
-        [HttpGet(ApiRoutes.Cards.Get_GetCardsQueue)]
-        public async Task<ActionResult<List<CardDto>>> GetCardsQueue(
+        [HttpGet(ApiRoutes.Cards.Get_GetRepeatingCardsForDate)]
+        public async Task<ActionResult<List<CardDto>>> GetRepeatingCardsForDate(
             short collectionId,
             [FromQuery] int page,
             [FromQuery] int count,
