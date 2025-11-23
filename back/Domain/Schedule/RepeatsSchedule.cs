@@ -379,6 +379,12 @@ public class RepeatsSchedule : AggregateRoot<ComplexScheduleId>, IParentUserRefe
 
         return OrderedPhases[phaseIndex];
     }
+    
+    public Phase GetPhaseOrThrow(int phaseIndex)
+    {
+        var phase = FindPhase(phaseIndex);
+        return phase != null ? phase : throw new InvalidOperationException($"Phase {phaseIndex} was not found");
+    }
 
     public Phase GetPhaseByIndex(int phaseIndex)
     {

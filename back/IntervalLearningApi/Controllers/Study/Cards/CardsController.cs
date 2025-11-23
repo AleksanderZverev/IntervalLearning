@@ -20,6 +20,7 @@ using Domain.Common.ValueObjects.Text.SingleLine;
 using Domain.Schedule.Entities.Remember.ValueObjects;
 using Domain.Schedule.ValueObjects;
 using Domain.User.ValueObjects;
+using GlobalTools.Errors;
 using GlobalTools.Extensions;
 using IntervalLearningApi.Constants;
 using IntervalLearningApi.Controllers.Study.Cards.DTOs;
@@ -243,12 +244,16 @@ namespace IntervalLearningApi.Controllers.Study.Cards
         [HttpGet(ApiRoutes.Cards.Get_GetCardsQueue)]
         public async Task<ActionResult<List<CardDto>>> GetCardsQueue(
             short collectionId,
+            [FromQuery] int page,
+            [FromQuery] int count,
             [FromQuery] long scheduleUserId,
             [FromQuery] short scheduleId,
-            [FromQuery] short phaseIndex,
+            [FromQuery] bool isRepeatingMode,
             [FromQuery] DateTime date)
         {
             var argResults = (
+                page > 0 ? null : new BadRequestError("Incorrect page"),
+                count > 0 ? null : new BadRequestError("Incorrect count"),
                 HttpContext.GetUserId(),
                 CollectionId.Create(collectionId),
                 UserId.Create(scheduleUserId),
@@ -259,6 +264,8 @@ namespace IntervalLearningApi.Controllers.Study.Cards
                 return BadRequest();
 
             var (
+                _,
+                __,
                 userId,
                 collectionIdResult,
                 scheduleUserIdResult,
@@ -268,11 +275,13 @@ namespace IntervalLearningApi.Controllers.Study.Cards
             var cardsResult = await commandManager
                 .GetCommand<GetCardsQueueCommand>()
                 .Handle(new GetCardsQueueRequest(
+                    page,
+                    count,
                     userId.Value,
                     collectionIdResult.Value,
                     scheduleUserIdResult.Value,
                     scheduleIdResult.Value,
-                    phaseIndex,
+                    isRepeatingMode,
                     date,
                     env.IsProduction()));
 

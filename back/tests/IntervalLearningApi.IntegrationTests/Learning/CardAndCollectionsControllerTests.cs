@@ -686,6 +686,80 @@ public class CardAndCollectionsControllerTests : SharedApiTests
         var shouldBeCollections = new[] { shouldContainCollection.ParentUserId + "-" + shouldContainCollection.Id };
         allRepeatCollectionIds.Should().BeEquivalentTo(shouldBeCollections);
     }
+
+    [Fact]
+    public async Task GetCardsQueue_ShouldReturnCardsByPages()
+    {
+        //Arrange
+        var (client, user) = SharedScope;
+        var schedule = await CreateTestSchedule(ForgottenBehavior.MoveToPreviousStep);
+        var cardsCountByPage = 10;
+        var pages = 3;
+        var totalCardsCount = pages * cardsCountByPage;
+        var (collection, preAddedCards) = await CreateRandomCardsAsync(totalCardsCount);
+        await StartCardsAsync(client, collection, preAddedCards, schedule);
+        var firstPhase = schedule.Phases.First();
+
+        //Act
+        for (int currentPage = 1; currentPage <= pages; currentPage++)
+        {
+            var cardsResponse = await client.GetAsync(
+                CardsQuery(collection.Id, ApiRoutes.Cards.Get_GetCardsQueue) + new QueryString()
+                    .Add("page", currentPage.ToString())
+                    .Add("count", cardsCountByPage.ToString())
+                    .Add("scheduleUserId", schedule.ParentUserId)
+                    .Add("scheduleId", schedule.Id)
+                    .Add("isRepeatingMode", false.ToString())
+                    .Add("date", DateTime.UtcNow.AddSeconds(firstPhase.SecondsFromLastPhase).ToString("O")));
+
+            var cards = cardsResponse.ToResponseDto<List<CardDto>>();
+
+            //ASSERT
+            cards.Should().HaveCount(cardsCountByPage);
+            cards.Should().AllSatisfy(c => preAddedCards
+                .Should()
+                .ContainSingle(preAddedCard =>
+                    preAddedCard.ParentUserId == c.ParentUserId && preAddedCard.Id == c.Id));
+        }
+    }
+    
+    [Fact]
+    public async Task GetCardsQueue_ShouldReturnCardsForRepeatingMode()
+    {
+        //Arrange
+        var (client, user) = SharedScope;
+        var schedule = await CreateTestScheduleWithRepetitions(ForgottenBehavior.MoveToPreviousStep);
+        var totalCardsCount = 30;
+        var (collection, preAddedCards) = await CreateRandomCardsAsync(totalCardsCount);
+        await StartCardsAsync(client, collection, preAddedCards, schedule);
+        var forgottenCards = preAddedCards.Take(totalCardsCount / 2).ToList();
+        await RememberCardsAsync(
+            client,
+            collection,
+            forgottenCards,
+            schedule,
+            0,
+            LearningScenarios.ForgottenWeight);
+
+        //Act
+        var cardsResponse = await client.GetAsync(
+            CardsQuery(collection.Id, ApiRoutes.Cards.Get_GetCardsQueue) + new QueryString()
+                .Add("page", 1.ToString())
+                .Add("count", forgottenCards.Count.ToString())
+                .Add("scheduleUserId", schedule.ParentUserId)
+                .Add("scheduleId", schedule.Id)
+                .Add("isRepeatingMode", true.ToString())
+                .Add("date", DateTime.UtcNow.ToString("O")));
+
+        var cards = cardsResponse.ToResponseDto<List<CardDto>>();
+
+        //ASSERT
+        cards.Should().HaveCount(forgottenCards.Count);
+        cards.Should().AllSatisfy(c => forgottenCards
+            .Should()
+            .ContainSingle(forgottenCard =>
+                forgottenCard.ParentUserId == c.ParentUserId && forgottenCard.Id == c.Id));
+    }
     
     [Theory]
     [InlineData("Some comment")]
@@ -726,6 +800,8 @@ public class CardAndCollectionsControllerTests : SharedApiTests
         var phase = repeatingPhases.Single();
         var cardsResponse = await client.GetAsync(
             CardsQuery(collection.Id, ApiRoutes.Cards.Get_GetCardsQueue) + new QueryString()
+                .Add("page", 1.ToString())
+                .Add("count", int.MaxValue.ToString())
                 .Add("scheduleUserId", schedule.ParentUserId)
                 .Add("scheduleId", schedule.Id)
                 .Add("phaseIndex", phase.PhaseIndex.ToString())

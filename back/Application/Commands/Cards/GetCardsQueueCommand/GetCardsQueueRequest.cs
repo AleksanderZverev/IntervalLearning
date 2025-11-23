@@ -5,10 +5,12 @@ using Domain.User.ValueObjects;
 namespace Application.Commands.Cards.GetCardsQueueCommand;
 
 public record GetCardsQueueRequest(
+    int Page,
+    int CardsCountByPage,
     UserId UserId,
     CollectionId CollectionId,
     UserId ScheduleUserId,
     ScheduleId ScheduleId,
-    short PhaseIndex,
+    bool IsRepeatingMode,
     DateTime Date,
     bool CheckRepeatableDate);

@@ -1,4 +1,5 @@
 using Domain.Card;
+using Domain.Queue;
 using DomainServices.DB.Queries.Study;
 using FluentResults;
 using GlobalTools;
@@ -26,30 +27,31 @@ public class GetCardsQueueCommand : ICommand<GetCardsQueueRequest, List<Card>>
         if (schedule == null)
             return new BadRequestError("Schedule is not found");
 
-        var canRepeatResult = schedule.CanRepeat(request.PhaseIndex, request.Date, dateTimeProvider);
-
-        if (canRepeatResult.IsFailed)
-            return canRepeatResult.ToResult();
-
-        var canRepeat = canRepeatResult.Value;
-
-        if (request.CheckRepeatableDate && !canRepeat)
-        {
-            return new BadRequestError("Not repeatable date requested");
-        }
-
         var queueItems = await studyQueryRepository.RepeatingQueue.GetByDate(
+            request.Page,
+            request.CardsCountByPage,
             request.UserId,
             request.CollectionId,
             request.ScheduleUserId,
             request.ScheduleId,
-            request.PhaseIndex,
             request.Date);
 
-        if (queueItems.Count == 0)
+        IEnumerable<CardRepeatQueue> filteredQueueItems = queueItems;
+
+        if (request.IsRepeatingMode)
+            filteredQueueItems = filteredQueueItems
+                .Where(q => schedule.GetPhaseOrThrow(q.PhaseIndex).IsRepeat());
+
+        if (request.CheckRepeatableDate)
+            filteredQueueItems = filteredQueueItems
+                .Where(q => schedule.CanRepeat(q.PhaseIndex, request.Date, dateTimeProvider).Value);
+
+        var repeatingQueueItems = filteredQueueItems.ToList();
+
+        if (repeatingQueueItems.Count == 0)
             return new List<Card>(0);
 
-        var cardsIds = queueItems.Select(q => q.ParentCardId).ToList();
+        var cardsIds = repeatingQueueItems.Select(q => q.ParentCardId).ToList();
 
         var cards = await studyQueryRepository.Cards.GetRange(request.UserId, request.CollectionId, cardsIds);
 

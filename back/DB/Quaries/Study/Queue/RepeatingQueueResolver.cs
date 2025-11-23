@@ -37,20 +37,24 @@ public class RepeatingQueueResolver : IRepeatingQueueResolver
     }
 
     public Task<List<CardRepeatQueue>> GetByDate(
+        int page,
+        int cout,
         UserId userId,
         CollectionId collectionId,
         UserId scheduleUserId,
         ScheduleId scheduleId,
-        short phaseIndex,
         DateTime date)
     {
+        var skip = (page - 1) * cout;
+        var take = cout;
         return db.Queue
             .Where(c => c.ParentUserId == userId
                         && c.ParentCollectionId == collectionId
                         && c.ParentRepeatsScheduleUserId == scheduleUserId
                         && c.ParentRepeatsScheduleId == scheduleId
-                        && c.PhaseIndex == phaseIndex
                         && c.Date.Date == date.Date)
+            .Skip(skip)
+            .Take(take)
             .ToListAsync();
     }
     
