@@ -259,6 +259,7 @@ namespace IntervalLearningApi.Controllers.Study.Collections
         public async Task<ActionResult<GetRepeatCollectionsResponseV2>> GetRepeatCollectionsV2(
             [FromQuery] long scheduleUserId,
             [FromQuery] short scheduleId,
+            [FromQuery] DateTimeOffset userCurrentDateTime,
             [FromQuery] DateTime? untilDate = null)
         {
             var userId = HttpContext.GetUserId();
@@ -282,6 +283,7 @@ namespace IntervalLearningApi.Controllers.Study.Collections
                             Id = scheduleIdResult.Value,
                         },
                         userId.Value,
+                        userCurrentDateTime,
                         untilDate));
 
             return dateToRepeatingCollectionsResult.ToActionResult(result =>

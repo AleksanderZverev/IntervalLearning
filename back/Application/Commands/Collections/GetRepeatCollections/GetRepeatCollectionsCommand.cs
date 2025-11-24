@@ -5,6 +5,7 @@ using GlobalTools;
 
 namespace Application.Commands.Collections.GetRepeatCollections;
 
+[Obsolete("Look V2 version")]
 public class GetRepeatCollectionsCommand : ICommand<GetRepeatCollectionsCommandRequest,
     Dictionary<DateTime, List<RepeatingPhase>>>
 {
@@ -90,7 +91,7 @@ public class GetRepeatCollectionsCommand : ICommand<GetRepeatCollectionsCommandR
 
             repeatingCollection.CardsToRepeatCount++;
 
-            var isRepeatableResult = schedule.CanRepeat(queueItem.PhaseIndex, date, dateTimeProvider);
+            var isRepeatableResult = schedule.CanRepeat(queueItem.PhaseIndex, date, DateTimeOffset.UtcNow);
             Debug.Assert(isRepeatableResult.IsSuccess);
             repeatingCollection.IsRepeatable = isRepeatableResult.ValueOrDefault;
         }

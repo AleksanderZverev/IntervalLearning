@@ -11,5 +11,6 @@ public record RememberCardRequest(
     ScheduleId ScheduleId,
     short PhaseIndex,
     List<RememberItem> RememberItems,
-    bool AllowRepeatingInFuture
+    bool AllowRepeatingInFuture,
+    DateTimeOffset UserCurrentDateTime
 );

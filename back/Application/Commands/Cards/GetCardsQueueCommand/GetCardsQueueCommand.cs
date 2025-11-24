@@ -48,7 +48,7 @@ public class GetCardsQueueCommand : ICommand<GetCardsQueueRequest, GetCardsQueue
 
         if (request.CheckRepeatableDate)
             filteredQueueItems = filteredQueueItems
-                .Where(q => schedule.CanRepeat(q.PhaseIndex, request.Date, dateTimeProvider).Value);
+                .Where(q => schedule.CanRepeat(q.PhaseIndex, request.Date, request.UserCurrentDateTime).Value);
 
         var repeatingQueueItems = filteredQueueItems.ToList();
 

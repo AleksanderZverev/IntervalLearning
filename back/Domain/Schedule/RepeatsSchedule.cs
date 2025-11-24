@@ -106,8 +106,7 @@ public class RepeatsSchedule : AggregateRoot<ComplexScheduleId>, IParentUserRefe
             : null;
         var currentPhaseAnswers = new PhaseAnswers(
             MainAnswer: ToMemorizedDegree(currentNotRepeatingRemember),
-            RepetitionAnswer: ToMemorizedDegree(currentRepeatingRemember)
-        );
+            RepetitionAnswer: ToMemorizedDegree(currentRepeatingRemember));
 
         var previousRemember = cardEntity.FindPreviousRememberByPhaseIndex(IndexOf(currentNotRepeatingPhase));
         var previousPhase = previousRemember != null ? FindPhase(previousRemember.PhaseIndex) : null;
@@ -123,8 +122,7 @@ public class RepeatsSchedule : AggregateRoot<ComplexScheduleId>, IParentUserRefe
             RepetitionAnswer: ToMemorizedDegree(
                 previousRepeatingPhase != null
                     ? cardEntity.FindRememberByPhaseIndex(IndexOf(previousRepeatingPhase))
-                    : null)
-        );
+                    : null));
 
         var movement = GetNextStep(currentPhaseAnswers, previousPhaseAnswers);
 
@@ -288,7 +286,8 @@ public class RepeatsSchedule : AggregateRoot<ComplexScheduleId>, IParentUserRefe
 
     private Phase GetFirstNotRepeatingPhase()
     {
-        return OrderedPhases.FirstOrDefault(p => !p.IsRepeat()) ?? throw new ArgumentOutOfRangeException("First not repeating phase is not found");
+        return OrderedPhases.FirstOrDefault(p => !p.IsRepeat())
+               ?? throw new ArgumentOutOfRangeException("First not repeating phase is not found");
     }
 
     private Phase? FindNextNotRepeatingPhase(PhaseId currentPhaseId)
@@ -379,7 +378,7 @@ public class RepeatsSchedule : AggregateRoot<ComplexScheduleId>, IParentUserRefe
 
         return OrderedPhases[phaseIndex];
     }
-    
+
     public Phase GetPhaseOrThrow(int phaseIndex)
     {
         var phase = FindPhase(phaseIndex);
@@ -394,14 +393,14 @@ public class RepeatsSchedule : AggregateRoot<ComplexScheduleId>, IParentUserRefe
         return OrderedPhases[phaseIndex];
     }
 
-    public Result<bool> CanRepeat(int repeatingPhaseIndex, DateTime repeatingDate, IDateTimeProvider dateTimeProvider)
+    public Result<bool> CanRepeat(int repeatingPhaseIndex, DateTime repeatingDate, DateTimeOffset userCurrentTime)
     {
         var phase = FindPhase(repeatingPhaseIndex);
 
         if (phase == null)
             return new BadRequestError("Phase is not found");
 
-        var now = dateTimeProvider.UtcNow;
+        var now = userCurrentTime.DateTime;
 
         if (repeatingDate.Date == now.Date)
             return true;

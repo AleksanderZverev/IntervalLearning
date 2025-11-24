@@ -11,6 +11,7 @@ namespace Application.Commands.Collections.v2.GetRepeatCollections;
 public record GetRepeatCollectionsCommandRequestV2(
     ComplexScheduleId ScheduleId,
     UserId UserId,
+    DateTimeOffset UserCurrentDate,
     DateTime? UntilDate);
 
 public record GetRepeatCollectionsCommandResponseV2
@@ -63,7 +64,7 @@ public class GetRepeatCollectionsCommandV2
     public async Task<Result<GetRepeatCollectionsCommandResponseV2>> Handle(
         GetRepeatCollectionsCommandRequestV2 request)
     {
-        var (scheduleId, userId, untilDate) = request;
+        var (scheduleId, userId, userCurrentDate, untilDate) = request;
 
         var schedule = await studyQueryRepository.Schedules.Find(scheduleId.ParentUserId, scheduleId.Id);
 
@@ -101,7 +102,7 @@ public class GetRepeatCollectionsCommandV2
 
             var collection = collectionIdToCollection[queueItem.ParentCollectionId];
             var phase = schedule.FindPhase(queueItem.PhaseIndex);
-            var isRepeatable = schedule.CanRepeat(queueItem.PhaseIndex, date, dateTimeProvider).Value;
+            var isRepeatable = schedule.CanRepeat(queueItem.PhaseIndex, date, userCurrentDate).Value;
 
             var repeatingPhaseItem = collectionItem.RepeatingCollections
                 .FirstOrDefault(p => p.CollectionId == collection.ComplexId);

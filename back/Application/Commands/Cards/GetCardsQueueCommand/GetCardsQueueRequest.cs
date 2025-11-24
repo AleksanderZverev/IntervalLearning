@@ -13,4 +13,5 @@ public record GetCardsQueueRequest(
     ScheduleId ScheduleId,
     bool IsRepeatingMode,
     DateTime Date,
-    bool CheckRepeatableDate);
+    bool CheckRepeatableDate,
+    DateTimeOffset UserCurrentDateTime);

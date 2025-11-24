@@ -24,4 +24,5 @@ public class RememberCardRequest
     public long ScheduleUserId { get; set; }
     public short ScheduleId { get; set; }
     public short PhaseIndex { get; set; }
+    public DateTimeOffset UserCurrentDateTime { get; set; }
 }

@@ -36,7 +36,14 @@ public class RememberCardCommand : ICommand<RememberCardRequest, NextRepeatInfoR
 
     public async Task<Result<NextRepeatInfoResponse>> Handle(RememberCardRequest request)
     {
-        var (userId, collectionId, scheduleUserId, scheduleId, phaseIndex, rememberItems, allowRepeatingInFuture) = request;
+        var (userId,
+            collectionId, 
+            scheduleUserId, 
+            scheduleId, 
+            phaseIndex, 
+            rememberItems, 
+            allowRepeatingInFuture,
+            userCurrentDateTime) = request;
 
         var cardIds = rememberItems.Select(c => c.CardId).Distinct().ToList();
 
@@ -82,7 +89,7 @@ public class RememberCardCommand : ICommand<RememberCardRequest, NextRepeatInfoR
             }
 
             var queueItem = queueItems.Single(q => q.ParentCardId == cardId);
-            var isRepeatableResult = schedule.CanRepeat(queueItem.PhaseIndex, queueItem.Date, dateTimeProvider);
+            var isRepeatableResult = schedule.CanRepeat(queueItem.PhaseIndex, queueItem.Date, userCurrentDateTime);
             var isRepeatable = isRepeatableResult.IsFailed || isRepeatableResult.ValueOrDefault;
 
             if (!allowRepeatingInFuture && !isRepeatable)

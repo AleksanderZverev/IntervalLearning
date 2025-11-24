@@ -4,6 +4,7 @@ using Domain.User.ValueObjects;
 using IntervalLearningApi.Controllers.Study.Cards.DTOs;
 using IntervalLearningApi.Controllers.Study.Cards.Requests.RememberCard;
 using IntervalLearningApi.Controllers.Study.Cards.Requests.StartCards;
+using IntervalLearningApi.Controllers.Study.Cards.Responses.GetRepeatingCardsForDate;
 using IntervalLearningApi.Controllers.Study.Collections.DTOs;
 using IntervalLearningApi.Controllers.Study.Collections.RequestModels.GetNotFinished;
 using IntervalLearningApi.Controllers.Study.Collections.RequestModels.GetRepeatCollections;
@@ -614,7 +615,8 @@ public class CardAndCollectionsControllerTests : SharedApiTests
             CollectionsQuery(ApiRoutes.Collections.GetRepeatCollectionsV2)
             + new QueryString()
                 .Add("scheduleUserId", schedule.ParentUserId)
-                .Add("scheduleId", schedule.Id));
+                .Add("scheduleId", schedule.Id)
+                .Add("userCurrentDateTime", DateTimeOffset.UtcNow.ToString("O")));
         var repeatCollections = getRepeatCollectionsResponse.ToResponseDto<GetRepeatCollectionsResponseV2>();
 
         //Assert
@@ -666,9 +668,10 @@ public class CardAndCollectionsControllerTests : SharedApiTests
                 .Add("scheduleUserId", schedule.ParentUserId)
                 .Add("scheduleId", schedule.Id)
                 .Add(
-                "untilDate",
-                //after starting collection will be at the next day
-                DateTime.UtcNow.AddDays(1).AddHours(1).ToString("O")));
+                    "untilDate",
+                    //after starting collection will be at the next day
+                    DateTime.UtcNow.AddDays(1).AddHours(1).ToString("O"))
+                .Add("userCurrentDateTime", DateTimeOffset.UtcNow.ToString("O")));
         var repeatCollections = getRepeatCollectionsResponse.ToResponseDto<GetRepeatCollectionsResponseV2>();
 
         //Assert
@@ -703,23 +706,25 @@ public class CardAndCollectionsControllerTests : SharedApiTests
         //Act
         for (int currentPage = 1; currentPage <= pages; currentPage++)
         {
-            var cardsResponse = await client.GetAsync(
+            var getCardsResponse = await client.GetAsync(
                 CardsQuery(collection.Id, ApiRoutes.Cards.Get_GetRepeatingCardsForDate) + new QueryString()
                     .Add("page", currentPage.ToString())
                     .Add("count", cardsCountByPage.ToString())
                     .Add("scheduleUserId", schedule.ParentUserId)
                     .Add("scheduleId", schedule.Id)
                     .Add("isRepeatingMode", false.ToString())
-                    .Add("date", DateTime.UtcNow.AddSeconds(firstPhase.SecondsFromLastPhase).ToString("O")));
+                    .Add("date", DateTime.UtcNow.AddSeconds(firstPhase.SecondsFromLastPhase).ToString("O"))
+                    .Add("userCurrentDateTime", DateTimeOffset.UtcNow.ToString("O")));
 
-            var cards = cardsResponse.ToResponseDto<List<CardDto>>();
+            var cardsResponse = getCardsResponse.ToResponseDto<GetRepeatingCardsForDateResponse>();
 
             //ASSERT
-            cards.Should().HaveCount(cardsCountByPage);
-            cards.Should().AllSatisfy(c => preAddedCards
+            cardsResponse.Cards.Should().HaveCount(cardsCountByPage);
+            cardsResponse.Cards.Should().AllSatisfy(c => preAddedCards
                 .Should()
                 .ContainSingle(preAddedCard =>
                     preAddedCard.ParentUserId == c.ParentUserId && preAddedCard.Id == c.Id));
+            cardsResponse.TotalCardsCount.Should().Be(totalCardsCount);
         }
     }
     
@@ -742,23 +747,25 @@ public class CardAndCollectionsControllerTests : SharedApiTests
             LearningScenarios.ForgottenWeight);
 
         //Act
-        var cardsResponse = await client.GetAsync(
+        var getCardsResponse = await client.GetAsync(
             CardsQuery(collection.Id, ApiRoutes.Cards.Get_GetRepeatingCardsForDate) + new QueryString()
                 .Add("page", 1.ToString())
                 .Add("count", forgottenCards.Count.ToString())
                 .Add("scheduleUserId", schedule.ParentUserId)
                 .Add("scheduleId", schedule.Id)
                 .Add("isRepeatingMode", true.ToString())
-                .Add("date", DateTime.UtcNow.ToString("O")));
+                .Add("date", DateTime.UtcNow.ToString("O"))
+                .Add("userCurrentDateTime", DateTimeOffset.UtcNow.ToString("O")));
 
-        var cards = cardsResponse.ToResponseDto<List<CardDto>>();
+        var cardsResponse = getCardsResponse.ToResponseDto<GetRepeatingCardsForDateResponse>();
 
         //ASSERT
-        cards.Should().HaveCount(forgottenCards.Count);
-        cards.Should().AllSatisfy(c => forgottenCards
+        cardsResponse.Cards.Should().HaveCount(forgottenCards.Count);
+        cardsResponse.Cards.Should().AllSatisfy(c => forgottenCards
             .Should()
             .ContainSingle(forgottenCard =>
                 forgottenCard.ParentUserId == c.ParentUserId && forgottenCard.Id == c.Id));
+        cardsResponse.TotalCardsCount.Should().Be(forgottenCards.Count);
     }
     
     [Theory]
@@ -805,8 +812,9 @@ public class CardAndCollectionsControllerTests : SharedApiTests
                 .Add("scheduleUserId", schedule.ParentUserId)
                 .Add("scheduleId", schedule.Id)
                 .Add("phaseIndex", phase.PhaseIndex.ToString())
-                .Add("date", repeatingDate.ToString("O")));
-        var cards = cardsResponse.ToResponseDto<List<CardDto>>();
+                .Add("date", repeatingDate.ToString("O"))
+                .Add("userCurrentDateTime", DateTimeOffset.UtcNow.ToString("O")));
+        var cards = cardsResponse.ToResponseDto<GetRepeatingCardsForDateResponse>().Cards;
         var remembers = cards.SelectMany(c => c.Remembers).Where(r => r.PhaseIndex == phase.PhaseIndex).ToList();
         foreach (var remember in remembers)
         {
@@ -1099,6 +1107,7 @@ public class CardAndCollectionsControllerTests : SharedApiTests
                     } ,
                     Comment = null,
                 }).ToList(),
+                UserCurrentDateTime = DateTimeOffset.UtcNow,
             });
         var rememberInfo = rememberResponse.ToResponseDto<RememberCardResponse>();
 
@@ -1467,6 +1476,7 @@ public class CardAndCollectionsControllerTests : SharedApiTests
                     Weight = rememberWeight,
                     Comment = comment,
                 }).ToList(),
+                UserCurrentDateTime = DateTimeOffset.UtcNow,
             });
     }
 

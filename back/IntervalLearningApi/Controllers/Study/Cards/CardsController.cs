@@ -250,7 +250,8 @@ namespace IntervalLearningApi.Controllers.Study.Cards
             [FromQuery] long scheduleUserId,
             [FromQuery] short scheduleId,
             [FromQuery] bool isRepeatingMode,
-            [FromQuery] DateTime date)
+            [FromQuery] DateTime date,
+            [FromQuery] DateTimeOffset userCurrentDateTime)
         {
             var argResults = (
                 page > 0 ? null : new BadRequestError("Incorrect page"),
@@ -284,7 +285,8 @@ namespace IntervalLearningApi.Controllers.Study.Cards
                     scheduleIdResult.Value,
                     isRepeatingMode,
                     date,
-                    env.IsProduction()));
+                    env.IsProduction(),
+                    userCurrentDateTime));
 
             return cardsResult.ToActionResult(response => mapper.Map<GetRepeatingCardsForDateResponse>(response));
         }
@@ -526,7 +528,8 @@ namespace IntervalLearningApi.Controllers.Study.Cards
                     ScheduleId.Create(cardRequest.ScheduleId).Value,
                     cardRequest.PhaseIndex,
                     ToCardServiceRememberItems(cardRequest.RememberItems),
-                    !env.IsProduction()));
+                    !env.IsProduction(),
+                    cardRequest.UserCurrentDateTime));
 
             return closestRepeatInfoResult.ToActionResult(closestRepeatInfo =>
                 new RememberCardResponse()
