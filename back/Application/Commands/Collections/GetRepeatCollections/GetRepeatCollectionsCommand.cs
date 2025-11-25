@@ -91,7 +91,7 @@ public class GetRepeatCollectionsCommand : ICommand<GetRepeatCollectionsCommandR
 
             repeatingCollection.CardsToRepeatCount++;
 
-            var isRepeatableResult = schedule.CanRepeat(queueItem.PhaseIndex, date, DateTimeOffset.UtcNow);
+            var isRepeatableResult = schedule.CanRepeat(queueItem.PhaseIndex, date, DateTimeOffset.UtcNow, dateTimeProvider);
             Debug.Assert(isRepeatableResult.IsSuccess);
             repeatingCollection.IsRepeatable = isRepeatableResult.ValueOrDefault;
         }

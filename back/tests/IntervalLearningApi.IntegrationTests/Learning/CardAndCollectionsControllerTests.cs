@@ -143,7 +143,7 @@ public class CardAndCollectionsControllerTests : SharedApiTests
         var startCardsResponse = await StartCardsAsync(client, collection, cards, schedule);
 
         var cardsToRepeat = startCardsResponse.CardMovementInfos
-            .Where(m => m.NextRepetitionDate <= DateTime.Now.AddMinutes(5))
+            .Where(m => m.NextRepetitionDate <= DateTime.UtcNow.AddMinutes(5))
             .SelectMany(m => cards.Where(c => m.CardIds.Contains(c.Id)))
             .ToList();
         
@@ -624,6 +624,8 @@ public class CardAndCollectionsControllerTests : SharedApiTests
         repeatCollections.ScheduleId.Should().Be(schedule.Id);
         repeatCollections.ParentUserId.Should().Be(schedule.ParentUserId);
 
+        repeatCollections.LateCollections.Should().BeEmpty();
+        repeatCollections.RepeatingForgottenWordsCollections.Should().BeEmpty();
         repeatCollections.RepeatingInfosByDate.Should().NotBeNullOrEmpty();
 
         var allRepeatPhaseItems = repeatCollections.RepeatingInfosByDate
@@ -679,6 +681,8 @@ public class CardAndCollectionsControllerTests : SharedApiTests
         repeatCollections.ScheduleId.Should().Be(schedule.Id);
         repeatCollections.ParentUserId.Should().Be(schedule.ParentUserId);
 
+        repeatCollections.LateCollections.Should().BeEmpty();
+        repeatCollections.RepeatingForgottenWordsCollections.Should().BeEmpty();
         repeatCollections.RepeatingInfosByDate.Should().NotBeNullOrEmpty();
 
         var allRepeatCollectionIds = repeatCollections.RepeatingInfosByDate
@@ -1435,7 +1439,7 @@ public class CardAndCollectionsControllerTests : SharedApiTests
                 return;
 
             var cardsToRepeat = rememberCardResponse.CardMovementInfos
-                .Where(m => m.NextRepetitionDate <= DateTime.Now.AddMinutes(5))
+                .Where(m => m.NextRepetitionDate <= DateTime.UtcNow.AddMinutes(5))
                 .SelectMany(m => cards.Where(c => m.CardIds.Contains(c.Id)))
                 .ToList();
             
@@ -1490,7 +1494,7 @@ public class CardAndCollectionsControllerTests : SharedApiTests
             .Where((pair) => pair.Value.Any(p => p.ScheduleId == scheduleId))
             .Select(p => p.Key)
             .ToList();
-        var now = DateTime.Now;
+        var now = DateTime.UtcNow;
         
         foreach (var phaseIndex in phaseIndexes)
         {
@@ -1508,7 +1512,7 @@ public class CardAndCollectionsControllerTests : SharedApiTests
         int phaseDateIndex,
         params int[] shouldContainPhaseByIndexes)
     {
-        var now = DateTime.Now;
+        var now = DateTime.UtcNow;
         var repeatableDates = repeatingCollectionResponse.DateToRepeatingPhases.Keys.ToList();
 
         var phaseDate = repeatableDates.FirstOrDefault(d => d.Date == now.Add(phases[phaseDateIndex]).Date);
@@ -1537,7 +1541,7 @@ public class CardAndCollectionsControllerTests : SharedApiTests
         int phaseIndex, 
         params CollectionAssertion[] shouldContainCollections)
     {
-        var now = DateTime.Now;
+        var now = DateTime.UtcNow;
         var repeatableDates = repeatingCollectionResponse.DateToRepeatingPhases.Keys.ToList();
 
         var repeatableDate = repeatableDates.FirstOrDefault(d => d.Date == now.Add(phases[phaseDateIndex]).Date);

@@ -89,7 +89,7 @@ public class RememberCardCommand : ICommand<RememberCardRequest, NextRepeatInfoR
             }
 
             var queueItem = queueItems.Single(q => q.ParentCardId == cardId);
-            var isRepeatableResult = schedule.CanRepeat(queueItem.PhaseIndex, queueItem.Date, userCurrentDateTime);
+            var isRepeatableResult = schedule.CanRepeat(queueItem.PhaseIndex, queueItem.Date, userCurrentDateTime, dateTimeProvider);
             var isRepeatable = isRepeatableResult.IsFailed || isRepeatableResult.ValueOrDefault;
 
             if (!allowRepeatingInFuture && !isRepeatable)

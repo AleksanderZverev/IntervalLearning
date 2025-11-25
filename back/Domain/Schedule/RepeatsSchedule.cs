@@ -393,20 +393,26 @@ public class RepeatsSchedule : AggregateRoot<ComplexScheduleId>, IParentUserRefe
         return OrderedPhases[phaseIndex];
     }
 
-    public Result<bool> CanRepeat(int repeatingPhaseIndex, DateTime repeatingDate, DateTimeOffset userCurrentTime)
+    public Result<bool> CanRepeat(
+        int repeatingPhaseIndex,
+        DateTime repeatingDate,
+        DateTimeOffset userCurrentTime,
+        IDateTimeProvider dateTimeProvider)
     {
         var phase = FindPhase(repeatingPhaseIndex);
 
         if (phase == null)
             return new BadRequestError("Phase is not found");
 
-        var now = userCurrentTime.DateTime;
+        //Cause of the security issues, it's better use current date time with user offset,
+        //rather than user's current date time 
+        var nowWithUserOffset = dateTimeProvider.UtcNow.Add(userCurrentTime.Offset);
 
-        if (repeatingDate.Date == now.Date)
+        if (repeatingDate.Date == nowWithUserOffset.Date)
             return true;
 
         //Repeating date passed
-        if (repeatingDate.Date < now.Date)
+        if (repeatingDate.Date < nowWithUserOffset.Date)
             return true;
 
         var phaseDuration = phase.GetDurationToNextPhase();
@@ -418,7 +424,7 @@ public class RepeatsSchedule : AggregateRoot<ComplexScheduleId>, IParentUserRefe
         var repeatableForehandDaysDifference =
             Math.Floor(Math.Abs(phaseDuration.TotalDays) * repeatableForehandDaysRatio);
 
-        var differenceDaysDifference = Math.Abs((repeatingDate.Date - now.Date).TotalDays);
+        var differenceDaysDifference = Math.Abs((repeatingDate.Date - nowWithUserOffset.Date).TotalDays);
 
         if (differenceDaysDifference <= repeatableForehandDaysDifference)
             return true;

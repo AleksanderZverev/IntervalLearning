@@ -10,6 +10,8 @@ public class GetRepeatCollectionsResponseV2
 {
     public string ParentUserId { get; init; }
     public string ScheduleId { get; init; }
+    public List<RepeatingCollectionInfo> LateCollections { get; init; }
+    public List<RepeatingCollectionInfo> RepeatingForgottenWordsCollections { get; init; }
     public List<RepeatingInfoByDate> RepeatingInfosByDate { get; init; }
 
     public record RepeatingInfoByDate(DateTime Date, List<RepeatingCollectionInfo> RepeatingCollections);
@@ -22,6 +24,7 @@ public class GetRepeatCollectionsResponseV2
         bool IsRepeatable,
         int CardsCount,
         DateTime EarliestDateToRepeat,
+        DateTime OldestDateToRepeat,
         short ThemeId);
 }
 

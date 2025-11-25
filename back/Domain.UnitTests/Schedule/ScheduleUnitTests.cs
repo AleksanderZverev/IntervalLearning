@@ -82,7 +82,7 @@ public class ScheduleUnitTests
             var phaseIndex = GetPhaseIndexByDuration(schedule, repetitionPhaseDuration);
             var now = DateTime.UtcNow;
             var repeatingDate = now.AddDays(daysTillRepeating);
-            var canRepeatResult = schedule.CanRepeat(phaseIndex, repeatingDate, DateTimeOffset.UtcNow);
+            var canRepeatResult = schedule.CanRepeat(phaseIndex, repeatingDate, DateTimeOffset.UtcNow, DateTimeProviderMock.Now);
 
             //Assert
             canRepeatResult.IsSuccess.Should().BeTrue();
@@ -104,7 +104,7 @@ public class ScheduleUnitTests
             var phaseIndex = GetPhaseIndexByDuration(schedule, phaseDuration);
             var now = DateTime.UtcNow;
             var repeatingDate = now.AddDays(daysTillRepeating);
-            var canRepeatResult = schedule.CanRepeat(phaseIndex, repeatingDate, DateTimeOffset.UtcNow);
+            var canRepeatResult = schedule.CanRepeat(phaseIndex, repeatingDate, DateTimeOffset.UtcNow, DateTimeProviderMock.Now);
 
             //Assert
             canRepeatResult.IsSuccess.Should().BeTrue();
@@ -134,7 +134,7 @@ public class ScheduleUnitTests
         var phaseIndex = GetPhaseIndexByDuration(schedule, TimeSpan.FromDays(phaseDurationInDays));
         var now = DateTime.UtcNow;
         var repeatingDate = now.AddDays(daysTillRepeating);
-        var canRepeatResult = schedule.CanRepeat(phaseIndex, repeatingDate, DateTimeOffset.UtcNow);
+        var canRepeatResult = schedule.CanRepeat(phaseIndex, repeatingDate, DateTimeOffset.UtcNow, DateTimeProviderMock.Now);
 
         //Assert
         canRepeatResult.IsSuccess.Should().BeTrue();
