@@ -10,6 +10,7 @@ using Domain.User.ValueObjects;
 using FluentResults;
 using GlobalTools;
 using GlobalTools.Errors;
+using GlobalTools.Extensions;
 
 namespace Domain.Schedule;
 
@@ -395,7 +396,7 @@ public class RepeatsSchedule : AggregateRoot<ComplexScheduleId>, IParentUserRefe
 
     public Result<bool> CanRepeat(
         int repeatingPhaseIndex,
-        DateTime repeatingDate,
+        DateTime expectedRepeatingDateInUtc,
         DateTimeOffset userCurrentTime,
         IDateTimeProvider dateTimeProvider)
     {
@@ -406,13 +407,14 @@ public class RepeatsSchedule : AggregateRoot<ComplexScheduleId>, IParentUserRefe
 
         //Cause of the security issues, it's better use current date time with user offset,
         //rather than user's current date time 
-        var nowWithUserOffset = dateTimeProvider.UtcNow.Add(userCurrentTime.Offset);
+        var nowWithUserOffset = dateTimeProvider.UtcNow.AddOffset(userCurrentTime);
+        var expectedRepeatingDateWithOffset = expectedRepeatingDateInUtc.AddOffset(userCurrentTime);
 
-        if (repeatingDate.Date == nowWithUserOffset.Date)
+        if (expectedRepeatingDateWithOffset.Date == nowWithUserOffset.Date)
             return true;
 
         //Repeating date passed
-        if (repeatingDate.Date < nowWithUserOffset.Date)
+        if (expectedRepeatingDateWithOffset.Date < nowWithUserOffset.Date)
             return true;
 
         var phaseDuration = phase.GetDurationToNextPhase();
@@ -424,7 +426,7 @@ public class RepeatsSchedule : AggregateRoot<ComplexScheduleId>, IParentUserRefe
         var repeatableForehandDaysDifference =
             Math.Floor(Math.Abs(phaseDuration.TotalDays) * repeatableForehandDaysRatio);
 
-        var differenceDaysDifference = Math.Abs((repeatingDate.Date - nowWithUserOffset.Date).TotalDays);
+        var differenceDaysDifference = Math.Abs((expectedRepeatingDateWithOffset.Date - nowWithUserOffset.Date).TotalDays);
 
         if (differenceDaysDifference <= repeatableForehandDaysDifference)
             return true;

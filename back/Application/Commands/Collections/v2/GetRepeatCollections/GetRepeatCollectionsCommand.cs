@@ -108,7 +108,7 @@ public class GetRepeatCollectionsCommandV2
             var phase = schedule.FindPhase(queueItem.PhaseIndex);
 
             var isRepeatingForgottenWordsPhase = phase.IsRepeat();
-            var isRepeatable = schedule.CanRepeat(queueItem.PhaseIndex, dateWithUserOffset, userCurrentDate, dateTimeProvider).Value;
+            var isRepeatable = schedule.CanRepeat(queueItem.PhaseIndex, queueItem.Date, userCurrentDate, dateTimeProvider).Value;
 
             if (isRepeatingForgottenWordsPhase)
             {

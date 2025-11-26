@@ -4,6 +4,7 @@ using DomainServices.DB.Queries.Study;
 using FluentResults;
 using GlobalTools;
 using GlobalTools.Errors;
+using GlobalTools.Extensions;
 
 namespace Application.Commands.Cards.GetCardsQueueCommand;
 
@@ -31,14 +32,16 @@ public class GetCardsQueueCommand : ICommand<GetCardsQueueRequest, GetCardsQueue
         if (schedule == null)
             return new BadRequestError("Schedule is not found");
 
-        var (queueItems, totalCardsCount) = await studyQueryRepository.RepeatingQueue.GetByDate(
+        var repeatingDate = request.Date.AddOffset(request.UserCurrentDateTime);
+        
+        var (queueItems, totalCardsCount) = await studyQueryRepository.RepeatingQueue.GetAllTillDate(
             request.Page,
             request.CardsCountByPage,
             request.UserId,
             request.CollectionId,
             request.ScheduleUserId,
             request.ScheduleId,
-            request.Date);
+            repeatingDate);
 
         IEnumerable<CardRepeatQueue> filteredQueueItems = queueItems;
 
