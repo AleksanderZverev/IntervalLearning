@@ -25,6 +25,7 @@
     </ItemGroup>
 
     <ItemGroup>
+      <ProjectReference Include="..\..\GlobalTools.Tests\GlobalTools.Tests.csproj" />
       <ProjectReference Include="..\..\IntervalLearningApi\IntervalLearningApi.csproj" />
     </ItemGroup>
 

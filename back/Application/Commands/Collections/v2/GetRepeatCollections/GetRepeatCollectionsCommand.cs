@@ -17,6 +17,9 @@ public record GetRepeatCollectionsCommandRequestV2(
 public record GetRepeatCollectionsCommandResponseV2
 {
     public ComplexScheduleId ScheduleId { get; init; }
+    
+    public List<RepeatingCollectionInfo> LateCollections { get; init; }
+    public List<RepeatingCollectionInfo> RepeatingForgottenWordsCollections { get; init; }
     public List<RepeatingInfoByDate> RepeatingInfosByDate { get; init; }
 }
 
@@ -31,6 +34,7 @@ public record RepeatingCollectionInfo(
 {
     public int CardsCount { get; private set; }
     public DateTime EarliestDateToRepeat { get; private set; }
+    public DateTime OldestDateToRepeat { get; private set; }
 
     public void IncrementCardsCount()
     {
@@ -41,9 +45,12 @@ public record RepeatingCollectionInfo(
     {
         date = date.Date;
         CardsCount++;
-        EarliestDateToRepeat = EarliestDateToRepeat > date || EarliestDateToRepeat == DateTime.MinValue
+        EarliestDateToRepeat = EarliestDateToRepeat == DateTime.MinValue || EarliestDateToRepeat > date
             ? date
             : EarliestDateToRepeat;
+        OldestDateToRepeat = OldestDateToRepeat == DateTime.MinValue || OldestDateToRepeat < date
+            ? date
+            : OldestDateToRepeat;
     }
 }
 
@@ -88,21 +95,62 @@ public class GetRepeatCollectionsCommandV2
         var collections = await studyQueryRepository.Collections.GetRange(userId, collectionIds);
         var collectionIdToCollection = collections.ToDictionary(c => c.Id);
 
-        Dictionary<DateTime, RepeatingInfoByDate> dateToCollectionItem = new();
+        Dictionary<ComplexCollectionId, RepeatingCollectionInfo> lateCollections = [];
+        Dictionary<ComplexCollectionId, RepeatingCollectionInfo> repeatingForgottenWordsCollections = [];
+        Dictionary<DateTime, RepeatingInfoByDate> dateToCollectionItem = [];
 
         foreach (var queueItem in queueItems)
         {
-            var date = queueItem.Date.Date;
-
-            if (!dateToCollectionItem.TryGetValue(date, out var collectionItem))
-            {
-                collectionItem = new RepeatingInfoByDate(date, new List<RepeatingCollectionInfo>());
-                dateToCollectionItem[date] = collectionItem;
-            }
-
+            var dateWithUserOffset = queueItem.Date.Add(userCurrentDate.Offset).Date;
+            
+            var complexCollectionId = ComplexCollectionId.Create(queueItem.ParentUserId, queueItem.ParentCollectionId).Value;
             var collection = collectionIdToCollection[queueItem.ParentCollectionId];
             var phase = schedule.FindPhase(queueItem.PhaseIndex);
-            var isRepeatable = schedule.CanRepeat(queueItem.PhaseIndex, date, userCurrentDate).Value;
+
+            var isRepeatingForgottenWordsPhase = phase.IsRepeat();
+            var isRepeatable = schedule.CanRepeat(queueItem.PhaseIndex, dateWithUserOffset, userCurrentDate, dateTimeProvider).Value;
+
+            if (isRepeatingForgottenWordsPhase)
+            {
+                if (!repeatingForgottenWordsCollections.TryGetValue(complexCollectionId, out var repeatingCollection))
+                {
+                    repeatingCollection = new RepeatingCollectionInfo(
+                        complexCollectionId,
+                        collection.Title,
+                        isRepeatingForgottenWordsPhase,
+                        isRepeatable,
+                        collection.ThemeId);
+                    repeatingForgottenWordsCollections[complexCollectionId] = repeatingCollection;
+                }
+                
+                repeatingCollection.OnQueueItemFound(dateWithUserOffset);
+                continue;
+            }
+            
+            var isOldDate = dateWithUserOffset < userCurrentDate.Date;
+
+            if (isOldDate)
+            {
+                if (!lateCollections.TryGetValue(complexCollectionId, out var lateCollection))
+                {
+                    lateCollection = new RepeatingCollectionInfo(
+                        complexCollectionId,
+                        collection.Title,
+                        isRepeatingForgottenWordsPhase,
+                        isRepeatable,
+                        collection.ThemeId);
+                    lateCollections[complexCollectionId] = lateCollection;
+                }
+
+                lateCollection.OnQueueItemFound(dateWithUserOffset);
+                continue;
+            }
+
+            if (!dateToCollectionItem.TryGetValue(dateWithUserOffset, out var collectionItem))
+            {
+                collectionItem = new RepeatingInfoByDate(dateWithUserOffset, new List<RepeatingCollectionInfo>());
+                dateToCollectionItem[dateWithUserOffset] = collectionItem;
+            }
 
             var repeatingPhaseItem = collectionItem.RepeatingCollections
                 .FirstOrDefault(p => p.CollectionId == collection.ComplexId);
@@ -110,7 +158,7 @@ public class GetRepeatCollectionsCommandV2
             if (repeatingPhaseItem == null)
             {
                 repeatingPhaseItem = new RepeatingCollectionInfo(
-                    ComplexCollectionId.Create(collection.ParentUserId, collection.Id).Value,
+                    complexCollectionId,
                     collection.Title,
                     phase.IsRepeat(),
                     isRepeatable,
@@ -119,12 +167,14 @@ public class GetRepeatCollectionsCommandV2
                 collectionItem.RepeatingCollections.Add(repeatingPhaseItem);
             }
 
-            repeatingPhaseItem.OnQueueItemFound(date);
+            repeatingPhaseItem.OnQueueItemFound(dateWithUserOffset);
         }
 
         return new GetRepeatCollectionsCommandResponseV2()
         {
             ScheduleId = scheduleId,
+            LateCollections = lateCollections.Values.ToList(),
+            RepeatingForgottenWordsCollections = repeatingForgottenWordsCollections.Values.ToList(),
             RepeatingInfosByDate = dateToCollectionItem.Values.ToList(),
         };
     }

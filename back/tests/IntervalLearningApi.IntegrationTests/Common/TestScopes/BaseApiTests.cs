@@ -2,6 +2,7 @@ using System.Collections.Concurrent;
 using System.Net.Http.Headers;
 using System.Reflection;
 using Bogus;
+using Domain.User.ValueObjects;
 using IntervalLearningApi.Controllers.Accounts.DTOs;
 using IntervalLearningApi.Controllers.Accounts.Requests.Authenticate;
 using IntervalLearningApi.Controllers.Accounts.Requests.Register;
@@ -63,7 +64,10 @@ public class BaseApiTests : IAsyncLifetime
         string Email,
         string Password,
         string FirstName,
-        string LastName);
+        string LastName)
+    {
+        public UserId UserId => UserId.Create(long.Parse(Id)).Value;
+    };
 
     public record Scope(HttpClient Client, TestUserInfo User);
 

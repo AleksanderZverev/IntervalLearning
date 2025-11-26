@@ -4,7 +4,9 @@ using Domain.Dictionary.Translation.ValueObjects;
 using Domain.Dictionary.Word;
 using Domain.Dictionary.Word.ValueObjects;
 using Domain.Theme.ValueObjects;
+using GlobalTools;
 using IntervalLearningApi.IntegrationTests.Common.Constants;
+using IntervalLearningApi.IntegrationTests.Common.Services;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
@@ -27,6 +29,8 @@ public class DockerIntervalLearningApiFactory : WebApplicationFactory<Program>, 
         {
             s.RemoveAll(typeof(DbContextOptions<ApplicationContext>));
             s.RemoveAll(typeof(DbContextOptions));
+            s.RemoveAll<IDateTimeProvider>();
+            s.AddScoped<IDateTimeProvider, FakeDateTimeProvider>();
             s.AddDbContext<ApplicationContext>(dbBuilder =>
             {
                 NpgsqlDbContextOptionsBuilderExtensions.UseNpgsql(dbBuilder, _container.GetConnectionString());

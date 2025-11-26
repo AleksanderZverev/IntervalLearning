@@ -46,6 +46,8 @@ public static class ServiceCollectionExtensions
         //     var httpContext = provider.GetRequiredService<IHttpContextAccessor>();
         //     return new SessionUser(httpContext.HttpContext.GetUserId());
         // });
+
+        services.AddHttpContextAccessor();
         
         var mvcBuilder = services.AddControllers();
         mvcBuilder

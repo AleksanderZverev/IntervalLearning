@@ -1,3 +1,4 @@
+using Application.Commands.Collections.v2.GetRepeatCollections;
 using Domain.Schedule;
 using Domain.Schedule.ValueObjects;
 using Domain.User.ValueObjects;
@@ -631,24 +632,144 @@ public class CardAndCollectionsControllerTests : SharedApiTests
         var allRepeatPhaseItems = repeatCollections.RepeatingInfosByDate
             .SelectMany(p => p.RepeatingCollections)
             .ToList();
-
-        var shouldBeCollections = new[] { firstCollection, secondCollection };
-        var phase = schedule.Phases.First();
-
-        foreach (var expectedCollection in shouldBeCollections)
-        {
-            var phaseItem = allRepeatPhaseItems.SingleOrDefault(phaseItem =>
-                phaseItem.CollectionId == expectedCollection.Id
-                && phaseItem.CollectionUserId == expectedCollection.ParentUserId);
-
-            phaseItem.Should().NotBeNull();
-            phaseItem.CardsCount.Should().Be(firstCards.Count);
-            phaseItem.IsRepeatingForgottenWords.Should().BeFalse();
-            phaseItem.IsRepeatable.Should().BeFalse();
-            phaseItem.ThemeId.Should().Be(expectedCollection.ThemeId);
-        }
+        
+        AssertHasRepeatingCollection(
+            schedule.Phases.First(),
+            [firstCollection, secondCollection],
+            allRepeatPhaseItems,
+            firstCards.Count);
     }
     
+    [Fact]
+    public async Task GetRepeatingCollectionsV2_ShouldReturnLateCollections()
+    {
+        //Arrange
+        var (client, user) = SharedScope;
+        var schedule = await CreateTestSchedule(ForgottenBehavior.MoveToPreviousStep);
+        var (collectionOne, firstCards) = await CreateRandomCardsAsync(10);
+        var (collectionTwo, secondCards) = await CreateRandomCardsAsync(10);
+        await StartCardsAsync(client, collectionOne, firstCards, schedule);
+        await StartCardsAsync(client, collectionTwo, secondCards, schedule);
+
+        //Act
+        var firstPhase = schedule.Phases.First();
+        var lateTime = DateTime.UtcNow.Add(TimeSpan.FromSeconds(firstPhase.SecondsFromLastPhase)).AddDays(1);
+        FakeDateTimeProvider.SetUserDateTime(user.UserId, lateTime);
+        
+        var getRepeatCollectionsResponse = await client.GetAsync(
+            CollectionsQuery(ApiRoutes.Collections.GetRepeatCollectionsV2)
+            + new QueryString()
+                .Add("scheduleUserId", schedule.ParentUserId)
+                .Add("scheduleId", schedule.Id)
+                .Add("userCurrentDateTime", new DateTimeOffset(lateTime).ToString("O")));
+        var repeatCollections = getRepeatCollectionsResponse.ToResponseDto<GetRepeatCollectionsResponseV2>();
+
+        //Assert
+        repeatCollections.Should().NotBeNull();
+        repeatCollections.ScheduleId.Should().Be(schedule.Id);
+        repeatCollections.ParentUserId.Should().Be(schedule.ParentUserId);
+
+        repeatCollections.RepeatingForgottenWordsCollections.Should().BeEmpty();
+        repeatCollections.RepeatingInfosByDate.Should().BeEmpty();
+        repeatCollections.LateCollections.Should().NotBeNullOrEmpty();
+
+        AssertHasRepeatingCollection(
+            schedule.Phases.First(),
+            [collectionOne, collectionTwo],
+            repeatCollections.LateCollections,
+            firstCards.Count,
+            isRepeatable: true);
+    }
+
+    [Fact]
+    public async Task GetRepeatingCollectionsV2_ShouldReturnRepeatingCollectionsEvenWhenItsLate()
+    {
+        //Arrange
+        var (client, user) = SharedScope;
+        var schedule = await CreateTestScheduleWithRepetitions(ForgottenBehavior.MoveToPreviousStep);
+        var (collection, preAddedCards) = await CreateRandomCardsAsync(30);
+        await StartCardsAsync(client, collection, preAddedCards, schedule);
+
+        var rememberedCards = preAddedCards.Take(preAddedCards.Count / 2).ToList();
+        var forgottenCards = preAddedCards.Skip(rememberedCards.Count).ToList();
+
+        await RememberCardsAsync(
+            client,
+            collection,
+            rememberedCards,
+            schedule,
+            0,
+            LearningScenarios.RememberedWeight);
+        await RememberCardsAsync(
+            client,
+            collection,
+            forgottenCards,
+            schedule,
+            0,
+            LearningScenarios.ForgottenWeight);
+
+        //Act
+        var firstPhase = schedule.Phases.First();
+        var lateTime = DateTime.UtcNow.Add(TimeSpan.FromSeconds(firstPhase.SecondsFromLastPhase)).AddDays(1);
+        FakeDateTimeProvider.SetUserDateTime(user.UserId, lateTime);
+
+        var getRepeatCollectionsResponse = await client.GetAsync(
+            CollectionsQuery(ApiRoutes.Collections.GetRepeatCollectionsV2)
+            + new QueryString()
+                .Add("scheduleUserId", schedule.ParentUserId)
+                .Add("scheduleId", schedule.Id)
+                .Add("userCurrentDateTime", DateTimeOffset.UtcNow.ToString("O")));
+        var repeatCollections = getRepeatCollectionsResponse.ToResponseDto<GetRepeatCollectionsResponseV2>();
+
+        //Assert
+        repeatCollections.Should().NotBeNull();
+        repeatCollections.ScheduleId.Should().Be(schedule.Id);
+        repeatCollections.ParentUserId.Should().Be(schedule.ParentUserId);
+
+        repeatCollections.LateCollections.Should().BeEmpty();
+        repeatCollections.RepeatingForgottenWordsCollections.Should().NotBeNullOrEmpty();
+        repeatCollections.RepeatingInfosByDate.Should().NotBeNullOrEmpty();
+
+        AssertHasRepeatingCollection(
+            schedule.Phases.Skip(1).First(),
+            [collection],
+            repeatCollections.RepeatingForgottenWordsCollections,
+            forgottenCards.Count,
+            isRepeatingForgottenWords: true,
+            isRepeatable: true);
+        AssertHasRepeatingCollection(
+            schedule.Phases.Skip(2).First(),
+            [collection],
+            repeatCollections.RepeatingInfosByDate.SelectMany(c => c.RepeatingCollections).ToList(),
+            rememberedCards.Count);
+    }
+
+    private static void AssertHasRepeatingCollection(
+        PhaseDto phaseToCheckDate,
+        List<CollectionDto> shouldContainCollections,
+        List<GetRepeatCollectionsResponseV2.RepeatingCollectionInfo> actualCollections,
+        int cardsCount,
+        bool isRepeatingForgottenWords = false,
+        bool isRepeatable = false)
+    {
+        var shouldHasRepeatingDate = DateTime.UtcNow.AddSeconds(phaseToCheckDate.SecondsFromLastPhase);
+
+        foreach (var expectedCollection in shouldContainCollections)
+        {
+            var actualCollectionInfo = actualCollections.SingleOrDefault(c =>
+                c.CollectionId == expectedCollection.Id
+                && c.CollectionUserId == expectedCollection.ParentUserId);
+            
+            actualCollectionInfo.Should().NotBeNull();
+            actualCollectionInfo.CardsCount.Should().Be(cardsCount);
+            actualCollectionInfo.IsRepeatingForgottenWords.Should().Be(isRepeatingForgottenWords);
+            actualCollectionInfo.IsRepeatable.Should().Be(isRepeatable);
+            actualCollectionInfo.ThemeId.Should().Be(expectedCollection.ThemeId);
+            actualCollectionInfo.EarliestDateToRepeat.Date.Should().Be(shouldHasRepeatingDate.Date);
+            actualCollectionInfo.OldestDateToRepeat.Date.Should().Be(shouldHasRepeatingDate.Date);
+        }
+    }
+
     [Fact]
     public async Task GetRepeatingCollectionsV2_ShouldReturnStartedCollectionsUntilSpecifiedDate()
     {

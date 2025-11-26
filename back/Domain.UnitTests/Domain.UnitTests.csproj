@@ -22,6 +22,7 @@
 
     <ItemGroup>
       <ProjectReference Include="..\Domain\Domain.csproj" />
+      <ProjectReference Include="..\GlobalTools.Tests\GlobalTools.Tests.csproj" />
     </ItemGroup>
 
 </Project>
