@@ -1,15 +1,11 @@
 import classNames from 'classnames';
 import dayjs from 'dayjs';
 import React, { FC, Fragment } from 'react';
-import { ScheduleKey, SelectSchedule } from '../../../../controls/SelectSchedule/SelectSchedule';
+import { SelectSchedule } from '../../../../controls/SelectSchedule/SelectSchedule';
 import { Table, TableBody, TableCell, TableHead, TableHeaderCell, TableRow } from '../../../../controls/Table/Table';
 import { withQueryResolver, WithQueryResolverData } from '../../../../hoc/withQueryResolver';
 import { useLocalStorageValue } from '../../../../hooks/useLocalStorageValue';
-import {
-    RepeatingInfoByDateDto,
-    RepeatingPhaseDto,
-    useGetQueueCollectionsV2Query,
-} from '../../../../redux/collectionApi';
+import { RepeatingInfoByDateDto, useGetQueueCollectionsV2Query } from '../../../../redux/collectionApi';
 import { Schedule } from '../../../../types/schedule';
 import styles from './styles.module.css';
 import { SelectTheme } from '../../../../controls/SelectTheme/SelectTheme';
@@ -67,6 +63,8 @@ const InProgressCollectionsContent: FC<InProgressCollectionsProps> = ({ queryDat
     const repeatingInfos = _.chain(queryData.repeatingInfosByDate)
         .orderBy((i) => dayjs(i.date))
         .value();
+    const lateCollections = queryData.lateCollections;
+    const repeatingForgottenWordsCollections = queryData.repeatingForgottenWordsCollections;
 
     const now = dayjs();
     const themes = useTypedSelector((state) => selectThemes(state));
@@ -80,18 +78,6 @@ const InProgressCollectionsContent: FC<InProgressCollectionsProps> = ({ queryDat
     });
 
     const wordByThemes = CountWordsByThemes(schedule, repeatingInfos);
-
-    const lateCollections = _.chain(repeatingInfos)
-        .filter((info) => dayjs(info.date).isBefore(now, 'date'))
-        .flatMap((i) => i.repeatingCollections)
-        .value();
-
-    const containsCheckingForgottenWordsCollections = _.chain(repeatingInfos)
-        .filter((info) =>
-            _.some(info.repeatingCollections, (collectionInfo) => collectionInfo.isRepeatingForgottenWords)
-        )
-        .flatMap((i) => i.repeatingCollections)
-        .value();
 
     const todayAndFutureCollections = _.chain(repeatingInfos)
         .filter((info) => dayjs(info.date).isAfter(now, 'date'))
@@ -141,12 +127,12 @@ const InProgressCollectionsContent: FC<InProgressCollectionsProps> = ({ queryDat
                         repeatingCollections={lateCollections}
                     />
                 )}
-                {containsCheckingForgottenWordsCollections && containsCheckingForgottenWordsCollections.length > 0 && (
+                {repeatingForgottenWordsCollections && repeatingForgottenWordsCollections.length > 0 && (
                     <RepeatingDateInfo
                         schedule={schedule}
                         isRepeatingForgottenWordsCollections
                         date={now.toISOString()}
-                        repeatingCollections={containsCheckingForgottenWordsCollections}
+                        repeatingCollections={repeatingForgottenWordsCollections}
                         shouldRenderCollection={(c) => c.isRepeatingForgottenWords}
                     />
                 )}
@@ -221,6 +207,7 @@ export const InProgressCollections: FC = () => {
                         untilDate: untilDate,
                         scheduleUserId: schedule.userId,
                         scheduleId: schedule.id,
+                        userCurrentDateTime: dayjs().startOf('D').format(),
                     }}
                 />
             )}

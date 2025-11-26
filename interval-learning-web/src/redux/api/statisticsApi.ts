@@ -1,5 +1,5 @@
 import { CalendarLearningStatisticModel, LearningStatistic } from '../../types/Collection';
-import { api } from '../apiSlice';
+import { api, tagTypes } from '../apiSlice';
 
 export interface GetLearningStatisticRequest {
     date: string;
@@ -23,6 +23,7 @@ export const statisticsApi = api.injectEndpoints({
                 method: 'GET',
                 params: { date: date },
             }),
+            providesTags: [tagTypes.learningStatistic],
         }),
         getDetailedCalendarStatistic: build.query<CalendarLearningStatisticModel, GetDetailedCalendarStatisticRequest>({
             query: (request) => ({

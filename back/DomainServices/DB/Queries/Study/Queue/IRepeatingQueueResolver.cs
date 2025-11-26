@@ -12,7 +12,7 @@ public interface IRepeatingQueueResolver
     
     Task<List<CardRepeatQueue>> GetAllBySchedule(UserId userId, ComplexScheduleId scheduleId);
     
-    Task<(List<CardRepeatQueue> QueuedCardInfos, int TotalCards)> GetByDate(
+    Task<(List<CardRepeatQueue> QueuedCardInfos, int TotalCards)> GetAllTillDate(
         int page,
         int cout,
         UserId userId,

@@ -43,8 +43,14 @@ export interface SearchCardsItem {
     fieldType: SearchFieldType;
 }
 
+export interface GetRepeatingCardsForDateResponse {
+    cards: Card[];
+    totalCardsCount: number;
+}
+
 export interface CardIdsList {
     cardIds: string[];
+    totalCardsCount: number;
 }
 
 export interface CardsItem {
@@ -54,17 +60,21 @@ export interface CardsItem {
 }
 
 interface GetRepeatCardsRequest {
+    page: number;
+    count: number;
     scheduleUserId: string;
     scheduleId: string;
-    phaseIndex: number;
+    isRepeatingMode: boolean;
     date: string;
+    userCurrentDateTime: string;
 }
 
-export interface RememberRequest {
+export interface RememberCardRequest {
     rememberItems: RememberItem[];
     scheduleUserId: string;
     scheduleId: string;
     phaseIndex: number;
+    userCurrentDateTime: string;
 }
 
 export interface RememberItem {
@@ -222,19 +232,21 @@ export const cardsApi = api.injectEndpoints({
                 method: 'GET',
                 params: request,
                 onSuccess: async (dispatch, data) => {
-                    const cards = data as Card[];
+                    const cards = (data as GetRepeatingCardsForDateResponse).cards;
                     dispatch(addManyCards(cards));
                 },
             }),
-            transformResponse: (response: Card[], meta, arg) => {
+            transformResponse: (response: GetRepeatingCardsForDateResponse, meta, arg) => {
                 const item: CardIdsList = {
-                    cardIds: response.map((c) => c.id),
+                    cardIds: response.cards.map((c) => c.id),
+                    totalCardsCount: response.totalCardsCount,
                 };
+                console.info('tt:', item);
                 return item;
             },
             keepUnusedDataFor: 0,
         }),
-        patchRememberCards: build.mutation<RememberCardResponse, BaseRequestItem<RememberRequest>>({
+        patchRememberCards: build.mutation<RememberCardResponse, BaseRequestItem<RememberCardRequest>>({
             query: ({ collectionId, request }) => ({
                 url: `/collections/${collectionId}/cards/remember`,
                 method: 'PATCH',

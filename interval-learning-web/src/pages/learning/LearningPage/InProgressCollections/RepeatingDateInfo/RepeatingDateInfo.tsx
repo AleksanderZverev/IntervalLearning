@@ -17,13 +17,13 @@ export const getRepeatingNavigationLink = (
     scheduleUserId: string,
     scheduleId: string,
     dateString: string,
-    isRepeatingForgottenWords: boolean
+    isRepeatingMode: boolean
 ): string => {
     const searchParams = new URLSearchParams({
         scheduleUserId,
         scheduleId,
         date: dateString,
-        isRepeatingForgottenWords: isRepeatingForgottenWords.toString(),
+        isRepeatingMode: isRepeatingMode.toString(),
     });
 
     const link = `/learning/repeat/${collectionUserId}-${collectionId}?` + searchParams.toString();

@@ -23,6 +23,8 @@ export interface RepeatingCollectionResponse {
 export interface GetRepeatCollectionsResponseV2 {
     parentUserId: string;
     scheduleId: string;
+    lateCollections: RepeatingCollectionInfoDto[];
+    repeatingForgottenWordsCollections: RepeatingCollectionInfoDto[];
     repeatingInfosByDate: RepeatingInfoByDateDto[];
 }
 
@@ -40,6 +42,7 @@ export interface RepeatingCollectionInfoDto {
     isRepeatable: boolean;
     cardsCount: number;
     earliestDateToRepeat: string;
+    oldestDateToRepeat: string;
 }
 
 export interface RepeatingPhaseDto {
@@ -97,6 +100,7 @@ interface GetQueueCollectionsRequestV2 {
     untilDate?: string;
     scheduleUserId: string;
     scheduleId: string;
+    userCurrentDateTime: string;
 }
 
 export interface AddCardsToMyCollectionRequest {
@@ -169,10 +173,10 @@ export const collectionsApi = api.injectEndpoints({
             providesTags: [tagTypes.queueCollectionsList],
         }),
         getQueueCollectionsV2: build.query<GetRepeatCollectionsResponseV2, GetQueueCollectionsRequestV2>({
-            query: ({ untilDate, scheduleUserId, scheduleId }) => ({
+            query: ({ untilDate, scheduleUserId, scheduleId, userCurrentDateTime }) => ({
                 url: `${baseUrl}/repeat-v2`,
                 method: 'GET',
-                params: { scheduleUserId, scheduleId, untilDate: untilDate ?? null },
+                params: { scheduleUserId, scheduleId, untilDate: untilDate ?? null, userCurrentDateTime },
             }),
             providesTags: [tagTypes.queueCollectionsList],
         }),
