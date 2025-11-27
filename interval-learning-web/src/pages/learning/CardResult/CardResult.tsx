@@ -14,6 +14,8 @@ interface CardResultProps {
     cardMovementInfos: CardMovementInfo[];
     rememberedWeights?: number[];
     onEndButtonClick: () => void;
+    hasNextPage?: boolean;
+    onNextPageButtonClicked?: () => void;
 }
 
 interface Statistic {
@@ -66,6 +68,8 @@ export const CardResult: FC<CardResultProps> = ({
     onEndButtonClick,
     cardMovementInfos,
     rememberedWeights,
+    hasNextPage,
+    onNextPageButtonClicked,
 }) => {
     const date = dayjs(nextRepeatDate);
     const now = dayjs();
@@ -86,9 +90,15 @@ export const CardResult: FC<CardResultProps> = ({
     return (
         <PaperCard
             rightButton={
-                <Button variant="contained" onClick={onEndButtonClick}>
-                    Завершить
-                </Button>
+                hasNextPage && onNextPageButtonClicked ? (
+                    <Button variant="outlined" onClick={onNextPageButtonClicked}>
+                        Продолжить
+                    </Button>
+                ) : (
+                    <Button variant="contained" onClick={onEndButtonClick}>
+                        Завершить
+                    </Button>
+                )
             }
         >
             <div className={styles.container}>

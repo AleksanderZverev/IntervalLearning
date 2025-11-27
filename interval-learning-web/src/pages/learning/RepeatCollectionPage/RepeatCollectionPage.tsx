@@ -1,16 +1,11 @@
+/* eslint-disable react-hooks/rules-of-hooks */
 import { FC, useState } from 'react';
 import useTypedSelector from '../../../hooks/useTypedSelector';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { selectCollectionById } from '../../../redux/slices/collectionsSlice';
 import { RepeatCard } from './RepeatCard/RepeatCard';
-import {
-    withMutationResolver,
-    WithMutationResolverProps,
-    withOtherQueryResolver,
-    withQueryResolver,
-    WithQueryResolverData,
-} from '../../../hoc/withQueryResolver';
-import { RememberRequest, useGetRepeatCardsQuery, usePatchRememberCardsMutation } from '../../../redux/cardsApi';
+import { withMutationResolver, WithMutationResolverProps } from '../../../hoc/withQueryResolver';
+import { RememberCardRequest, useGetRepeatCardsQuery, usePatchRememberCardsMutation } from '../../../redux/cardsApi';
 import { PageContainer } from '../../../controls/PageContainer/PageContainer';
 import { PageHeader } from '../../../controls/PageHeader/PageHeader';
 import { selectTheme } from '../../../redux/slices/themeSlice';
@@ -25,7 +20,7 @@ import { getScheduleId, selectScheduleById } from '../../../redux/slices/schedul
 import { LightTooltip } from '../../../controls/LightTooltip/LightTooltip';
 import { HelpOutline } from '@mui/icons-material';
 import dayjs from 'dayjs';
-import { getRepeatingNavigationLink } from '../LearningPage/InProgressCollections/InProgressCollections';
+import { getRepeatingNavigationLink } from '../LearningPage/InProgressCollections/RepeatingDateInfo/RepeatingDateInfo';
 import { ErrorPage } from '../../../controls/ErrorPage/ErrorPage';
 import { useGetScheduleQuery } from '../../../redux/schedulesSlice';
 import { useDocumentTitle } from '../../../hooks/useCollectionTitle';
@@ -37,28 +32,32 @@ import {
     saveRepeatingCardsState,
 } from './RepeatCollectionPage.logic';
 import _ from 'lodash';
+import { PhaseHelper } from '../../../helpers/Study/PhaseHelper';
+import { Loader } from '../../../controls/Loader/Loader';
 
-type WithResolvers = WithQueryResolverData<typeof useGetRepeatCardsQuery> &
-    WithMutationResolverProps<typeof usePatchRememberCardsMutation>;
-
-interface RepeatCollectionPageContentProps extends WithResolvers {
+interface RepeatCollectionPageContentProps extends WithMutationResolverProps<typeof usePatchRememberCardsMutation> {
+    cardIds: string[];
+    totalCardsCount: number;
     userId: string;
     collectionId: string;
     scheduleUserId: string;
     scheduleId: string;
-    phaseIndex: number;
     setSkipLoading: (skip: boolean) => void;
+    onNextRepeatingPage: () => void;
     date: string;
+    isRepeatingMode: boolean;
 }
 
 export const RepeatCollectionPageContent: FC<RepeatCollectionPageContentProps> = ({
-    queryData: { cardIds },
+    cardIds,
+    totalCardsCount,
     userId,
     collectionId,
     scheduleUserId,
     scheduleId,
-    phaseIndex,
+    isRepeatingMode,
     setSkipLoading,
+    onNextRepeatingPage,
     date,
     mutationProps: {
         mutate: rememberCards,
@@ -84,7 +83,16 @@ export const RepeatCollectionPageContent: FC<RepeatCollectionPageContentProps> =
     const [deletedCards, setDeletedCards] = useState<string[]>([]);
     const mergedCardIds = cardIds.filter((c) => !deletedCards.includes(c));
 
-    const repeatCards = useTypedSelector((state) => selectCardsByIds(state, userId, collectionId, mergedCardIds));
+    const repeatCards = useTypedSelector((state) => {
+        const selectedCards = selectCardsByIds(state, userId, collectionId, mergedCardIds);
+        const orderedCards = _.orderBy(selectedCards, (c) => {
+            if (!c.remembers) return 0;
+
+            const lastRememberId = _.maxBy(c.remembers, (r) => parseInt(r.id))?.id || '0';
+            return parseInt(lastRememberId);
+        });
+        return orderedCards;
+    });
 
     const [showAssertionModal, setShowAssertionModal] = useState(false);
     const [showCurrentCardError, setShowCurrentCardError] = useState(false);
@@ -93,14 +101,14 @@ export const RepeatCollectionPageContent: FC<RepeatCollectionPageContentProps> =
     const [showMoveToRepeatModal, setShowMoveToRepeatModal] = useState(false);
 
     const [state, setState] = useState<State>(
-        getRepeatingCards(schedule.userId, schedule.id, phaseIndex, date, collection.id) ?? getDefaultState()
+        getRepeatingCards(schedule.userId, schedule.id, date, collection.id) ?? getDefaultState()
     );
 
     const updateState = (update: (state: State) => void) => {
         const newState = { ...state };
         update(newState);
         setState(newState);
-        saveRepeatingCardsState(schedule.userId, schedule.id, phaseIndex, collection.id, date, newState);
+        saveRepeatingCardsState(schedule.userId, schedule.id, collection.id, date, newState);
     };
 
     const maxCards = repeatCards.length;
@@ -108,8 +116,10 @@ export const RepeatCollectionPageContent: FC<RepeatCollectionPageContentProps> =
     const card = repeatCards[cardIndex];
     const currentCard = repeatCards[cardIndex];
 
+    const currentPhaseId: number = PhaseHelper.GetCurrentPhaseIdFromRemembers(currentCard?.remembers || []);
+
     const clearWeights = () => {
-        saveRepeatingCardsState(schedule.userId, schedule.id, phaseIndex, collection.id, date, getDefaultState());
+        saveRepeatingCardsState(schedule.userId, schedule.id, collection.id, date, getDefaultState());
     };
 
     const onSuccessFinish = () => {
@@ -132,7 +142,7 @@ export const RepeatCollectionPageContent: FC<RepeatCollectionPageContentProps> =
     };
 
     const onGoToRepeating = () => {
-        if (!mutationData?.nextRepeatDate) return;
+        if (!mutationData?.nextRepeatDate || !mutationData.nextRepeatPhase) return;
 
         setSkipLoading(false);
         mutationReset();
@@ -143,8 +153,8 @@ export const RepeatCollectionPageContent: FC<RepeatCollectionPageContentProps> =
                 collectionId,
                 scheduleUserId,
                 scheduleId,
-                mutationData.nextPhaseIndex,
-                mutationData.nextRepeatDate
+                mutationData.nextRepeatDate,
+                PhaseHelper.isRepeatingPhase(mutationData.nextRepeatPhase)
             )
         );
     };
@@ -174,10 +184,9 @@ export const RepeatCollectionPageContent: FC<RepeatCollectionPageContentProps> =
             return;
         }
 
-        const request: RememberRequest = {
+        const request: RememberCardRequest = {
             scheduleUserId,
             scheduleId,
-            phaseIndex,
             rememberItems: resultWeights
                 .filter(([cardId, form]) => {
                     if (_.isNil(form?.weight) || deletedCards.includes(cardId)) {
@@ -191,6 +200,7 @@ export const RepeatCollectionPageContent: FC<RepeatCollectionPageContentProps> =
                     weight: form?.weight as number,
                     comment: form?.comment || null,
                 })),
+            userCurrentDateTime: dayjs().format(),
         };
         try {
             setSkipLoading(true);
@@ -262,13 +272,16 @@ export const RepeatCollectionPageContent: FC<RepeatCollectionPageContentProps> =
 
     const isEmptyCollection = repeatCards.length === 0;
 
-    const phase = schedule.phases[phaseIndex];
+    const phase = _.find(schedule.phases, (p) => p.id === currentPhaseId.toString());
+    if (!phase) throw new Error('Phase is not found');
 
     const phaseShortDescription =
-        phase.shortDescription ||
-        (phase.secondsFromLastPhase < 10
-            ? schedule.defaultRepeatPhaseShortDescription
-            : schedule.defaultPhaseShortDescription);
+        phase?.shortDescription ||
+        (isRepeatingMode ? schedule.defaultRepeatPhaseShortDescription : schedule.defaultPhaseShortDescription);
+
+    const onNextPage = () => {
+        onNextRepeatingPage();
+    };
 
     return (
         <PageContainer transparent>
@@ -338,37 +351,35 @@ export const RepeatCollectionPageContent: FC<RepeatCollectionPageContentProps> =
                     style={{ marginTop: 10, cursor: 'pointer', color: '#b7b7b7' }}
                     onClick={() => setForceShowStartModal(true)}
                 >
-                    {phase && (
-                        <LightTooltip
-                            open={Boolean(phaseShortDescription) ? undefined : false}
-                            placement="bottom-start"
-                            title={
-                                <div style={{ padding: 5, fontSize: 18, fontWeight: 'normal' }}>
-                                    {phaseShortDescription}
-                                </div>
-                            }
-                            sx={{ maxWidth: '70%' }}
-                        >
-                            <Stack direction={'row'} alignItems={'center'} columnGap={'5px'}>
-                                <HelpOutline />
-                                <span>
-                                    {phase.secondsFromLastPhase < 10
-                                        ? `Повторение ${
-                                              phaseIndex === 0
-                                                  ? 'после изучения'
-                                                  : 'интервала: ' +
-                                                    dayjs
-                                                        .duration(
-                                                            schedule.phases[phaseIndex - 1].secondsFromLastPhase,
-                                                            's'
-                                                        )
-                                                        .humanize()
-                                          }`
-                                        : `Спустя ${dayjs.duration(phase.secondsFromLastPhase, 's').humanize()}`}
-                                </span>
-                            </Stack>
-                        </LightTooltip>
-                    )}
+                    <LightTooltip
+                        open={Boolean(phaseShortDescription) ? undefined : false}
+                        placement="bottom-start"
+                        title={
+                            <div style={{ padding: 5, fontSize: 18, fontWeight: 'normal' }}>
+                                {phaseShortDescription}
+                            </div>
+                        }
+                        sx={{ maxWidth: '70%' }}
+                    >
+                        <Stack direction={'row'} alignItems={'center'} columnGap={'5px'}>
+                            <HelpOutline />
+                            <span>
+                                {PhaseHelper.isRepeatingPhase(phase)
+                                    ? `Повторение ${
+                                          phase.id === '0'
+                                              ? 'после изучения'
+                                              : 'интервала: ' +
+                                                dayjs
+                                                    .duration(
+                                                        schedule.phases[parseInt(phase.id) - 1].secondsFromLastPhase,
+                                                        's'
+                                                    )
+                                                    .humanize()
+                                      }`
+                                    : `Спустя ${dayjs.duration(phase.secondsFromLastPhase, 's').humanize()}`}
+                            </span>
+                        </Stack>
+                    </LightTooltip>
                 </div>
                 <CenterContainer>
                     {isEmptyCollection ? (
@@ -394,6 +405,8 @@ export const RepeatCollectionPageContent: FC<RepeatCollectionPageContentProps> =
                         >
                             {isSuccess && mutationData && (
                                 <CardResult
+                                    hasNextPage={totalCardsCount > cardIds.length}
+                                    onNextPageButtonClicked={() => onNextPage()}
                                     cardMovementInfos={mutationData.cardMovementInfos}
                                     wordsLearned={state.repeatedCardIndex + 1}
                                     nextRepeatDate={mutationData.nextRepeatDate}
@@ -420,7 +433,7 @@ export const RepeatCollectionPageContent: FC<RepeatCollectionPageContentProps> =
                                     onPrevious={onPrevious}
                                     forceShowError={showCurrentCardError}
                                     errorMessage={'Помните слово?'}
-                                    isValueSideDefault={phase.isDefaultValueSide}
+                                    isValueSideDefault={phase?.isDefaultValueSide || false}
                                 />
                             )}
 
@@ -464,14 +477,16 @@ export const RepeatCollectionPageContent: FC<RepeatCollectionPageContentProps> =
     );
 };
 
-const ConnectedRepeatCollectionPage = withQueryResolver(useGetRepeatCardsQuery)(RepeatCollectionPageContent);
-const CollectionQueryResolver = withOtherQueryResolver(useGetCollectionQuery)(ConnectedRepeatCollectionPage);
-const WithSchedule = withOtherQueryResolver(useGetScheduleQuery)(CollectionQueryResolver);
-
 const ConnectedMutationResolver = withMutationResolver(
     usePatchRememberCardsMutation,
     'Не удалось завершить повторение'
-)(WithSchedule);
+)(RepeatCollectionPageContent);
+
+interface RepeatCollection {
+    skipLoading: boolean;
+    cardIds: string[];
+    totalCardsCount: number;
+}
 
 export const RepeatCollection: FC = () => {
     const { userId, collectionId } = useParams();
@@ -480,10 +495,14 @@ export const RepeatCollection: FC = () => {
     const params = new URLSearchParams(location.search);
     const scheduleUserId = params.get('scheduleUserId');
     const scheduleId = params.get('scheduleId');
-    const phaseIndexString = params.get('phaseIndex');
     const date = params.get('date');
+    const isRepeatingMode = params.get('isRepeatingMode');
 
-    const [skipLoading, setSkipLoading] = useState(false);
+    const [state, SetState] = useState<RepeatCollection>({
+        cardIds: [],
+        totalCardsCount: 0,
+        skipLoading: false,
+    });
 
     if (!collectionId || !userId) {
         throw new Error();
@@ -494,30 +513,74 @@ export const RepeatCollection: FC = () => {
         !scheduleId ||
         !date ||
         !dayjs(date).isValid() ||
-        phaseIndexString === undefined ||
-        phaseIndexString == null ||
-        parseInt(phaseIndexString) < 0
+        (isRepeatingMode !== true.toString() && isRepeatingMode !== false.toString())
     ) {
         return <ErrorPage errorMessage="Неверная ссылка" />;
     }
 
-    const phaseIndex = parseInt(phaseIndexString);
+    const { isLoading: isScheduleLoading, isError: isScheduleError } = useGetScheduleQuery({
+        scheduleId,
+        scheduleUserId,
+    });
+    const { isLoading: isCollectionLoading, isError: isCollectionError } = useGetCollectionQuery({
+        collectionId: collectionId,
+    });
+    const {
+        data: cardsResponse,
+        isFetching: isCardsLoading,
+        isError: isCardError,
+        refetch: refetchCards,
+    } = useGetRepeatCardsQuery(
+        {
+            collectionId,
+            userId,
+            request: {
+                page: 1,
+                count: 30,
+                date: date,
+                isRepeatingMode: isRepeatingMode === 'true',
+                scheduleId,
+                scheduleUserId,
+                userCurrentDateTime: dayjs().format(),
+            },
+        },
+        { skip: state.skipLoading ? true : undefined }
+    );
+
+    const isLoading = isScheduleLoading || isCollectionLoading || isCardsLoading;
+
+    if (isLoading)
+        return (
+            <CenterContainer>
+                <Loader textColor="black" />
+            </CenterContainer>
+        );
+
+    if (isScheduleError || isCollectionError || isCardError || !cardsResponse) {
+        var errorMessage =
+            'Не удалось загрузить: ' +
+            (isScheduleError ? 'Учебный план' : '') +
+            (isCollectionError ? 'Коллекцию' : '') +
+            (isCardError ? 'Карточки для повторения' : '');
+
+        return <ErrorPage errorMessage={errorMessage} />;
+    }
 
     return (
         <ConnectedMutationResolver
-            queryArg={{
-                userId,
-                collectionId,
-                scheduleUserId,
-                scheduleId,
-                request: { scheduleUserId, scheduleId, phaseIndex, date },
-            }}
-            disableLoading={skipLoading}
-            scheduleUserId={scheduleUserId}
-            scheduleId={scheduleId}
-            phaseIndex={phaseIndex}
+            isRepeatingMode={isRepeatingMode === 'true'}
+            cardIds={cardsResponse.cardIds}
+            totalCardsCount={cardsResponse.totalCardsCount}
+            userId={userId}
             date={date}
-            setSkipLoading={(skip) => setSkipLoading(skip)}
+            onNextRepeatingPage={() => {
+                SetState({ ...state, skipLoading: false });
+                refetchCards();
+            }}
+            setSkipLoading={(skip) => SetState({ ...state, skipLoading: skip })}
+            collectionId={collectionId}
+            scheduleId={scheduleId}
+            scheduleUserId={scheduleUserId}
         />
     );
 };

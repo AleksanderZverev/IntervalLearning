@@ -96,7 +96,6 @@ export const withQueryResolver =
         };
 
         if (isFetching) {
-            console.debug('loading');
             return (
                 <CenterContainer>
                     <Loader textColor="black" />
