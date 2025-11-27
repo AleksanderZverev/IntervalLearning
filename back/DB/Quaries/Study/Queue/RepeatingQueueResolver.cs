@@ -59,6 +59,29 @@ public class RepeatingQueueResolver : IRepeatingQueueResolver
         return (cards, cardsCount);
     }
     
+    public async Task<(List<CardRepeatQueue> QueuedCardInfos, int TotalCards)> GetAllForDate(
+        int page,
+        int cout,
+        UserId userId,
+        CollectionId collectionId,
+        UserId scheduleUserId,
+        ScheduleId scheduleId,
+        DateTime date)
+    {
+        var skip = (page - 1) * cout;
+        var take = cout;
+        var query = db.Queue
+            .Where(c => c.ParentUserId == userId
+                        && c.ParentCollectionId == collectionId
+                        && c.ParentRepeatsScheduleUserId == scheduleUserId
+                        && c.ParentRepeatsScheduleId == scheduleId
+                        && c.Date.Date == date.Date);
+        
+        var cards = await query.Skip(skip).Take(take).ToListAsync();
+        var cardsCount = await query.CountAsync();
+        return (cards, cardsCount);
+    }
+    
     public Task<List<CardRepeatQueue>> GetByRange(
         UserId userId,
         UserId scheduleUserId,

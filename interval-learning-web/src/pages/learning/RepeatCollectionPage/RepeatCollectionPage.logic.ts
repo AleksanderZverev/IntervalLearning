@@ -1,3 +1,4 @@
+import dayjs from 'dayjs';
 import { LocalStorageHelper } from '../../../helpers/localStorageHelper';
 
 const repeatingCardsKey = 'Repeating cards';
@@ -6,7 +7,6 @@ interface RepeatingCards {
     scheduleUserId: string;
     scheduleId: string;
     collectionId: string;
-    phaseIndex: number;
     date: string;
     cardIdToForm: Record<string, RememberForm | undefined>;
     currentCardIndex: number;
@@ -33,22 +33,21 @@ export const getDefaultState = (): State => ({
 export const saveRepeatingCardsState = (
     scheduleUserId: string,
     scheduleId: string,
-    phaseIndex: number,
     collectionId: string,
-    date: string,
+    dateString: string,
     state: State
 ) => {
     if (!LocalStorageHelper.isStorageDefined()) {
         return;
     }
 
+    const date = dayjs(dateString);
     const item: RepeatingCards = {
         scheduleUserId,
         scheduleId,
         collectionId,
-        date,
+        date: date.format('YYYY-MM-DD'),
         cardIdToForm: state.rememberWeights,
-        phaseIndex,
         currentCardIndex: state.currentCardIndex,
         repeatedCardIndex: state.repeatedCardIndex,
     };
@@ -59,7 +58,7 @@ export const saveRepeatingCardsState = (
 export const getRepeatingCards = (
     scheduleUserId: string,
     scheduleId: string,
-    date: string,
+    dateString: string,
     collectionId: string
 ): State | null => {
     if (!LocalStorageHelper.isStorageDefined()) {
@@ -70,13 +69,14 @@ export const getRepeatingCards = (
     if (!itemString) return null;
 
     const item: RepeatingCards = JSON.parse(itemString);
+    const date = dayjs(dateString);
 
     if (
         !item ||
         item.scheduleUserId !== scheduleUserId ||
         item.scheduleId !== scheduleId ||
         item.collectionId !== collectionId ||
-        item.date !== date
+        item.date !== date.format('YYYY-MM-DD')
     ) {
         return null;
     }

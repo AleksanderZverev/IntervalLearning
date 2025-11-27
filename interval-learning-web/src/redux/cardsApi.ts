@@ -73,7 +73,6 @@ export interface RememberCardRequest {
     rememberItems: RememberItem[];
     scheduleUserId: string;
     scheduleId: string;
-    phaseIndex: number;
     userCurrentDateTime: string;
 }
 
@@ -241,7 +240,6 @@ export const cardsApi = api.injectEndpoints({
                     cardIds: response.cards.map((c) => c.id),
                     totalCardsCount: response.totalCardsCount,
                 };
-                console.info('tt:', item);
                 return item;
             },
             keepUnusedDataFor: 0,

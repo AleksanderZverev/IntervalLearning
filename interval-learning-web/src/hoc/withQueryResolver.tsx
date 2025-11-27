@@ -109,8 +109,6 @@ export const withQueryResolver =
             return <ErrorPage errorMessage="Не удалось загрузить данные" onReload={tryRefetch} />;
         }
 
-        console.log('test', extendedData, data);
-
         //TODO: don't know how to fix
         const HackComponent = Component as any;
 

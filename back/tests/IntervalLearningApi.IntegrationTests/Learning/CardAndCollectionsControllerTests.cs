@@ -845,9 +845,122 @@ public class CardAndCollectionsControllerTests : SharedApiTests
             cardsResponse.Cards.Should().AllSatisfy(c => preAddedCards
                 .Should()
                 .ContainSingle(preAddedCard =>
-                    preAddedCard.ParentUserId == c.ParentUserId && preAddedCard.Id == c.Id));
+                    preAddedCard.ParentUserId == c.ParentUserId
+                    && preAddedCard.ParentCollectionId == c.ParentCollectionId 
+                    && preAddedCard.Id == c.Id));
             cardsResponse.TotalCardsCount.Should().Be(totalCardsCount);
         }
+    }
+
+    [Fact]
+    public async Task GetCardsQueue_ShouldReturnAllCardsForLateOnes()
+    {
+        //Arrange
+        var (client, user) = SharedScope;
+        var schedule = await CreateTestSchedule(ForgottenBehavior.MoveToPreviousStep);
+        var (collection, preAddedCards) = await CreateRandomCardsAsync(20);
+        var lateCards = preAddedCards.Take(preAddedCards.Count / 2).ToList();
+        var futureCards = preAddedCards.Skip(lateCards.Count).ToList();
+
+        await StartCardsAsync(client, collection, preAddedCards, schedule);
+        
+        //First step moving
+        var firstPhase = schedule.Phases.First();
+        var firstStepLate = lateCards.Take(lateCards.Count / 2).ToList();
+        var repeatingDateAfterStart = DateTime.UtcNow.AddSeconds(firstPhase.SecondsFromLastPhase);
+        FakeDateTimeProvider.SetUserDateTime(user.UserId, repeatingDateAfterStart);
+        await RememberCardsAsync(client, collection, firstStepLate, schedule, LearningScenarios.RememberedWeight);
+        await RememberCardsAsync(client, collection, futureCards, schedule, LearningScenarios.RememberedWeight);
+
+        //Second step moving
+        var secondPhase = schedule.Phases.Skip(1).First();
+        var secondStepLate = lateCards.Skip(firstStepLate.Count).ToList();
+        var repeatingDateAfterFirstPhase = repeatingDateAfterStart.AddSeconds(secondPhase.SecondsFromLastPhase);
+        FakeDateTimeProvider.SetUserDateTime(user.UserId, repeatingDateAfterFirstPhase);
+        await RememberCardsAsync(client, collection, secondStepLate, schedule, LearningScenarios.RememberedWeight);
+        await RememberCardsAsync(client, collection, futureCards, schedule, LearningScenarios.RememberedWeight);
+        
+        //Third step (moving only future cards)
+        var thirdPhase = schedule.Phases.Skip(2).First();
+        var repeatingDateAfterSecondPhase = repeatingDateAfterFirstPhase.AddSeconds(thirdPhase.SecondsFromLastPhase);
+        FakeDateTimeProvider.SetUserDateTime(user.UserId, repeatingDateAfterSecondPhase);
+        await RememberCardsAsync(client, collection, futureCards, schedule, LearningScenarios.RememberedWeight);
+        
+        //Setting late date
+        var lateRepeatingDate = repeatingDateAfterSecondPhase.AddDays(1);
+        FakeDateTimeProvider.SetUserDateTime(user.UserId, lateRepeatingDate);
+
+        //Act
+        var getCardsResponse = await client.GetAsync(
+            CardsQuery(collection.Id, ApiRoutes.Cards.Get_GetRepeatingCardsForDate) + new QueryString()
+                .Add("page", 1.ToString())
+                .Add("count", preAddedCards.Count.ToString())
+                .Add("scheduleUserId", schedule.ParentUserId)
+                .Add("scheduleId", schedule.Id)
+                .Add("isRepeatingMode", false.ToString())
+                .Add("date", lateRepeatingDate.AddDays(-1).ToString("O"))
+                .Add("userCurrentDateTime", lateRepeatingDate.ToString("O")));
+
+        var cardsResponse = getCardsResponse.ToResponseDto<GetRepeatingCardsForDateResponse>();
+
+        //ASSERT
+        cardsResponse.Cards.Should().HaveCount(lateCards.Count);
+        cardsResponse.Cards.Should().AllSatisfy(c => lateCards
+            .Should()
+            .ContainSingle(lateCard =>
+                lateCard.ParentUserId == c.ParentUserId 
+                && lateCard.ParentCollectionId == c.ParentCollectionId
+                && lateCard.Id == c.Id));
+        cardsResponse.TotalCardsCount.Should().Be(lateCards.Count);
+    }
+    
+    [Fact]
+    public async Task GetCardsQueue_ShouldReturnFutureCardsOnlyForSpecifiedDate()
+    {
+        //Arrange
+        var (client, user) = SharedScope;
+        var schedule = await CreateTestSchedule(ForgottenBehavior.MoveToPreviousStep);
+        var (collection, preAddedCards) = await CreateRandomCardsAsync(20);
+        var lateCards = preAddedCards.Take(preAddedCards.Count / 2).ToList();
+        var futureCards = preAddedCards.Skip(lateCards.Count).ToList();
+
+        await StartCardsAsync(client, collection, preAddedCards, schedule);
+        
+        //First step moving
+        var firstPhase = schedule.Phases.First();
+        var repeatingDateAfterStart = DateTime.UtcNow.AddSeconds(firstPhase.SecondsFromLastPhase);
+        FakeDateTimeProvider.SetUserDateTime(user.UserId, repeatingDateAfterStart);
+        await RememberCardsAsync(client, collection, futureCards, schedule, LearningScenarios.RememberedWeight);
+        
+        //Setting late date
+        var secondPhase = schedule.Phases.Skip(1).First();
+        var repeatingDateAfterFirstPhase = DateTime.UtcNow.AddSeconds(secondPhase.SecondsFromLastPhase);
+        
+        var earlyDate = repeatingDateAfterFirstPhase.AddDays(-1);
+        FakeDateTimeProvider.SetUserDateTime(user.UserId, earlyDate);
+
+        //Act
+        var getCardsResponse = await client.GetAsync(
+            CardsQuery(collection.Id, ApiRoutes.Cards.Get_GetRepeatingCardsForDate) + new QueryString()
+                .Add("page", 1.ToString())
+                .Add("count", preAddedCards.Count.ToString())
+                .Add("scheduleUserId", schedule.ParentUserId)
+                .Add("scheduleId", schedule.Id)
+                .Add("isRepeatingMode", false.ToString())
+                .Add("date", repeatingDateAfterFirstPhase.ToString("O"))
+                .Add("userCurrentDateTime", earlyDate.ToString("O")));
+
+        var cardsResponse = getCardsResponse.ToResponseDto<GetRepeatingCardsForDateResponse>();
+
+        //ASSERT
+        cardsResponse.Cards.Should().HaveCount(futureCards.Count);
+        cardsResponse.Cards.Should().AllSatisfy(c => futureCards
+            .Should()
+            .ContainSingle(futureCard =>
+                futureCard.ParentUserId == c.ParentUserId 
+                && futureCard.ParentCollectionId == c.ParentCollectionId
+                && futureCard.Id == c.Id));
+        cardsResponse.TotalCardsCount.Should().Be(futureCards.Count);
     }
     
     [Fact]

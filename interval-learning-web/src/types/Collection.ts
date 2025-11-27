@@ -48,7 +48,7 @@ export interface Remember {
     cardId: string;
     id: string;
     weight: number;
-    phaseId: number;
+    phaseIndex: number;
     repeatedDate: string;
     comment: string | null | undefined;
 }

@@ -21,6 +21,15 @@ public interface IRepeatingQueueResolver
         ScheduleId scheduleId,
         DateTime date);
 
+    Task<(List<CardRepeatQueue> QueuedCardInfos, int TotalCards)>  GetAllForDate(
+        int page,
+        int cout,
+        UserId userId,
+        CollectionId collectionId,
+        UserId scheduleUserId,
+        ScheduleId scheduleId,
+        DateTime date);
+
     Task<List<CardRepeatQueue>> GetForCards(
         UserId userId,
         CollectionId collectionId,

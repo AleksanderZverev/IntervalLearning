@@ -122,7 +122,7 @@ const InProgressCollectionsContent: FC<InProgressCollectionsProps> = ({ queryDat
                 {lateCollections && lateCollections.length > 0 && (
                     <RepeatingDateInfo
                         schedule={schedule}
-                        date={now.subtract(1, 'D').toISOString()}
+                        date={now.add(-1, 'd').toISOString()}
                         isLateCollections
                         repeatingCollections={lateCollections}
                     />
@@ -207,7 +207,7 @@ export const InProgressCollections: FC = () => {
                         untilDate: untilDate,
                         scheduleUserId: schedule.userId,
                         scheduleId: schedule.id,
-                        userCurrentDateTime: dayjs().startOf('D').format(),
+                        userCurrentDateTime: dayjs().startOf('d').format(),
                     }}
                 />
             )}

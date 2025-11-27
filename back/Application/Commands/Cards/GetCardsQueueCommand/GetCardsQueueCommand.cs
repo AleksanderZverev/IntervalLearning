@@ -33,15 +33,26 @@ public class GetCardsQueueCommand : ICommand<GetCardsQueueRequest, GetCardsQueue
             return new BadRequestError("Schedule is not found");
 
         var repeatingDate = request.Date.AddOffset(request.UserCurrentDateTime);
-        
-        var (queueItems, totalCardsCount) = await studyQueryRepository.RepeatingQueue.GetAllTillDate(
-            request.Page,
-            request.CardsCountByPage,
-            request.UserId,
-            request.CollectionId,
-            request.ScheduleUserId,
-            request.ScheduleId,
-            repeatingDate);
+        var nowWithUserOffset = dateTimeProvider.UtcNow.AddOffset(request.UserCurrentDateTime);
+        var isLateRepeating = repeatingDate.Date < nowWithUserOffset.Date;
+
+        var (queueItems, totalCardsCount) = isLateRepeating
+            ? await studyQueryRepository.RepeatingQueue.GetAllTillDate(
+                request.Page,
+                request.CardsCountByPage,
+                request.UserId,
+                request.CollectionId,
+                request.ScheduleUserId,
+                request.ScheduleId,
+                repeatingDate)
+            : await studyQueryRepository.RepeatingQueue.GetAllForDate(
+                request.Page,
+                request.CardsCountByPage,
+                request.UserId,
+                request.CollectionId,
+                request.ScheduleUserId,
+                request.ScheduleId,
+                repeatingDate);
 
         IEnumerable<CardRepeatQueue> filteredQueueItems = queueItems;
 
@@ -51,7 +62,11 @@ public class GetCardsQueueCommand : ICommand<GetCardsQueueRequest, GetCardsQueue
 
         if (request.CheckRepeatableDate)
             filteredQueueItems = filteredQueueItems
-                .Where(q => schedule.CanRepeat(q.PhaseIndex, request.Date, request.UserCurrentDateTime, dateTimeProvider).Value);
+                .Where(q => schedule.CanRepeat(
+                    q.PhaseIndex,
+                    request.Date,
+                    request.UserCurrentDateTime,
+                    dateTimeProvider).Value);
 
         var repeatingQueueItems = filteredQueueItems.ToList();
 
