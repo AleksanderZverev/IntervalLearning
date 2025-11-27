@@ -5,7 +5,7 @@ import { SelectSchedule } from '../../../../controls/SelectSchedule/SelectSchedu
 import { Table, TableBody, TableCell, TableHead, TableHeaderCell, TableRow } from '../../../../controls/Table/Table';
 import { withQueryResolver, WithQueryResolverData } from '../../../../hoc/withQueryResolver';
 import { useLocalStorageValue } from '../../../../hooks/useLocalStorageValue';
-import { RepeatingInfoByDateDto, useGetQueueCollectionsV2Query } from '../../../../redux/collectionApi';
+import { RepeatingCollectionInfoDto, useGetQueueCollectionsV2Query } from '../../../../redux/collectionApi';
 import { Schedule } from '../../../../types/schedule';
 import styles from './styles.module.css';
 import { SelectTheme } from '../../../../controls/SelectTheme/SelectTheme';
@@ -17,10 +17,7 @@ import _ from 'lodash';
 import { EnvironmentHelper } from '../../../../helpers/EnvironmentHelper';
 import { RepeatingDateInfo } from './RepeatingDateInfo/RepeatingDateInfo';
 
-function CountWordsByThemes(
-    schedule: Schedule | undefined,
-    repeatingInfosByDate: RepeatingInfoByDateDto[]
-): Map<number, number> {
+function CountWordsByThemes(repeatingCollectionInfos: RepeatingCollectionInfoDto[]): Map<number, number> {
     const result: Map<number, number> = new Map();
 
     const addToTheme = (themeId: number, cardsCount: number) => {
@@ -32,21 +29,27 @@ function CountWordsByThemes(
         result.set(themeId, oldCount + cardsCount);
     };
 
-    repeatingInfosByDate.forEach((infoByDate) => {
+    repeatingCollectionInfos.forEach((collectionInfo) => {
         const now = dayjs();
-        const date = dayjs(infoByDate.date);
+        const date = dayjs(collectionInfo.earliestDateToRepeat);
         const isFuture = date.isAfter(now, 'd');
 
         if (isFuture) {
             return;
         }
 
-        infoByDate.repeatingCollections.forEach((c) => {
-            addToTheme(c.themeId, c.cardsCount);
-        });
+        addToTheme(collectionInfo.themeId, collectionInfo.cardsCount);
     });
 
     return result;
+}
+
+function IsCollectionsOfTheme(collectionInfos: RepeatingCollectionInfoDto[], theme: Theme | null): boolean {
+    const phases = collectionInfos.filter((p) => {
+        if (!theme) return true;
+        return p.themeId === theme.id;
+    });
+    return phases.length > 0;
 }
 
 interface InProgressCollectionsProps extends WithQueryResolverData<typeof useGetQueueCollectionsV2Query> {
@@ -60,27 +63,34 @@ interface LocalStorageState {
 }
 
 const InProgressCollectionsContent: FC<InProgressCollectionsProps> = ({ queryData, schedule, theme }) => {
-    const repeatingInfos = _.chain(queryData.repeatingInfosByDate)
-        .orderBy((i) => dayjs(i.date))
-        .value();
-    const lateCollections = queryData.lateCollections;
-    const repeatingForgottenWordsCollections = queryData.repeatingForgottenWordsCollections;
-
     const now = dayjs();
     const themes = useTypedSelector((state) => selectThemes(state));
 
-    const repeatingInfosByCurrentTheme = repeatingInfos.filter((collection) => {
-        const phases = collection.repeatingCollections.filter((p) => {
-            if (!theme) return true;
-            return p.themeId === theme.id;
-        });
-        return phases.length > 0;
-    });
+    const repeatingInfos = _.chain(queryData.repeatingInfosByDate)
+        .orderBy((i) => dayjs(i.date))
+        .filter((i) => IsCollectionsOfTheme(i.repeatingCollections, theme))
+        .value();
+    const lateCollections = _.filter(queryData.lateCollections, (i) => i.themeId === theme?.id);
+    const repeatingForgottenWordsCollections = _.filter(
+        queryData.repeatingForgottenWordsCollections,
+        (i) => i.themeId === theme?.id
+    );
 
-    const wordByThemes = CountWordsByThemes(schedule, repeatingInfos);
+    const collectionsToRepeatTodayOrInPastByAllThemes = [
+        ...queryData.lateCollections,
+        ...queryData.repeatingForgottenWordsCollections,
+        ..._.chain(queryData.repeatingInfosByDate)
+            .filter((i) => dayjs(i.date).isSame(now, 'date'))
+            .flatMap((t) => t.repeatingCollections)
+            .value(),
+    ];
+    const wordByThemes = CountWordsByThemes(collectionsToRepeatTodayOrInPastByAllThemes);
 
     const todayAndFutureCollections = _.chain(repeatingInfos)
-        .filter((info) => dayjs(info.date).isAfter(now, 'date'))
+        .filter((info) => {
+            const dateObj = dayjs(info.date);
+            return dateObj.isSame(now, 'date') || dateObj.isAfter(now, 'date');
+        })
         .value();
 
     return (
@@ -91,7 +101,7 @@ const InProgressCollectionsContent: FC<InProgressCollectionsProps> = ({ queryDat
                 <TableHeaderCell align="center">Тип</TableHeaderCell>
             </TableHead>
             <TableBody>
-                {theme && repeatingInfos.length > 0 && repeatingInfosByCurrentTheme.length === 0 && (
+                {theme && repeatingInfos.length === 0 && collectionsToRepeatTodayOrInPastByAllThemes.length > 0 && (
                     <Fragment key={`nothing for theme ${theme.id} `}>
                         <TableRow borderless>
                             <TableCell colSpan={4} fontSize={14} align="center">
