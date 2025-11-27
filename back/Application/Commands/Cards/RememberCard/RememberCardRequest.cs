@@ -9,7 +9,6 @@ public record RememberCardRequest(
     CollectionId CollectionId,
     UserId ScheduleUserId,
     ScheduleId ScheduleId,
-    short PhaseIndex,
     List<RememberItem> RememberItems,
     bool AllowRepeatingInFuture,
     DateTimeOffset UserCurrentDateTime

@@ -26,7 +26,6 @@ public interface IRepeatingQueueResolver
         CollectionId collectionId,
         UserId scheduleUserId,
         ScheduleId scheduleId,
-        short phaseIndex,
         List<CardId> cardIds);
 
     Task<List<CardRepeatQueue>> GetByRange(

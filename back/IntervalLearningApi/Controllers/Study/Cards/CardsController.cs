@@ -526,7 +526,6 @@ namespace IntervalLearningApi.Controllers.Study.Cards
                     collectionIdResult.Value,
                     UserId.Create(cardRequest.ScheduleUserId).Value,
                     ScheduleId.Create(cardRequest.ScheduleId).Value,
-                    cardRequest.PhaseIndex,
                     ToCardServiceRememberItems(cardRequest.RememberItems),
                     !env.IsProduction(),
                     cardRequest.UserCurrentDateTime));

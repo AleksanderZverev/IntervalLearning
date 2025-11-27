@@ -155,7 +155,6 @@ public class CardAndCollectionsControllerTests : SharedApiTests
                 collection,
                 cardsToRepeat,
                 schedule,
-                0,
                 LearningScenarios.RememberedWeight);
             
             repeatingResponse.EnsureSuccessStatusCode();
@@ -571,7 +570,7 @@ public class CardAndCollectionsControllerTests : SharedApiTests
         var (notIncludedCollection, notIncludedCollectionCards) = await CreateRandomCardsAsync(10);
         await StartCardsAsync(client, shouldContainCollection, shouldContainCollectionCards, schedule);
         await StartCardsAsync(client, notIncludedCollection, notIncludedCollectionCards, schedule);
-        await RememberCardsAsync(client, notIncludedCollection, notIncludedCollectionCards, schedule, 0,
+        await RememberCardsAsync(client, notIncludedCollection, notIncludedCollectionCards, schedule,
             LearningScenarios.RememberedWeight);
 
         //Act
@@ -698,14 +697,12 @@ public class CardAndCollectionsControllerTests : SharedApiTests
             collection,
             rememberedCards,
             schedule,
-            0,
             LearningScenarios.RememberedWeight);
         await RememberCardsAsync(
             client,
             collection,
             forgottenCards,
             schedule,
-            0,
             LearningScenarios.ForgottenWeight);
 
         //Act
@@ -780,7 +777,7 @@ public class CardAndCollectionsControllerTests : SharedApiTests
         var (notIncludedCollection, notIncludedCollectionCards) = await CreateRandomCardsAsync(10);
         await StartCardsAsync(client, shouldContainCollection, shouldContainCollectionCards, schedule);
         await StartCardsAsync(client, notIncludedCollection, notIncludedCollectionCards, schedule);
-        await RememberCardsAsync(client, notIncludedCollection, notIncludedCollectionCards, schedule, 0,
+        await RememberCardsAsync(client, notIncludedCollection, notIncludedCollectionCards, schedule,
             LearningScenarios.RememberedWeight);
 
         //Act
@@ -868,7 +865,6 @@ public class CardAndCollectionsControllerTests : SharedApiTests
             collection,
             forgottenCards,
             schedule,
-            0,
             LearningScenarios.ForgottenWeight);
 
         //Act
@@ -905,13 +901,11 @@ public class CardAndCollectionsControllerTests : SharedApiTests
         await StartCardsAsync(client, collection, preAddedCards, schedule);
         
         //Act
-        var currentPhaseIndex = 0;
         var rememberResponse = await RememberCardsAsync(
             client,
             collection,
             preAddedCards,
             schedule,
-            (short)currentPhaseIndex,
             0f,
             comment);
         
@@ -968,8 +962,7 @@ public class CardAndCollectionsControllerTests : SharedApiTests
                 client,
                 collection,
                 preAddedCards,
-                schedule, 
-                (short)currentPhaseIndex,
+                schedule,
                 step.Weight);
             
             //Assert
@@ -1019,8 +1012,7 @@ public class CardAndCollectionsControllerTests : SharedApiTests
                 client,
                 collection,
                 preAddedCards,
-                schedule, 
-                (short)currentPhaseIndex,
+                schedule,
                 step.Weight);
             
             //Assert
@@ -1059,8 +1051,7 @@ public class CardAndCollectionsControllerTests : SharedApiTests
                 client,
                 collection,
                 preAddedCards,
-                schedule, 
-                (short)currentPhaseIndex,
+                schedule,
                 step.Weight);
             
             //Assert
@@ -1100,8 +1091,7 @@ public class CardAndCollectionsControllerTests : SharedApiTests
                 client,
                 collection,
                 preAddedCards,
-                schedule, 
-                (short)currentPhaseIndex,
+                schedule,
                 step.Weight);
             
             //Assert
@@ -1141,8 +1131,7 @@ public class CardAndCollectionsControllerTests : SharedApiTests
                 client,
                 collection,
                 preAddedCards,
-                schedule, 
-                (short)currentPhaseIndex,
+                schedule,
                 step.Weight);
             
             var shouldBeNextPhaseIndex = Math.Max(0, currentPhaseIndex + step.NextPhaseIndexDiff);
@@ -1179,8 +1168,7 @@ public class CardAndCollectionsControllerTests : SharedApiTests
                 client,
                 collection,
                 preAddedCards,
-                schedule, 
-                (short)currentPhaseIndex,
+                schedule,
                 step.Weight);
             
             var shouldBeNextPhaseIndex = Math.Max(0, currentPhaseIndex + step.NextPhaseIndexDiff);
@@ -1208,17 +1196,13 @@ public class CardAndCollectionsControllerTests : SharedApiTests
         await StartCardsAsync(client, collection, preAddedCards, schedule);
         
         //Act
-        var currentPhaseIndex = 0;
-        
-        await RememberCardsAsync(client, collection, preAddedCards, schedule, (short)currentPhaseIndex,
+        await RememberCardsAsync(client, collection, preAddedCards, schedule,
             LearningScenarios.RememberedWeight);
-        currentPhaseIndex++;
         
         var rememberResponse = await client.PatchAsJsonAsync(
             CardsQuery(collection.Id, ApiRoutes.Cards.Path_RememberCard),
             new RememberCardRequest()
             {
-                PhaseIndex = (short)currentPhaseIndex,
                 ScheduleId = short.Parse(schedule.Id),
                 ScheduleUserId = UserId.Create(long.Parse(schedule.ParentUserId)).Value,
                 RememberItems = preAddedCards.Select((c, i) => new RememberItemDto()
@@ -1510,7 +1494,6 @@ public class CardAndCollectionsControllerTests : SharedApiTests
                 collection,
                 rememberedCards,
                 schedule,
-                rememberPhaseIndex,
                 LearningScenarios.RememberedWeight,
                 comment);
             
@@ -1527,7 +1510,6 @@ public class CardAndCollectionsControllerTests : SharedApiTests
                 collection,
                 notClearCards,
                 schedule,
-                rememberPhaseIndex,
                 LearningScenarios.UnknownWeight,
                 comment);
             
@@ -1544,7 +1526,6 @@ public class CardAndCollectionsControllerTests : SharedApiTests
                 collection,
                 forgottenCards,
                 schedule,
-                rememberPhaseIndex,
                 LearningScenarios.ForgottenWeight,
                 comment);
             
@@ -1572,7 +1553,6 @@ public class CardAndCollectionsControllerTests : SharedApiTests
                 collection,
                 cardsToRepeat,
                 schedule,
-                (short)(rememberPhaseIndex + 1),
                 LearningScenarios.RememberedWeight);
             
             repeatingResponse.EnsureSuccessStatusCode();
@@ -1584,7 +1564,6 @@ public class CardAndCollectionsControllerTests : SharedApiTests
         CollectionDto collection,
         List<CardDto> cards,
         RepeatsScheduleDto schedule,
-        short rememberPhaseIndex,
         float rememberWeight,
         string? comment = null)
     {
@@ -1592,7 +1571,6 @@ public class CardAndCollectionsControllerTests : SharedApiTests
             CardsQuery(collection.Id, ApiRoutes.Cards.Path_RememberCard),
             new RememberCardRequest()
             {
-                PhaseIndex = rememberPhaseIndex,
                 ScheduleId = short.Parse(schedule.Id),
                 ScheduleUserId = UserId.Create(long.Parse(schedule.ParentUserId)).Value,
                 RememberItems = cards.Select(c => new RememberItemDto()

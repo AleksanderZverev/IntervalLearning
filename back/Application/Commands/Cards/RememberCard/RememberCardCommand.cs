@@ -39,8 +39,7 @@ public class RememberCardCommand : ICommand<RememberCardRequest, NextRepeatInfoR
         var (userId,
             collectionId, 
             scheduleUserId, 
-            scheduleId, 
-            phaseIndex, 
+            scheduleId,
             rememberItems, 
             allowRepeatingInFuture,
             userCurrentDateTime) = request;
@@ -55,7 +54,7 @@ public class RememberCardCommand : ICommand<RememberCardRequest, NextRepeatInfoR
         }
 
         var queueItems = await studyRepository.Query.RepeatingQueue.GetForCards(
-            userId, collectionId, scheduleUserId, scheduleId, phaseIndex, cardIds);
+            userId, collectionId, scheduleUserId, scheduleId, cardIds);
 
         if (queueItems.Count == 0 || queueItems.Count != cardIds.Count)
             return new BadRequestError();

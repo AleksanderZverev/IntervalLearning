@@ -82,7 +82,6 @@ public class RepeatingQueueResolver : IRepeatingQueueResolver
         CollectionId collectionId,
         UserId scheduleUserId,
         ScheduleId scheduleId,
-        short phaseIndex,
         List<CardId> cardIds)
     {
         return db.Queue
@@ -90,7 +89,6 @@ public class RepeatingQueueResolver : IRepeatingQueueResolver
                         && q.ParentCollectionId == collectionId
                         && q.ParentRepeatsScheduleUserId == scheduleUserId
                         && q.ParentRepeatsScheduleId == scheduleId
-                        && q.PhaseIndex == phaseIndex
                         && cardIds.Contains(q.ParentCardId))
             .ToListAsync();
     }
