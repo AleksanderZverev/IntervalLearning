@@ -18,6 +18,7 @@ import useTypedSelector, { useRequiredTypedSelector } from '../../../hooks/useTy
 import { getScheduleId, selectScheduleById } from '../../../redux/slices/scheduleSlice';
 import { selectCurrentUser } from '../../../redux/currentUserSlice';
 import { useDocumentTitle } from '../../../hooks/useCollectionTitle';
+import { PhaseHelper } from '../../../helpers/Study/PhaseHelper';
 
 interface IPhaseForm {
     id: string;
@@ -105,7 +106,7 @@ function getPhasesValues(phases: PhaseInfo[], hasRepeatingAfterStart: boolean): 
 
 function getScheduleValues(schedule: Schedule): IForm {
     const { phases: schedulePhases, ...propsToMatch } = schedule;
-    const repeatAfterStart = schedule.phases?.length > 0 && schedule.phases[0].secondsFromLastPhase <= 10;
+    const repeatAfterStart = schedule.phases?.length > 0 && PhaseHelper.isRepeatingPhase(schedule.phases[0]);
     const afterStartPhase = repeatAfterStart ? schedulePhases[0] : undefined;
 
     return {

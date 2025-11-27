@@ -15,12 +15,13 @@ import { selectCurrentUser } from '../../../redux/currentUserSlice';
 import { useGetSchedulesQuery } from '../../../redux/schedulesSlice';
 import { selectSchedules } from '../../../redux/slices/scheduleSlice';
 import { Schedule } from '../../../types/schedule';
+import { PhaseHelper } from '../../../helpers/Study/PhaseHelper';
 
 export function getIntervals(schedule: Schedule): string {
     return [...schedule.phases]
         .sort((f, s) => parseInt(f.id) - parseInt(s.id))
         .map((p) => {
-            if (p.secondsFromLastPhase <= 10) {
+            if (PhaseHelper.isRepeatingPhase(p)) {
                 return '';
             }
 

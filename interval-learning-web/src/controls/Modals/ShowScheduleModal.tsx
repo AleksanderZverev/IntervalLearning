@@ -15,6 +15,7 @@ import { FC, useMemo } from 'react';
 import { getIntervals } from '../../pages/schedules/ScheduleListPage/ScheduleListPage';
 import { getForgottenBehaviorTitle, PhaseInfo, Schedule } from '../../types/schedule';
 import { Label } from '../Label/Label';
+import { PhaseHelper } from '../../helpers/Study/PhaseHelper';
 
 interface ShowScheduleModalProps {
     schedule: Schedule;
@@ -42,7 +43,7 @@ export const ShowScheduleModal: FC<ShowScheduleModalProps> = ({ schedule, open, 
 
             if (i + 1 < sortedPhases.length) {
                 const nextPhase = sortedPhases[i + 1];
-                hasRepeatPhase = nextPhase.secondsFromLastPhase <= 10;
+                hasRepeatPhase = PhaseHelper.isRepeatingPhase(nextPhase);
             }
 
             const item: PhaseItem = {

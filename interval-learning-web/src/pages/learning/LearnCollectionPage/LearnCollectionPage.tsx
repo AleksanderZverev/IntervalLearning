@@ -29,13 +29,14 @@ import { LightTooltip } from '../../../controls/LightTooltip/LightTooltip';
 import { Casino, HelpOutline } from '@mui/icons-material';
 import { selectCards } from '../../../redux/slices/cardsSlice';
 import dayjs from 'dayjs';
-import { getRepeatingNavigationLink } from '../LearningPage/InProgressCollections/InProgressCollections';
 import { useGetScheduleQuery } from '../../../redux/schedulesSlice';
 import { ArrayHelper } from '../../../helpers/ArrayHelper';
 import { PageContent } from '../../../controls/PageContent/PageContent';
 import { useDocumentTitle } from '../../../hooks/useCollectionTitle';
 import { CenterContainer } from '../../../controls/CenterContainer/CenterContainer';
 import { Loader } from '../../../controls/Loader/Loader';
+import { getRepeatingNavigationLink } from '../LearningPage/InProgressCollections/RepeatingDateInfo/RepeatingDateInfo';
+import { PhaseHelper } from '../../../helpers/Study/PhaseHelper';
 
 type WithResolvers = WithQueryResolverData<typeof useGetNotStartedCardsQuery> &
     WithMutationResolverProps<typeof useStartCardsMutation>;
@@ -116,7 +117,7 @@ export const LearnCollectionPageContent: FC<LearnCollectionPageContentProps> = (
             }
         }
 
-        if (mutationData && mutationData.nextPhaseIndex >= 0 && fromModal) {
+        if (mutationData && mutationData.nextPhaseIndex >= 0 && fromModal && mutationData.nextRepeatPhase) {
             const now = dayjs();
             navigate(
                 getRepeatingNavigationLink(
@@ -124,8 +125,8 @@ export const LearnCollectionPageContent: FC<LearnCollectionPageContentProps> = (
                     collectionId,
                     scheduleUserId,
                     scheduleId,
-                    mutationData.nextPhaseIndex,
-                    mutationData.nextRepeatDate ?? now.toISOString()
+                    mutationData.nextRepeatDate ?? now.toISOString(),
+                    PhaseHelper.isRepeatingPhase(mutationData.nextRepeatPhase)
                 )
             );
             return;
