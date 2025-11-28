@@ -5,16 +5,17 @@ import { Stack } from '@mui/material';
 import { Tag } from '../TagView/Tag';
 
 interface TagsListProps {
+    cardUniqueId: string;
     tags: string[] | null;
 }
 
-export const TagsList: FC<TagsListProps> = ({ tags }) => {
+export const TagsList: FC<TagsListProps> = ({ cardUniqueId, tags }) => {
     if (!tags || tags.length === 0) return null;
 
     return (
         <Stack direction={'row'} flexWrap={'wrap'} gap={'4px 8px'}>
             {tags.map((t) => (
-                <Tag key={t}>{t}</Tag>
+                <Tag key={cardUniqueId + '-' + t}>{t}</Tag>
             ))}
         </Stack>
     );

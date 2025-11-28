@@ -22,6 +22,7 @@ import { DeleteCardModal } from '../../../controls/Modals/DeleteCardModal';
 import { AssertionModal } from '../../../controls/Modals/AssertionModal';
 import { Tag } from '../../../controls/Tags/TagView/Tag';
 import { TagsList } from '../../../controls/Tags/TagsList/TagsList';
+import { CardHelper } from '../../../helpers/Study/CardHelper';
 
 interface CardRowProps extends WithMutationResolverProps<typeof useRelearnCardMutation> {
     card: Card;
@@ -128,7 +129,7 @@ const CardRowComponent: FC<CardRowProps> = ({
                 <TableCell>
                     <Stack direction={'column'} spacing={'4px'}>
                         <div>{card.description}</div>
-                        <TagsList tags={card.tags} />
+                        <TagsList cardUniqueId={CardHelper.GetCardUniqueId(card)} tags={card.tags} />
                     </Stack>
                 </TableCell>
                 <TableCell width={1} onClick={(e) => e.stopPropagation()}>

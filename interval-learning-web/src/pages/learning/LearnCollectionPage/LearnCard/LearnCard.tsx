@@ -7,6 +7,7 @@ import useTypedSelector from '../../../../hooks/useTypedSelector';
 import { selectCardById } from '../../../../redux/slices/cardsSlice';
 import { PaperCard } from '../../../../controls/PaperCard/PaperCard';
 import { TagsList } from '../../../../controls/Tags/TagsList/TagsList';
+import { CardHelper } from '../../../../helpers/Study/CardHelper';
 
 interface LearnCardProps {
     userId: string;
@@ -93,7 +94,9 @@ export const LearnCard: FC<LearnCardProps> = ({
                         {card.backSideText}
                     </Typography>
                 </div>
-                {card.tags && card.tags.length > 0 && <TagsList tags={card.tags} />}
+                {card.tags && card.tags.length > 0 && (
+                    <TagsList cardUniqueId={CardHelper.GetCardUniqueId(card)} tags={card.tags} />
+                )}
                 {card.description && (
                     <div>
                         <div className={styles.label}>Описание</div>
@@ -104,9 +107,11 @@ export const LearnCard: FC<LearnCardProps> = ({
                     <div>
                         <div className={styles.label}>Примеры</div>
                         <div>
-                            {card.examples.map((e) => {
+                            {card.examples.map((e, i) => {
+                                const cardUniqueId = CardHelper.GetCardUniqueId(card);
+                                const exampleUniqueKey = cardUniqueId + '-' + i;
                                 return (
-                                    <div key={e} style={{ display: 'flex', alignItems: 'center' }}>
+                                    <div key={exampleUniqueKey} style={{ display: 'flex', alignItems: 'center' }}>
                                         <KeyboardArrowRight />
                                         <span>{e}</span>
                                     </div>
