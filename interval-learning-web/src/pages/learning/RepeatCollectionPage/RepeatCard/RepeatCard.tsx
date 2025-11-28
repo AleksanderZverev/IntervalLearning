@@ -346,10 +346,8 @@ export const RepeatCard: FC<RepeatCardProps> = ({
                         }
                         const newValue = parseFloat(v);
                         onChange(newValue, value?.comment);
-                        if (newValue > 0.95 || newValue < 0.05) {
-                            setPromptIsHidden(false);
-                            setBackIsHidden(false);
-                        }
+                        setPromptIsHidden(false);
+                        setBackIsHidden(false);
                     }}
                 >
                     <FormControlLabel
