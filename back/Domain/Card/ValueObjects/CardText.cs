@@ -12,7 +12,7 @@ public class CardText : SingleValueObject<string>
 
     public static Result<CardText> Create(string text)
     {
-        text = TextMaster.RemoveWhiteSpaces(text);
+        text = TextMaster.RemoveWhiteSpacesExceptNewLines(text);
         
         if (string.IsNullOrWhiteSpace(text))
             return Result.Fail("Card text is empty");

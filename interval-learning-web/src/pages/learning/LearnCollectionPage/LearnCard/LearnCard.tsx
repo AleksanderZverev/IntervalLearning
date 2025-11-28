@@ -68,7 +68,10 @@ export const LearnCard: FC<LearnCardProps> = ({
         >
             <div
                 className={styles.container}
-                style={{ justifyContent: containsDescriptionAndExamples ? 'flex-start' : 'center' }}
+                style={{
+                    justifyContent: containsDescriptionAndExamples ? 'flex-start' : 'center',
+                    whiteSpace: 'pre-line',
+                }}
             >
                 <Portal>
                     {showEditCardModal && (
@@ -111,8 +114,8 @@ export const LearnCard: FC<LearnCardProps> = ({
                                 const cardUniqueId = CardHelper.GetCardUniqueId(card);
                                 const exampleUniqueKey = cardUniqueId + '-' + i;
                                 return (
-                                    <div key={exampleUniqueKey} style={{ display: 'flex', alignItems: 'center' }}>
-                                        <KeyboardArrowRight />
+                                    <div key={exampleUniqueKey} style={{ display: 'flex' }}>
+                                        <KeyboardArrowRight color={'primary'} />
                                         <span>{e}</span>
                                     </div>
                                 );

@@ -276,6 +276,7 @@ const CreateCardModalContent: FC<CreateCardModalProps> = ({
                                     label="Запомнить (слово)"
                                     error={!!errors.frontText}
                                     errorMessage={errors.frontText?.message}
+                                    multiline
                                     required
                                     value={value ?? ''}
                                     onChange={(e) => {
@@ -366,6 +367,7 @@ const CreateCardModalContent: FC<CreateCardModalProps> = ({
                                     label="Подсказка (чтение)"
                                     error={!!errors.promptText}
                                     errorMessage={errors.promptText?.message}
+                                    multiline
                                     onChange={field.onChange}
                                     value={value ?? ''}
                                     onFocus={async () => {
@@ -408,6 +410,7 @@ const CreateCardModalContent: FC<CreateCardModalProps> = ({
                                     label="Значение (перевод)"
                                     error={!!errors.backText}
                                     errorMessage={errors.backText?.message}
+                                    multiline
                                     required
                                     onChange={(e: string) => {
                                         field.onChange(e);

@@ -12,7 +12,7 @@ public class CardExample : SingleValueObject<string>
 
     public static Result<CardExample> Create(string example)
     {
-        example = TextMaster.RemoveWhiteSpaces(example);
+        example = TextMaster.RemoveWhiteSpacesExceptNewLines(example);
 
         if (example.Length > 255)
             return Result.Fail("Example is too long");

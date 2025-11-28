@@ -267,7 +267,7 @@ export const RepeatCard: FC<RepeatCardProps> = ({
                 )
             }
         >
-            <div className={styles.container}>
+            <div className={styles.container} style={{ whiteSpace: 'pre-line' }}>
                 <Portal>
                     {showCardInfoModal && (
                         <ShowCardModal

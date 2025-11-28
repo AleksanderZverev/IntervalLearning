@@ -12,7 +12,7 @@ public class CardDescription : SingleValueObject<string>
 
     public static Result<CardDescription> Create(string description)
     {
-        description = TextMaster.RemoveWhiteSpaces(description);
+        description = TextMaster.RemoveWhiteSpacesExceptNewLines(description);
 
         if (description.Length > 500)
             return Result.Fail("Card description is too long");
