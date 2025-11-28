@@ -158,7 +158,7 @@ const CreateCardModalContent: FC<CreateCardModalProps> = ({
         getValues,
         setError,
         clearErrors,
-        formState: { errors },
+        formState: { errors, dirtyFields },
         watch,
         trigger,
     } = formMethods;
@@ -167,10 +167,22 @@ const CreateCardModalContent: FC<CreateCardModalProps> = ({
     const { fields: tagsFields, append: appendTag, remove: removeTag } = useFieldArray({ control, name: 'tags' });
 
     const [showCardStateChangedModal, setShowCardStateChangedModal] = useState(false);
+    const [showSaveChangesModal, setSaveChangesModal] = useState(false);
 
     const [getTranslation, {}] = useLazyGetWordTranslationsQuery();
     const [searchWords, {}] = useLazySearchWordsQuery();
     const [getCard, {}] = useLazyGetCardQuery();
+
+    const hasDirtyFields = Object.values(dirtyFields).filter(Boolean).length > 0;
+
+    const onClose = (fromModal: boolean) => {
+        if (!fromModal && hasDirtyFields) {
+            setSaveChangesModal(true);
+            return;
+        }
+
+        props.onClose();
+    };
 
     const onAddExample = () => {
         const currentState = getValues();
@@ -226,7 +238,7 @@ const CreateCardModalContent: FC<CreateCardModalProps> = ({
     };
 
     return (
-        <Dialog open={props.open} onClose={props.onClose} maxWidth={'sm'} fullWidth>
+        <Dialog open={props.open} onClose={() => onClose(false)} maxWidth={'sm'} fullWidth>
             <DialogTitle>{cardId ? 'Изменение карточки' : 'Создание карточки'}</DialogTitle>
             <DialogContent>
                 <Portal>
@@ -239,6 +251,19 @@ const CreateCardModalContent: FC<CreateCardModalProps> = ({
                                 props.onClose();
                             }}
                             assertTitle="OK"
+                        />
+                    )}
+                    {showSaveChangesModal && (
+                        <AssertionModal
+                            title="Несохраненные данные"
+                            message="Некоторые поля были изменены. Сохранить изменения?"
+                            assertTitle="Сохранить"
+                            onAssert={() => {
+                                setSaveChangesModal(false);
+                                handleSubmit(onCreate)();
+                            }}
+                            cancelTitle="Сбросить"
+                            onClose={() => onClose(true)}
                         />
                     )}
                 </Portal>
