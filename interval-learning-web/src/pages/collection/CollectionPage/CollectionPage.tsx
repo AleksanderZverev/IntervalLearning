@@ -192,7 +192,6 @@ const CollectionPageContent: FC = () => {
                         <TableHeaderCell>Подсказка (чтение)</TableHeaderCell>
                         <TableHeaderCell>Значение</TableHeaderCell>
                         <TableHeaderCell>Описание</TableHeaderCell>
-                        <TableHeaderCell sx={{ minWidth: '100px' }} />
                     </TableHead>
                     <TableBody>
                         {cards && cards.length > 0 ? (

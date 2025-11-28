@@ -41,6 +41,7 @@ const CardRowComponent: FC<CardRowProps> = ({
     const [showDeleteCardModal, setShowDeleteCardModal] = useState(false);
     const [showAssertRelearnCardModal, setAssertRelearnCardModal] = useState(false);
     const [isAddedToRelearn, setAddedToRelearn] = useState(false);
+    const [showTools, setShowTools] = useState(false);
 
     const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
     const open = Boolean(anchorEl);
@@ -122,81 +123,100 @@ const CardRowComponent: FC<CardRowProps> = ({
                     />
                 )}
             </Portal>
-            <TableRow borderless hover={Boolean(hasExamples)} onClick={() => onShowDetails()}>
+            <TableRow
+                borderless
+                hover={Boolean(hasExamples)}
+                onClick={() => onShowDetails()}
+                style={{ whiteSpace: 'pre-line' }}
+                onMouseEnter={() => setShowTools(true)}
+                onMouseLeave={() => {
+                    setShowTools(false);
+                    onCloseMenu();
+                }}
+            >
                 <TableCell>{card.frontSideText}</TableCell>
                 <TableCell>{card.promptText}</TableCell>
                 <TableCell>{card.backSideText}</TableCell>
-                <TableCell>
+                <TableCell sx={{ paddingRight: '72px', position: 'relative' }}>
                     <Stack direction={'column'} spacing={'4px'}>
                         <div>{card.description}</div>
                         <TagsList cardUniqueId={CardHelper.GetCardUniqueId(card)} tags={card.tags} />
                     </Stack>
-                </TableCell>
-                <TableCell width={1} onClick={(e) => e.stopPropagation()}>
-                    <IconButton onClick={(e) => onShowMenu(e.currentTarget)}>
-                        <Construction />
-                    </IconButton>
-                    <Menu
-                        anchorEl={anchorEl}
-                        open={open}
-                        onClose={onCloseMenu}
-                        transformOrigin={{ horizontal: 'center', vertical: 'top' }}
+                    <div
+                        style={{ position: 'absolute', right: '16px', top: 'calc(50% - 20px)' }}
+                        onClick={(e) => e.stopPropagation()}
                     >
-                        <MenuItem
-                            onClick={() => {
-                                setShowEditCardModal(true);
-                                onCloseMenu();
-                            }}
+                        {showTools ? (
+                            <IconButton onClick={(e) => onShowMenu(e.currentTarget)}>
+                                <Construction />
+                            </IconButton>
+                        ) : null}
+                        <Menu
+                            anchorEl={anchorEl}
+                            open={open}
+                            onClose={onCloseMenu}
+                            transformOrigin={{ horizontal: 'center', vertical: 'top' }}
                         >
-                            <ListItemIcon>
-                                <Edit fontSize="small" />
-                            </ListItemIcon>
-                            <ListItemText>Изменить</ListItemText>
-                        </MenuItem>
+                            <MenuItem
+                                onClick={() => {
+                                    setShowEditCardModal(true);
+                                    onCloseMenu();
+                                }}
+                            >
+                                <ListItemIcon>
+                                    <Edit fontSize="small" />
+                                </ListItemIcon>
+                                <ListItemText>Изменить</ListItemText>
+                            </MenuItem>
 
-                        <MenuItem
-                            onClick={() => {
-                                setShowMoveCardModal(true);
-                                onCloseMenu();
-                            }}
-                        >
-                            <ListItemIcon>
-                                <ArrowForward fontSize={'small'} />
-                            </ListItemIcon>
-                            <ListItemText>Переместить</ListItemText>
-                        </MenuItem>
-                        <MenuItem
-                            disabled={isAddedToRelearn || mutateProps.isLoading}
-                            onClick={() => setAssertRelearnCardModal(true)}
-                        >
-                            <ListItemIcon>
-                                {mutateProps.isLoading ? <CircularProgress size={16} /> : <Replay fontSize={'small'} />}
-                            </ListItemIcon>
-                            <ListItemText>Изучить снова</ListItemText>
-                        </MenuItem>
-                        <Divider />
-                        <MenuItem
-                            onClick={() => {
-                                setShowDeleteCardModal(true);
-                                onCloseMenu();
-                            }}
-                        >
-                            <ListItemIcon>
-                                <Delete fontSize="small" color={'error'} />
-                            </ListItemIcon>
-                            <ListItemText>Удалить</ListItemText>
-                        </MenuItem>
-                    </Menu>
+                            <MenuItem
+                                onClick={() => {
+                                    setShowMoveCardModal(true);
+                                    onCloseMenu();
+                                }}
+                            >
+                                <ListItemIcon>
+                                    <ArrowForward fontSize={'small'} />
+                                </ListItemIcon>
+                                <ListItemText>Переместить</ListItemText>
+                            </MenuItem>
+                            <MenuItem
+                                disabled={isAddedToRelearn || mutateProps.isLoading}
+                                onClick={() => setAssertRelearnCardModal(true)}
+                            >
+                                <ListItemIcon>
+                                    {mutateProps.isLoading ? (
+                                        <CircularProgress size={16} />
+                                    ) : (
+                                        <Replay fontSize={'small'} />
+                                    )}
+                                </ListItemIcon>
+                                <ListItemText>Изучить снова</ListItemText>
+                            </MenuItem>
+                            <Divider />
+                            <MenuItem
+                                onClick={() => {
+                                    setShowDeleteCardModal(true);
+                                    onCloseMenu();
+                                }}
+                            >
+                                <ListItemIcon>
+                                    <Delete fontSize="small" color={'error'} />
+                                </ListItemIcon>
+                                <ListItemText>Удалить</ListItemText>
+                            </MenuItem>
+                        </Menu>
+                    </div>
                 </TableCell>
             </TableRow>
             <TableRow>
-                <TableCell colSpan={4} sx={{ padding: 0 }}>
+                <TableCell colSpan={4} sx={{ padding: 0, whiteSpace: 'pre-line' }}>
                     <Collapse in={showDetails} timeout="auto" unmountOnExit>
                         <div style={{ padding: '16px' }}>
                             <Stack component={'ul'} spacing={'5px'}>
                                 {card.examples?.map((e) => {
                                     return (
-                                        <li key={e} style={{ display: 'flex', alignItems: 'center' }}>
+                                        <li key={e} style={{ display: 'flex' }}>
                                             <KeyboardArrowRight color={'primary'} />
                                             <span>{e}</span>
                                         </li>
