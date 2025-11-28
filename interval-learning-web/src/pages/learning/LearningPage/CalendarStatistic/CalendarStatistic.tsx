@@ -8,6 +8,9 @@ import { SelectSchedule } from '../../../../controls/SelectSchedule/SelectSchedu
 import { DatePicker } from '@mui/x-date-pickers';
 import styles from './styles.module.css';
 import classNames from 'classnames';
+import { IconButton, Stack } from '@mui/material';
+import { ArrowBackIos, ArrowBackIosNew, ArrowForwardIos } from '@mui/icons-material';
+import { CenterContainer } from '../../../../controls/CenterContainer/CenterContainer';
 
 type ResolverProps = WithQueryResolverData<typeof useGetDetailedCalendarStatisticQuery>;
 
@@ -43,6 +46,19 @@ function GetDateOfWeekBefore(beforeDate: Dayjs, startDayOfWeek: number): Dayjs[]
     return datesBefore;
 }
 
+function GetDatesToCompleteWeek(fromDate: Dayjs, startDayOfWeek: number): Dayjs[] {
+    const datesTillEnd: Dayjs[] = [];
+
+    let start = fromDate.add(1, 'day');
+
+    while (start.day() != startDayOfWeek) {
+        datesTillEnd.push(start);
+        start = start.add(1, 'day');
+    }
+
+    return datesTillEnd;
+}
+
 const StatisticCalendarContent: FC<Props> = ({ month, queryData }) => {
     const dates = GetDates(month);
 
@@ -52,6 +68,8 @@ const StatisticCalendarContent: FC<Props> = ({ month, queryData }) => {
     };
 
     const daysTillStart = GetDateOfWeekBefore(dates[0], 1);
+    const daysAfterEnd = GetDatesToCompleteWeek(dates[dates.length - 1], 1);
+
     return (
         <div>
             <div className={styles.learned}>Всего изучено {queryData.learnedCards}</div>
@@ -133,6 +151,16 @@ const StatisticCalendarContent: FC<Props> = ({ month, queryData }) => {
                         </div>
                     );
                 })}
+
+                {daysAfterEnd.map((d) => {
+                    const dateIso = d.toISOString();
+
+                    return (
+                        <div className={classNames(styles.dayBody, styles.disabledDay)} key={dateIso}>
+                            <span className={styles.date}>{d.format('D')}</span>
+                        </div>
+                    );
+                })}
             </div>
         </div>
     );
@@ -174,20 +202,52 @@ export const CalendarStatisticPage: FC = () => {
 
     return (
         <div style={{ marginTop: '8px' }}>
-            <div style={{ display: 'flex', columnGap: '8px' }}>
-                <SelectSchedule
-                    scheduleId={filter?.schedule?.id}
-                    scheduleUserId={filter?.schedule?.userId}
-                    onChange={(s) => setSchedule(s)}
-                />
-                <DatePicker
-                    label="From"
-                    value={monthDayjs}
-                    onChange={(v) => v && setFilter({ ...filter, month: v.toISOString() })}
-                    views={['year', 'month']}
-                    openTo="month"
-                />
+            <div
+                style={{
+                    display: 'flex',
+                    columnGap: '8px',
+                    justifyContent: 'space-between',
+                    alignItems: 'baseline',
+                    fontSize: '20px',
+                }}
+            >
+                <Stack direction={'row'} gap={'8px'}>
+                    <label style={{ marginTop: '2px' }}>Учебный план:</label>
+                    <SelectSchedule
+                        scheduleId={filter?.schedule?.id}
+                        scheduleUserId={filter?.schedule?.userId}
+                        onChange={(s) => setSchedule(s)}
+                    />
+                </Stack>
+                <div style={{ display: 'flex', columnGap: '8px', alignItems: 'baseline' }}>
+                    <div>
+                        <IconButton
+                            onClick={() =>
+                                setFilter({ ...filter, month: dayjs(filter.month).subtract(1, 'month').toISOString() })
+                            }
+                        >
+                            <ArrowBackIosNew />
+                        </IconButton>
+                    </div>
+                    <DatePicker
+                        label="From"
+                        value={monthDayjs}
+                        onChange={(v) => v && setFilter({ ...filter, month: v.toISOString() })}
+                        views={['year', 'month']}
+                        openTo="month"
+                    />
+                    <div>
+                        <IconButton
+                            onClick={() =>
+                                setFilter({ ...filter, month: dayjs(filter.month).add(1, 'month').toISOString() })
+                            }
+                        >
+                            <ArrowForwardIos />
+                        </IconButton>
+                    </div>
+                </div>
             </div>
+            {!filter.schedule && <CenterContainer>Выберите учебный план</CenterContainer>}
             {isFilterValid && filter.schedule && (
                 <ConnectedCalendarLearningStatistic
                     month={monthDayjs}
