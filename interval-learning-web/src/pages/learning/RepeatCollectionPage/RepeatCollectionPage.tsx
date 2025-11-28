@@ -87,9 +87,7 @@ export const RepeatCollectionPageContent: FC<RepeatCollectionPageContentProps> =
         const selectedCards = selectCardsByIds(state, userId, collectionId, mergedCardIds);
         const orderedCards = _.orderBy(selectedCards, (c) => {
             if (!c.remembers) return 0;
-
-            const lastRememberId = _.maxBy(c.remembers, (r) => parseInt(r.id))?.id || '0';
-            return parseInt(lastRememberId);
+            return PhaseHelper.GetCurrentPhaseIdFromRemembers(c.remembers);
         });
         return orderedCards;
     });
