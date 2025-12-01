@@ -211,8 +211,8 @@ export const InProgressCollections: FC = () => {
               .value();
     const totalNotLateCards = !statistics ? 0 : statistics.totalRepeatingCards - totalLateCards;
     return (
-        <div style={{ display: 'grid', gridTemplateRows: 'auto 1fr' }}>
-            <div style={{ display: 'flex', columnGap: 20, marginTop: 10, fontSize: '20px' }}>
+        <div style={{ display: 'grid', gridTemplateRows: 'auto 1fr', rowGap: '8px' }}>
+            <div style={{ display: 'flex', columnGap: '20px', marginTop: 10, fontSize: '20px' }}>
                 <label style={{ marginTop: 2 }}>Сортировать по учебному плану:</label>
                 <SelectSchedule
                     width="250px"

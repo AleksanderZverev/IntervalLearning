@@ -14,8 +14,8 @@ export const TagsList: FC<TagsListProps> = ({ cardUniqueId, tags }) => {
 
     return (
         <Stack direction={'row'} flexWrap={'wrap'} gap={'4px 8px'}>
-            {tags.map((t) => (
-                <Tag key={cardUniqueId + '-' + t}>{t}</Tag>
+            {tags.map((t, i) => (
+                <Tag key={cardUniqueId + '-' + t + '-' + i}>{t}</Tag>
             ))}
         </Stack>
     );
