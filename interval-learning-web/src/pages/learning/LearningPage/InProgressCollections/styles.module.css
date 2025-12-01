@@ -8,7 +8,16 @@
 
 .statisticRow {
     display: flex;
+    flex-wrap: wrap;
     column-gap: 8px;
+}
+
+.statisticTable {
+    display: table;
+    /* grid-auto-columns: auto; */
+    width: 100%;
+    border: 1px solid black;
+    border-collapse: collapse;
 }
 
 .learned {

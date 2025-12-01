@@ -367,12 +367,7 @@ export const RepeatCollectionPageContent: FC<RepeatCollectionPageContentProps> =
                                           phase.id === '0'
                                               ? 'после изучения'
                                               : 'интервала: ' +
-                                                dayjs
-                                                    .duration(
-                                                        schedule.phases[parseInt(phase.id) - 1].secondsFromLastPhase,
-                                                        's'
-                                                    )
-                                                    .humanize()
+                                                PhaseHelper.GetDurationText(schedule.phases[parseInt(phase.id) - 1])
                                       }`
                                     : `Спустя ${dayjs.duration(phase.secondsFromLastPhase, 's').humanize()}`}
                             </span>

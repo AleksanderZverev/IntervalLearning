@@ -1,5 +1,7 @@
 using Domain.Schedule.ValueObjects;
+using Domain.Theme.ValueObjects;
 using Domain.User.ValueObjects;
+using GlobalTools.Extensions;
 using IntervalLearningApi.Constants;
 using IntervalLearningApi.Controllers.Study.Statistics.DTOs;
 using IntervalLearningApi.Extensions;
@@ -19,22 +21,53 @@ public class StatisticsController : ControllerBase
     {
         this.statisticsService = statisticsService;
     }
-    
-    [HttpGet(ApiRoutes.Statistics.Get_LearningStatistic)]
-    public async Task<ActionResult<LearningStatisticModel>> GetLearningStatistic([FromQuery(Name = "date")] DateTime dateTime)
-    {
-        var userId = HttpContext.GetUserId();
 
-        if (userId.IsFailed)
+    [HttpGet(ApiRoutes.Statistics.Get_LearningStatistic)]
+    public async Task<ActionResult<LearningStatisticModel>> GetLearningStatistic(
+        [FromQuery] long scheduleUserId,
+        [FromQuery] short scheduleId,
+        [FromQuery] short themeId,
+        [FromQuery(Name = "date")] DateTimeOffset statisticDate,
+        [FromQuery] DateTimeOffset userCurrentDateTime)
+    {
+        if (scheduleUserId == 0 || scheduleId == 0 || themeId == 0)
             return BadRequest();
-        
-        var statistic = await statisticsService.GetStatistic(userId.Value, dateTime);
+
+        var argsResult = (
+            HttpContext.GetUserId(),
+            UserId.Create(scheduleUserId),
+            ScheduleId.Create(scheduleId),
+            ThemeId.Create(themeId));
+
+        if (argsResult.HasAnyError())
+            return BadRequest();
+
+        var (userIdResult, scheduleUserIdResult, scheduleIdResult, themeIdResult) = argsResult;
+
+        var statistic = await statisticsService.GetStatistic(
+            userIdResult.Value,
+            scheduleUserIdResult.Value,
+            scheduleIdResult.Value,
+            themeIdResult.Value,
+            statisticDate,
+            userCurrentDateTime);
 
         return new LearningStatisticModel(
+            TotalRepeatingCards: statistic.TotalRepeatingCards,
+            PhaseIdToStatistic: statistic.PhaseStatistics
+                .AsEnumerable()
+                .ToDictionary(p => p.Key.Value.ToString(), p => new PhaseStatisticDto()
+                {
+                    PhaseId = p.Key.Value.ToString(),
+                    TotalRepeatingCards = p.Value.TotalRepeatingCards,
+                    LateCards = p.Value.LateCards,
+                    FutureCards = p.Value.FutureCards,
+                    TodayCards = p.Value.TodayCards,
+                }),
             RepeatedCards: statistic.RepeatedCards,
             LearnedCards: statistic.LearnedCards);
     }
-    
+
     [HttpGet(ApiRoutes.Statistics.Get_DetailedCalendarStatistic)]
     public async Task<ActionResult<CalendarLearningStatisticModel>> GetStatisticWithRecommendation(
         long scheduleUserId,

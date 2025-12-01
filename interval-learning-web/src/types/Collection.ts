@@ -54,8 +54,18 @@ export interface Remember {
 }
 
 export interface LearningStatistic {
+    totalRepeatingCards: number;
+    phaseIdToStatistic: Record<string, PhaseStatisticDto>;
     repeatedCards: number;
     learnedCards: number;
+}
+
+export interface PhaseStatisticDto {
+    phaseId: string;
+    totalRepeatingCards: number;
+    lateCards: number;
+    todayCards: number;
+    futureCards: number;
 }
 
 export interface CalendarLearningStatisticModel {

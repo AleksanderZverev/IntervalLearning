@@ -1,3 +1,4 @@
+import dayjs from 'dayjs';
 import { Remember } from '../../types/Collection';
 import { PhaseInfo } from '../../types/schedule';
 import _ from 'lodash';
@@ -5,6 +6,10 @@ import _ from 'lodash';
 export class PhaseHelper {
     static isRepeatingPhase(phase: PhaseInfo): boolean {
         return phase.secondsFromLastPhase < 10;
+    }
+
+    static GetDurationText(phase: PhaseInfo): string {
+        return dayjs.duration(phase.secondsFromLastPhase, 's').humanize();
     }
 
     static GetCurrentPhaseIdFromRemembers(remembers: Remember[]): number {

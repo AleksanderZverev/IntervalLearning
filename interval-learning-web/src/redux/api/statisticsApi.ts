@@ -2,7 +2,11 @@ import { CalendarLearningStatisticModel, LearningStatistic } from '../../types/C
 import { api, tagTypes } from '../apiSlice';
 
 export interface GetLearningStatisticRequest {
+    scheduleUserId: string;
+    scheduleId: string;
+    themeId: number;
     date: string;
+    userCurrentDateTime: string;
 }
 
 export interface GetDetailedCalendarStatisticRequest {
@@ -18,10 +22,10 @@ const basePath = '/statistics';
 export const statisticsApi = api.injectEndpoints({
     endpoints: (build) => ({
         getStatistic: build.query<LearningStatistic, GetLearningStatisticRequest>({
-            query: ({ date }) => ({
+            query: ({ date, scheduleId, scheduleUserId, themeId, userCurrentDateTime }) => ({
                 url: `${basePath}/learning`,
                 method: 'GET',
-                params: { date: date },
+                params: { date: date, scheduleId, scheduleUserId, themeId, userCurrentDateTime },
             }),
             providesTags: [tagTypes.learningStatistic],
         }),
