@@ -180,7 +180,6 @@ export const InProgressCollections: FC = () => {
     const setSchedule = (newSchedule: Schedule | undefined) => setLocalState({ ...localState, schedule: newSchedule });
     const setTheme = (newTheme: Theme | null) => setLocalState({ ...localState, theme: newTheme });
 
-    //TODO: почему-то прокидывает нули
     const {
         data: statistics,
         isLoading: isStatisticLoading,

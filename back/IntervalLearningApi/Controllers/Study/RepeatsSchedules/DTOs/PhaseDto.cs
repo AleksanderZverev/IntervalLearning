@@ -36,8 +36,8 @@ public class BasePhaseBodyValidator<T> : AbstractValidator<T>
     {
         RuleFor(p => p.Id).NotNull().NotEmpty();
         RuleFor(p => p.SecondsFromLastPhase).GreaterThanOrEqualTo((uint)1);
-        RuleFor(p => p.ShortDescription).Length(1, 200).WhenNotNull();
-        RuleFor(p => p.Description).Length(1, 200).WhenNotNull();
+        RuleFor(p => p.ShortDescription).Length(1, 200).WhenNotNullOrEmpty();
+        RuleFor(p => p.Description).Length(1, 200).WhenNotNullOrEmpty();
     }
 }
 

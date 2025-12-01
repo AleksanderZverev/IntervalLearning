@@ -21,11 +21,11 @@ public class CreteScheduleRegister : IRegister
         config.NewConfig<string, ScheduleTitle>()
             .MapWith(s => ScheduleTitle.Create(s).Value);
 
-        config.NewConfig<string, LongSingleLineString>()
-            .MapWith(s => LongSingleLineString.Create(s).Value);
+        config.NewConfig<string?, LongSingleLineString?>()
+            .MapWhenNotNullOrEmpty(s => LongSingleLineString.Create(s).Value);
         
         config.NewConfig<string, LongMultiLineString>()
-            .MapWith(s => LongMultiLineString.Create(s).Value);
+            .MapWhenNotNullOrEmpty(s => LongMultiLineString.Create(s).Value);
 
         config.NewConfig<CreateScheduleRequest, CreateScheduleProps>()
             .Map(d => d.OnStartLearningDescription, s => s.Description)
