@@ -38,6 +38,7 @@ public static class ApiRoutes
         public const string GetNotFinished = "not-finished";
         
         public const string GetCollection = "{collectionId}";
+        public const string GetCollectionStatistic = "{collectionId}/statistic";
         public static string GetCollectionPath(int collectionId) 
             => $"{collectionId}";
             

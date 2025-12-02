@@ -22,4 +22,6 @@ public interface ICardsQueryResolver
 
     Task<List<Card>> GetRangeFromCollections(UserId userId, List<CollectionId> collectionIds);
     Task<bool> ContainsAny(UserId userId, CollectionId collectionId);
+    Task<int> CountByDateRange(UserId userId, CollectionId collectionId, DateTime from, DateTime to);
+    Task<int> CountStartedLearning(UserId userId, CollectionId collectionId);
 }

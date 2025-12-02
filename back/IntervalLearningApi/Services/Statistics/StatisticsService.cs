@@ -283,8 +283,7 @@ public class StatisticsService
         UserId userId,
         DateTimeOffset statisticDate)
     {
-        var dateFrom = statisticDate.UtcDateTime;
-        var dateTo = statisticDate.UtcDateTime.AddHours(24).AddMilliseconds(-1);
+        var (dateFrom, dateTo) = statisticDate.GetDateRange();
         
         var dateRemembers = await db.Remembers
             .Where(r => r.ParentUserId == userId && r.RepeatedDate >= dateFrom && r.RepeatedDate <= dateTo)

@@ -1,0 +1,3 @@
+namespace IntervalLearningApi.Controllers.Study.Collections.Responses.GetCollectionStatistic;
+
+public record GetCollectionStatisticResponse(int TodayAddedCards, int StartedLearningCards);

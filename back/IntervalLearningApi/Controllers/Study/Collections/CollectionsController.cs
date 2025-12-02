@@ -4,6 +4,7 @@ using Application.Commands.Collections.DeleteCollection;
 using Application.Commands.Collections.GetAllUserCollections;
 using Application.Commands.Collections.GetCanStartCollections;
 using Application.Commands.Collections.GetCollection;
+using Application.Commands.Collections.GetCollectionStatistic;
 using Application.Commands.Collections.GetPublicCollection;
 using Application.Commands.Collections.GetRandomWords;
 using Application.Commands.Collections.GetRepeatCollections;
@@ -28,6 +29,7 @@ using IntervalLearningApi.Controllers.Study.Collections.RequestModels.CreateColl
 using IntervalLearningApi.Controllers.Study.Collections.RequestModels.GetNotFinished;
 using IntervalLearningApi.Controllers.Study.Collections.RequestModels.GetRandomWords;
 using IntervalLearningApi.Controllers.Study.Collections.RequestModels.GetRepeatCollections;
+using IntervalLearningApi.Controllers.Study.Collections.Responses.GetCollectionStatistic;
 using IntervalLearningApi.Controllers.Study.Collections.Responses.GetRepeatCollectionsV2;
 using IntervalLearningApi.Controllers.Study.RepeatsSchedules.DTOs;
 using IntervalLearningApi.Extensions;
@@ -424,6 +426,33 @@ namespace IntervalLearningApi.Controllers.Study.Collections
                         request.CheckUnique));
 
             return collectionResult.ToActionResult(collection => mapper.Map<CollectionDto>(collection));
+        }
+
+        [HttpGet(ApiRoutes.Collections.GetCollectionStatistic)]
+        public async Task<ActionResult<GetCollectionStatisticResponse>> GetCollectionStatistic(
+            short collectionId,
+            [FromQuery] DateTimeOffset userCurrentDateTime)
+        {
+            var argsResult = (
+                HttpContext.GetUserId(),
+                CollectionId.Create(collectionId)
+            );
+
+            if (argsResult.HasAnyError())
+                return BadRequest();
+
+            var (userIdResult, collectionIdResult) = argsResult;
+
+            var response = await commandManager
+                .GetCommand<GetCollectionStatisticCommand>()
+                .Handle(
+                    new GetCollectionStatisticCommandRequest(
+                        UserId: userIdResult.Value,
+                        CollectionId: collectionIdResult.Value,
+                        UserCurrentDateTime: userCurrentDateTime));
+
+            return response.ToActionResult(r =>
+                new GetCollectionStatisticResponse(r.TodayAddedCards, r.StartedLearningCards));
         }
     }
 }
