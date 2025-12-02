@@ -6,7 +6,7 @@ import styles from './styles.module.css';
 interface PageHeaderProps {
     title: string;
     titleIcon?: ReactNode;
-    subTitle?: string;
+    subTitle?: string | ReactNode;
     editable?: boolean;
     onChange?: (newTitle: string) => void;
     subMenu?: ReactNode;

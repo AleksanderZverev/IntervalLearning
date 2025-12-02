@@ -113,6 +113,16 @@ export interface AddCardsToMyCollectionRequest {
     };
 }
 
+export interface GetCollectionStatisticResponse {
+    todayAddedCards: number;
+    startedLearningCards: number;
+}
+
+export interface GetCollectionStatisticRequest {
+    collectionId: string;
+    userCurrentDateTime: string;
+}
+
 interface DeleteCollectionRequest {
     userId: string;
     collectionId: string;
@@ -227,6 +237,13 @@ export const collectionsApi = api.injectEndpoints({
                 } catch {}
             },
         }),
+        getCollectionStatistic: build.query<GetCollectionStatisticResponse, GetCollectionStatisticRequest>({
+            query: ({ collectionId, userCurrentDateTime }) => ({
+                url: `${baseUrl}/${collectionId}/statistic`,
+                method: 'GET',
+                params: { userCurrentDateTime },
+            }),
+        }),
     }),
 });
 
@@ -242,4 +259,5 @@ export const {
     useAddCardsToMyCollectionMutation,
     useSearchPublicCollectionQuery,
     useDeleteCollectionMutation,
+    useGetCollectionStatisticQuery,
 } = collectionsApi;

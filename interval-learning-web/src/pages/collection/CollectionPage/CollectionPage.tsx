@@ -1,6 +1,15 @@
 /* eslint-disable react-hooks/rules-of-hooks */
-import { Add, Casino, Public, Visibility } from '@mui/icons-material';
-import { Autocomplete, Button, CircularProgress, Pagination, Stack, TableCell, TextField } from '@mui/material';
+import { Add, Casino, CheckCircle, Public, Visibility } from '@mui/icons-material';
+import {
+    Autocomplete,
+    Button,
+    CircularProgress,
+    Pagination,
+    Stack,
+    TableCell,
+    TextField,
+    Tooltip,
+} from '@mui/material';
 import dayjs from 'dayjs';
 import { FC, useLayoutEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
@@ -10,17 +19,18 @@ import { PageHeader } from '../../../controls/PageHeader/PageHeader';
 import { Table, TableBody, TableHead, TableHeaderCell, TableRow } from '../../../controls/Table/Table';
 import useTypedSelector, { useRequiredTypedSelector } from '../../../hooks/useTypedSelector';
 import { SearchFieldType, useGetCardsQuery, useSearchCardsQuery } from '../../../redux/cardsApi';
-import { useGetCollectionQuery } from '../../../redux/collectionApi';
+import { useGetCollectionQuery, useGetCollectionStatisticQuery } from '../../../redux/collectionApi';
 import { selectCards } from '../../../redux/slices/cardsSlice';
 import { selectCollectionById } from '../../../redux/slices/collectionsSlice';
 import { selectTheme } from '../../../redux/slices/themeSlice';
 import { CardRow } from './CardRow';
 import { FormField } from '../../../controls/Form/Form';
 import { useDocumentTitle } from '../../../hooks/useCollectionTitle';
-import { withQueryResolver } from '../../../hoc/withQueryResolver';
+import { withOtherQueryResolver, withQueryResolver, WithQueryResolverData } from '../../../hoc/withQueryResolver';
 import { Card } from '../../../types/Collection';
 import _ from 'lodash';
 import { PagedCards } from './PagedCards';
+import { LightTooltip } from '../../../controls/LightTooltip/LightTooltip';
 
 const cardsCountPerPage = 50;
 const defaultSearchFieldType = 'Слово';
@@ -36,7 +46,9 @@ interface SearchCardsFilter {
     fieldType: string;
 }
 
-const CollectionPageContent: FC = () => {
+type CollectionPageContentProps = WithQueryResolverData<typeof useGetCollectionStatisticQuery>;
+
+const CollectionPageContent: FC<CollectionPageContentProps> = ({ queryData: collectionStatistic }) => {
     const { userId, collectionId } = useParams();
 
     if (!collectionId || !userId) {
@@ -133,12 +145,32 @@ const CollectionPageContent: FC = () => {
         );
     }
 
+    const isAllCardsLearned =
+        collection.cardsCount != 0 && collectionStatistic.startedLearningCards === collection.cardsCount;
+    const addedCardsInfo: string =
+        collectionStatistic.todayAddedCards > 0 ? `+${collectionStatistic.todayAddedCards} добавлено за сегодня` : '';
+    const startedCardsInfo: string = `изучено ${collectionStatistic.startedLearningCards}`;
+    const statisticInfo: string = Boolean(addedCardsInfo)
+        ? `(${addedCardsInfo}, ${startedCardsInfo})`
+        : `(${startedCardsInfo})`;
+
     return (
         <PageContainer>
             <PageHeader
                 title={collection.title}
                 titleIcon={collection.isPublic && <Public color="primary" />}
-                subTitle={theme.name + ', ' + collection.cardsCount + ' карточек'}
+                subTitle={
+                    <Stack direction={'row'} columnGap={'4px'} alignItems={'center'}>
+                        <span>{theme.name + ', ' + collection.cardsCount} карточек</span>
+                        {isAllCardsLearned ? (
+                            <Tooltip title="Все карточки изучены" placement="top">
+                                <CheckCircle htmlColor="#29cc2f" />
+                            </Tooltip>
+                        ) : (
+                            statisticInfo
+                        )}
+                    </Stack>
+                }
                 subMenu={
                     <Stack direction={'row'} gap="10px">
                         <Button variant="contained" endIcon={<Casino />} onClick={() => navigate('words/random')}>
@@ -224,7 +256,8 @@ const CollectionPageContent: FC = () => {
     );
 };
 
-const ConnectedCollectionPage = withQueryResolver(useGetCollectionQuery)(CollectionPageContent);
+const ConnectedStatisticCollectionPage = withQueryResolver(useGetCollectionStatisticQuery)(CollectionPageContent);
+const ConnectedCollectionPage = withOtherQueryResolver(useGetCollectionQuery)(ConnectedStatisticCollectionPage);
 
 export const CollectionPage: FC = () => {
     const { userId, collectionId } = useParams();
@@ -235,7 +268,9 @@ export const CollectionPage: FC = () => {
 
     return (
         <>
-            <ConnectedCollectionPage queryArg={{ collectionId: collectionId }} />
+            <ConnectedCollectionPage
+                queryArg={{ collectionId: collectionId, userCurrentDateTime: dayjs().startOf('s').toISOString() }}
+            />
         </>
     );
 };
