@@ -48,7 +48,7 @@ public class CardConfiguration  : IEntityTypeConfiguration<Card>
         
         builder.Property(c => c.Tags)
             .HasMaxLength(255)
-            .IsRequired()
+            .IsRequired(false)
             .HasPostgresArrayConversion<CardTag, string>(Converters.CardTag)
             .Metadata.SetValueComparer(new ValueComparer<List<CardTag>>(
                 equalsExpression: (c1, c2) => c1.SequenceEqual(c2),

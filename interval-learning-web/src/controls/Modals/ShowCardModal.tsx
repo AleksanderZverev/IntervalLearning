@@ -5,6 +5,7 @@ import useTypedSelector from '../../hooks/useTypedSelector';
 import { selectCardById } from '../../redux/slices/cardsSlice';
 import { Label } from '../Label/Label';
 import { CreateCardModal } from './CreateCardModal';
+import { Tag } from '../Tags/TagView/Tag';
 
 interface ShowCardModalProps {
     open: boolean;
@@ -41,6 +42,19 @@ export const ShowCardModal: FC<ShowCardModalProps> = ({ open, onClose, userId, c
                         <Label label="Запомнить">{card.frontSideText}</Label>
                         <Label label="Подсказка">{card.promptText}</Label>
                         <Label label="Значение">{card.backSideText}</Label>
+                        <Label label="Теги">
+                            {card.tags && card.tags.length > 0 && (
+                                <Stack component={'ul'} spacing={'5px'}>
+                                    {card.tags.map((t) => {
+                                        return (
+                                            <li key={t}>
+                                                <Tag>{t}</Tag>
+                                            </li>
+                                        );
+                                    })}
+                                </Stack>
+                            )}
+                        </Label>
                         <Label label="Описание">{card.description}</Label>
                         <Label label="Примеры">
                             {card.examples && card.examples.length > 0 && (

@@ -22,6 +22,7 @@ export interface CreateCardItem {
     backText: string;
     description: string | null;
     examples: string[] | null;
+    tags: string[] | null;
 }
 
 export interface GetCardItem {

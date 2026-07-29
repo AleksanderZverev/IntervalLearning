@@ -16,7 +16,7 @@ services:
   backend:
     depends_on: 
       - postgres
-    image: cr.yandex/crphggso9r6t8kclldqf/intervallearningapi:test
+    image: intervallearningapi:2024-05-26
     environment:
       DB_CONNECTION_STRING: "Host=postgres;Port=5432;Database=postgres-test;User Id=postgres-test;Password=postgres-test;Include Error Detail=true;"
       ASPNETCORE_ENVIRONMENT: "Development"
@@ -31,7 +31,7 @@ services:
   client:
     depends_on: 
       - postgres
-    image: cr.yandex/crphggso9r6t8kclldqf/client:test
+    image: client:2024-05-26
     ports:
       - "3000:3000"
 
@@ -39,7 +39,7 @@ services:
     depends_on:
       - backend
       - client
-    image: cr.yandex/crphggso9r6t8kclldqf/nginx:test
+    image: nginx:2024-05-26
     ports:
       - "443:443"
       - "80:80"
