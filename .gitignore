@@ -239,5 +239,6 @@ interval-learning-web/.vscode/
 
 #Secrets
 .env
+secrets.json
 /back/.idea/.idea.IntervalLearningApi/.idea/
 /interval-learning-web/.idea/

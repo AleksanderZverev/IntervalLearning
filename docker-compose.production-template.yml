@@ -14,12 +14,13 @@ services:
       - "5432:5432"
 
   backend:
+    restart: on-failure
     depends_on:
       - postgres
     image: intervallearningapi:${IMAGE_VERSION}
     environment:
       DB_CONNECTION_STRING: "{{DB_CONNECTION_STRING}}"
-      ASPNETCORE_ENVIRONMENT: "Development"
+      ASPNETCORE_ENVIRONMENT: "Production"
       #PUBLIC
       #- ASPNETCORE_URLS=https://+:443;http://+:80
       #IN_DOCKER
