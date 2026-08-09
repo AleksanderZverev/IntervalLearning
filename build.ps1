@@ -7,13 +7,16 @@ if ($answer -ne "y") {
 # Nginx
 
 try {
-    & ./nginx/update-keys.ps1
+    Push-Location ./nginx
+    & ./update-keys.ps1
+    Pop-Location
     if ($LASTEXITCODE -eq 1) {
         Write-Error "update-keys.ps1 failed with exit code 1"
         exit 1
     }
 }
 catch {
+    Pop-Location
     Write-Error "An error occurred while running update-keys.ps1: $_"
     exit 1
 }
