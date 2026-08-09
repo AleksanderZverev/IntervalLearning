@@ -57,15 +57,12 @@ namespace IntervalLearningApi.Services.Dictionary
         }
 
         public async Task<Result<string>> ParseWordsWithTranslations(
-            UserId userId, 
-            short languageId, 
-            short translationLanguageId, 
+            UserId userId,
+            short languageId,
+            short translationLanguageId,
             string text)
         {
             var user = await db.Users.FindAsync(userId);
-
-            if (env.IsProduction() && user is not {Email.Value: "sam998980@mail.ru"})
-                return new ForbiddenError();
 
             var lines = text.Split("\n", StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
 
@@ -103,7 +100,7 @@ namespace IntervalLearningApi.Services.Dictionary
                 }
 
                 if (word == null)
-                { 
+                {
                     word = new LanguageWord
                     {
                         LanguageId = LanguageId.Create(languageId).Value,
@@ -142,7 +139,7 @@ namespace IntervalLearningApi.Services.Dictionary
                     var lowerTranslation = translationText.ToLowerInvariant();
 
                     var sameTranslation = translations
-                        .FirstOrDefault(t => 
+                        .FirstOrDefault(t =>
                             string.Equals(t.Translation, lowerTranslation, StringComparison.InvariantCultureIgnoreCase));
 
                     if (sameTranslation != null)

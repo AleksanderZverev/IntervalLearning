@@ -8,7 +8,7 @@ import { signOutUser } from '../../redux/currentUserSlice';
 import { useTypedDispatch } from '../../hooks/useTypedDispatch';
 import styles from './WebHeader.module.css';
 import { useNavigate } from 'react-router-dom';
-import { EventNote, Language, Logout, Style } from '@mui/icons-material';
+import { EventNote, Language, Logout, MenuBook, Style } from '@mui/icons-material';
 import { StringAvatar } from '../StringAvatar/StringAvatar';
 import { UserHelper } from '../../helpers/UserHelper';
 import classNames from 'classnames';
@@ -113,6 +113,17 @@ const WebHeader: FC<WebHeaderProps> = ({ isServerSide }) => {
                         <EventNote />
                     </ListItemIcon>
                     <ListItemText>Мои учебные планы</ListItemText>
+                </MenuItem>
+                <MenuItem
+                    onClick={onMenuClick(() => {
+                        router.push('/dictionary');
+                        !isServerSide && navigate('/dictionary');
+                    })}
+                >
+                    <ListItemIcon>
+                        <MenuBook />
+                    </ListItemIcon>
+                    <ListItemText>Словарь</ListItemText>
                 </MenuItem>
                 <Divider />
                 <MenuItem
