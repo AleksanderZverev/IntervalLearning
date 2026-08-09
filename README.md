@@ -49,6 +49,30 @@
   - Добавление публичных коллекций себе
   - Просмотр лайков и дизлайков публичной коллекции
 
+## Скриншоты
+
+### Список коллекций
+<img src="./screenshots/collections.png" width="600" alt="Скриншот списка коллекций">
+
+### Список карточек
+<img src="./screenshots/cards.png" width="600" alt="Скриншот списка карточек">
+
+### Выбор коллекции для изучения
+<img src="./screenshots/learning.png" width="600" alt="Скриншот страницы начала изучения">
+
+### Изучение карточек
+<img src="./screenshots/learning-card.png" width="600" alt="Скриншот изучения карточки">
+
+### Повторение карточки
+<img src="./screenshots/repeating-card.png" width="600" alt="Скриншот повторения карточки">
+
+### Статистика изучения
+<img src="./screenshots/statistic.png" width="600" alt="Скриншот статистики изучения">
+
+### Список языков
+<img src="./screenshots/languages.png" width="600" alt="Скриншот списка языков">
+
+
 ## Установка сервиса на своем компьютее
 
 1. Для работы сервиса необходим Docker. [Как установить Docker.](https://docs.docker.com/desktop/setup/install/windows-install/)
