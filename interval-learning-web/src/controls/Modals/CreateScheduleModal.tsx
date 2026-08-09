@@ -59,8 +59,8 @@ interface IPhaseForm {
 const phaseSchema = yup.object({
     durationFromLastPhase: yup.number().min(1).required(),
     durationType: yup.number().required().default(DurationType.Days),
-    shortDescription: yup.string().max(100),
-    description: yup.string().max(1000),
+    shortDescription: yup.string().nullable().max(100),
+    description: yup.string().nullable().max(1000),
     isDefaultValueSide: yup.boolean().default(false),
     addRepeatingAtThatDay: yup.boolean().default(true),
 });

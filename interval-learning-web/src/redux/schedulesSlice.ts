@@ -36,6 +36,7 @@ export interface UpdatePhaseInfo {
     shortDescription: string | null;
     description: string | null;
     isDefaultValueSide: boolean;
+    secondsFromLastPhase: number;
 }
 
 export const schedulesApi = api.injectEndpoints({

@@ -25,13 +25,14 @@ interface IPhaseForm {
     shortDescription: string | null;
     description: string | null;
     isDefaultValueSide: boolean;
-    secondsFromLastStep: number;
+    secondsFromLastPhase: number;
     hasRepeatingPhase: boolean;
 }
 
 const phaseSchema = yup.object({
-    shortDescription: yup.string().max(100),
-    description: yup.string().max(1000),
+    secondsFromLastPhase: yup.number().min(1).required(),
+    shortDescription: yup.string().nullable().max(100),
+    description: yup.string().nullable().max(1000),
     isDefaultValueSide: yup.boolean().default(false),
 });
 
@@ -55,14 +56,14 @@ const schema = yup
         cardsCountPerPhase: yup.number().min(0).max(9999).required(),
         title: yup.string().min(1).max(255).required(),
         phases: yup.array().of(phaseSchema).required(),
-        shortDescription: yup.string().max(100),
-        description: yup.string().max(1000),
-        defaultPhaseShortDescription: yup.string().max(100),
-        defaultRepeatPhaseShortDescription: yup.string().max(100),
-        afterStartPhaseShortDescription: yup.string().max(100),
-        defaultPhaseDescription: yup.string().max(1000),
-        defaultRepeatPhaseDescription: yup.string().max(1000),
-        afterStartPhaseDescription: yup.string().max(1000),
+        shortDescription: yup.string().nullable().max(100),
+        description: yup.string().nullable().max(1000),
+        defaultPhaseShortDescription: yup.string().nullable().max(100),
+        defaultRepeatPhaseShortDescription: yup.string().nullable().max(100),
+        afterStartPhaseShortDescription: yup.string().nullable().max(100),
+        defaultPhaseDescription: yup.string().nullable().max(1000),
+        defaultRepeatPhaseDescription: yup.string().nullable().max(1000),
+        afterStartPhaseDescription: yup.string().nullable().max(1000),
     })
     .required();
 
@@ -83,12 +84,12 @@ function getPhasesValues(phases: PhaseInfo[], hasRepeatingAfterStart: boolean): 
         const phase = phases[i];
         const nextPhase = i + 1 < phases.length ? phases[i + 1] : undefined;
 
-        const hasRepeatingPhase = Boolean(nextPhase);
+        const hasRepeatingPhase = nextPhase ? PhaseHelper.isRepeatingPhase(nextPhase) : false;
 
         const form: IPhaseForm = {
             id: phase.id,
             hasRepeatingPhase,
-            secondsFromLastStep: phase.secondsFromLastPhase,
+            secondsFromLastPhase: phase.secondsFromLastPhase,
             description: phase.description,
             shortDescription: phase.shortDescription,
             isDefaultValueSide: phase.isDefaultValueSide,
@@ -124,7 +125,7 @@ const ScheduleEditPageContent: FC<ScheduleEditPageContentProps> = ({
 }) => {
     const currentUser = useRequiredTypedSelector(selectCurrentUser);
     const schedule = useRequiredTypedSelector((state) =>
-        selectScheduleById(state, getScheduleId(currentUser?.id, scheduleId))
+        selectScheduleById(state, getScheduleId(currentUser?.id, scheduleId)),
     );
 
     useDocumentTitle(schedule.title, '📝');
@@ -157,31 +158,44 @@ const ScheduleEditPageContent: FC<ScheduleEditPageContentProps> = ({
             ...scheduleMapProperties
         } = data;
 
-        let startIndex = 0;
+        let i = 0;
 
         if (repeatAfterStart) {
-            const repeatingPhaseId = formPhases[0].id;
-
             const repeatingPhase: UpdatePhaseInfo = {
-                id: repeatingPhaseId,
+                id: (i + 1).toString(),
                 shortDescription: afterStartPhaseShortDescription,
                 description: afterStartPhaseDescription,
                 isDefaultValueSide: true,
+                secondsFromLastPhase: 1,
             };
 
             phases.push(repeatingPhase);
-            startIndex++;
+            i++;
         }
 
-        for (let i = startIndex; i < formPhases.length; i++) {
-            const p = formPhases[i];
-            const { secondsFromLastStep, hasRepeatingPhase, ...mapProperties } = p;
+        for (const p of formPhases) {
+            const { hasRepeatingPhase, ...mapProperties } = p;
 
             const phase: UpdatePhaseInfo = {
                 ...mapProperties,
+                id: (i + 1).toString(),
             };
 
             phases.push(phase);
+            i++;
+
+            if (hasRepeatingPhase) {
+                const repeatingPhase: PhaseInfo = {
+                    id: (i + 1).toString(),
+                    secondsFromLastPhase: 1,
+                    shortDescription: phase.shortDescription,
+                    description: phase.description,
+                    isDefaultValueSide: true,
+                };
+
+                phases.push(repeatingPhase);
+                i++;
+            }
         }
 
         const scheduleRequest: UpdateScheduleRequest = {
@@ -302,7 +316,7 @@ const ScheduleEditPageContent: FC<ScheduleEditPageContentProps> = ({
                             <Divider />
                             <div style={{ marginTop: 20, display: 'flex', flexDirection: 'column' }}>
                                 {fields.map((f, i) => {
-                                    const duration = dayjs.duration(f.secondsFromLastStep, 's');
+                                    const duration = dayjs.duration(f.secondsFromLastPhase, 's');
                                     return (
                                         <div key={f.id}>
                                             <Stack direction="row" columnGap={'5px'} alignItems="center">
@@ -361,7 +375,7 @@ const ScheduleEditPageContent: FC<ScheduleEditPageContentProps> = ({
 
 const WithEditMutation = withMutationResolver(
     useUpdateScheduleMutation,
-    'Не удалось обновить учебный план'
+    'Не удалось обновить учебный план',
 )(ScheduleEditPageContent);
 
 const WithScheduleLoading = withQueryResolver(useGetMyScheduleQuery)(WithEditMutation);

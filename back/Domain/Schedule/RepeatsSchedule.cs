@@ -141,7 +141,7 @@ public class RepeatsSchedule : AggregateRoot<ComplexScheduleId>, IParentUserRefe
     private Phase? CalculateNextNotRepeatingPhase(PhaseMovement movements, Phase currentPhase)
     {
         if (movements is PhaseMovement.ToStart)
-            return FindNotRepeatingPhaseOf(GetFirstPhase().Id);
+            return GetFirstNotRepeatingPhase();
 
         if (movements is PhaseMovement.Forward)
             return FindNextNotRepeatingPhase(currentPhase.Id);
