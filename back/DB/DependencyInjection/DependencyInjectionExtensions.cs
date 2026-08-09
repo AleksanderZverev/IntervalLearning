@@ -19,6 +19,7 @@ using DB.Repository.Study.Themes;
 using DB.Resolvers.Cards;
 using DB.Resolvers.Collections;
 using DB.Resolvers.Dictionary.Words;
+using DB.Repository.Dictionary;
 using DB.Resolvers.Languages;
 using DB.Resolvers.Store.CollectionPublications;
 using DB.Resolvers.Store.PublicCollection;
@@ -33,6 +34,7 @@ using Domain.Card.ValueObjects;
 using Domain.Collection;
 using Domain.Collection.ValueObjects;
 using Domain.Deprecated.DbModels;
+using Domain.Language;
 using Domain.Queue;
 using Domain.Queue.ValueObjects;
 using Domain.RelearningCard;
@@ -117,6 +119,7 @@ public static class DependencyInjectionExtensions
         
         //Languages
         services.AddScoped<ILanguagesQueryResolver, LanguagesQueryResolver>();
+        services.AddScoped<IRepository<Language>, LanguagesRepository>();
         
         //Transactions
         services.AddScoped<ITransactionProvider, TransactionProvider>();

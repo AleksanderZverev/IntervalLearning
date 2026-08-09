@@ -11,10 +11,19 @@ export const themeSlice = createSlice({
         setThemes: (state, action: PayloadAction<Theme[]>) => {
             adapter.setMany(state, action.payload);
         },
+        addTheme: (state, action: PayloadAction<Theme>) => {
+            adapter.addOne(state, action.payload);
+        },
+        updateTheme: (state, action: PayloadAction<Theme>) => {
+            adapter.upsertOne(state, action.payload);
+        },
+        removeTheme: (state, action: PayloadAction<number>) => {
+            adapter.removeOne(state, action.payload);
+        },
     },
 });
 
-export const { setThemes } = themeSlice.actions;
+export const { setThemes, addTheme, updateTheme, removeTheme } = themeSlice.actions;
 
 export const { selectAll: selectThemes, selectById: selectTheme } = adapter.getSelectors(
     (state: RootState) => state.themes

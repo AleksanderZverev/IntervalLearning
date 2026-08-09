@@ -26,11 +26,11 @@ public class Language : Entity<LanguageId>
     }
 
     public LanguageId Id { get; private set; }
-    public ShortString Name { get; private set; }
-    public ShortString NativeLanguageName { get; private set; }
+    public ShortString Name { get; set; }
+    public ShortString NativeLanguageName { get; set; }
 
-    public ShortString? TranslationLinkTitle { get; private set; }
-    public string? TranslationLink { get; private set; }
+    public ShortString? TranslationLinkTitle { get; set; }
+    public string? TranslationLink { get; set; }
 
     public static Result<Language> Create(
         short id,

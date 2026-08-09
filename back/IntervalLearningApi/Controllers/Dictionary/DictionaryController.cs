@@ -1,6 +1,10 @@
-﻿using Application.Commands.Dictionary.GetLanguages;
+using Application.Commands.Dictionary.CreateLanguage;
+using Application.Commands.Dictionary.DeleteLanguage;
+using Application.Commands.Dictionary.GetLanguages;
 using Application.Commands.Dictionary.SearchWords;
+using Application.Commands.Dictionary.UpdateLanguage;
 using Domain.Dictionary.Word.ValueObjects;
+using Domain.Language.ValueObjects;
 using IntervalLearningApi.Constants;
 using IntervalLearningApi.Controllers.Dictionary.DTOs;
 using IntervalLearningApi.Controllers.Dictionary.Requests.AddTranslations;
@@ -65,7 +69,6 @@ namespace IntervalLearningApi.Controllers.Dictionary
             return foundWordsResult.ToActionResult(foundWords => mapper.Map<List<WordDto>>(foundWords));
         }
 
-
         [HttpGet(ApiRoutes.Dictionary.Get_GenLanguages)]
         [AllowAnonymous]
         public async Task<ActionResult<List<LanguageDto>>> GetLanguages()
@@ -77,6 +80,55 @@ namespace IntervalLearningApi.Controllers.Dictionary
             return languagesResult.ToActionResult(languages => mapper.Map<List<LanguageDto>>(languages));
         }
 
+        [HttpPost(ApiRoutes.Dictionary.Post_CreateLanguage)]
+        public async Task<ActionResult<LanguageDto>> CreateLanguage([FromBody] LanguageRequest request)
+        {
+            var result = await commandManager
+                .GetCommand<CreateLanguageCommand>()
+                .Handle(new CreateLanguageRequest(
+                    request.Name,
+                    request.NativeLanguageName,
+                    request.TranslationLink,
+                    request.TranslationLinkTitle));
+
+            return result.ToActionResult(language => mapper.Map<LanguageDto>(language));
+        }
+
+        [HttpPut(ApiRoutes.Dictionary.Put_UpdateLanguage)]
+        public async Task<ActionResult<LanguageDto>> UpdateLanguage(
+            [FromRoute] short languageId,
+            [FromBody] LanguageRequest request)
+        {
+            var idResult = LanguageId.Create(languageId);
+            if (idResult.IsFailed)
+                return BadRequest();
+
+            var result = await commandManager
+                .GetCommand<UpdateLanguageCommand>()
+                .Handle(new UpdateLanguageRequest(
+                    idResult.Value,
+                    request.Name,
+                    request.NativeLanguageName,
+                    request.TranslationLink,
+                    request.TranslationLinkTitle));
+
+            return result.ToActionResult(language => mapper.Map<LanguageDto>(language));
+        }
+
+        [HttpDelete(ApiRoutes.Dictionary.Delete_DeleteLanguage)]
+        public async Task<ActionResult> DeleteLanguage([FromRoute] short languageId)
+        {
+            var idResult = LanguageId.Create(languageId);
+            if (idResult.IsFailed)
+                return BadRequest();
+
+            var result = await commandManager
+                .GetCommand<DeleteLanguageCommand>()
+                .Handle(new DeleteLanguageRequest(idResult.Value));
+
+            return result.ToActionResult();
+        }
+
         [HttpPost(ApiRoutes.Dictionary.Post_AddTranslations)]
         public async Task<ActionResult<string>> AddTranslations(
             [FromBody] AddTranslationsRequest req)
@@ -85,7 +137,7 @@ namespace IntervalLearningApi.Controllers.Dictionary
 
             if (validation.IsFailed)
                 return validation.ToErrorActionResult();
-            
+
             var userId = HttpContext.GetUserId();
 
             if (userId.IsFailed)
@@ -96,7 +148,7 @@ namespace IntervalLearningApi.Controllers.Dictionary
                 req.LanguageId,
                 req.TranslationLanguageId,
                 req.Text);
-            
+
             return parseWordsResult.ToActionResult();
         }
 
@@ -111,5 +163,13 @@ namespace IntervalLearningApi.Controllers.Dictionary
             var translationsResult = await dictionaryService.GetTranslations(userId.Value, word);
             return translationsResult.ToActionResult(translations => mapper.Map<List<TranslationDto>>(translations));
         }
+    }
+
+    public class LanguageRequest
+    {
+        public string Name { get; set; }
+        public string NativeLanguageName { get; set; }
+        public string? TranslationLink { get; set; }
+        public string? TranslationLinkTitle { get; set; }
     }
 }

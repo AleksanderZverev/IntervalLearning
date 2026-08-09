@@ -122,6 +122,9 @@ public static class ApiRoutes
         public const string BasePath = "api/themes";
 
         public const string Get_GetAll = "";
+        public const string Post_Create = "";
+        public const string Put_Update = "{themeId}";
+        public const string Delete_Delete = "{themeId}";
     }
 
     public class Dictionary
@@ -129,6 +132,9 @@ public static class ApiRoutes
         public const string BasePath = "api/dictionary";
 
         public const string Get_GenLanguages = "languages";
+        public const string Post_CreateLanguage = "languages";
+        public const string Put_UpdateLanguage = "languages/{languageId}";
+        public const string Delete_DeleteLanguage = "languages/{languageId}";
         public const string Post_AddTranslations = "translations";
         public const string Get_GetTranslation = "translations";
         public const string Get_SearchWords = "words/search";

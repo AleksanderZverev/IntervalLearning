@@ -1,6 +1,6 @@
 import { Language, Translation, Word } from '../../types/Dictionary';
 import { api } from '../apiSlice';
-import { addLanguages } from '../slices/languagesSlice';
+import { addLanguages, removeLanguage, upsertLanguage } from '../slices/languagesSlice';
 
 interface GetWordTranslationsRequest {
     word: string;
@@ -15,6 +15,13 @@ export interface AddTranslationsRequest {
 export interface SearchWordsRequest {
     word: string | null;
     pronunciation: string | null;
+}
+
+export interface LanguageRequest {
+    name: string;
+    nativeLanguageName: string;
+    translationLink?: string | null;
+    translationLinkTitle?: string | null;
 }
 
 const baseUrl = 'dictionary';
@@ -38,6 +45,38 @@ export const dictionaryApi = api.injectEndpoints({
                 },
             }),
         }),
+        createLanguage: build.mutation<Language, LanguageRequest>({
+            query: (data) => ({
+                url: `${baseUrl}/languages`,
+                method: 'POST',
+                data,
+            }),
+            onQueryStarted: async (_, { dispatch, queryFulfilled }) => {
+                const { data: created } = await queryFulfilled;
+                dispatch(upsertLanguage(created));
+            },
+        }),
+        updateLanguage: build.mutation<Language, { id: string; data: LanguageRequest }>({
+            query: ({ id, data }) => ({
+                url: `${baseUrl}/languages/${id}`,
+                method: 'PUT',
+                data,
+            }),
+            onQueryStarted: async (_, { dispatch, queryFulfilled }) => {
+                const { data: updated } = await queryFulfilled;
+                dispatch(upsertLanguage(updated));
+            },
+        }),
+        deleteLanguage: build.mutation<void, string>({
+            query: (id) => ({
+                url: `${baseUrl}/languages/${id}`,
+                method: 'DELETE',
+            }),
+            onQueryStarted: async (id, { dispatch, queryFulfilled }) => {
+                await queryFulfilled;
+                dispatch(removeLanguage(id));
+            },
+        }),
         addTranslations: build.mutation<string, AddTranslationsRequest>({
             query: (req) => ({
                 url: `${baseUrl}/translations`,
@@ -58,6 +97,9 @@ export const dictionaryApi = api.injectEndpoints({
 export const {
     useLazyGetWordTranslationsQuery,
     useGetLanguagesQuery,
+    useCreateLanguageMutation,
+    useUpdateLanguageMutation,
+    useDeleteLanguageMutation,
     useAddTranslationsMutation,
     useLazySearchWordsQuery,
 } = dictionaryApi;

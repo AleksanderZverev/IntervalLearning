@@ -9,13 +9,18 @@ export const languagesSlice = createSlice({
     initialState: adapter.getInitialState(),
     reducers: {
         addLanguages: (state, action: PayloadAction<Language[]>) => {
-            const languages = action.payload;
-            adapter.addMany(state, languages);
+            adapter.addMany(state, action.payload);
+        },
+        upsertLanguage: (state, action: PayloadAction<Language>) => {
+            adapter.upsertOne(state, action.payload);
+        },
+        removeLanguage: (state, action: PayloadAction<string>) => {
+            adapter.removeOne(state, action.payload);
         },
     },
 });
 
-export const { addLanguages } = languagesSlice.actions;
+export const { addLanguages, upsertLanguage, removeLanguage } = languagesSlice.actions;
 
 export const { selectAll: selectLanguages, selectById: selectLanguageById } = adapter.getSelectors<RootState>(
     (s) => s.languages

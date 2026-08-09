@@ -5,7 +5,7 @@ namespace Domain.Theme;
 
 public class Theme : Entity<ThemeId>
 {
-    public required ThemeTitle Name { get; init; }
+    public required ThemeTitle Name { get; set; }
 
     public LanguageId? LanguageId { get; set; }
     public virtual Language.Language? Language { get; set; }
