@@ -10,9 +10,10 @@ public class Theme : Entity<ThemeId>
     public LanguageId? LanguageId { get; private set; }
     public virtual Language.Language? Language { get; private set; }
 
-    public Theme(ThemeId id, ThemeTitle name) : base(id)
+    public Theme(ThemeId id, ThemeTitle name, LanguageId? languageId = null) : base(id)
     {
         Name = name;
+        LanguageId = languageId;
     }
 
     public void Update(ThemeTitle name)

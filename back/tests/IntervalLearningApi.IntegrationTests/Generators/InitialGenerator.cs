@@ -102,11 +102,10 @@ public class InitialGenerator : LocalApiTests
             return;
 
         db.Themes.Add(
-            new Theme(ThemeId.Create((short)id).Value)
-            {
-                Name = themeNameVO,
-                LanguageId = LanguageId.Create((short)languageId).Value,
-            });
+            new Theme(
+                ThemeId.Create((short)id).Value,
+                themeNameVO,
+                LanguageId.Create((short)languageId).Value));
         db.SaveChanges();
     }
 }

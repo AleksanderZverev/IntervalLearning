@@ -64,11 +64,10 @@ public class DockerIntervalLearningApiFactory : WebApplicationFactory<Program>, 
         TestConstants.Language.TestId = english.Id;
         TestConstants.Language.SuggestTranslationLanguageId = russian.Id;
 
-        var themeEntry = db.Themes.Add(new Theme(ThemeId.Create(1).Value)
-        {
-            Name = ThemeTitle.Create("Test English").Value,
-            LanguageId = english.Id,
-        });
+        var themeEntry = db.Themes.Add(new Theme(
+            ThemeId.Create(1).Value,
+            ThemeTitle.Create("Test English").Value,
+            english.Id));
         await db.SaveChangesAsync();
         TestConstants.Theme.TestId = themeEntry.Entity.Id;
         
