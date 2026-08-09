@@ -36,6 +36,6 @@ public class UpdateLanguageCommand : ICommand<UpdateLanguageRequest, Language>
         if (updateResult.IsFailed)
             return Result.Fail<Language>(updateResult.Errors);
 
-        return await languagesRepository.UpdateAndSave(language);
+        return languagesRepository.UpdateAndSave(language);
     }
 }

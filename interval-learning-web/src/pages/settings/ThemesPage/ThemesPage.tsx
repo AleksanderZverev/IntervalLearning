@@ -11,7 +11,13 @@ import { Table, TableBody, TableCell, TableHead, TableHeaderCell, TableRow } fro
 import { Form, FormField } from '../../../controls/Form/Form';
 import { withQueryResolver } from '../../../hoc/withQueryResolver';
 import useTypedSelector from '../../../hooks/useTypedSelector';
-import { useGetThemesQuery, useCreateThemeMutation, useUpdateThemeMutation, useDeleteThemeMutation, ThemeRequest } from '../../../redux/themeSlice';
+import {
+    useGetThemesQuery,
+    useCreateThemeMutation,
+    useUpdateThemeMutation,
+    useDeleteThemeMutation,
+    ThemeRequest,
+} from '../../../redux/themeSlice';
 import { selectThemes } from '../../../redux/slices/themeSlice';
 import { Theme } from '../../../types/global';
 import { AssertionModal } from '../../../controls/Modals/AssertionModal';
@@ -39,7 +45,12 @@ const ThemeDialog: FC<ThemeDialogProps> = ({ open, theme, onClose }) => {
         defaultValues: theme ? { name: theme.name } : undefined,
     });
 
-    const { handleSubmit, register, formState: { errors }, reset } = formMethods;
+    const {
+        handleSubmit,
+        register,
+        formState: { errors },
+        reset,
+    } = formMethods;
 
     const onSubmit: SubmitHandler<ThemeFormValues> = async (data) => {
         const request: ThemeRequest = { name: data.name };
@@ -69,11 +80,7 @@ const ThemeDialog: FC<ThemeDialogProps> = ({ open, theme, onClose }) => {
             </DialogContent>
             <DialogActions sx={{ px: 3, pb: 2 }}>
                 <Button onClick={onClose}>Отмена</Button>
-                <Button
-                    variant="contained"
-                    onClick={handleSubmit(onSubmit)}
-                    disabled={isCreating || isUpdating}
-                >
+                <Button variant="contained" onClick={handleSubmit(onSubmit)} disabled={isCreating || isUpdating}>
                     {theme ? 'Сохранить' : 'Создать'}
                 </Button>
             </DialogActions>
@@ -115,36 +122,32 @@ const ThemesPageContent: FC = () => {
                     </Button>
                 }
             />
-            <Table>
-                <TableHead>
-                    <TableHeaderCell>Название</TableHeaderCell>
-                    <TableHeaderCell width={90}></TableHeaderCell>
-                </TableHead>
-                <TableBody>
-                    {themes.map((theme) => (
-                        <TableRow key={theme.id} hover>
-                            <TableCell>{theme.name}</TableCell>
-                            <TableCell width={90} align="right">
-                                <Stack direction="row" justifyContent="flex-end">
-                                    <IconButton size="small" onClick={() => openEdit(theme)}>
-                                        <Edit fontSize="small" />
-                                    </IconButton>
-                                    <IconButton size="small" color="error" onClick={() => setDeletingTheme(theme)}>
-                                        <Delete fontSize="small" />
-                                    </IconButton>
-                                </Stack>
-                            </TableCell>
-                        </TableRow>
-                    ))}
-                </TableBody>
-            </Table>
-            {dialogOpen && (
-                <ThemeDialog
-                    open={dialogOpen}
-                    theme={editingTheme}
-                    onClose={() => setDialogOpen(false)}
-                />
-            )}
+            <div>
+                <Table>
+                    <TableHead>
+                        <TableHeaderCell>Название</TableHeaderCell>
+                        <TableHeaderCell width={90}></TableHeaderCell>
+                    </TableHead>
+                    <TableBody>
+                        {themes.map((theme) => (
+                            <TableRow key={theme.id} hover>
+                                <TableCell>{theme.name}</TableCell>
+                                <TableCell width={90} align="right">
+                                    <Stack direction="row" justifyContent="flex-end">
+                                        <IconButton size="small" onClick={() => openEdit(theme)}>
+                                            <Edit fontSize="small" />
+                                        </IconButton>
+                                        <IconButton size="small" color="error" onClick={() => setDeletingTheme(theme)}>
+                                            <Delete fontSize="small" />
+                                        </IconButton>
+                                    </Stack>
+                                </TableCell>
+                            </TableRow>
+                        ))}
+                    </TableBody>
+                </Table>
+            </div>
+            {dialogOpen && <ThemeDialog open={dialogOpen} theme={editingTheme} onClose={() => setDialogOpen(false)} />}
             {deletingTheme && (
                 <AssertionModal
                     title={`Удалить тему «${deletingTheme.name}»?`}

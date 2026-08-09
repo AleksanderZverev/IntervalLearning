@@ -62,7 +62,12 @@ const LanguageDialog: FC<LanguageDialogProps> = ({ open, language, onClose }) =>
             : undefined,
     });
 
-    const { handleSubmit, register, formState: { errors }, reset } = formMethods;
+    const {
+        handleSubmit,
+        register,
+        formState: { errors },
+        reset,
+    } = formMethods;
 
     const onSubmit: SubmitHandler<LanguageFormValues> = async (data) => {
         const request: LanguageRequest = {
@@ -115,11 +120,7 @@ const LanguageDialog: FC<LanguageDialogProps> = ({ open, language, onClose }) =>
             </DialogContent>
             <DialogActions sx={{ px: 3, pb: 2 }}>
                 <Button onClick={onClose}>Отмена</Button>
-                <Button
-                    variant="contained"
-                    onClick={handleSubmit(onSubmit)}
-                    disabled={isCreating || isUpdating}
-                >
+                <Button variant="contained" onClick={handleSubmit(onSubmit)} disabled={isCreating || isUpdating}>
                     {language ? 'Сохранить' : 'Создать'}
                 </Button>
             </DialogActions>
@@ -161,37 +162,39 @@ const LanguagesPageContent: FC = () => {
                     </Button>
                 }
             />
-            <Table>
-                <TableHead>
-                    <TableHeaderCell>Название</TableHeaderCell>
-                    <TableHeaderCell>Родное название</TableHeaderCell>
-                    <TableHeaderCell width={90}></TableHeaderCell>
-                </TableHead>
-                <TableBody>
-                    {languages.map((language) => (
-                        <TableRow key={language.id} hover>
-                            <TableCell>{language.name}</TableCell>
-                            <TableCell>{language.nativeLanguageName}</TableCell>
-                            <TableCell width={90} align="right">
-                                <Stack direction="row" justifyContent="flex-end">
-                                    <IconButton size="small" onClick={() => openEdit(language)}>
-                                        <Edit fontSize="small" />
-                                    </IconButton>
-                                    <IconButton size="small" color="error" onClick={() => setDeletingLanguage(language)}>
-                                        <Delete fontSize="small" />
-                                    </IconButton>
-                                </Stack>
-                            </TableCell>
-                        </TableRow>
-                    ))}
-                </TableBody>
-            </Table>
+            <div>
+                <Table>
+                    <TableHead>
+                        <TableHeaderCell>Название</TableHeaderCell>
+                        <TableHeaderCell>Родное название</TableHeaderCell>
+                        <TableHeaderCell width={90}></TableHeaderCell>
+                    </TableHead>
+                    <TableBody>
+                        {languages.map((language) => (
+                            <TableRow key={language.id} hover>
+                                <TableCell>{language.name}</TableCell>
+                                <TableCell>{language.nativeLanguageName}</TableCell>
+                                <TableCell width={90} align="right">
+                                    <Stack direction="row" justifyContent="flex-end">
+                                        <IconButton size="small" onClick={() => openEdit(language)}>
+                                            <Edit fontSize="small" />
+                                        </IconButton>
+                                        <IconButton
+                                            size="small"
+                                            color="error"
+                                            onClick={() => setDeletingLanguage(language)}
+                                        >
+                                            <Delete fontSize="small" />
+                                        </IconButton>
+                                    </Stack>
+                                </TableCell>
+                            </TableRow>
+                        ))}
+                    </TableBody>
+                </Table>
+            </div>
             {dialogOpen && (
-                <LanguageDialog
-                    open={dialogOpen}
-                    language={editingLanguage}
-                    onClose={() => setDialogOpen(false)}
-                />
+                <LanguageDialog open={dialogOpen} language={editingLanguage} onClose={() => setDialogOpen(false)} />
             )}
             {deletingLanguage && (
                 <AssertionModal
