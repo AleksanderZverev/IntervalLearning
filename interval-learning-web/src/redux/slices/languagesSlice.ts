@@ -11,8 +11,11 @@ export const languagesSlice = createSlice({
         addLanguages: (state, action: PayloadAction<Language[]>) => {
             adapter.addMany(state, action.payload);
         },
-        upsertLanguage: (state, action: PayloadAction<Language>) => {
-            adapter.upsertOne(state, action.payload);
+        addLanguage: (state, action: PayloadAction<Language>) => {
+            adapter.addOne(state, action.payload);
+        },
+        updateLanguage: (state, action: PayloadAction<Language>) => {
+            adapter.updateOne(state, { id: action.payload.id, changes: action.payload });
         },
         removeLanguage: (state, action: PayloadAction<string>) => {
             adapter.removeOne(state, action.payload);
@@ -20,7 +23,7 @@ export const languagesSlice = createSlice({
     },
 });
 
-export const { addLanguages, upsertLanguage, removeLanguage } = languagesSlice.actions;
+export const { addLanguages, addLanguage, updateLanguage, removeLanguage } = languagesSlice.actions;
 
 export const { selectAll: selectLanguages, selectById: selectLanguageById } = adapter.getSelectors<RootState>(
     (s) => s.languages

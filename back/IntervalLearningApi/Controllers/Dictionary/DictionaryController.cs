@@ -8,6 +8,7 @@ using Domain.Language.ValueObjects;
 using IntervalLearningApi.Constants;
 using IntervalLearningApi.Controllers.Dictionary.DTOs;
 using IntervalLearningApi.Controllers.Dictionary.Requests.AddTranslations;
+using IntervalLearningApi.Controllers.Dictionary.Requests.Language;
 using IntervalLearningApi.Extensions;
 using IntervalLearningApi.Infrastructure.CommandManager;
 using IntervalLearningApi.Infrastructure.ValidatorResolver;
@@ -83,6 +84,10 @@ namespace IntervalLearningApi.Controllers.Dictionary
         [HttpPost(ApiRoutes.Dictionary.Post_CreateLanguage)]
         public async Task<ActionResult<LanguageDto>> CreateLanguage([FromBody] LanguageRequest request)
         {
+            var validation = validatorResolver.Validate(request);
+            if (validation.IsFailed)
+                return validation.ToErrorActionResult();
+
             var result = await commandManager
                 .GetCommand<CreateLanguageCommand>()
                 .Handle(new CreateLanguageRequest(
@@ -99,6 +104,10 @@ namespace IntervalLearningApi.Controllers.Dictionary
             [FromRoute] short languageId,
             [FromBody] LanguageRequest request)
         {
+            var validation = validatorResolver.Validate(request);
+            if (validation.IsFailed)
+                return validation.ToErrorActionResult();
+
             var idResult = LanguageId.Create(languageId);
             if (idResult.IsFailed)
                 return BadRequest();
@@ -165,11 +174,4 @@ namespace IntervalLearningApi.Controllers.Dictionary
         }
     }
 
-    public class LanguageRequest
-    {
-        public string Name { get; set; }
-        public string NativeLanguageName { get; set; }
-        public string? TranslationLink { get; set; }
-        public string? TranslationLinkTitle { get; set; }
-    }
 }

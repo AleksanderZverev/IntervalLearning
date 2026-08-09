@@ -6,7 +6,7 @@ using GlobalTools.Errors;
 
 namespace Application.Commands.Themes.CreateTheme;
 
-public class CreateThemeCommand : ICommand<CreateThemeRequest>
+public class CreateThemeCommand : ICommand<CreateThemeRequest, Theme>
 {
     private readonly IStudyRepository studyRepository;
 
@@ -16,29 +16,26 @@ public class CreateThemeCommand : ICommand<CreateThemeRequest>
         this.studyRepository = studyRepository;
     }
 
-    public async Task<Result> Handle(CreateThemeRequest request)
+    public async Task<Result<Theme>> Handle(CreateThemeRequest request)
     {
         var themeTitle = request.Title;
-        
+
         var sameThemes = await studyRepository.Query.Themes.SearchByTitle(themeTitle);
 
         if (sameThemes is { Count: > 0 })
         {
             return new ConflictError("Theme");
         }
-        
+
         var themeIdResult = studyRepository.Themes.GetUniqueId(new ThemeIdParams());
 
         if (themeIdResult.IsFailed)
         {
             return new InternalError();
         }
-        
-        var theme = new Theme(themeIdResult.Value)
-        {
-            Name = themeTitle
-        };
 
-        return studyRepository.Themes.UpdateAndSave(theme).ToResult();
+        var theme = new Theme(themeIdResult.Value, themeTitle);
+
+        return studyRepository.Themes.AddAndSave(theme);
     }
 }

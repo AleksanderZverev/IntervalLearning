@@ -165,14 +165,14 @@ const LanguagesPageContent: FC = () => {
                 <TableHead>
                     <TableHeaderCell>Название</TableHeaderCell>
                     <TableHeaderCell>Родное название</TableHeaderCell>
-                    <TableHeaderCell align="right"></TableHeaderCell>
+                    <TableHeaderCell width={90}></TableHeaderCell>
                 </TableHead>
                 <TableBody>
                     {languages.map((language) => (
                         <TableRow key={language.id} hover>
                             <TableCell>{language.name}</TableCell>
                             <TableCell>{language.nativeLanguageName}</TableCell>
-                            <TableCell align="right">
+                            <TableCell width={90} align="right">
                                 <Stack direction="row" justifyContent="flex-end">
                                     <IconButton size="small" onClick={() => openEdit(language)}>
                                         <Edit fontSize="small" />

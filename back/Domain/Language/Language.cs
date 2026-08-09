@@ -26,11 +26,38 @@ public class Language : Entity<LanguageId>
     }
 
     public LanguageId Id { get; private set; }
-    public ShortString Name { get; set; }
-    public ShortString NativeLanguageName { get; set; }
+    public ShortString Name { get; private set; }
+    public ShortString NativeLanguageName { get; private set; }
+    public ShortString? TranslationLinkTitle { get; private set; }
+    public string? TranslationLink { get; private set; }
 
-    public ShortString? TranslationLinkTitle { get; set; }
-    public string? TranslationLink { get; set; }
+    public Result Update(
+        string name,
+        string nativeLanguageName,
+        string? translationLink,
+        string? translationLinkTitle)
+    {
+        var nameResult = ShortString.Create(name);
+        if (nameResult.IsFailed) return nameResult.ToResult();
+
+        var nativeNameResult = ShortString.Create(nativeLanguageName);
+        if (nativeNameResult.IsFailed) return nativeNameResult.ToResult();
+
+        ShortString? linkTitle = null;
+        if (!string.IsNullOrEmpty(translationLinkTitle))
+        {
+            var titleResult = ShortString.Create(translationLinkTitle);
+            if (titleResult.IsFailed) return titleResult.ToResult();
+            linkTitle = titleResult.Value;
+        }
+
+        Name = nameResult.Value;
+        NativeLanguageName = nativeNameResult.Value;
+        TranslationLink = translationLink;
+        TranslationLinkTitle = linkTitle;
+
+        return Result.Ok();
+    }
 
     public static Result<Language> Create(
         short id,

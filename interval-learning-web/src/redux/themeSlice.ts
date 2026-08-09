@@ -19,13 +19,16 @@ export const themesApi = api.injectEndpoints({
             }),
             providesTags: [tagTypes.themes],
         }),
-        createTheme: build.mutation<void, ThemeRequest>({
+        createTheme: build.mutation<Theme, ThemeRequest>({
             query: (data) => ({
                 method: 'POST',
                 url: 'themes',
                 data,
             }),
-            invalidatesTags: [tagTypes.themes],
+            onQueryStarted: async (_, { dispatch, queryFulfilled }) => {
+                const { data: created } = await queryFulfilled;
+                dispatch(addTheme(created));
+            },
         }),
         updateTheme: build.mutation<Theme, { id: number; data: ThemeRequest }>({
             query: ({ id, data }) => ({

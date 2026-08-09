@@ -5,12 +5,18 @@ namespace Domain.Theme;
 
 public class Theme : Entity<ThemeId>
 {
-    public required ThemeTitle Name { get; set; }
+    public ThemeTitle Name { get; private set; }
 
-    public LanguageId? LanguageId { get; set; }
-    public virtual Language.Language? Language { get; set; }
+    public LanguageId? LanguageId { get; private set; }
+    public virtual Language.Language? Language { get; private set; }
 
-    public Theme(ThemeId id) : base(id)
+    public Theme(ThemeId id, ThemeTitle name) : base(id)
     {
+        Name = name;
+    }
+
+    public void Update(ThemeTitle name)
+    {
+        Name = name;
     }
 }

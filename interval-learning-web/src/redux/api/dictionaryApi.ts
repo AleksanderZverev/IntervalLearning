@@ -1,6 +1,6 @@
 import { Language, Translation, Word } from '../../types/Dictionary';
 import { api } from '../apiSlice';
-import { addLanguages, removeLanguage, upsertLanguage } from '../slices/languagesSlice';
+import { addLanguage, addLanguages, removeLanguage, updateLanguage } from '../slices/languagesSlice';
 
 interface GetWordTranslationsRequest {
     word: string;
@@ -53,7 +53,7 @@ export const dictionaryApi = api.injectEndpoints({
             }),
             onQueryStarted: async (_, { dispatch, queryFulfilled }) => {
                 const { data: created } = await queryFulfilled;
-                dispatch(upsertLanguage(created));
+                dispatch(addLanguage(created));
             },
         }),
         updateLanguage: build.mutation<Language, { id: string; data: LanguageRequest }>({
@@ -64,7 +64,7 @@ export const dictionaryApi = api.injectEndpoints({
             }),
             onQueryStarted: async (_, { dispatch, queryFulfilled }) => {
                 const { data: updated } = await queryFulfilled;
-                dispatch(upsertLanguage(updated));
+                dispatch(updateLanguage(updated));
             },
         }),
         deleteLanguage: build.mutation<void, string>({

@@ -23,7 +23,7 @@ public class UpdateThemeCommand : ICommand<UpdateThemeRequest, Theme>
             .ErrorIfNull(new NotFoundError(nameof(Theme)))
             .Bind(theme =>
             {
-                theme.Name = request.Title;
+                theme.Update(request.Title);
                 return studyRepository.Themes.UpdateAndSave(theme);
             });
     }

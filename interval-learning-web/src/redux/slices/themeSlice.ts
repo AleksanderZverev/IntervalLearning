@@ -15,7 +15,7 @@ export const themeSlice = createSlice({
             adapter.addOne(state, action.payload);
         },
         updateTheme: (state, action: PayloadAction<Theme>) => {
-            adapter.upsertOne(state, action.payload);
+            adapter.updateOne(state, { id: action.payload.id, changes: action.payload });
         },
         removeTheme: (state, action: PayloadAction<number>) => {
             adapter.removeOne(state, action.payload);

@@ -118,13 +118,13 @@ const ThemesPageContent: FC = () => {
             <Table>
                 <TableHead>
                     <TableHeaderCell>Название</TableHeaderCell>
-                    <TableHeaderCell align="right"></TableHeaderCell>
+                    <TableHeaderCell width={90}></TableHeaderCell>
                 </TableHead>
                 <TableBody>
                     {themes.map((theme) => (
                         <TableRow key={theme.id} hover>
                             <TableCell>{theme.name}</TableCell>
-                            <TableCell align="right">
+                            <TableCell width={90} align="right">
                                 <Stack direction="row" justifyContent="flex-end">
                                     <IconButton size="small" onClick={() => openEdit(theme)}>
                                         <Edit fontSize="small" />
