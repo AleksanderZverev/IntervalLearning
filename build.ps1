@@ -7,7 +7,7 @@ if ($answer -ne "y") {
 # Nginx
 
 try {
-    & ./update-keys.ps1
+    & ./nginx/update-keys.ps1
     if ($LASTEXITCODE -eq 1) {
         Write-Error "update-keys.ps1 failed with exit code 1"
         exit 1
