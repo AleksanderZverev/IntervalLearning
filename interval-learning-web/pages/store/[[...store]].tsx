@@ -18,7 +18,10 @@ const StorePageRouter: FC = () => {
     return (
         <>
             <Head>
-                <title>🔍 Поиск</title>
+                <title>
+                    <span>🔍 Поиск</span>
+                    <sub>beta</sub>
+                </title>
             </Head>
             <PageContainer>
                 <div className={styles.header}>

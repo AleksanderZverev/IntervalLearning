@@ -81,7 +81,8 @@ const WebHeader: FC<WebHeaderProps> = ({ isServerSide }) => {
                     fontSize={23}
                     onClick={() => !isServerSide && navigate('/store')}
                 >
-                    Поиск
+                    <span>Поиск</span>
+                    <span style={{ fontSize: '10px' }}> beta</span>
                 </MuiLink>
             </div>
             <div className={styles.rightHeaderContainer}>
@@ -116,18 +117,6 @@ const WebHeader: FC<WebHeaderProps> = ({ isServerSide }) => {
                 </MenuItem>
                 <MenuItem
                     onClick={onMenuClick(() => {
-                        router.push('/dictionary');
-                        !isServerSide && navigate('/dictionary');
-                    })}
-                >
-                    <ListItemIcon>
-                        <MenuBook />
-                    </ListItemIcon>
-                    <ListItemText>Словарь</ListItemText>
-                </MenuItem>
-                <Divider />
-                <MenuItem
-                    onClick={onMenuClick(() => {
                         router.push('/settings/themes');
                         !isServerSide && navigate('/settings/themes');
                     })}
@@ -147,6 +136,17 @@ const WebHeader: FC<WebHeaderProps> = ({ isServerSide }) => {
                         <Language />
                     </ListItemIcon>
                     <ListItemText>Языки</ListItemText>
+                </MenuItem>
+                <MenuItem
+                    onClick={onMenuClick(() => {
+                        router.push('/dictionary');
+                        !isServerSide && navigate('/dictionary');
+                    })}
+                >
+                    <ListItemIcon>
+                        <MenuBook />
+                    </ListItemIcon>
+                    <ListItemText>Словарь</ListItemText>
                 </MenuItem>
                 <Divider />
                 <MenuItem onClick={onMenuClick(signOut)}>
