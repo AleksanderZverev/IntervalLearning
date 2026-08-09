@@ -21,6 +21,19 @@ if (Test-Path $rootCertPath) {
     mkcert -install
 }
 
+# Skip regeneration if certificates exist and are less than 1 year old
+if ((Test-Path "fullchain.pem") -and (Test-Path "privkey.pem")) {
+    $age = (Get-Date) - (Get-Item "fullchain.pem").LastWriteTime
+    if ($age.TotalDays -lt 365) {
+        Write-Host "Certificates are up to date (created $([int]$age.TotalDays) days ago), skipping regeneration."
+        exit 0
+    }
+}
+
+# Remove old certificates if they exist
+if (Test-Path "fullchain.pem") { Remove-Item "fullchain.pem" }
+if (Test-Path "privkey.pem") { Remove-Item "privkey.pem" }
+
 # Create certificate for localhost
 Write-Host "Creating certificate for localhost..."
 mkcert localhost
