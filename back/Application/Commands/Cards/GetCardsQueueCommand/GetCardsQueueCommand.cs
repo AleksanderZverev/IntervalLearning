@@ -36,7 +36,7 @@ public class GetCardsQueueCommand : ICommand<GetCardsQueueRequest, GetCardsQueue
         var nowWithUserOffset = dateTimeProvider.UtcNow.AddOffset(request.UserCurrentDateTime);
         var isLateRepeating = repeatingDate.Date < nowWithUserOffset.Date;
 
-        var (queueItems, totalCardsCount) = isLateRepeating
+        var (queueItems, totalCardsCount) = isLateRepeating || request.IsRepeatingMode
             ? await studyQueryRepository.RepeatingQueue.GetAllTillDate(
                 request.Page,
                 request.CardsCountByPage,
