@@ -9,6 +9,8 @@ using DomainServices.DB.Transactions;
 using FluentResults;
 using GlobalTools;
 using GlobalTools.Errors;
+using GlobalTools.Extensions;
+using Microsoft.Extensions.Logging;
 
 namespace Application.Commands.Cards.RememberCard;
 
@@ -94,7 +96,10 @@ public class RememberCardCommand : ICommand<RememberCardRequest, NextRepeatInfoR
             if (!allowRepeatingInFuture && !isRepeatable)
             {
                 // logger.LogInformation("Unable to remember. Not time!");
-                return new BadRequestError("It's too early to repeat now");
+                return new BadRequestError($"It's too early to repeat now. "
+                                           + $"Expected repeating date: "
+                                           + $"{queueItem.Date.AddOffset(userCurrentDateTime):O}. "
+                                           + $"CurrentTime: {dateTimeProvider.UtcNow.AddOffset(userCurrentDateTime):O}");
             }
             
             var remember = rememberService.Create(schedule, card, weight, queueItem.PhaseIndex, now, rememberItem.Comment);

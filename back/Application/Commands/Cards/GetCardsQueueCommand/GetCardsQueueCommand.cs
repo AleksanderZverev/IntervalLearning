@@ -64,7 +64,7 @@ public class GetCardsQueueCommand : ICommand<GetCardsQueueRequest, GetCardsQueue
             filteredQueueItems = filteredQueueItems
                 .Where(q => schedule.CanRepeat(
                     q.PhaseIndex,
-                    request.Date,
+                    q.Date,
                     request.UserCurrentDateTime,
                     dateTimeProvider).Value);
 
